@@ -28,7 +28,7 @@ jobs:
         working-directory: ./client
         run: |
           flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
-          flutter pub add desktop_multi_window drift
+          flutter pub add desktop_multi_window:^0.2.0 drift
 
       - name: Install Dependencies
         working-directory: ./client
@@ -60,7 +60,7 @@ jobs:
         working-directory: ./client
         run: |
           flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
-          flutter pub add desktop_multi_window drift
+          flutter pub add desktop_multi_window:^0.2.0 drift
 
       - name: Install Dependencies
         working-directory: ./client

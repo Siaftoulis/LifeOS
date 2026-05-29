@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  desktop_multi_window: any
+  desktop_multi_window: ^0.2.0
   drift: any
 
 dev_dependencies:
