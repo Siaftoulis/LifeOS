@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  # Relational database engine for synchronization persistence
+  db:
+    image: postgres:16-alpine
+    container_name: lifeos-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lifeos_sync
+      POSTGRES_USER: lifeos_admin
+      POSTGRES_PASSWORD: secret_development_password_change_me
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - lifeos-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifeos_admin -d lifeos_sync"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # LifeOS Sync Relay Backend
+  sync-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.sync
+    container_name: lifeos-sync-service
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: lifeos_sync
+      DB_USER: lifeos_admin
+      DB_PASSWORD: secret_development_password_change_me
+      PORT: 8080
+      TAILSCALE_USE_TSNET: "true"
+      TAILSCALE_AUTH_KEY: tskey-auth-dummykey-here
+    networks:
+      - lifeos-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # Zero-Trust Identity Wall (OAuth2 Proxy)
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    container_name: lifeos-auth-proxy
+    restart: unless-stopped
+    ports:
+      - "4180:4180"
+    environment:
+      OAUTH2_PROXY_CLIENT_ID: ${OAUTH_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${COOKIE_SECRET}
+      OAUTH2_PROXY_PROVIDER: google
+      OAUTH2_PROXY_UPSTREAM: http://lifeos-proxy:80
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE: /etc/oauth2-proxy/emails.txt
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
+    command: --config /etc/oauth2-proxy/oauth2_proxy.cfg
+    volumes:
+      - ./proxy/emails.txt:/etc/oauth2-proxy/emails.txt:ro
+      - ./proxy/oauth2_proxy.cfg:/etc/oauth2-proxy/oauth2_proxy.cfg:ro
+    depends_on:
+      - proxy
+    networks:
+      - lifeos-net
+
+  # Secure reverse proxy for routing traffic inside the mesh network
+  proxy:
+    image: caddy:2.7-alpine
+    container_name: lifeos-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - sync-service
+    networks:
+      - lifeos-net
+
+  # Free external tunnel exposing the hardened Caddy edge node
+  zrok-tunnel:
+    image: openziti/zrok
+    container_name: lifeos-zrok-tunnel
+    restart: unless-stopped
+    environment:
+      ZROK_ENABLE_TOKEN: ${ZROK_TOKEN}
+      ZROK_TARGET: http://proxy:80
+    command: sh -c "zrok enable $$ZROK_ENABLE_TOKEN && zrok share public $$ZROK_TARGET --headless"
+    depends_on:
+      - proxy
+    networks:
+      - lifeos-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://proxy:80 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # RustDesk ID Signal Server (hbbs)
+  rustdesk-hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: lifeos-hbbs
+    command: hbbs -k _
+    restart: unless-stopped
+    ports:
+      - "21115:21115"
+      - "21116:21116"
+      - "21116:21116/udp"
+      - "21118:21118"
+    volumes:
+      - ./infrastructure/rustdesk:/root
+    networks:
+      - lifeos-net
+
+  # RustDesk Relay Server (hbbr)
+  rustdesk-hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: lifeos-hbbr
+    command: hbbr -k _
+    restart: unless-stopped
+    ports:
+      - "21117:21117"
+      - "21119:21119"
+    volumes:
+      - ./infrastructure/rustdesk:/root
+    networks:
+      - lifeos-net
+
+volumes:
+  pgdata:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  lifeos-net:
+    driver: bridge

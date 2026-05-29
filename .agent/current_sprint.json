@@ -1,0 +1,351 @@
+[
+    {
+        "macro_task":  "Initialize Environment and Documentation System",
+        "status":  "planning",
+        "sub_tasks":  [
+                          {
+                              "id":  "ENV-001",
+                              "description":  "Verify local monorepo directory allocations and folder permissions",
+                              "dependencies":  [
+
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DOC-001",
+                              "description":  "Formulate exact relational SQLite layouts and metadata fields in docs/DATA_SCHEMAS.md",
+                              "dependencies":  [
+                                                   "ENV-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DOC-002",
+                              "description":  "Formulate embedded Tailscale lifecycle policies in docs/EMBEDDED_NETWORK.md",
+                              "dependencies":  [
+                                                   "ENV-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DOC-003",
+                              "description":  "Formulate atomic delta change logging structures in docs/SYNC_PROTOCOL.md",
+                              "dependencies":  [
+                                                   "ENV-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DB-001",
+                              "description":  "Initialize Drift SQL build configurations (pubspec.yaml, drift_database.dart boilerplate)",
+                              "dependencies":  [
+                                                   "DOC-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DB-002",
+                              "description":  "Implement Drift Habits table entities with mandatory tracking metadata (id, created_at, synced_at)",
+                              "dependencies":  [
+                                                   "DB-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DB-003",
+                              "description":  "Implement Drift Tasks table entities with mandatory tracking metadata (id, created_at, synced_at)",
+                              "dependencies":  [
+                                                   "DB-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "DB-004",
+                              "description":  "Implement Drift Checkins table entities with mandatory tracking metadata (id, created_at, synced_at)",
+                              "dependencies":  [
+                                                   "DB-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "WATCH-001",
+                              "description":  "Implement Win32 ReadDirectoryChangesW native event wrapper for Windows C++ runner",
+                              "dependencies":  [
+                                                   "ENV-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "WATCH-002",
+                              "description":  "Implement Android inotify native kernel listener for Android Kotlin runner",
+                              "dependencies":  [
+                                                   "ENV-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "WATCH-003",
+                              "description":  "Create strict RegExp YAML frontmatter note extraction and parse utilities in Dart",
+                              "dependencies":  [
+                                                   "DOC-001"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "WATCH-004",
+                              "description":  "Create frontmatter metadata updater and single-newline clean formatter logic in Dart",
+                              "dependencies":  [
+                                                   "WATCH-003"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "NET-001",
+                              "description":  "Build Go c-shared dll compilation shell script and exports header (tsnet_client.h) for Windows",
+                              "dependencies":  [
+                                                   "DOC-002"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "NET-002",
+                              "description":  "Build Go Mobile bind Gradle target configuration to output tsnet_client.aar for Android",
+                              "dependencies":  [
+                                                   "DOC-002"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "NET-003",
+                              "description":  "Write Win32 CredReadW security credential storage query functions in C++ runner",
+                              "dependencies":  [
+                                                   "DOC-002"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "NET-004",
+                              "description":  "Write Jetpack Security EncryptedSharedPreferences wrapper in Android Kotlin runner",
+                              "dependencies":  [
+                                                   "DOC-002"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "SYNC-001",
+                              "description":  "Implement SQLite sync_queue table schema and indexing in Drift database configuration",
+                              "dependencies":  [
+                                                   "DOC-003"
+                                               ],
+                              "status":  "completed"
+                          },
+                          {
+                              "id":  "SYNC-002",
+                              "description":  "Write Drift model change-interceptor listener to automatically generate and append deltas",
+                              "dependencies":  [
+                                                   "SYNC-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "SYNC-003",
+                              "description":  "Write LWW (Last-Write-Wins) mutation comparison algorithm with millisecond timestamp verification",
+                              "dependencies":  [
+                                                   "DOC-003"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "SYNC-004",
+                              "description":  "Create synchronization polling scheduler loop connected to virtual tsnet network dial context",
+                              "dependencies":  [
+                                                   "SYNC-002",
+                                                   "SYNC-003"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "PROXY-001",
+                              "description":  "Configure OAuth2 Proxy container parameters for Google/GitHub identity validation",
+                              "dependencies":  [
+                                                   "DOC-004"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "PROXY-002",
+                              "description":  "Establish authenticated emails whitelist file loading inside OAuth2 Proxy container",
+                              "dependencies":  [
+                                                   "PROXY-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "PROXY-003",
+                              "description":  "Script Tailscale Funnel or zrok share commands to expose local proxy port securely",
+                              "dependencies":  [
+                                                   "PROXY-001"
+                                               ],
+                              "status":  "pending"
+                          }
+                      ]
+    },
+    {
+        "status":  "planning",
+        "macro_task":  "INFRASTRUCTURE-CONTROL",
+        "sub_tasks":  [
+                          {
+                              "status":  "completed",
+                              "description":  "Draft Host Daemon architecture and JSON schema specification in INFRASTRUCTURE_CONTROL.md",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "INFRA-001"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Initialize Host Daemon background service wrapper loop for Windows 11 target",
+                              "dependencies":  [
+                                                   "INFRA-001"
+                                               ],
+                              "id":  "INFRA-002"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Implement Hyper-V control PowerShell bridges (Start-VM, Stop-VM) in Host Daemon",
+                              "dependencies":  [
+                                                   "INFRA-002"
+                                               ],
+                              "id":  "INFRA-003"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Implement secure Wake-on-LAN magic packet broadcast utility in Host Daemon",
+                              "dependencies":  [
+                                                   "INFRA-002"
+                                               ],
+                              "id":  "INFRA-004"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Configure RustDesk server and client streaming negotiation parameters",
+                              "dependencies":  [
+                                                   "INFRA-001"
+                                               ],
+                              "id":  "INFRA-005"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Implement live Hyper-V Virtual Machine status query engine (GET_VMS)",
+                              "dependencies":  [
+                                                   "INFRA-003"
+                                               ],
+                              "id":  "INFRA-006"
+                          }
+                      ]
+    },
+    {
+        "status":  "planning",
+        "macro_task":  "WIDGET-SYSTEM",
+        "sub_tasks":  [
+                          {
+                              "status":  "completed",
+                              "description":  "Draft Android AppWidgetProvider XML layouts and RemoteViews Kotlin controller",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "WIDG-001"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Implement Flutter MethodChannel to query local SQLite DAO for widget hydration with WAL and debouncing",
+                              "dependencies":  [
+                                                   "WIDG-001"
+                                               ],
+                              "id":  "WIDG-002"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Windows frameless transparent overlay \u0026 Multi-Window Lifecycle init",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "WIDG-003"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Implement shared SQLite Read-Only database pathways for secondary Windows instances",
+                              "dependencies":  [
+                                                   "WIDG-003"
+                                               ],
+                              "id":  "WIDG-004"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Construct Dart presentation UI for desktop widgets",
+                              "dependencies":  [
+                                                   "WIDG-004"
+                                               ],
+                              "id":  "WIDG-005"
+                          }
+                      ]
+    },
+    {
+        "sub_tasks":  [
+                          {
+                              "status":  "pending",
+                              "description":  "Implement Responsive Layout Shell Switcher (NavigationRail vs BottomNavigationBar)",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "UI-001"
+                          },
+                          {
+                              "status":  "pending",
+                              "description":  "Construct Reactive Habit Matrix Component using localized optimisic state loops",
+                              "dependencies":  [
+                                                   "UI-001"
+                                               ],
+                              "id":  "UI-002"
+                          },
+                          {
+                              "status":  "pending",
+                              "description":  "Construct Hyper-V Infrastructure Status Control Card panel",
+                              "dependencies":  [
+                                                   "UI-001"
+                                               ],
+                              "id":  "UI-003"
+                          },
+                          {
+                              "status":  "pending",
+                              "description":  "Integrate Obsidian DevDocs live directory web-view panel for desktop targets",
+                              "dependencies":  [
+                                                   "UI-001"
+                                               ],
+                              "id":  "UI-004"
+                          }
+                      ],
+        "macro_task":  "CORE-APP-UI"
+    },
+    {
+        "sub_tasks":  [
+                          {
+                              "status":  "completed",
+                              "description":  "Build automated local deployment script mapping ephemeral port hosting with zero-dependency QR code shell rendering",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "TEST-001"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Document Wireless ADB pairing mapping and the local OTA binary distribution pipeline architecture in Vault",
+                              "dependencies":  [
+                                                   "TEST-001"
+                                               ],
+                              "id":  "TEST-002"
+                          }
+                      ],
+        "macro_task":  "TEST-ENVIRONMENT"
+    }
+]

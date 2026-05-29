@@ -1,0 +1,15 @@
+# LifeOS Internal Reverse Proxy & Gateway
+
+:80 {
+    # HSTS Header enforcement to block protocol down-negotiation exploits
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    # Forward-Auth shield querying oauth2-proxy before rendering any app layer
+    forward_auth oauth2-proxy:4180 {
+        uri /oauth2/auth
+        copy_headers X-Auth-Request-User X-Auth-Request-Email
+    }
+
+    # Route successful 200 OK sessions to the internal sync-service mesh node
+    reverse_proxy sync-service:8080
+}

@@ -1,0 +1,39 @@
+# Obsidian Vault Metadata
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/plugins/*/data.json
+vault/.trash/
+
+# Flutter & Dart
+.dart_tool/
+.packages
+.pub-cache/
+client/build/
+client/.flutter-plugins
+client/.flutter-plugins-dependencies
+
+# Platform Specific Builds (Android, iOS, Windows)
+**/android/local.properties
+**/android/key.properties
+**/ios/Pods/
+**/windows/flutter/ephemeral/
+**/windows/x64/
+
+# Go & Backend Runtimes
+backend/host-daemon/host-daemon.exe
+backend/host-daemon/host-daemon
+vendor/
+
+# Docker & Infrastructure Volumes
+pgdata/
+caddy_data/
+caddy_config/
+infrastructure/rustdesk/id_ed25519*
+
+# Environment Variables & IDEs
+.env
+*.env
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

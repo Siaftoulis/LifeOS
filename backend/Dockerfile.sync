@@ -1,0 +1,30 @@
+# Multistage Build Blueprint for LifeOS Sync Service
+FROM golang:1.22-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependency configuration files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source tree code files
+COPY . .
+
+# Compile optimized static binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o lifeos-sync-service ./cmd/sync-server/main.go
+
+# Production stage
+FROM alpine:3.19
+
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /root/
+
+# Copy compiled binary from builder stage
+COPY --from=builder /app/lifeos-sync-service .
+
+# Expose default HTTP socket port
+EXPOSE 8080
+
+# Run sync service executable
+CMD ["./lifeos-sync-service"]
