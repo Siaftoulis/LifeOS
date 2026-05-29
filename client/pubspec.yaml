@@ -1,0 +1,22 @@
+name: lifeos_client
+description: A new Flutter project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  desktop_multi_window: any
+  drift: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: any
+  drift_dev: any
+
+flutter:
+  uses-material-design: true

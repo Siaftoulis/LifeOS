@@ -24,6 +24,12 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Scaffold Missing Project Files
+        working-directory: ./client
+        run: |
+          flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
+          flutter pub add desktop_multi_window drift
+
       - name: Install Dependencies
         working-directory: ./client
         run: flutter pub get
@@ -49,6 +55,12 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: 'stable'
+
+      - name: Scaffold Missing Project Files
+        working-directory: ./client
+        run: |
+          flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
+          flutter pub add desktop_multi_window drift
 
       - name: Install Dependencies
         working-directory: ./client
