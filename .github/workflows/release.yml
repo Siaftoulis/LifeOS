@@ -24,11 +24,15 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Scaffold Missing Project Files
+      - name: Scaffold & Patch Android Project
         working-directory: ./client
         run: |
+          # Backup our custom AndroidManifest before flutter create overwrites it
+          cp android/app/src/main/AndroidManifest.xml /tmp/LifeOSManifest.xml
           flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
           flutter pub add desktop_multi_window:^0.2.0 drift
+          # Restore our manifest that declares LifeOSWidgetProvider
+          cp /tmp/LifeOSManifest.xml android/app/src/main/AndroidManifest.xml
 
       - name: Install Dependencies
         working-directory: ./client
