@@ -347,5 +347,26 @@
                           }
                       ],
         "macro_task":  "TEST-ENVIRONMENT"
+    },
+    {
+        "sub_tasks":  [
+                          {
+                              "status":  "completed",
+                              "description":  "Generate unified multi-layered .gitignore file and initialize local repository context",
+                              "dependencies":  [
+
+                                               ],
+                              "id":  "GIT-001"
+                          },
+                          {
+                              "status":  "completed",
+                              "description":  "Stage project core structural layouts and execute initial system snapshot commit",
+                              "dependencies":  [
+                                                   "GIT-001"
+                                               ],
+                              "id":  "GIT-002"
+                          }
+                      ],
+        "macro_task":  "GIT-BACKUP"
     }
 ]
