@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'markdown_storage.dart';
 
 class ZenEditor extends StatefulWidget {
@@ -16,7 +18,15 @@ class _ZenState extends State<ZenEditor> {
     _focus.addListener(() => setState(() => _hasFocus = _focus.hasFocus));
     _ctrl.addListener(() {
       _timer?.cancel();
-      _timer = Timer(const Duration(milliseconds: 500), () => MarkdownStorage.saveNote('sync_draft.md', _ctrl.text));
+      _timer = Timer(const Duration(milliseconds: 500), () async {
+        final val = _ctrl.text;
+        MarkdownStorage.saveNote('sync_draft.md', val);
+        try {
+          await http.post(Uri.parse('http://192.168.1.7:50051/api/markdown/sync'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'filename': 'sync_draft.md', 'content': val}));
+        } catch (_) {}
+      });
     });
   }
 
@@ -28,14 +38,11 @@ class _ZenState extends State<ZenEditor> {
         opacity: _hasFocus ? 0.0 : 1.0, duration: const Duration(milliseconds: 300),
         child: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Text('Z E N', style: TextStyle(color: Colors.white24, letterSpacing: 4, fontWeight: FontWeight.bold))),
       ),
-      Expanded(child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: TextField(
-          focusNode: _focus, controller: _ctrl, maxLines: null, cursorColor: const Color(0xFF00E5FF),
-          style: const TextStyle(color: Color(0xFFFAFAFA), fontSize: 18, height: 1.6, letterSpacing: -0.36),
-          decoration: const InputDecoration(border: InputBorder.none, hintText: 'Start writing...', hintStyle: TextStyle(color: Colors.white24)),
-        ),
-      )),
+      Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: TextField(
+        focusNode: _focus, controller: _ctrl, maxLines: null, cursorColor: const Color(0xFF00E5FF),
+        style: const TextStyle(color: Color(0xFFFAFAFA), fontSize: 18, height: 1.6, letterSpacing: -0.36),
+        decoration: const InputDecoration(border: InputBorder.none, hintText: 'Start writing...', hintStyle: TextStyle(color: Colors.white24)),
+      ))),
     ]);
   }
 }

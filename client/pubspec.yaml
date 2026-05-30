@@ -13,6 +13,7 @@ dependencies:
   drift: any
   web_socket_channel: ^3.0.3
   path_provider: ^2.1.5
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
