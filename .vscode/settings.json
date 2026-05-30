@@ -1,0 +1,7 @@
+{
+  "gradle.nestedProjects": false,
+  "gradle.projectSearchDirs": [
+    "client/android"
+  ],
+  "gradle.useGradleWrapper": true
+}
