@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'api_client.dart';
+import 'github_update_fetcher.dart';
 
 class UpdateManager extends StatelessWidget {
   final ApiClient api;
@@ -11,29 +13,32 @@ class UpdateManager extends StatelessWidget {
     try {
       final req = await HttpClient().getUrl(Uri.parse('${api.baseUrl}/api/update/download'));
       final res = await req.close();
-      
       final file = File('/data/user/0/com.lifeos.app/cache/update.apk');
       final sink = file.openWrite();
-      // Low-Memory Chunked Download to prevent heap exhaustion
       await res.forEach((chunk) => sink.add(chunk)); 
       await sink.close();
+      await const MethodChannel('com.lifeos.app/installer').invokeMethod('installApk', {'path': file.path});
+    } catch (e) { debugPrint("Update error: $e"); }
+  }
 
-      const chan = MethodChannel('com.lifeos.app/installer');
-      await chan.invokeMethod('installApk', {'path': file.path});
-    } catch (e) {
-      debugPrint("Update error: $e");
-    }
+  static Future<void> checkForUpdates(BuildContext ctx, ApiClient api) async {
+    try {
+      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":0}');
+      final local = jsonDecode(jsonStr)['build_number'] ?? 0;
+      int remote = -1;
+      try { remote = (await api.post('/api/health', {}))['build_number'] ?? -1; } 
+      catch (_) { remote = await GitHubUpdateFetcher.fetchLatestVersionTag(); }
+      if (remote > local && ctx.mounted) {
+        showDialog(context: ctx, builder: (_) => AlertDialog(backgroundColor: const Color(0xFF0A0A0A), title: const Text('Update Available', style: TextStyle(color: Colors.white)), content: Text('Version #$remote is ready to install.', style: const TextStyle(color: Colors.white70)), actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))]));
+      }
+    } catch (e) { debugPrint("Startup check error: $e"); }
   }
 
   @override Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      child: ElevatedButton.icon(
-        onPressed: downloadAndInstallAPK,
-        icon: const Icon(Icons.system_update, color: Colors.white),
-        label: const Text("Check & Install OTA Update", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-      ),
-    );
+    return Container(margin: const EdgeInsets.all(16), child: ElevatedButton.icon(
+      onPressed: downloadAndInstallAPK, icon: const Icon(Icons.system_update, color: Colors.white),
+      label: const Text("Check & Install OTA Update", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+    ));
   }
 }

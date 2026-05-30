@@ -18,8 +18,10 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration {
     return MigrationStrategy(
       beforeOpen: (details) async {
-        // Enforce SQLite WAL Mode for concurrent widget/app data access
         await customStatement('PRAGMA journal_mode=WAL;');
+        await customStatement('CREATE TABLE IF NOT EXISTS notes (id TEXT PRIMARY KEY, content TEXT, updated_at INTEGER, is_dirty INTEGER DEFAULT 0);');
+        await customStatement('CREATE TABLE IF NOT EXISTS habits (id TEXT PRIMARY KEY, name TEXT, streak INTEGER DEFAULT 0, done INTEGER DEFAULT 0, is_dirty INTEGER DEFAULT 0);');
+        await customStatement('CREATE TABLE IF NOT EXISTS NotesIndex (id TEXT PRIMARY KEY, title TEXT, file_path TEXT, last_modified INTEGER, is_dirty INTEGER DEFAULT 0);');
       },
     );
   }

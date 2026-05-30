@@ -3,18 +3,25 @@ package main
 import (
 	"log"
 	"net/http"
+	"lifeos/host-daemon/internal/sync"
+	"lifeos/host-daemon/internal/markdown"
+	"lifeos/host-daemon/internal/media"
+	"lifeos/host-daemon/internal/location"
 )
 
 func main() {
-	// Register the remote action handler
-	http.HandleFunc("/api/v1/action", handleAction)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/action", handleAction)
+	
+	sync.RegisterRoutes(mux)
+	markdown.RegisterRoutes(mux, "./data/markdown")
+	media.RegisterRoutes(mux, "./data/media")
+	location.RegisterRoutes(mux)
 
-	// Configure loop port (defaulting to 50051 for internal relay mesh)
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)
 	
-	// Start the background server loop
-	if err := http.ListenAndServe(port, nil); err != nil {
+	if err := http.ListenAndServe(port, mux); err != nil {
 		log.Fatalf("Host Daemon execution failed: %v", err)
 	}
 }

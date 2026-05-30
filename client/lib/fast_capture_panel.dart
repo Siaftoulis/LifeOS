@@ -24,7 +24,7 @@ class _FCPState extends State<FastCapturePanel> {
         IconButton(icon: const Icon(Icons.send_rounded, color: Colors.blueAccent), onPressed: _save)
       ])),
       Expanded(child: StreamBuilder(stream: widget.db.customSelect('SELECT * FROM notes ORDER BY updated_at DESC LIMIT 5').watch(), builder: (ctx, snap) {
-        final List notes = snap.data ?? [];
+        final List notes = (snap.data as List?) ?? [];
         return ListView.builder(itemCount: notes.length, itemBuilder: (_, i) {
           final n = notes[i].data;
           return Container(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), decoration: BoxDecoration(color: Colors.white.withOpacity(0.02), borderRadius: BorderRadius.circular(12)), child: ListTile(

@@ -1,6 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'feature_registry.dart';
+import 'api_client.dart';
+import 'theme.dart';
+import 'widgets/desktop_nav.dart';
+import 'widgets/mobile_nav.dart';
+import 'widgets/input_curtain.dart';
+import 'widgets/carousel_viewport.dart';
+import 'widgets/radial_dial.dart';
+import 'database/preferences_service.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -8,33 +17,36 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int _idx = 0;
+  int _idx = 0; bool _curtain = false;
+  late final List<FeatureItem> _features;
+  final _pageCtrl = PageController();
+
   @override void initState() {
     super.initState();
-    if (Platform.isAndroid) SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: Colors.black));
+    if (Platform.isAndroid) SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: OLEDTheme.bg, statusBarColor: Colors.transparent));
+    _features = FeatureRegistry.buildRegistry(null, ApiClient(baseUrl: 'http://localhost:8080'));
+  }
+  @override void dispose() { _pageCtrl.dispose(); super.dispose(); }
+
+  void _onNav(int i) {
+    setState(() => _idx = i);
+    _pageCtrl.animateToPage(i, duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
   }
 
   @override Widget build(BuildContext context) {
-    final bg = Platform.isAndroid ? Colors.black : const Color(0xFF0F1115);
-    final views = [const Center(child: Text('Habits Stub')), const Center(child: Text('Hyper-V Stub')), const Center(child: Text('DevDocs Stub'))];
-    return Scaffold(
-      backgroundColor: bg,
-      body: LayoutBuilder(builder: (_, constraints) {
-        final isDesktop = constraints.maxWidth >= 900;
-        final body = isDesktop ? Row(key: const ValueKey('d'), children: [
-          NavigationRail(backgroundColor: bg, unselectedIconTheme: const IconThemeData(color: Colors.grey), selectedIconTheme: const IconThemeData(color: Colors.white), selectedIndex: _idx, onDestinationSelected: (i) => setState(() => _idx = i), destinations: const [
-            NavigationRailDestination(icon: Icon(Icons.check_circle), label: Text('Habits')),
-            NavigationRailDestination(icon: Icon(Icons.dns), label: Text('VMs')),
-            NavigationRailDestination(icon: Icon(Icons.book), label: Text('Docs'))
-          ]),
-          Expanded(child: views[_idx])
-        ]) : Container(key: const ValueKey('m'), child: views[_idx]);
-        return AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: body);
-      }),
-      bottomNavigationBar: MediaQuery.of(context).size.width < 900 ? BottomNavigationBar(
-        backgroundColor: bg, unselectedItemColor: Colors.grey, selectedItemColor: Colors.white, currentIndex: _idx, onTap: (i) => setState(() => _idx = i),
-        items: const [BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: 'Habits'), BottomNavigationBarItem(icon: Icon(Icons.dns), label: 'VMs'), BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Docs')]
-      ) : null,
+    final wide = MediaQuery.of(context).size.width >= 900;
+    return GestureDetector(
+      onPanUpdate: (d) => setState(() => _curtain = d.delta.dy > 10 ? true : (d.delta.dy < -10 ? false : _curtain)),
+      child: Scaffold(
+        backgroundColor: OLEDTheme.bg,
+        body: ListenableBuilder(listenable: PreferencesService.navProfile, builder: (_, __) => Stack(children: [
+          wide ? Row(children: [DesktopNavigationRail(selectedIndex: _idx, onSelected: _onNav, features: _features), Expanded(child: CarouselViewport(controller: _pageCtrl, features: _features, onPageChanged: (i) => setState(() => _idx = i)))])
+               : CarouselViewport(controller: _pageCtrl, features: _features, onPageChanged: (i) => setState(() => _idx = i)),
+          InputCurtain(isOpen: _curtain, onClose: () => setState(() => _curtain = false)),
+          if (!wide && PreferencesService.navProfile.value == 'Dial') Positioned.fill(child: RadialDial(pageController: _pageCtrl)),
+          if (!wide) Positioned(bottom: 0, left: 0, right: 0, child: MobileNavigationBar(selectedIndex: _idx, onSelected: _onNav, features: _features)),
+        ])),
+      ),
     );
   }
 }

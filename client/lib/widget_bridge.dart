@@ -6,7 +6,7 @@ class WidgetBridge {
 
   /// Initializes the listener for native widget RPC requests.
   static void initialize() {
-    _channel.setMethodCallHandler((call) async {
+    _channel.setMethodCallHandler((call) {
       switch (call.method) {
         case 'fetch_metrics':
           return _handleFetchMetrics();

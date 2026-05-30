@@ -1,26 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:drift/native.dart';
+import 'update_manager.dart';
+import 'api_client.dart';
 import 'desktop_widget_manager.dart';
+import 'theme.dart';
+import 'app_shell.dart';
+import 'database/database.dart';
+import 'database/preferences_service.dart';
+import 'feature_registry.dart';
 
-void main(List<String> args) {
-  // Identify if current runtime instance is a secondary Windows desktop widget sub-window
-  if (args.contains('multi_window')) {
-    DesktopWidgetManager.runWidgetOverlay(args);
-    return;
+Future<void> main(List<String> args) async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await PreferencesService.load();
+    if (args.contains('multi_window')) {
+      DesktopWidgetManager.runWidgetOverlay(args);
+      return;
+    }
+
+    final db = AppDatabase(NativeDatabase.memory());
+    final api = ApiClient(baseUrl: 'http://localhost:8080');
+    FeatureRegistry.buildRegistry(db, api);
+
+    runApp(const LifeOSMainApp());
+  } catch (e, stack) {
+    debugPrint("CRITICAL INITIALIZATION ERROR: $e\n$stack");
+    runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF09090B),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text("$e\n\n$stack", style: const TextStyle(color: Colors.red, fontSize: 12)),
+          ),
+        ),
+      ),
+    ));
   }
-
-  // Bypassed if multi_window: Primary App Initialization
-  runApp(const LifeOSMainApp());
 }
 
 class LifeOSMainApp extends StatelessWidget {
-  const LifeOSMainApp({Key? key}) : super(key: key);
+  const LifeOSMainApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('LifeOS Primary Window')),
-      ),
+  @override Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
+      home: Builder(builder: (ctx) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient(baseUrl: 'http://localhost:8080')));
+        return const AppShell();
+      }),
     );
   }
 }
