@@ -17,14 +17,13 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int _idx = 0; bool _curtain = false;
-  late final List<FeatureItem> _features;
+  int _idx = 0; bool _cur = false; late final List<FeatureItem> _feats;
   final _pageCtrl = PageController();
 
   @override void initState() {
     super.initState();
     if (Platform.isAndroid) SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: OLEDTheme.bg, statusBarColor: Colors.transparent));
-    _features = FeatureRegistry.buildRegistry(null, ApiClient(baseUrl: 'http://localhost:8080'));
+    _feats = FeatureRegistry.buildRegistry(null, ApiClient(baseUrl: 'http://localhost:8080'));
   }
   @override void dispose() { _pageCtrl.dispose(); super.dispose(); }
 
@@ -36,15 +35,15 @@ class _AppShellState extends State<AppShell> {
   @override Widget build(BuildContext context) {
     final wide = MediaQuery.of(context).size.width >= 900;
     return GestureDetector(
-      onPanUpdate: (d) => setState(() => _curtain = d.delta.dy > 10 ? true : (d.delta.dy < -10 ? false : _curtain)),
+      onPanUpdate: (d) => setState(() => _cur = d.delta.dy > 10 ? true : (d.delta.dy < -10 ? false : _cur)),
       child: Scaffold(
         backgroundColor: OLEDTheme.bg,
         body: ListenableBuilder(listenable: PreferencesService.navProfile, builder: (_, __) => Stack(children: [
-          wide ? Row(children: [DesktopNavigationRail(selectedIndex: _idx, onSelected: _onNav, features: _features), Expanded(child: CarouselViewport(controller: _pageCtrl, features: _features, onPageChanged: (i) => setState(() => _idx = i)))])
-               : CarouselViewport(controller: _pageCtrl, features: _features, onPageChanged: (i) => setState(() => _idx = i)),
-          InputCurtain(isOpen: _curtain, onClose: () => setState(() => _curtain = false)),
+          wide ? Row(children: [DesktopNavigationRail(selectedIndex: _idx, onSelected: _onNav, features: _feats), Expanded(child: CarouselViewport(controller: _pageCtrl, features: _feats, onPageChanged: (i) => setState(() => _idx = i)))])
+               : CarouselViewport(controller: _pageCtrl, features: _feats, onPageChanged: (i) => setState(() => _idx = i)),
+          InputCurtain(isOpen: _cur, onClose: () => setState(() => _cur = false)),
           if (!wide && PreferencesService.navProfile.value == 'Dial') Positioned.fill(child: RadialDial(pageController: _pageCtrl)),
-          if (!wide) Positioned(bottom: 0, left: 0, right: 0, child: MobileNavigationBar(selectedIndex: _idx, onSelected: _onNav, features: _features)),
+          if (!wide) Positioned(bottom: 0, left: 0, right: 0, child: MobileNavigationBar(selectedIndex: _idx, onSelected: _onNav, features: _feats)),
         ])),
       ),
     );
