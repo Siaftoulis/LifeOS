@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'markdown_storage.dart';
+import '../../api_client.dart';
 
 class ZenEditor extends StatefulWidget {
   const ZenEditor({super.key});
@@ -22,7 +23,9 @@ class _ZenState extends State<ZenEditor> {
         final val = _ctrl.text;
         MarkdownStorage.saveNote('sync_draft.md', val);
         try {
-          await http.post(Uri.parse('http://192.168.1.7:50051/api/markdown/sync'),
+          final baseUrl = ApiClient.instance.baseUrl;
+          final syncUrl = baseUrl.replaceAll(':8080', ':50051') + '/api/markdown/sync';
+          await http.post(Uri.parse(syncUrl),
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode({'filename': 'sync_draft.md', 'content': val}));
         } catch (_) {}

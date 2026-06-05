@@ -23,7 +23,7 @@ class _AppShellState extends State<AppShell> {
   @override void initState() {
     super.initState();
     if (Platform.isAndroid) SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: OLEDTheme.bg, statusBarColor: Colors.transparent));
-    _feats = FeatureRegistry.buildRegistry(null, ApiClient(baseUrl: 'http://localhost:8080'));
+    _feats = FeatureRegistry.buildRegistry(null, ApiClient.instance);
   }
   @override void dispose() { _pageCtrl.dispose(); super.dispose(); }
 

@@ -3,5 +3,6 @@
   "gradle.projectSearchDirs": [
     "client/android"
   ],
-  "gradle.useGradleWrapper": true
+  "gradle.useGradleWrapper": true,
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

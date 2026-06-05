@@ -4,7 +4,7 @@ import 'update_manager.dart';
 import 'api_client.dart';
 import 'desktop_widget_manager.dart';
 import 'theme.dart';
-import 'app_shell.dart';
+import 'presentation/shell/main_shell.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
 import 'feature_registry.dart';
@@ -19,7 +19,8 @@ Future<void> main(List<String> args) async {
     }
 
     final db = AppDatabase(NativeDatabase.memory());
-    final api = ApiClient(baseUrl: 'http://localhost:8080');
+    final baseUrl = await ApiClient.discoverBaseUrl();
+    final api = ApiClient(baseUrl: baseUrl);
     FeatureRegistry.buildRegistry(db, api);
 
     runApp(const LifeOSMainApp());
@@ -47,8 +48,8 @@ class LifeOSMainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
       home: Builder(builder: (ctx) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient(baseUrl: 'http://localhost:8080')));
-        return const AppShell();
+        WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));
+        return const MainShell();
       }),
     );
   }

@@ -16,6 +16,7 @@ $apkPath = ".\client\build\app\outputs\flutter-apk\app-release.apk"
 $destPath = "$distDir\lifeos_latest.apk"
 if (Test-Path $apkPath) {
     Copy-Item -Path $apkPath -Destination $destPath -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $apkPath -Destination "$distDir\app-release.apk" -Force -ErrorAction SilentlyContinue
     $v | ConvertTo-Json | Set-Content "$distDir\metadata.json"
 }
 

@@ -1,25 +1,23 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'api_client.dart';
 import 'github_update_fetcher.dart';
 
 class UpdateManager extends StatelessWidget {
-  final ApiClient api;
-  const UpdateManager({super.key, required this.api});
+  final ApiClient? api;
+  const UpdateManager({super.key, this.api});
 
-  Future<void> downloadAndInstallAPK() async {
-    try {
-      final req = await HttpClient().getUrl(Uri.parse('${api.baseUrl}/api/update/download'));
-      final res = await req.close();
-      final file = File('/data/user/0/com.lifeos.app/cache/update.apk');
-      final sink = file.openWrite();
-      await res.forEach((chunk) => sink.add(chunk)); 
-      await sink.close();
-      await const MethodChannel('com.lifeos.app/installer').invokeMethod('installApk', {'path': file.path});
-    } catch (e) { debugPrint("Update error: $e"); }
+  Future<void> _triggerOTAUpdate() async {
+    final baseUrl = ApiClient.instance.baseUrl;
+    final otaUrl = baseUrl.replaceAll(':8080', ':8081') + '/app-release.apk';
+    final uri = Uri.parse(otaUrl);
+    try { await launchUrl(uri, mode: LaunchMode.externalApplication); }
+    catch (e) { debugPrint("OTA Launch error: $e"); }
   }
+
+  Future<void> downloadAndInstallAPK() => _triggerOTAUpdate();
 
   static Future<void> checkForUpdates(BuildContext ctx, ApiClient api) async {
     try {
@@ -36,7 +34,7 @@ class UpdateManager extends StatelessWidget {
 
   @override Widget build(BuildContext context) {
     return Container(margin: const EdgeInsets.all(16), child: ElevatedButton.icon(
-      onPressed: downloadAndInstallAPK, icon: const Icon(Icons.system_update, color: Colors.white),
+      onPressed: _triggerOTAUpdate, icon: const Icon(Icons.system_update, color: Colors.white),
       label: const Text("Check & Install OTA Update", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
     ));
