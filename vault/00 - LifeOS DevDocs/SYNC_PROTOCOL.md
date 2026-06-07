@@ -1,6 +1,6 @@
 # Technical Specification: Transactional Change Logging Sync Protocol
 
-This specification outlines the design and operational rules for the LifeOS offline-first synchronization protocol. It uses atomic field-level delta logging combined with client-driven Last-Write-Wins (LWW) conflict resolution to ensure mathematical convergence and eventual consistency across multiple client devices.
+This specification outlines the design and operational rules for the LifeOS offline-first synchronization protocol. It uses atomic field-level delta logging combined with client-driven Last-Write-Wins (LWW) conflict resolution for structured database fields, and a Conflict-free Replicated Data Type (CRDT) sequence delta/block-level line diffing approach for unstructured Markdown documents, ensuring mathematical convergence and eventual consistency across all devices.
 
 ---
 
@@ -58,11 +58,14 @@ graph TD
 
 ---
 
-## 4. Conflict Resolution: Last-Write-Wins (LWW)
+## 4. Conflict Resolution & Merge Engines
 
-Conflict resolution is computed strictly using **Client-Side Mutation Timestamps** (`client_updated_at`). Because all local edits generate monotonic millisecond timestamps, conflict resolution is deterministic across all nodes.
+Due to the dual-nature of data in LifeOS (relational database fields vs. unstructured document text), two distinct merge strategies are enforced:
 
-### Field-Level LWW Convergence Policy
+### 4.1. Structured Data: Last-Write-Wins (LWW)
+Conflict resolution for SQLite-backed fields (e.g. habits, tasks, check-ins) is computed strictly using **Client-Side Mutation Timestamps** (`client_updated_at`). Because all local edits generate monotonic millisecond timestamps, conflict resolution is deterministic across all nodes.
+
+#### Field-Level LWW Convergence Policy
 When a client syncs its delta transactions to the upstream server, or when pulling remote transactions, the system evaluates conflicts using the following logic block:
 
 ```
@@ -82,9 +85,25 @@ For each incoming delta transaction D_incoming:
            B. Re-sync current local state to upstream to converge remote server.
 ```
 
-### Critical Verification Controls
+#### Critical Verification Controls
 *   **Time-Skew Protection:** Timestamps are offset against network time protocol (NTP) servers during client network handshakes to guard against manually altered system clocks on mobile devices.
 *   **Monotonic Counter Fallback:** In the highly improbable event that two conflicting client transactions share the identical millisecond timestamp, the client UUID v4 lexicographical sort order is used as a tie-breaker, guaranteeing deterministic resolution.
+
+### 4.2. Unstructured Documents: Block-Level Sequence CRDT
+Using LWW for raw text or Markdown notes would result in catastrophic data loss when concurrent offline edits merge. To resolve this, Markdown files (`.md`) are synced using a simplified JSON-based **Sequence Delta CRDT** combined with line-by-line block diffs:
+
+#### Sequence CRDT Mechanics
+1. **Document Representation:** A note is treated as an ordered sequence of text blocks (paragraphs, headers, checklist items) mapped to unique block identifiers (`block_id`).
+2. **Operations:** Edits are modeled as operations containing:
+   - `op_type`: `INSERT`, `DELETE`, or `REPLACE`
+   - `block_id`: Unique cryptographic hash of the block or element
+   - `origin_id`: Identifier of the block preceding it in the document flow
+   - `value`: Raw text content of the block
+   - `lamport_timestamp`: Logical clock to ensure order resolution
+3. **Merging Protocol:**
+   - Concurrent inserts at the same document location are ordered lexicographically by their `client_id` (Lamport tie-breaker).
+   - Deletions are represented by tombstones (`is_deleted = true`), which are garbage-collected only when all active sync nodes acknowledge deletion.
+   - Text mutations within the same block are merged using a line-by-line three-way diff engine. If conflicts remain unresolved, both versions are appended to the document as a marked conflict block (Git-style conflict markers).
 
 ---
 

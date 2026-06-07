@@ -10,27 +10,32 @@ To maintain cross-compatibility without requiring administrative system access, 
 
 ```mermaid
 graph TD
-    subgraph Client ["LifeOS Native Client Binary"]
+    subgraph Client ["Client Device"]
         UI["UI / Dart Layer"]
-        Native["Cgo / Java JNI"]
         
+        subgraph LocalHost ["Local Sidecar / Desktop Target"]
+            Daemon["Go Daemon (Local Service)"]
+            LocalVault["Local Obsidian Vault"]
+        end
+
         subgraph EmbeddedClient ["Embedded tsnet Client (Go Lib)"]
-            TCPUDP["TCP/UDP Listeners"]
-            Keyring["Virtual Keyring Client"]
             Mesh["Mesh Tunnel"]
         end
         
-        UI -->|"Platform Channel Calls"| EmbeddedClient
-        Native -->|"FFI"| EmbeddedClient
+        UI -->|"1. Local Markdown Saves (Port 8080)"| Daemon
+        Daemon -->|"Write"| LocalVault
     end
 
-    subgraph Server ["Self-Hosted Docker Server"]
-        Proxy["Caddy/Nginx (Reverse Proxy)"]
-        DB[("PostgreSQL (Database)")]
+    subgraph Server ["Remote Server Stack (Private Tailnet)"]
+        Proxy["Caddy (Reverse Proxy - Port 80)"]
+        DockerSync["Docker Sync Server"]
+        DB[("PostgreSQL DB (Port 5432)")]
     end
 
-    Mesh -->|"Encrypted WireGuard Mesh Tunnel"| Proxy
-    Proxy --- DB
+    UI -->|"2. SQLite Delta Sync (Port 80 via tsnet)"| Mesh
+    Mesh -->|"WireGuard Tunnel"| Proxy
+    Proxy --> DockerSync
+    DockerSync --> DB
 ```
 
 ### Compile-Target Specifications
@@ -137,6 +142,24 @@ fun getSecureAuthKey(): String? {
     return sharedPreferences.getString("tailscale_auth_key", null)
 }
 ```
+
+---
+
+## 4. Traffic Segregation & Port Map Reference
+
+To prevent latency on heavy file operations and conserve mobile mesh bandwidth, the traffic routing paths are split cleanly:
+
+### Port & Tunnel Architecture Map
+
+| Service Name | Source Node | Destination Node | Network Path | Target Port | Protocol | Data Type |
+|:---|:---|:---|:---|:---|:---|:---|
+| **Local Markdown Sync** | Flutter UI Client | Go Daemon Sidecar | Localhost Loopback | `8080` | HTTP | Obsidian `.md` updates |
+| **Relational Sync** | Flutter UI Client | Remote Docker Server | Embedded `tsnet` | `80` (Caddy) | HTTPS / JSON | SQLite `sync_queue` deltas |
+| **Identity Proxy** | Inbound Gateway | OAuth2 Proxy | Docker Mesh | `4180` | HTTP | Authentication tokens |
+| **Go Daemon RPC** | Flutter UI Client | Go Daemon Sidecar | Localhost Loopback | `50051` | JSON-RPC/WS | Location radar / VM controls |
+| **RustDesk Relay** | RustDesk Client | Remote RustDesk | Embedded `tsnet` | `21115` - `21119`| TCP/UDP | Desktop stream relay |
+| **Sunshine / Moonlight**| Moonlight Client | Host GPU Server | Embedded `tsnet` | `47989` - `47990`| TCP/UDP | High-performance video |
+| **OTA Server** | Flutter UI Client | Go Daemon / GitHub | Localhost / WAN | `8081` / `443` | HTTPS | Android APK binaries |
 
 ---
 

@@ -4,7 +4,7 @@ import 'update_manager.dart';
 import 'api_client.dart';
 import 'desktop_widget_manager.dart';
 import 'theme.dart';
-import 'presentation/shell/main_shell.dart';
+import 'plugins/markdown/zen_editor.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
 import 'feature_registry.dart';
@@ -49,7 +49,7 @@ class LifeOSMainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
       home: Builder(builder: (ctx) {
         WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));
-        return const MainShell();
+        return const ZenEditor();
       }),
     );
   }

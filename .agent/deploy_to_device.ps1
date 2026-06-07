@@ -129,7 +129,7 @@ Write-Host "Install result: $installResult" -ForegroundColor Gray
 
 if ($installResult -match "Success") {
     Write-Host "`n[3/3] Launching LifeOS on the device..." -ForegroundColor Yellow
-    $launchResult = adb -s $deviceAddress shell monkey -p com.lifeos.app.lifeos_client -c android.intent.category.LAUNCHER 1 2>&1
+    $null = adb -s $deviceAddress shell monkey -p com.lifeos.app.lifeos_client -c android.intent.category.LAUNCHER 1 2>&1
     Write-Host "Launch triggered." -ForegroundColor Green
     
     Write-Host "`n=============================================" -ForegroundColor Green

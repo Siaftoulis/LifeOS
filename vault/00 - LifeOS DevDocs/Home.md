@@ -39,4 +39,4 @@ Select a specification below to view its design architecture:
 
 ## 🛠️ Monorepo Workspace Context
 
-This vault is part of the `lifeos-monorepo` structural design. Refer to [.agent/system_architecture.md](../.agent/system_architecture.md) for structural blueprints, data flows, and platform targets.
+This vault is part of the `lifeos-monorepo` structural design. Refer to [.agent/system_architecture.md](../../.agent/system_architecture.md) for structural blueprints, data flows, and platform targets.
