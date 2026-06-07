@@ -8,10 +8,11 @@ class QuestBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: EverforestColors.bg0,
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -81,6 +82,7 @@ class QuestBoard extends StatelessWidget {
           )
         ],
       ),
+     ),
     );
   }
 

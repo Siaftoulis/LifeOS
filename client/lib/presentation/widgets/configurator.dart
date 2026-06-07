@@ -8,20 +8,21 @@ class GridConfigurator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: EverforestColors.bg0,
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('SYSTEM PREFERENCES', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
-          const SizedBox(height: 24),
-          _buildToggleItem('Enable background daemon sync', true),
-          _buildToggleItem('Spatial Navigation Gestures', true),
-          _buildToggleItem('Developer Mode', false),
-          const SizedBox(height: 48),
-          const Text('SPATIAL MATRIX EDITOR', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
-          const SizedBox(height: 24),
-          Expanded(
-            child: Container(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('SYSTEM PREFERENCES', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
+            const SizedBox(height: 24),
+            _buildToggleItem('Enable background daemon sync', true),
+            _buildToggleItem('Spatial Navigation Gestures', true),
+            _buildToggleItem('Developer Mode', false),
+            const SizedBox(height: 48),
+            const Text('SPATIAL MATRIX EDITOR', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
+            const SizedBox(height: 24),
+            Container(
+              height: 240,
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
@@ -29,6 +30,7 @@ class GridConfigurator extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(24),
               child: GridView.count(
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
@@ -45,8 +47,8 @@ class GridConfigurator extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

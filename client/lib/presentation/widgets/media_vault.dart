@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../theme/everforest_colors.dart';
 
 class MediaVault extends StatelessWidget {
@@ -22,50 +21,48 @@ class MediaVault extends StatelessWidget {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: MasonryGridView.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.8,
+              ),
               itemCount: 20,
               itemBuilder: (context, index) {
-                final height = (index % 3 + 1) * 60.0 + 40.0;
                 final color = blockColors[index % blockColors.length];
                 return Container(
-                  height: height,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.8),
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: EverforestColors.grey.withOpacity(0.5), width: 1.5),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.image_outlined, color: color.withOpacity(0.5), size: 24),
                   ),
                 );
               },
             ),
           ),
           Positioned(
-            top: 16,
-            right: 16,
+            top: 24,
+            right: 24,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: EverforestColors.bg1.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: EverforestColors.bg2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ],
+                color: EverforestColors.bg0,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: EverforestColors.blue.withOpacity(0.5), width: 1.5),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.cloud_done_outlined, color: EverforestColors.green, size: 14),
-                  SizedBox(width: 6),
+                  Icon(Icons.cloud_done_outlined, color: EverforestColors.blue, size: 14),
+                  SizedBox(width: 8),
                   Text(
                     'Auto-Sync: Active',
-                    style: TextStyle(color: EverforestColors.fg, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

@@ -13,60 +13,36 @@ import '../presentation/widgets/void_slot.dart';
 
 class FeatureRegistry {
   static final ValueNotifier<List<List<String>>> layoutNotifier = ValueNotifier([
-    ['radar', 'obsidian', 'infra'], 
-    ['quests', 'home', 'media'], 
-    ['capture', 'configurator', 'void']
+    ['0,0', '0,1', '0,2'], 
+    ['1,0', '1,1', '1,2'], 
+    ['2,0', '2,1', '2,2']
   ]);
 
   static final Map<String, Widget Function()> _builders = {
-    'radar': () => const RadarVision(), 
-    'obsidian': () => const ZenWorkspace(), 
-    'infra': () => const InfraHub(),
-    'quests': () => const QuestBoard(), 
-    'home': () => const HomeView(), 
-    'media': () => const MediaVault(),
-    'capture': () => FastCapturePanel(db: AppDatabase.instance), 
-    'configurator': () => const GridConfigurator(), 
-    'void': () => const VoidSlot(),
+    '0,0': () => const RadarVision(), 
+    '0,1': () => const ZenWorkspace(), 
+    '0,2': () => const InfraHub(),
+    '1,0': () => const QuestBoard(), 
+    '1,1': () => const HomeView(), 
+    '1,2': () => const MediaVault(),
+    '2,0': () => FastCapturePanel(db: AppDatabase.instance), 
+    '2,1': () => const GridConfigurator(), 
+    '2,2': () => const VoidSlot(),
   };
 
   static void rotateLayout() => layoutNotifier.value = [...layoutNotifier.value.sublist(1), layoutNotifier.value.first];
 
   static Widget buildModule(String id, int y, int x) {
-    final Widget view = _builders[id]?.call() ?? Container(color: EverforestColors.bg0);
-    return ColoredBox(
-      color: EverforestColors.bg0,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: TextFormField(
-              readOnly: true,
-              initialValue: '$y-$x: ${id.toUpperCase()}',
-              style: const TextStyle(
-                color: EverforestColors.fg,
-                fontFamily: 'JetBrains Mono',
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: EverforestColors.bg1,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: EverforestColors.bg2),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: ClipRect(
-              child: view,
-            ),
-          ),
-        ],
-      ),
+    // Παίρνουμε το view απευθείας, χωρίς περιττά "τυλίγματα"
+    final Widget view = _builders[id]?.call() ?? const Center(
+      child: Text('UNMAPPED', style: TextStyle(color: EverforestColors.red)),
+    );
+
+    // ΕΠΙΣΤΡΕΦΟΥΜΕ ΑΠΕΥΘΕΙΑΣ ΤΟ VIEW.
+    // Δεν χρειαζόμαστε το ColoredBox και το Stack με το black54 
+    // που σου έκρυβε το UI!
+    return ClipRect(
+      child: view,
     );
   }
 }

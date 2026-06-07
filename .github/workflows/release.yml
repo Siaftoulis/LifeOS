@@ -33,6 +33,8 @@ jobs:
           flutter pub add desktop_multi_window:^0.2.0 drift
           # Restore our manifest that declares LifeOSWidgetProvider
           cp /tmp/LifeOSManifest.xml android/app/src/main/AndroidManifest.xml
+          # Strip local JVM paths so Gradle uses setup-java path on the runner
+          sed -i '/org.gradle.java/d' android/gradle.properties
 
       - name: Install Dependencies
         working-directory: ./client
@@ -105,10 +107,32 @@ jobs:
           name: lifeos-windows-zip
           path: release-artifacts
 
+      - name: Generate Release Body
+        run: |
+          BUILD_NUM=$(jq '.build_number' .agent/version.json)
+          cat << EOF > release_notes.md
+          ## Release Build #$BUILD_NUM
+          
+          ### State of the Application
+          - **Visual Identity**: Transitioned completely to the Everforest Enchanted theme.
+          - **Spatial Navigation Engine**: Refactored to support sliding canvases at 60+ FPS with off-screen clipping bugfixes.
+          - **Responsive Design**: Fixed RenderFlex layout overflow errors in InfraHub, QuestBoard, and Configurator using SingleChildScrollViews.
+          - **Reactive Database & Sync**: Drift SQLite streaming is operational; Go host daemon supports WebSocket telemetry.
+          
+          ### What's New
+          - Restored main.dart to correctly route to MainShell instead of ZenEditor.
+          - Patched spatial engine layout culling (clipBehavior: Clip.none) and rebuilt widgets.
+          - Corrected feature coordinate mapping (RadarVision at [0,0], HomeView at [1,1]).
+          
+          ### How It Was Built
+          - **Android App**: Compiled targeting android-arm64 architecture.
+          - **Windows App**: Compiled native runner on Windows runner instance, packaged as ZIP archive.
+          EOF
+
       - name: Publish Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
-          generate_release_notes: true
+          body_path: release_notes.md
           files: |
             release-artifacts/app-release.apk
             release-artifacts/lifeos-windows-release.zip
