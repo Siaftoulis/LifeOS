@@ -114,15 +114,15 @@ jobs:
           ## Release Build #$BUILD_NUM
           
           ### State of the Application
-          - **Visual Identity**: Transitioned completely to the Everforest Enchanted theme.
-          - **Spatial Navigation Engine**: Refactored to support sliding canvases at 60+ FPS with off-screen clipping bugfixes.
-          - **Responsive Design**: Fixed RenderFlex layout overflow errors in InfraHub, QuestBoard, and Configurator using SingleChildScrollViews.
-          - **Reactive Database & Sync**: Drift SQLite streaming is operational; Go host daemon supports WebSocket telemetry.
+          - **Tablet Parity**: Implemented 1-to-1 Obsidian layouts with multi-pane support, tab bars, and interactive slide-over sidebars.
+          - **Mobile Responsive Flow**: Overhauled the action bar and resolved overflow errors with a fully native hierarchal Mobile Settings overlay.
+          - **File-System Integration**: Added continuous local Vault watchers to recursively map folders into an in-memory link graph.
           
           ### What's New
-          - Restored main.dart to correctly route to MainShell instead of ZenEditor.
-          - Patched spatial engine layout culling (clipBehavior: Clip.none) and rebuilt widgets.
-          - Corrected feature coordinate mapping (RadarVision at [0,0], HomeView at [1,1]).
+          - Replaced side-by-side modal overflows on small viewports with 'MobileSettingsDialog'.
+          - Lowered spatial swipe velocity constraints for flawless desktop pointer drags.
+          - Added dynamic UI bounds blocking grids from collapsing into 1x1 traps.
+          - Pruned all obsolete navigation shells and integrated strict Everforest palette configurations.
           
           ### How It Was Built
           - **Android App**: Compiled targeting android-arm64 architecture.
