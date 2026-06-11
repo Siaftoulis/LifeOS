@@ -7,9 +7,53 @@ class VaultTree extends StatelessWidget {
   const VaultTree({super.key, required this.selectedFile, required this.onFileSelected});
 
   static const Map<String, List<String>> _fs = {
-    'vault/00 - LifeOS DevDocs': ['Sprint_Specs.md', 'Architecture_Blueprints.md', 'Step_Trace_Log.md'],
-    'vault/01 - LifeOS UserDocs': ['Profile_Identity.md', 'Hardware_Specs.md', 'System_Context.md'],
-    'vault/10 - Journal & Tracking': ['Zen_Entry.md', 'Daily_Habits_Log.md', 'Network_Handshakes.md'],
+    'vault/00 - System': ['Home.md'],
+    'vault/01 - Tiles': [
+      'Accounting.md',
+      'Banking System.md',
+      'Book Library.md',
+      'Calendar Habit Task Manager.md',
+      'Cloud & Fake Virtual Machine.md',
+      'Dark Web Management.md',
+      'Flashcards.md',
+      'Home Management.md',
+      'Home Screen.md',
+      'Knowledge Base.md',
+      'Maps & Live Tracking.md',
+      'Movie Library.md',
+      'Music Library.md',
+      'Obsidian Zen Editor.md',
+      'Photo Video Gallery.md',
+      'Point Star System.md',
+      'Preferences Setting Tab.md',
+      'Project Infinity.md',
+      'Virtual Machine Management.md',
+      'YouTube Client.md'
+    ],
+    'vault/02 - Technical Specs': [
+      'Accounting/What to Do.md', 
+      'Banking System/What to Do.md', 
+      'Book Library/What to Do.md', 
+      'Calendar Habit Task Manager/What to Do.md',
+      'Cloud & Fake Virtual Machine/What to Do.md',
+      'Dark Web Management/What to Do.md',
+      'Flashcards/What to Do.md',
+      'Home Management/What to Do.md',
+      'Home Screen/What to Do.md',
+      'Knowledge Base/What to Do.md',
+      'Maps & Live Tracking/What to Do.md',
+      'Movie Library/What to Do.md',
+      'Music Library/What to Do.md',
+      'Obsidian Zen Editor/What to Do.md',
+      'Photo Video Gallery/What to Do.md',
+      'Point Star System/What to Do.md',
+      'Preferences Setting Tab/What to Do.md',
+      'Project Infinity/What to Do.md',
+      'Virtual Machine Management/What to Do.md',
+      'YouTube Client/What to Do.md'
+    ],
+    'vault/03 - work': ['Step_Trace_Log.md', 'subagent_delegation.md', 'system_architecture.md'],
+    'vault/04 - LifeOS DevDocs': ['DATA_SCHEMAS.md', 'EMBEDDED_NETWORK.md', 'SYNC_PROTOCOL.md'],
   };
 
   @override

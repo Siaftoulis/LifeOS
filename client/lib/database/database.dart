@@ -25,7 +25,7 @@ class HabitData {
 }
 
 @DriftDatabase(
-  tables: [LifeEntities, SyncQueue],
+  tables: [LifeEntities, SyncQueue, SystemSettings, UserProfiles],
   daos: [LifeEntitiesDao],
 )
 class AppDatabase extends _$AppDatabase {

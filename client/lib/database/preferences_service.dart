@@ -7,10 +7,11 @@ class PreferencesService {
   static final ValueNotifier<bool> bgSync = ValueNotifier(true);
   static final ValueNotifier<bool> spatialGestures = ValueNotifier(true);
   static final ValueNotifier<bool> devMode = ValueNotifier(false);
+  static final ValueNotifier<String> activeProfileId = ValueNotifier('prof-admin');
+  static final ValueNotifier<String> activeProfileRole = ValueNotifier('ADMIN'); // 'ADMIN', 'NORMAL', 'CHILD'
+  static final ValueNotifier<int> dailyLimitMinutes = ValueNotifier(0);
   static final ValueNotifier<List<List<String>>> layout = ValueNotifier([
-    ['radar', 'obsidian', 'infra'],
-    ['quests', 'home', 'media'],
-    ['capture', 'configurator', 'void']
+    ['home', 'configurator']
   ]);
 
   static File get _file {
@@ -26,6 +27,9 @@ class PreferencesService {
         bgSync.value = data['bgSync'] ?? true;
         spatialGestures.value = data['spatialGestures'] ?? true;
         devMode.value = data['devMode'] ?? false;
+        activeProfileId.value = data['activeProfileId'] ?? 'prof-admin';
+        activeProfileRole.value = data['activeProfileRole'] ?? 'ADMIN';
+        dailyLimitMinutes.value = data['dailyLimitMinutes'] ?? 0;
         if (data['layout'] != null) {
           final List<dynamic> rawLayout = data['layout'];
           layout.value = rawLayout.map((row) => List<String>.from(row)).toList();
@@ -41,6 +45,9 @@ class PreferencesService {
         'bgSync': bgSync.value,
         'spatialGestures': spatialGestures.value,
         'devMode': devMode.value,
+        'activeProfileId': activeProfileId.value,
+        'activeProfileRole': activeProfileRole.value,
+        'dailyLimitMinutes': dailyLimitMinutes.value,
         'layout': layout.value,
       };
       await _file.writeAsString(jsonEncode(data));
@@ -64,6 +71,17 @@ class PreferencesService {
 
   static Future<void> setDevMode(bool val) async {
     devMode.value = val;
+    await save();
+  }
+
+  static Future<void> setActiveProfile(String id, String role) async {
+    activeProfileId.value = id;
+    activeProfileRole.value = role;
+    await save();
+  }
+
+  static Future<void> setDailyLimitMinutes(int val) async {
+    dailyLimitMinutes.value = val;
     await save();
   }
 

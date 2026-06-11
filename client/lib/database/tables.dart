@@ -30,3 +30,25 @@ class SyncQueue extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class SystemSettings extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
+class UserProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get username => text()();
+  TextColumn get role => text()(); // 'ADMIN', 'NORMAL', 'CHILD'
+  IntColumn get dailyLimit => integer().withDefault(const Constant(0))();
+  IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

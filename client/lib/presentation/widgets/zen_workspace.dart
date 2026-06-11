@@ -286,8 +286,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       color: EverforestColors.bg1,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Wrap(
+        alignment: WrapAlignment.spaceEvenly,
         children: [
           _buildHoverIconButton(Icons.hub, 'Open Graph', () {}),
           _buildHoverIconButton(Icons.today, 'Daily Note', () {}),
@@ -595,14 +595,14 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             if (!isMobile) _buildTabBar(),
             const Divider(height: 1, color: EverforestColors.bg2),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
                 children: [
                   _buildHoverIconButton(Icons.arrow_back, 'Back', () {}),
                   _buildHoverIconButton(Icons.arrow_forward, 'Forward', () {}),
-                  const Spacer(),
-                  const Text('Ideas / Writing is telepathy', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
-                  const Spacer(),
+                  const Expanded(
+                    child: Text('Ideas / Writing is telepathy', style: TextStyle(color: EverforestColors.grey, fontSize: 12), textAlign: TextAlign.center, overflow: TextOverflow.ellipsis),
+                  ),
                   _buildHoverIconButton(Icons.menu_book, 'Reading view', () {}, color: _accentColor),
                   _buildHoverIconButton(Icons.more_vert, 'More options', () {}),
                 ],
@@ -661,31 +661,33 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
   Widget _buildMobileActionBar(BuildContext context) {
     return Container(
-      height: 56.0,
       color: EverforestColors.bg1,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.menu, color: EverforestColors.fg),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-            const Expanded(
-              child: Text(
-                'workspace.md', 
-                style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
+        child: Container(
+          height: 56.0,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu, color: EverforestColors.fg),
+                onPressed: () => Scaffold.of(context).openDrawer(),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.menu_open, color: EverforestColors.fg),
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-            ),
-          ],
+              const Expanded(
+                child: Text(
+                  'workspace.md', 
+                  style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.menu_open, color: EverforestColors.fg),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+              ),
+            ],
+          ),
         ),
       ),
     );

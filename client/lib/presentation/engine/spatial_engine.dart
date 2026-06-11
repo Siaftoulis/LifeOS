@@ -32,6 +32,24 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void didUpdateWidget(SpatialEngine oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.layout != oldWidget.layout) {
+      if (widget.layout.isNotEmpty) {
+        y = y.clamp(0, widget.layout.length - 1);
+        if (widget.layout[y].isNotEmpty) {
+          x = x.clamp(0, widget.layout[y].length - 1);
+        } else {
+          x = 0;
+        }
+      } else {
+        x = 0;
+        y = 0;
+      }
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     x = widget.startX;
@@ -156,14 +174,14 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
 
           // Hardcoded layout failsafe
           final List<List<String>> finalLayout = widget.layout.map((r) => List<String>.from(r)).toList();
-          bool hasNexus = false;
+          bool hasHome = false;
           bool hasConfigurator = false;
           for (final row in finalLayout) {
-            if (row.contains('nexus')) hasNexus = true;
+            if (row.contains('home')) hasHome = true;
             if (row.contains('configurator')) hasConfigurator = true;
           }
-          if (!hasNexus) {
-            finalLayout[0][0] = 'nexus';
+          if (!hasHome) {
+            finalLayout[0][0] = 'home';
           }
           if (!hasConfigurator) {
             final int cols = finalLayout[0].length;
@@ -175,15 +193,17 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
           }
 
           // ΚΡΥΦΗ ΔΥΝΑΜΗ: Χτίζουμε τα γραφικά 1 φορά και τα "κλειδώνουμε" στη μνήμη (RepaintBoundary)
-          final List<Widget> cachedChildren = [];
+          final List<List<Widget>> cachedChildren = [];
           for (int r = 0; r < finalLayout.length; r++) {
+            final rowChildren = <Widget>[];
             for (int c = 0; c < finalLayout[r].length; c++) {
-              cachedChildren.add(
+              rowChildren.add(
                 RepaintBoundary(
                   child: widget.builder(finalLayout[r][c], r, c),
                 )
               );
             }
+            cachedChildren.add(rowChildren);
           }
 
           return Focus(
@@ -234,7 +254,7 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
                                 top: r * _h + offset.dy,
                                 width: _w,
                                 height: _h,
-                                child: cachedChildren[r * finalLayout[r].length + c],
+                                child: cachedChildren[r][c],
                               ),
                         ],
                       );

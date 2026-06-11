@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
+import 'database/preferences_service.dart';
 
 enum VMState { running, stopped, starting, stopping }
 
@@ -29,21 +30,46 @@ class _VMCState extends State<VMControlCard> with SingleTickerProviderStateMixin
   }
 
   @override Widget build(BuildContext context) {
-    final col = _s == VMState.running ? Colors.greenAccent : _s == VMState.stopped ? Colors.redAccent : _s == VMState.starting ? Colors.orangeAccent : Colors.grey;
-    final isAnim = _s == VMState.starting || _s == VMState.stopping;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        title: Text(widget.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        subtitle: FadeTransition(opacity: isAnim ? _c : const AlwaysStoppedAnimation(1), child: Text(_s.name.toUpperCase(), style: TextStyle(color: col, fontWeight: FontWeight.w600))),
-        trailing: IgnorePointer(ignoring: isAnim, child: GestureDetector(
-          onTapDown: (_) => _s == VMState.running ? _t = Timer(const Duration(milliseconds: 1500), () => _action(VMState.stopping)) : null,
-          onTapUp: (_) => _t?.cancel(), onTapCancel: () => _t?.cancel(),
-          onTap: () => _s == VMState.stopped ? _action(VMState.starting) : null,
-          child: AnimatedContainer(duration: const Duration(milliseconds: 200), padding: const EdgeInsets.all(12), decoration: BoxDecoration(shape: BoxShape.circle, color: col.withOpacity(0.2)), child: Icon(_s == VMState.running ? Icons.stop : Icons.play_arrow, color: col)),
-        )),
-      ),
+    return ListenableBuilder(
+      listenable: PreferencesService.activeProfileRole,
+      builder: (context, _) {
+        final isChild = PreferencesService.activeProfileRole.value == 'CHILD';
+        final col = isChild ? Colors.grey : (_s == VMState.running ? Colors.greenAccent : _s == VMState.stopped ? Colors.redAccent : _s == VMState.starting ? Colors.orangeAccent : Colors.grey);
+        final isAnim = _s == VMState.starting || _s == VMState.stopping;
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+          child: ListTile(
+            title: Text(widget.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: FadeTransition(
+              opacity: isAnim ? _c : const AlwaysStoppedAnimation(1),
+              child: Text(
+                isChild ? 'LOCKED (CHILD ACCESS)' : _s.name.toUpperCase(),
+                style: TextStyle(color: col, fontWeight: FontWeight.w600),
+              ),
+            ),
+            trailing: IgnorePointer(
+              ignoring: isAnim || isChild,
+              child: GestureDetector(
+                onTapDown: (_) => _s == VMState.running ? _t = Timer(const Duration(milliseconds: 1500), () => _action(VMState.stopping)) : null,
+                onTapUp: (_) => _t?.cancel(),
+                onTapCancel: () => _t?.cancel(),
+                onTap: () => _s == VMState.stopped ? _action(VMState.starting) : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: col.withOpacity(0.2)),
+                  child: Icon(
+                    isChild ? Icons.lock : (_s == VMState.running ? Icons.stop : Icons.play_arrow),
+                    color: col,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -67,7 +67,7 @@ class LifeOSMainApp extends StatelessWidget {
             int startY = 0;
             for (int i = 0; i < layout.length; i++) {
               for (int j = 0; j < layout[i].length; j++) {
-                if (layout[i][j] == 'nexus') {
+                if (layout[i][j] == 'home') {
                   startY = i;
                   startX = j;
                   break;

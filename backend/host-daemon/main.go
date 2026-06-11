@@ -7,6 +7,7 @@ import (
 	"lifeos/host-daemon/internal/markdown"
 	"lifeos/host-daemon/internal/media"
 	"lifeos/host-daemon/internal/location"
+	"lifeos/host-daemon/internal/system"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 	markdown.RegisterRoutes(mux, "./data/markdown")
 	media.RegisterRoutes(mux, "./data/media")
 	location.RegisterRoutes(mux)
+	system.RegisterRoutes(mux)
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)

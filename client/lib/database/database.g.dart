@@ -830,18 +830,635 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   }
 }
 
+class $SystemSettingsTable extends SystemSettings
+    with TableInfo<$SystemSettingsTable, SystemSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SystemSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+      'key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [key, value, updatedAt, isDirty];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'system_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<SystemSetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+          _keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  SystemSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SystemSetting(
+      key: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $SystemSettingsTable createAlias(String alias) {
+    return $SystemSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class SystemSetting extends DataClass implements Insertable<SystemSetting> {
+  final String key;
+  final String value;
+  final int updatedAt;
+  final int isDirty;
+  const SystemSetting(
+      {required this.key,
+      required this.value,
+      required this.updatedAt,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  SystemSettingsCompanion toCompanion(bool nullToAbsent) {
+    return SystemSettingsCompanion(
+      key: Value(key),
+      value: Value(value),
+      updatedAt: Value(updatedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory SystemSetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SystemSetting(
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  SystemSetting copyWith(
+          {String? key, String? value, int? updatedAt, int? isDirty}) =>
+      SystemSetting(
+        key: key ?? this.key,
+        value: value ?? this.value,
+        updatedAt: updatedAt ?? this.updatedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  SystemSetting copyWithCompanion(SystemSettingsCompanion data) {
+    return SystemSetting(
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemSetting(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(key, value, updatedAt, isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SystemSetting &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.updatedAt == this.updatedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class SystemSettingsCompanion extends UpdateCompanion<SystemSetting> {
+  final Value<String> key;
+  final Value<String> value;
+  final Value<int> updatedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const SystemSettingsCompanion({
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SystemSettingsCompanion.insert({
+    required String key,
+    required String value,
+    required int updatedAt,
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : key = Value(key),
+        value = Value(value),
+        updatedAt = Value(updatedAt);
+  static Insertable<SystemSetting> custom({
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<int>? updatedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SystemSettingsCompanion copyWith(
+      {Value<String>? key,
+      Value<String>? value,
+      Value<int>? updatedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return SystemSettingsCompanion(
+      key: key ?? this.key,
+      value: value ?? this.value,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemSettingsCompanion(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserProfilesTable extends UserProfiles
+    with TableInfo<$UserProfilesTable, UserProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _usernameMeta =
+      const VerificationMeta('username');
+  @override
+  late final GeneratedColumn<String> username = GeneratedColumn<String>(
+      'username', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _dailyLimitMeta =
+      const VerificationMeta('dailyLimit');
+  @override
+  late final GeneratedColumn<int> dailyLimit = GeneratedColumn<int>(
+      'daily_limit', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, username, role, dailyLimit, updatedAt, isDirty];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserProfile> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('username')) {
+      context.handle(_usernameMeta,
+          username.isAcceptableOrUnknown(data['username']!, _usernameMeta));
+    } else if (isInserting) {
+      context.missing(_usernameMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('daily_limit')) {
+      context.handle(
+          _dailyLimitMeta,
+          dailyLimit.isAcceptableOrUnknown(
+              data['daily_limit']!, _dailyLimitMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserProfile(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      username: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}username'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      dailyLimit: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}daily_limit'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $UserProfilesTable createAlias(String alias) {
+    return $UserProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class UserProfile extends DataClass implements Insertable<UserProfile> {
+  final String id;
+  final String username;
+  final String role;
+  final int dailyLimit;
+  final int updatedAt;
+  final int isDirty;
+  const UserProfile(
+      {required this.id,
+      required this.username,
+      required this.role,
+      required this.dailyLimit,
+      required this.updatedAt,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['username'] = Variable<String>(username);
+    map['role'] = Variable<String>(role);
+    map['daily_limit'] = Variable<int>(dailyLimit);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  UserProfilesCompanion toCompanion(bool nullToAbsent) {
+    return UserProfilesCompanion(
+      id: Value(id),
+      username: Value(username),
+      role: Value(role),
+      dailyLimit: Value(dailyLimit),
+      updatedAt: Value(updatedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory UserProfile.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserProfile(
+      id: serializer.fromJson<String>(json['id']),
+      username: serializer.fromJson<String>(json['username']),
+      role: serializer.fromJson<String>(json['role']),
+      dailyLimit: serializer.fromJson<int>(json['dailyLimit']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'username': serializer.toJson<String>(username),
+      'role': serializer.toJson<String>(role),
+      'dailyLimit': serializer.toJson<int>(dailyLimit),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  UserProfile copyWith(
+          {String? id,
+          String? username,
+          String? role,
+          int? dailyLimit,
+          int? updatedAt,
+          int? isDirty}) =>
+      UserProfile(
+        id: id ?? this.id,
+        username: username ?? this.username,
+        role: role ?? this.role,
+        dailyLimit: dailyLimit ?? this.dailyLimit,
+        updatedAt: updatedAt ?? this.updatedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  UserProfile copyWithCompanion(UserProfilesCompanion data) {
+    return UserProfile(
+      id: data.id.present ? data.id.value : this.id,
+      username: data.username.present ? data.username.value : this.username,
+      role: data.role.present ? data.role.value : this.role,
+      dailyLimit:
+          data.dailyLimit.present ? data.dailyLimit.value : this.dailyLimit,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserProfile(')
+          ..write('id: $id, ')
+          ..write('username: $username, ')
+          ..write('role: $role, ')
+          ..write('dailyLimit: $dailyLimit, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, username, role, dailyLimit, updatedAt, isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserProfile &&
+          other.id == this.id &&
+          other.username == this.username &&
+          other.role == this.role &&
+          other.dailyLimit == this.dailyLimit &&
+          other.updatedAt == this.updatedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
+  final Value<String> id;
+  final Value<String> username;
+  final Value<String> role;
+  final Value<int> dailyLimit;
+  final Value<int> updatedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const UserProfilesCompanion({
+    this.id = const Value.absent(),
+    this.username = const Value.absent(),
+    this.role = const Value.absent(),
+    this.dailyLimit = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserProfilesCompanion.insert({
+    required String id,
+    required String username,
+    required String role,
+    this.dailyLimit = const Value.absent(),
+    required int updatedAt,
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        username = Value(username),
+        role = Value(role),
+        updatedAt = Value(updatedAt);
+  static Insertable<UserProfile> custom({
+    Expression<String>? id,
+    Expression<String>? username,
+    Expression<String>? role,
+    Expression<int>? dailyLimit,
+    Expression<int>? updatedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (username != null) 'username': username,
+      if (role != null) 'role': role,
+      if (dailyLimit != null) 'daily_limit': dailyLimit,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserProfilesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? username,
+      Value<String>? role,
+      Value<int>? dailyLimit,
+      Value<int>? updatedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return UserProfilesCompanion(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      role: role ?? this.role,
+      dailyLimit: dailyLimit ?? this.dailyLimit,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (dailyLimit.present) {
+      map['daily_limit'] = Variable<int>(dailyLimit.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('username: $username, ')
+          ..write('role: $role, ')
+          ..write('dailyLimit: $dailyLimit, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LifeEntitiesTable lifeEntities = $LifeEntitiesTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $SystemSettingsTable systemSettings = $SystemSettingsTable(this);
+  late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
   late final LifeEntitiesDao lifeEntitiesDao =
       LifeEntitiesDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [lifeEntities, syncQueue];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [lifeEntities, syncQueue, systemSettings, userProfiles];
 }
 
 typedef $$LifeEntitiesTableCreateCompanionBuilder = LifeEntitiesCompanion
@@ -1259,6 +1876,353 @@ typedef $$SyncQueueTableProcessedTableManager = ProcessedTableManager<
     ),
     SyncQueueData,
     PrefetchHooks Function()>;
+typedef $$SystemSettingsTableCreateCompanionBuilder = SystemSettingsCompanion
+    Function({
+  required String key,
+  required String value,
+  required int updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$SystemSettingsTableUpdateCompanionBuilder = SystemSettingsCompanion
+    Function({
+  Value<String> key,
+  Value<String> value,
+  Value<int> updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+class $$SystemSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+}
+
+class $$SystemSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SystemSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+}
+
+class $$SystemSettingsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SystemSettingsTable,
+    SystemSetting,
+    $$SystemSettingsTableFilterComposer,
+    $$SystemSettingsTableOrderingComposer,
+    $$SystemSettingsTableAnnotationComposer,
+    $$SystemSettingsTableCreateCompanionBuilder,
+    $$SystemSettingsTableUpdateCompanionBuilder,
+    (
+      SystemSetting,
+      BaseReferences<_$AppDatabase, $SystemSettingsTable, SystemSetting>
+    ),
+    SystemSetting,
+    PrefetchHooks Function()> {
+  $$SystemSettingsTableTableManager(
+      _$AppDatabase db, $SystemSettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SystemSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SystemSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SystemSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> updatedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SystemSettingsCompanion(
+            key: key,
+            value: value,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String key,
+            required String value,
+            required int updatedAt,
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SystemSettingsCompanion.insert(
+            key: key,
+            value: value,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SystemSettingsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SystemSettingsTable,
+    SystemSetting,
+    $$SystemSettingsTableFilterComposer,
+    $$SystemSettingsTableOrderingComposer,
+    $$SystemSettingsTableAnnotationComposer,
+    $$SystemSettingsTableCreateCompanionBuilder,
+    $$SystemSettingsTableUpdateCompanionBuilder,
+    (
+      SystemSetting,
+      BaseReferences<_$AppDatabase, $SystemSettingsTable, SystemSetting>
+    ),
+    SystemSetting,
+    PrefetchHooks Function()>;
+typedef $$UserProfilesTableCreateCompanionBuilder = UserProfilesCompanion
+    Function({
+  required String id,
+  required String username,
+  required String role,
+  Value<int> dailyLimit,
+  required int updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$UserProfilesTableUpdateCompanionBuilder = UserProfilesCompanion
+    Function({
+  Value<String> id,
+  Value<String> username,
+  Value<String> role,
+  Value<int> dailyLimit,
+  Value<int> updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+class $$UserProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get username => $composableBuilder(
+      column: $table.username, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get dailyLimit => $composableBuilder(
+      column: $table.dailyLimit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+}
+
+class $$UserProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get username => $composableBuilder(
+      column: $table.username, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get dailyLimit => $composableBuilder(
+      column: $table.dailyLimit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+}
+
+class $$UserProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserProfilesTable> {
+  $$UserProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get username =>
+      $composableBuilder(column: $table.username, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<int> get dailyLimit => $composableBuilder(
+      column: $table.dailyLimit, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+}
+
+class $$UserProfilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UserProfilesTable,
+    UserProfile,
+    $$UserProfilesTableFilterComposer,
+    $$UserProfilesTableOrderingComposer,
+    $$UserProfilesTableAnnotationComposer,
+    $$UserProfilesTableCreateCompanionBuilder,
+    $$UserProfilesTableUpdateCompanionBuilder,
+    (
+      UserProfile,
+      BaseReferences<_$AppDatabase, $UserProfilesTable, UserProfile>
+    ),
+    UserProfile,
+    PrefetchHooks Function()> {
+  $$UserProfilesTableTableManager(_$AppDatabase db, $UserProfilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> username = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<int> dailyLimit = const Value.absent(),
+            Value<int> updatedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserProfilesCompanion(
+            id: id,
+            username: username,
+            role: role,
+            dailyLimit: dailyLimit,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String username,
+            required String role,
+            Value<int> dailyLimit = const Value.absent(),
+            required int updatedAt,
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserProfilesCompanion.insert(
+            id: id,
+            username: username,
+            role: role,
+            dailyLimit: dailyLimit,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$UserProfilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UserProfilesTable,
+    UserProfile,
+    $$UserProfilesTableFilterComposer,
+    $$UserProfilesTableOrderingComposer,
+    $$UserProfilesTableAnnotationComposer,
+    $$UserProfilesTableCreateCompanionBuilder,
+    $$UserProfilesTableUpdateCompanionBuilder,
+    (
+      UserProfile,
+      BaseReferences<_$AppDatabase, $UserProfilesTable, UserProfile>
+    ),
+    UserProfile,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1267,4 +2231,8 @@ class $AppDatabaseManager {
       $$LifeEntitiesTableTableManager(_db, _db.lifeEntities);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$SystemSettingsTableTableManager get systemSettings =>
+      $$SystemSettingsTableTableManager(_db, _db.systemSettings);
+  $$UserProfilesTableTableManager get userProfiles =>
+      $$UserProfilesTableTableManager(_db, _db.userProfiles);
 }
