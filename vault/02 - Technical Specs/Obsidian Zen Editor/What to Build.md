@@ -1,5 +1,10 @@
 # What to Build | Obsidian Zen Editor
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Obsidian Zen Editor.
 
 ---
@@ -56,3 +61,11 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`ZenEditorWidget`:** Main interface presenting folder navigation, file list cards, and sync status checks.
 - **`MarkdownFocusViewport`:** Writing area applying custom styling, focus fading effects, and auto-save timers.
 - **`NotesGraphCanvas`:** Interactive graph canvas displaying links between notes.
+
+---
+
+## 4. Phase 2 (Absolute Perfection) Upgrades
+
+- **CRDT Sync Engine:** Backend must utilize standard CRDT data structures instead of simple LWW text replacements.
+- **`fsnotify` Integration:** Native OS filesystem monitoring directly bound to the WebSocket broadcasting loop.
+- **Physics-based Graph:** The `NotesGraphCanvas` must employ a custom WebGL or physics-based force-directed graph to render note linkages organically.

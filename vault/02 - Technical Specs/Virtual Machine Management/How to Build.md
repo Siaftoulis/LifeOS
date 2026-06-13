@@ -1,5 +1,10 @@
 # How to Build | Virtual Machine Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Virtual Machine Management system.
 
 ---

@@ -1,5 +1,10 @@
 # How to Build | Project Infinity
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Project Infinity|Project Infinity]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Project Infinity daily vocabulary system.
 
 ---

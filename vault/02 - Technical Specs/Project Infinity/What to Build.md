@@ -1,5 +1,10 @@
 # What to Build | Project Infinity
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Project Infinity|Project Infinity]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Project Infinity daily vocabulary system.
 
 ---

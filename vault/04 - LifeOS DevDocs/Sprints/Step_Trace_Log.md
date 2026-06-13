@@ -1,5 +1,9 @@
 # LifeOS Engineering Step Trace Log
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 This document serves as the historical milestone log for the LifeOS project, providing a visible ledger of all architectural changes directly within the Vault.
 
 ## Core Milestones

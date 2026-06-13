@@ -1,33 +1,35 @@
 package location
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
-	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true }, // Enforce boundary via Tailnet implicitly
+func RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("/api/v1/radar/geofences", HandleGetGeofences)
+	mux.HandleFunc("/api/v1/radar/report", HandleReportLocation)
+	mux.HandleFunc("/api/v1/radar/live", HandleLiveRadar)
 }
 
-func RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/ws/location", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			log.Printf("WebSocket upgrade failed: %v", err)
-			return
-		}
-		defer conn.Close()
-
-		for {
-			var msg map[string]interface{}
-			err := conn.ReadJSON(&msg)
-			if err != nil {
-				log.Printf("Location WS read error: %v", err)
-				break
-			}
-			log.Printf("Live Tracking Beacon: %v", msg)
-			// Future: Pipe into TSDB or live visualization stream
-		}
+func HandleGetGeofences(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode([]map[string]interface{}{
+		{"id": "g1", "name": "Home Base", "lat": 37.9838, "lon": 23.7275, "radius": 150},
 	})
+}
+
+func HandleReportLocation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":             "success",
+		"triggered_webhooks": 0,
+	})
+}
+
+func HandleLiveRadar(w http.ResponseWriter, r *http.Request) {
+	log.Println("Radar WebSocket connection requested")
+	// Stub implementation - waiting for gorilla/websocket or equivalent
+	w.WriteHeader(http.StatusUpgradeRequired)
+	w.Write([]byte("Upgrade Required for WebSocket"))
 }

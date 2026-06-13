@@ -1,5 +1,10 @@
 # What to Build | Flashcards
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Flashcards|Flashcards]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Flashcards active recall system.
 
 ---

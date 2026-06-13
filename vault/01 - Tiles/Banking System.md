@@ -76,3 +76,9 @@ graph TD
     %% Output
     TargetBillAccount & Groceries & Savings & PersonalAllowance -->|"Populates Ledger Charts"| FlutterUI
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Banking System/What to Build|What to Build]]
+- [[02 - Technical Specs/Banking System/How to Build|How to Build]]
+- [[02 - Technical Specs/Banking System/What to Do|What to Do]]

@@ -74,3 +74,9 @@ graph TD
     PrivilegeControl -->|"Below Threshold"| DeviceLock["Lock Smart TV / Entertainment"]
     DeviceLock -->|"WebSocket Webhook"| HomeAssistant["[[Home Management]] Module"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Point Star System/What to Build|What to Build]]
+- [[02 - Technical Specs/Point Star System/How to Build|How to Build]]
+- [[02 - Technical Specs/Point Star System/What to Do|What to Do]]

@@ -1,5 +1,10 @@
 # What to Do | Project Infinity
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Project Infinity|Project Infinity]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Project Infinity vocabulary system, daily learning logs, and flashcard integrations.
 
 ---

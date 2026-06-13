@@ -5,6 +5,9 @@ last_modified: 1779951600000
 sync_status: "clean"
 ---
 
+> [!NOTE]
+> **System Home:** [[00 - System/Home|System Home]]
+
 # LifeOS Systems Specification Vault
 
 Welcome to the central system design repository for the personal **LifeOS** platform. These technical specifications detail the offline-first, local-first architectures for native desktop and mobile environments.

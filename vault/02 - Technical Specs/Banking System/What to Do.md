@@ -1,5 +1,10 @@
 # What to Do | Banking System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+
+
+
 This document establishes the exact development task checklists and integration requirements for the Banking System module, delegated as commands to the autonomous subagents.
 
 ---
@@ -36,3 +41,10 @@ This document establishes the exact development task checklists and integration 
   - `POST /api/v1/banking/parse-pdf`: Accepts raw PDF bytes from file watchers.
   - `GET /api/v1/banking/status`: Returns aggregated monthly ledger statistics.
 - [ ] **Execution Log Update:** Record details of the Go PDF invoice parser, calculation engine updates, and HTTP status endpoints in the [Step_Trace_Log.md](file:///c:/Users/PDS_Dev/1_Production/Projects/LifeOS/vault/03%20-%20work/Step_Trace_Log.md) before final delivery.
+
+---
+
+## 4. Absolute Perfection (Phase 2)
+- [ ] **Live PDF OCR Integration:** Replace the stubbed PDF bill extraction algorithm with an actual implementation of `github.com/ledongthuc/pdfreader` or a local Go OCR package to parse utility bills natively.
+- [ ] **OpenBanking API Sync:** Integrate secure OAuth callbacks via the Go backend to natively fetch real balances and ledger streams directly from supported European banks (PSD2 OpenBanking layer).
+- [ ] **Dynamic Point Star Linking:** Connect the 50/30/20 budget splitter to the live `PointStarSystem` database so that the "silly things" allowance scales precisely with the user's weekly reward progression.

@@ -64,3 +64,9 @@ graph TD
     GeofenceManager -->|"Crosses 1km Radius"| AutomationTrigger["Fires Home Webhook"]
     AutomationTrigger -->|"Triggers Smart Devices"| HomeAssistant["[[Home Management]] Module"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Maps & Live Tracking/What to Build|What to Build]]
+- [[02 - Technical Specs/Maps & Live Tracking/How to Build|How to Build]]
+- [[02 - Technical Specs/Maps & Live Tracking/What to Do|What to Do]]

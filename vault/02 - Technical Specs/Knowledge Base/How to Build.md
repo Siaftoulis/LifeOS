@@ -1,5 +1,10 @@
 # How to Build | Knowledge Base
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Knowledge Base|Knowledge Base]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Knowledge Base.
 
 ---

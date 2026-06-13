@@ -1,5 +1,9 @@
 # Technical Specification: Relational and Document Synchronization
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 This specification outlines the synchronization protocols implemented within the LifeOS codebase. While advanced field-level change logging (`sync_queue` tracking) and sequence CRDT note diffing are registered as long-term architectural targets, the active systems implement a simplified local-first dirty-flag synchronization engine for relational tables and a full-text document overwrite protocol for Markdown vault notes.
 
 ---

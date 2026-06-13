@@ -1,5 +1,10 @@
 # What to Do | Flashcards
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Flashcards|Flashcards]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Flashcards system, utilizing active recall and spaced repetition spaced intervals.
 
 ---

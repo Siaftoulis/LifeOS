@@ -1,5 +1,10 @@
 # How to Build | Home Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Management|Home Management]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Home Management system.
 
 ---

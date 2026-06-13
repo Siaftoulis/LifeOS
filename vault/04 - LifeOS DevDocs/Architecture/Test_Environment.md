@@ -1,5 +1,9 @@
 # Test Environment Architecture
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Wireless ADB Targeting
 For ultra-fast debug iterations without physical USB tethers:
 *   **Pairing:** Execute `adb pair <IP>:<PORT>` using the device's native Developer Options Wireless Debugging settings.

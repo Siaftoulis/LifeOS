@@ -1,5 +1,10 @@
 # How to Build | YouTube Client
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/YouTube Client|YouTube Client]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the YouTube Client system.
 
 ---

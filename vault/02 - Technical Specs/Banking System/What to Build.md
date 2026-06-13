@@ -1,5 +1,10 @@
 # What to Build | Banking System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+
+
+
 This document establishes the technical blueprint, database schemas, API contracts, and UI components to be implemented by the development agents.
 
 ---
@@ -104,3 +109,11 @@ CREATE TABLE IF NOT EXISTS banking_rollover (
 - `BudgetSplitIndicator` (`client/lib/presentation/widgets/budget_split_indicator.dart`): Flat progress bar indicators showing 50/30/20 division lines.
 - `LedgerTransactionCard` (`client/lib/presentation/widgets/ledger_transaction_card.dart`): Compact outlined card presenting transactions.
 - `BillPayTrackerCard` (`client/lib/presentation/widgets/bill_pay_tracker_card.dart`): Displays monthly invoice breakdowns and rounded payment suggestions.
+
+---
+
+## 4. Phase 2 (Absolute Perfection) Upgrades
+
+- **Live PDF & OCR Processor:** Real implementation of `ExtractBillAmount` capable of reading raw PDFs from disk.
+- **PSD2 OpenBanking Layer:** Extend `bank_accounts` and `bank_ledgers` DAOs to interface with European OpenBanking OAuth APIs.
+- **Point Star Ratio Binder:** Bind the Dart `budget_split_indicator.dart` dynamically to the live SQLite `PointStarSystem` stream.

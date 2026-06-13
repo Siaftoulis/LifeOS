@@ -1,5 +1,10 @@
 # What to Build | Music Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Music Library personal cloud.
 
 ---

@@ -1,5 +1,10 @@
 # What to Build | Accounting
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+
+
+
 This document establishes the technical blueprint, database schemas, API contracts, and UI components to be implemented by the development agents.
 
 ---

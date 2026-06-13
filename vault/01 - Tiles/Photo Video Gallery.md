@@ -66,3 +66,9 @@ graph TD
     WebPCache & MetadataDB -->|"Delivers Grid Previews"| FlutterUI["Photo Video Gallery Flutter UI"]
     FileStorage -->|"Dynamic Video Stream"| FlutterUI
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Photo Video Gallery/What to Build|What to Build]]
+- [[02 - Technical Specs/Photo Video Gallery/How to Build|How to Build]]
+- [[02 - Technical Specs/Photo Video Gallery/What to Do|What to Do]]

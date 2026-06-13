@@ -1,5 +1,10 @@
 # How to Build | Photo Video Gallery
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Photo Video Gallery|Photo Video Gallery]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Photo Video Gallery.
 
 ---

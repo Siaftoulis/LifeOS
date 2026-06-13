@@ -1,5 +1,9 @@
 # Technical Specification: Web Fail-Safe Layer (Zero-Trust Proxy)
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 This document details the configuration for the LifeOS zero-exposure web fail-safe layer. This infrastructure provides secure, containerized web access to the LifeOS platform on restricted foreign machines (e.g., corporate laptops, public PCs) where installing the native client or embedding the `tsnet` daemon is prohibited.
 
 ---

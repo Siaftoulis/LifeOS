@@ -1,5 +1,10 @@
 # How to Build | Cloud & Fake Virtual Machine
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Cloud & Fake Virtual Machine.
 
 ---

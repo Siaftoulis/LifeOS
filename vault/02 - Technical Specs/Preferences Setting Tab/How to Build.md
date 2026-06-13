@@ -1,5 +1,10 @@
 # How to Build | Preferences Setting Tab
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Preferences Setting Tab.
 
 ---

@@ -1,5 +1,10 @@
 # How to Build | Obsidian Zen Editor
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Obsidian Zen Editor.
 
 ---

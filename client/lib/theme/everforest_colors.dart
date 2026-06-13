@@ -13,5 +13,6 @@ abstract class EverforestColors {
   static const Color purple = Color(0xFFD699B6);
   static const Color aqua = Color(0xFF83C092);
   static const Color orange = Color(0xFFE69875);
+  static const Color cyan = Color(0xFF83C092);
   static const Color grey = Color(0xFF859289);
 }

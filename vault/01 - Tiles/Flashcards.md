@@ -54,3 +54,9 @@ graph TD
     LocalDB -->|"Generates Daily Review Queue"| FlutterUI["Flashcards Flutter UI"]
     FlutterUI -->|"User Review Feedback"| SRSEngine
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Flashcards/What to Build|What to Build]]
+- [[02 - Technical Specs/Flashcards/How to Build|How to Build]]
+- [[02 - Technical Specs/Flashcards/What to Do|What to Do]]

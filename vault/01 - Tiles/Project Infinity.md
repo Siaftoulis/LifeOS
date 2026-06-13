@@ -57,3 +57,9 @@ graph TD
     %% Flashcard Pipeline
     LocalDB -->|"Generates Decks"| Flashcards["[[Flashcards]] Module"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Project Infinity/What to Build|What to Build]]
+- [[02 - Technical Specs/Project Infinity/How to Build|How to Build]]
+- [[02 - Technical Specs/Project Infinity/What to Do|What to Do]]

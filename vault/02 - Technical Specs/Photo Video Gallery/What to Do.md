@@ -1,5 +1,10 @@
 # What to Do | Photo Video Gallery
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Photo Video Gallery|Photo Video Gallery]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Photo Video Gallery asset manager, backups engine, and ML classifier.
 
 ---

@@ -1,5 +1,10 @@
 # How to Build | Accounting
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+
+
+
 This document provides step-by-step instructions for implementing the backend cryptography handlers, API endpoints, and Flutter presentation widgets for the Accounting module.
 
 ---

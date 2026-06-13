@@ -60,3 +60,9 @@ graph TD
     %% App Delegation
     AppModule["Specific App (e.g., Movie Library)"] -.->|Maintains its own| AppSettings["Isolated App Settings"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Preferences Setting Tab/What to Build|What to Build]]
+- [[02 - Technical Specs/Preferences Setting Tab/How to Build|How to Build]]
+- [[02 - Technical Specs/Preferences Setting Tab/What to Do|What to Do]]

@@ -1,5 +1,10 @@
 # What to Build | Preferences Setting Tab
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Preferences Setting Tab system.
 
 ---

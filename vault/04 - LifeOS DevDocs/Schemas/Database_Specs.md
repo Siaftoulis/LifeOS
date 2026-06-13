@@ -1,5 +1,9 @@
 # Database & Metadata Specifications
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Local Caching Storage Engine (Drift/SQLite)
 
 The Flutter clients utilize a strictly typed local database to provide offline support and rapid hydration.

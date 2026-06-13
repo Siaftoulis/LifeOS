@@ -1,5 +1,10 @@
 # What to Do | Accounting
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+
+
+
 This document establishes the exact development task checklists and integration requirements for the Accounting module, delegated as commands to the autonomous subagents.
 
 ---

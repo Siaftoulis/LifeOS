@@ -70,3 +70,9 @@ graph TD
     %% Output
     LocalFile -->|"Renders Video"| FlutterUI
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/YouTube Client/What to Build|What to Build]]
+- [[02 - Technical Specs/YouTube Client/How to Build|How to Build]]
+- [[02 - Technical Specs/YouTube Client/What to Do|What to Do]]

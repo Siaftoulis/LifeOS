@@ -1,5 +1,10 @@
 # What to Build | Movie Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Movie Library|Movie Library]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Movie Library media catalog.
 
 ---

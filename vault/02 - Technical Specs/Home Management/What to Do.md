@@ -1,5 +1,10 @@
 # What to Do | Home Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Management|Home Management]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Home Management system, providing integration to local smart devices and automatic geofence controllers.
 
 ---

@@ -1,5 +1,10 @@
 # What to Build | Home Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Management|Home Management]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Home Management smart home dashboard.
 
 ---

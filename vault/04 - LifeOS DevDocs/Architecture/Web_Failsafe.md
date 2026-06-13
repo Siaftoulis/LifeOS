@@ -1,5 +1,9 @@
 # Web Fail-Safe Architecture
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Zero-Trust Access Gateway
 The Fail-Safe layer provides secure, browser-based web access on restricted corporate laptops where embedding `tsnet` or installing the native Flutter app is prohibited.
 

@@ -1,5 +1,10 @@
 # How to Build | Home Screen
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Screen|Home Screen]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Home Screen launcher.
 
 ---

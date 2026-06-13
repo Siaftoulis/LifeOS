@@ -1,5 +1,10 @@
 # What to Do | Point Star System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Point Star System behavioral ledger, gamification rules, and TV lock triggers.
 
 ---

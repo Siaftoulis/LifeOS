@@ -1,5 +1,10 @@
 # What to Do | Music Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Music Library audio streamer, playlists controller, and lyrics engine.
 
 ---

@@ -1,5 +1,10 @@
 # What to Do | Book Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Book Library|Book Library]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Book Library, incorporating e-book reading, audiobook playback, progress syncing, and a Kindle-compatible web interface.
 
 ---

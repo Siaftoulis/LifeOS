@@ -1,5 +1,10 @@
 # What to Do | Movie Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Movie Library|Movie Library]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Movie Library media catalog, watchlist queue, and player wrapper.
 
 ---

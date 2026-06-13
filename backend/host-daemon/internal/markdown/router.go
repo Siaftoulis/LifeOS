@@ -1,32 +1,21 @@
 package markdown
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 )
 
 func RegisterRoutes(mux *http.ServeMux, storagePath string) {
-	mux.HandleFunc("/api/markdown/sync", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", 405)
-			return
-		}
-		var p struct{ Filename, Content string }
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil || p.Filename == "" {
-			http.Error(w, "Bad request", 400)
-			return
-		}
-		if err := os.MkdirAll("./vault", 0755); err != nil {
-			http.Error(w, "Internal error", 500)
-			return
-		}
-		if err := os.WriteFile(filepath.Join("./vault", filepath.Base(p.Filename)), []byte(p.Content), 0644); err != nil {
-			http.Error(w, "Internal error", 500)
-			return
-		}
+	// Setup the filesystem watcher
+	StartWatcher(storagePath)
+
+	mux.HandleFunc("/api/markdown/sync", HandleSync)
+	mux.HandleFunc("/api/markdown/collab", HandleCollab)
+	
+	mux.HandleFunc("/api/markdown/history", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"history": []}`)) // Stub
 	})
 
 	mux.HandleFunc("/api/markdown/", func(w http.ResponseWriter, r *http.Request) {

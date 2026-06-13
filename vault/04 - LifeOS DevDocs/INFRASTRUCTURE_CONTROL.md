@@ -1,5 +1,9 @@
 # Technical Specification: Infrastructure Control & Virtualization
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 This specification details the architecture of the LifeOS Host Daemon, a secure background service running on the target Windows 11 Pro machine. It handles remote execution of Hyper-V and Docker APIs, power management, remote directory streaming, and remote desktop visualization integration.
 
 ---

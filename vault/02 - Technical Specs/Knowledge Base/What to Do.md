@@ -1,5 +1,10 @@
 # What to Do | Knowledge Base
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Knowledge Base|Knowledge Base]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Knowledge Base system, providing structured academic cataloging, tags hierarchy, and links indexing.
 
 ---

@@ -67,3 +67,9 @@ graph TD
     FlutterUI -->|"Audio Remote Signals"| Smartwatch["Smartwatch Controller"]
     FlutterUI -->|"Media Metadata Sync"| CarConsole["Car Console Interface"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Music Library/What to Build|What to Build]]
+- [[02 - Technical Specs/Music Library/How to Build|How to Build]]
+- [[02 - Technical Specs/Music Library/What to Do|What to Do]]

@@ -1,5 +1,10 @@
 # What to Build | Book Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Book Library|Book Library]]
+
+
+
 This document specifies the exact SQLite schemas, JSON-RPC/REST API paths, and Flutter widget components to build for the Book Library system.
 
 ---

@@ -1,5 +1,10 @@
 # What to Do | Virtual Machine Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Virtual Machine Management virtualization interface, remote screen streamers, and file explorer bridges.
 
 ---

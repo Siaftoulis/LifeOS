@@ -67,3 +67,9 @@ graph TD
     FlutterUI -->|"Taps gov.gr / Taxisnet Link"| WebPortal["Greek Government Portals"]
     WebPortal -->|"Downloads PDF Statement"| GoDaemon
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Accounting/What to Build|What to Build]]
+- [[02 - Technical Specs/Accounting/How to Build|How to Build]]
+- [[02 - Technical Specs/Accounting/What to Do|What to Do]]

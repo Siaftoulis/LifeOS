@@ -1,5 +1,10 @@
 # What to Do | Cloud & Fake Virtual Machine
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Cloud & Fake Virtual Machine, combining automated cloud backups, Web OS anonymous interfaces, and incoming file sanitization.
 
 ---

@@ -83,3 +83,9 @@ graph TD
     BridgePlugin -->|Local Sync Client| LiveSync
     MDVault --- OfficialObsidian
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Obsidian Zen Editor/What to Build|What to Build]]
+- [[02 - Technical Specs/Obsidian Zen Editor/How to Build|How to Build]]
+- [[02 - Technical Specs/Obsidian Zen Editor/What to Do|What to Do]]

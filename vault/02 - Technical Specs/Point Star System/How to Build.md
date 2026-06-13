@@ -1,5 +1,10 @@
 # How to Build | Point Star System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Point Star System.
 
 ---

@@ -56,3 +56,9 @@ graph TD
     Philo & Science & Tech -->|"Populates Grid"| KBView["Knowledge Base Flutter Dashboard"]
     KBView -->|"Create Study Prompts"| Flashcards["[[Flashcards]] Module"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Knowledge Base/What to Build|What to Build]]
+- [[02 - Technical Specs/Knowledge Base/How to Build|How to Build]]
+- [[02 - Technical Specs/Knowledge Base/What to Do|What to Do]]

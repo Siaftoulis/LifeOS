@@ -1,5 +1,8 @@
 # LifeOS Workspace Map of Content
 
+> [!NOTE]
+> **DevDocs Home:** [[04 - LifeOS DevDocs/Home|DevDocs Home]]
+
 Welcome to the central documentation vault for the LifeOS application. This vault houses the design concepts, philosophies, and roadmaps for each core module (tile) of the system.
 
 ---

@@ -1,5 +1,10 @@
 # What to Build | Photo Video Gallery
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Photo Video Gallery|Photo Video Gallery]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Photo Video Gallery asset manager.
 
 ---

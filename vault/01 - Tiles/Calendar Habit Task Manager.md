@@ -80,3 +80,9 @@ graph TD
     ServerSync -->|"Triggers Gamification Point"| Points["[[Point Star System]]"]
     ServerSync -->|"Generates Text Log Summary"| ZenEditor["[[Obsidian Zen Editor]]"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Calendar Habit Task Manager/What to Build|What to Build]]
+- [[02 - Technical Specs/Calendar Habit Task Manager/How to Build|How to Build]]
+- [[02 - Technical Specs/Calendar Habit Task Manager/What to Do|What to Do]]

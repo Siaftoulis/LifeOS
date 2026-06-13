@@ -1,5 +1,10 @@
 # What to Build | Point Star System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Point Star System.
 
 ---

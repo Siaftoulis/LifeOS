@@ -1,5 +1,10 @@
 # What to Do | YouTube Client
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/YouTube Client|YouTube Client]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the YouTube Client, managing timed screen gates, point star deductions, and download caching pipelines.
 
 ---

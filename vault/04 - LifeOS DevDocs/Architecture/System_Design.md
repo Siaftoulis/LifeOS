@@ -1,5 +1,9 @@
 # System Design Blueprint
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Core Architecture
 LifeOS is a local-first, multi-platform personal system that leverages an active Obsidian Vault as its definitive source of truth.
 

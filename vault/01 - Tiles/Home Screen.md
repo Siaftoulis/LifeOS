@@ -58,3 +58,9 @@ graph TD
     %% Navigation
     HomeScreen -->|Swipe / WASD| SurroundingTiles["Surrounding Spatial Tiles"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Home Screen/What to Build|What to Build]]
+- [[02 - Technical Specs/Home Screen/How to Build|How to Build]]
+- [[02 - Technical Specs/Home Screen/What to Do|What to Do]]

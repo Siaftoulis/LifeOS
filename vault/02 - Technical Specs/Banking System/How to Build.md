@@ -1,5 +1,10 @@
 # How to Build | Banking System
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+
+
+
 This document provides step-by-step instructions for implementing the backend PDF parsing algorithms, rollover balance calculations, and Flutter presentation widgets for the Banking System module.
 
 ---

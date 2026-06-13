@@ -1,5 +1,10 @@
 # What to Do | Obsidian Zen Editor
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Obsidian Zen Editor workspace, managing markdown files sync, collaborative routes, and metadata hooks.
 
 ---
@@ -36,3 +41,10 @@ This document outlines the development tasks and subagent assignments for implem
   - `GET /api/markdown/history`: Query change logs lists.
   - WebSocket `/api/markdown/collab`: WebSocket interface handling concurrent editing keys.
 - [ ] **Execution Log Update:** Record details of Go sync endpoints, collaborative WebSocket logs, and filesystem watch loops in the [Step_Trace_Log.md](file:///c:/Users/PDS_Dev/1_Production/Projects/LifeOS/vault/03%20-%20work/Step_Trace_Log.md) before final delivery.
+
+---
+
+## 4. Absolute Perfection (Phase 2)
+- [ ] **CRDT Implementation:** Upgrade the WebSocket echo server into a full Operational Transformation (OT) or Conflict-free Replicated Data Type (CRDT) engine to gracefully handle multi-device concurrent edits on the same file.
+- [ ] **Native Filesystem Watcher:** Integrate `fsnotify` in `watcher.go` to directly monitor Obsidian's local folder for real-time changes and broadcast them to the Flutter client.
+- [ ] **WebGL Physics Graph:** Upgrade `NotesGraphCanvas` from a standard 2D layout to a WebGL/Custom Physics engine to replicate the organic, spring-loaded node clustering seen in native Obsidian.

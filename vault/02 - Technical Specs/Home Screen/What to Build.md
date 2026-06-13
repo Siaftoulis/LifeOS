@@ -1,5 +1,10 @@
 # What to Build | Home Screen
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Screen|Home Screen]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Home Screen entry lock nexus.
 
 ---

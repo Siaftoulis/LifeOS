@@ -1,5 +1,10 @@
 # How to Build | Music Library
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+
+
+
 This document outlines the step-by-step coding directives and architectural wiring instructions for developer subagents to implement the Music Library system.
 
 ---

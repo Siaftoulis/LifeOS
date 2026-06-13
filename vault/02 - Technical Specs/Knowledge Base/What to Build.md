@@ -1,5 +1,10 @@
 # What to Build | Knowledge Base
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Knowledge Base|Knowledge Base]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Knowledge Base cataloging dashboard.
 
 ---

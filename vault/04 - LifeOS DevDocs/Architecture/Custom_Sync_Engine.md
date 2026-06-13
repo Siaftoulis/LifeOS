@@ -1,5 +1,9 @@
 # Proprietary Custom Sync Engine Architecture
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Network Replication Protocol
 The custom sync engine completely replaces third-party dependencies (like CouchDB) by enforcing a strictly controlled point-to-point data transmission loop:
 `Drift SQLite Client -> JSON Payload Engine -> Tailnet -> Go Sync Service Backend`

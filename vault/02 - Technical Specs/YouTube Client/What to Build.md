@@ -1,5 +1,10 @@
 # What to Build | YouTube Client
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/YouTube Client|YouTube Client]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the YouTube Client gated platform.
 
 ---

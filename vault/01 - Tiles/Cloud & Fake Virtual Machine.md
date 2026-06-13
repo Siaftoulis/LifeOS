@@ -66,3 +66,9 @@ graph TD
     %% Session Wipe
     WebOS -->|"Browser Tab Closed"| Wipe["Instant Session & Cache Erasure"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Cloud & Fake Virtual Machine/What to Build|What to Build]]
+- [[02 - Technical Specs/Cloud & Fake Virtual Machine/How to Build|How to Build]]
+- [[02 - Technical Specs/Cloud & Fake Virtual Machine/What to Do|What to Do]]

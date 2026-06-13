@@ -1,5 +1,10 @@
 # What to Build | Virtual Machine Management
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+
+
+
 This document specifies the exact SQLite schemas, REST API paths, and Flutter widget components to build for the Virtual Machine Management system.
 
 ---

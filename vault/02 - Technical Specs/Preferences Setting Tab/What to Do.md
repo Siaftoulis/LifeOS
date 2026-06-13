@@ -1,5 +1,10 @@
 # What to Do | Preferences Setting Tab
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Preferences Setting Tab system, managing system parameters, profiles, and networking status logs.
 
 ---

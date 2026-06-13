@@ -1,5 +1,9 @@
 # Core UI Dashboard Architecture
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Adaptive Breakpoint System
 The unified client employs Flutter's `LayoutBuilder` to construct fluid, cross-platform layouts based on real-time screen constraints:
 *   **Desktop Viewport (Windows):** Renders a spacious 3-column data-dense grid structure. Inherits navigation via a permanent leading `NavigationRail`.

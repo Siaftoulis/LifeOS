@@ -1,5 +1,9 @@
 # Native Widget System Architecture
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Concurrent Database Configuration
 To ensure safe concurrent access between the active application and the background widgets:
 *   **Write-Ahead Logging (WAL):** SQLite PRAGMA `journal_mode=WAL` is enforced at the Drift engine level. This prevents read/write locks from colliding when the native widget attempts to fetch data while the main app is syncing.

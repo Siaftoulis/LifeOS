@@ -102,6 +102,13 @@ func RegisterRoutes(mux *http.ServeMux) {
 		}
 
 		if r.Method == http.MethodPost {
+			// Stub Child Lock Interceptor
+			userRole := r.Header.Get("X-User-Role")
+			if userRole == "CHILD" {
+				http.Error(w, "Unauthorized: Child profiles cannot modify system settings", http.StatusForbidden)
+				return
+			}
+
 			var newSetting Setting
 			if err := json.NewDecoder(r.Body).Decode(&newSetting); err != nil {
 				http.Error(w, "Bad Request", http.StatusBadRequest)

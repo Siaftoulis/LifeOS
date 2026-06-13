@@ -1,5 +1,9 @@
 # Synchronization Protocols Specifications
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Local Caching & Dirty Tracking
 Relational updates are captured on the entity level inside SQLite. Drift-managed tables implement synchronization columns directly, whereas custom SQL tables (such as `habits`) implement basic dirty-flag tracking columns:
 

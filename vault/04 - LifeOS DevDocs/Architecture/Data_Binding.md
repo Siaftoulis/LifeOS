@@ -1,5 +1,9 @@
 # Data Binding & Integration Contract
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
 ## 1. Network Hardening (HTTP Client)
 - **Timeout Protocol**: Enforce strict 2000ms network thresholds on all outbound RPC requests directed to the Go Host Daemon.
 - **Resiliency**: Implement an exponential backoff retry loop (e.g., 500ms -> 1000ms -> 2000ms) to gracefully handle ephemeral Tailnet link drops or transient daemon offline states.

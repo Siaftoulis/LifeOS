@@ -62,3 +62,9 @@ graph TD
     LocalDB -->|"Populates Dashboard States"| FlutterUI["Home Management Flutter UI"]
     HomeAssistant -.->|"Binds Appliance Toggles"| FlutterUI
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Home Management/What to Build|What to Build]]
+- [[02 - Technical Specs/Home Management/How to Build|How to Build]]
+- [[02 - Technical Specs/Home Management/What to Do|What to Do]]

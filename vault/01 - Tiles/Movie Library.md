@@ -72,3 +72,9 @@ graph TD
     FlutterUI -->|"Writes Notes/Reviews"| ZenEditor["[[Obsidian Zen Editor]]"]
     FlutterUI -->|"Triggers Watch Achievements"| Points["[[Point Star System]]"]
 ```
+
+
+## Technical Specs
+- [[02 - Technical Specs/Movie Library/What to Build|What to Build]]
+- [[02 - Technical Specs/Movie Library/How to Build|How to Build]]
+- [[02 - Technical Specs/Movie Library/What to Do|What to Do]]

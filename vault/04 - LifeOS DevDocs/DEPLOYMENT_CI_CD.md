@@ -1,5 +1,9 @@
 # & / 
 
+> [!NOTE]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+
+
  !
  ** ** 
 

@@ -1,5 +1,10 @@
 # What to Do | Home Screen
 
+> [!NOTE]
+> **Parent Tile:** [[01 - Tiles/Home Screen|Home Screen]]
+
+
+
 This document outlines the development tasks and subagent assignments for implementing the Home Screen launcher nexus, managing client locks, security checks, and notification feeds.
 
 ---
