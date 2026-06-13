@@ -23,7 +23,6 @@ import '../presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
 import '../presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
 import '../presentation/widgets/movie_library/movie_library_dashboard.dart';
 import '../presentation/widgets/music_library/music_dashboard_widget.dart';
-import '../presentation/widgets/obsidian_zen/zen_editor_widget.dart';
 import '../presentation/widgets/photo_video_gallery/gallery_grid_widget.dart';
 import '../presentation/widgets/point_star_system/point_star_dashboard.dart';
 import '../presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
@@ -39,7 +38,6 @@ class FeatureRegistry {
 
   static final Map<String, Widget Function()> _builders = {
     'radar': () => const RadarVision(), 
-    'obsidian': () => const ZenWorkspace(), 
     'infra': () => const InfraHub(),
     'quests': () => const QuestBoard(), 
     'home': () => const HomeView(), 
@@ -69,7 +67,7 @@ class FeatureRegistry {
       child: MovieLibraryDashboard(),
     ),
     'music_library': () => const MusicDashboardWidget(),
-    'obsidian_zen': () => const ZenEditorWidget(),
+    'obsidian_zen': () => const ZenWorkspace(),
     'photo_video_gallery': () => const GalleryGridWidget(),
     'point_star_system': () => const PointStarDashboard(),
     'preferences_setting': () => const PreferencesDashboardView(),
