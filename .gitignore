@@ -8,7 +8,7 @@ vault/.trash/
 .dart_tool/
 .packages
 .pub-cache/
-client/build/
+**/build/
 client/.flutter-plugins
 client/.flutter-plugins-dependencies
 
@@ -22,6 +22,7 @@ client/.flutter-plugins-dependencies
 # Go & Backend Runtimes
 backend/host-daemon/host-daemon.exe
 backend/host-daemon/host-daemon
+**/dist/
 vendor/
 
 # Docker & Infrastructure Volumes
@@ -37,3 +38,7 @@ infrastructure/rustdesk/id_ed25519*
 .vscode/
 .DS_Store
 Thumbs.db
+.cache/
+compile_commands.json
+ys.txt
+
