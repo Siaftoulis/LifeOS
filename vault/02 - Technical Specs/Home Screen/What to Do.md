@@ -9,6 +9,17 @@ This document outlines the development tasks and subagent assignments for implem
 
 ---
 
+## Description
+Η κεντρική οθόνη του λειτουργικού η οποία θα έχει ένα ρολόι και θα δείχνει πόσα tasks έχουμε για σήμερα. Είναι η "ανάσα" ανάμεσα στις εφαρμογές.
+
+## Architecture Update (Global Lock Screen & Launcher)
+- Το LifeOS λειτουργεί πλέον ως default Android Launcher (μεσω `android.intent.category.HOME`).
+- Το Home Screen χρησιμεύει και ως **Lock Screen**. Η κεντρική οθόνη με το ρολόι είναι η μόνη ορατή οθόνη όταν το σύστημα είναι κλειδωμένο.
+- **Μηχανισμός:** Ένα `Swipe Up` gesture ανοίγει ένα PIN Pad (κωδικός: `0000`). Μόλις εισαχθεί σωστά, το Spatial Grid ξεκλειδώνει.
+- Η λίστα με τις εγκατεστημένες εφαρμογές της συσκευής βρίσκεται στα Settings (Android Launcher App Drawer) και απαιτεί **Star Points** για κάθε άνοιγμα (Gamification).
+
+---
+
 ## 1. Subagent Alpha (Lead Architect) Commands
 - [ ] **DATA_SCHEMAS.md Integration:** Update the system database layout in `vault/04 - LifeOS DevDocs/DATA_SCHEMAS.md` to define relational schemas for the `system_user` and `local_notifications` tables.
 - [ ] **Point Star Reward Logic:** Map connection checkpoints to reward systems (such as daily active checks).

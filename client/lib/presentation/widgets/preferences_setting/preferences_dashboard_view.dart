@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import 'grid_configurator_widget.dart';
 import 'tailscale_node_monitor_widget.dart';
+import 'android_launcher_widget.dart';
 
 class PreferencesDashboardView extends StatelessWidget {
   const PreferencesDashboardView({super.key});
@@ -22,7 +23,9 @@ class PreferencesDashboardView extends StatelessWidget {
               children: [
                 Expanded(flex: 2, child: GridConfiguratorWidget()),
                 SizedBox(width: 16),
-                Expanded(flex: 3, child: TailscaleNodeMonitorWidget()),
+                Expanded(flex: 2, child: AndroidLauncherWidget()),
+                SizedBox(width: 16),
+                Expanded(flex: 2, child: TailscaleNodeMonitorWidget()),
               ],
             ),
           )

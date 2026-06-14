@@ -72,8 +72,15 @@ Future<void> main(List<String> args) async {
   }
 }
 
-class LifeOSMainApp extends StatelessWidget {
+class LifeOSMainApp extends StatefulWidget {
   const LifeOSMainApp({super.key});
+
+  @override
+  State<LifeOSMainApp> createState() => _LifeOSMainAppState();
+}
+
+class _LifeOSMainAppState extends State<LifeOSMainApp> {
+  bool _isUnlocked = false;
 
   @override Widget build(BuildContext context) {
     return MaterialApp(
@@ -94,6 +101,28 @@ class LifeOSMainApp extends StatelessWidget {
                 }
               }
             }
+
+            if (!_isUnlocked) {
+              return Scaffold(
+                backgroundColor: EverforestColors.bg0,
+                body: Stack(
+                  children: [
+                    const HomeView(),
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onVerticalDragUpdate: (details) {
+                          if (details.primaryDelta! < -20) {
+                            _showPinDialog(context);
+                          }
+                        },
+                        behavior: HitTestBehavior.translucent,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             return Scaffold(
               backgroundColor: EverforestColors.bg0,
               body: SpatialEngine(
@@ -178,6 +207,59 @@ class LifeOSMainApp extends StatelessWidget {
           },
         );
       }),
+    );
+  }
+
+  void _showPinDialog(BuildContext context) {
+    String pin = '';
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: EverforestColors.bg1,
+              title: const Text('Enter PIN', style: TextStyle(color: EverforestColors.fg)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    pin.padRight(4, '•'),
+                    style: const TextStyle(color: EverforestColors.fg, fontSize: 32, letterSpacing: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    alignment: WrapAlignment.center,
+                    children: List.generate(10, (i) {
+                      final digit = (i + 1) % 10;
+                      return ActionChip(
+                        backgroundColor: EverforestColors.bg2,
+                        label: Text('$digit', style: const TextStyle(color: EverforestColors.fg, fontSize: 24)),
+                        onPressed: () {
+                          if (pin.length < 4) {
+                            setDialogState(() => pin += '$digit');
+                            if (pin.length == 4) {
+                              if (pin == '0000') {
+                                Navigator.pop(context);
+                                setState(() => _isUnlocked = true);
+                              } else {
+                                setDialogState(() => pin = '');
+                              }
+                            }
+                          }
+                        },
+                      );
+                    }),
+                  )
+                ],
+              ),
+            );
+          }
+        );
+      }
     );
   }
 }

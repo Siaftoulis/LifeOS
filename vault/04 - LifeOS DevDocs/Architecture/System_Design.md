@@ -19,3 +19,7 @@ The entire project revolves around the `vault/` directory. All development docum
 ## 3. Network Topology
 *   **Zero-Exposure Mesh:** Applications communicate entirely via embedded Tailscale (`tsnet`) user-space nodes.
 *   **Host API Endpoints:** The Host Daemon listens on internal port `:50051`.
+## 4. Android Launcher & Gamification
+*   **Operating System Replacement:** The Android build includes `android.intent.category.HOME`, making LifeOS capable of being the default launcher for the device.
+*   **Global Lock Screen:** The entire `SpatialEngine` is gated behind a global lock screen integrated into the `HomeView`. Swiping up prompts for a PIN (`0000`). Only when unlocked can the user navigate the spatial grid.
+*   **Point-Gated Application Drawer:** External Android APKs (Instagram, Browser, etc.) are listed via the `installed_apps` package within the `PreferencesDashboardView`. Launching external apps dynamically costs **Star Points** (deducted via `PointsDao`), tying regular device usage to the Gamification engine.
