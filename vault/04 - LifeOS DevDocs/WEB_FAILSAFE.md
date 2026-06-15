@@ -1,7 +1,7 @@
 # Technical Specification: Web Fail-Safe Layer (Zero-Trust Proxy)
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]] · [[04 - LifeOS DevDocs/Architecture/Web_Failsafe|Web Failsafe Architecture]]
 
 
 This document details the configuration for the LifeOS zero-exposure web fail-safe layer. This infrastructure provides secure, containerized web access to the LifeOS platform on restricted foreign machines (e.g., corporate laptops, public PCs) where installing the native client or embedding the `tsnet` daemon is prohibited.

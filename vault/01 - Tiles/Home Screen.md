@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Concept Defined / Future Development Planned
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Calendar Habit Task Manager]], [[Point Star System]]*
 
 ---
 

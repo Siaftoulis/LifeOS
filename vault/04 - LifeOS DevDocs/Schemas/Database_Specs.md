@@ -1,7 +1,7 @@
 # Database & Metadata Specifications
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/DATA_SCHEMAS|Data Schemas Spec]] · [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]] · [[04 - LifeOS DevDocs/Schemas/Sync_Protocols|Sync Protocols]] · [[04 - LifeOS DevDocs/STATE_MANAGEMENT|State Management]]
 
 
 ## 1. Local Caching Storage Engine (Drift/SQLite)

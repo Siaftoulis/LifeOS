@@ -1,7 +1,7 @@
 # Web Fail-Safe Architecture
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe Spec]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]]
 
 
 ## 1. Zero-Trust Access Gateway

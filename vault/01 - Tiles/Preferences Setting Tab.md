@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Concept Defined / Active Development
-> **Links:** [[Home]] | *Linked Modules: All Application Modules (Global Scope)*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[YouTube Client]], [[Virtual Machine Management]], [[Dark Web Management]], and all other modules (Global Scope)*
 
 ---
 

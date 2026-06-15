@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Planning for Implementation
-> **Links:** [[Home]] | *Linked Modules: [[Obsidian Zen Editor]], [[Project Infinity]], [[Flashcards]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Obsidian Zen Editor]], [[Project Infinity]], [[Flashcards]], [[Point Star System]]*
 
 ---
 

@@ -22,6 +22,10 @@ client/.flutter-plugins-dependencies
 # Go & Backend Runtimes
 backend/host-daemon/host-daemon.exe
 backend/host-daemon/host-daemon
+backend/host-daemon/host_daemon_linux
+backend/host-daemon/data/
+backend/host-daemon/tsnet-state/
+server/server_linux
 **/dist/
 vendor/
 
@@ -36,9 +40,12 @@ infrastructure/rustdesk/id_ed25519*
 *.env
 .idea/
 .vscode/
+.zed/
+opencode-zed-extension/
 .DS_Store
 Thumbs.db
 .cache/
 compile_commands.json
+opencode.json
 ys.txt
 

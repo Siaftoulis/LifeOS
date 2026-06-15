@@ -23,7 +23,11 @@ class _VMCState extends State<VMControlCard> with SingleTickerProviderStateMixin
     final prev = _s;
     setState(() => _s = next);
     try {
-      await widget.apiClient.post('/api/vm/toggle', {'vm_name': widget.name, 'action': next.name}).timeout(const Duration(seconds: 5));
+      await widget.apiClient.postDaemon('/api/v1/action', {
+        'action_type': next == VMState.running ? 'START_VM' : 'STOP_VM',
+        'target_id': widget.name,
+        'signature': 'dummy'
+      }).timeout(const Duration(seconds: 5));
     } catch (e) {
       if (mounted) setState(() => _s = prev);
     }

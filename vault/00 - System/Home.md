@@ -46,21 +46,50 @@ Welcome to the central documentation vault for the LifeOS application. This vaul
 ---
 
 ## Technical Specifications
-Detailed implementation instructions, database tables, API schemas, and step-by-step development guidelines for each module are organized under the `02 - Technical Specs` directory. 
+Detailed implementation instructions, database tables, API schemas, and step-by-step development guidelines for each module are organized under the `02 - Technical Specs` directory.
 
 Each tile has its own subfolder containing:
-- **What to Do:** Checklist of development tasks and features.
-- **What to Build:** SQLite database schemas, API parameters, and Flutter widgets.
-- **How to Build:** Coding directions and state binding steps.
+- **[[02 - Technical Specs/<Module>/What to Do|What to Do]]:** Checklist of development tasks and features.
+- **[[02 - Technical Specs/<Module>/What to Build|What to Build]]:** SQLite database schemas, API parameters, and Flutter widgets.
+- **[[02 - Technical Specs/<Module>/How to Build|How to Build]]:** Coding directions and state binding steps.
+
+> [!TIP]
+> Each tile's **Next Steps** section outlines the development roadmap — check the individual tile files for upcoming work.
+
+---
+
+## LifeOS DevDocs (Architecture & Design System)
+The [[04 - LifeOS DevDocs/Home|DevDocs]] directory contains all system-level technical specifications:
+
+### Core Specifications
+- [[04 - LifeOS DevDocs/DATA_SCHEMAS|DATA_SCHEMAS]] — SQLite database tables, caching, frontmatter patterns
+- [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|EMBEDDED_NETWORK]] — tsnet lifecycle and Tailscale authentication
+- [[04 - LifeOS DevDocs/SYNC_PROTOCOL|SYNC_PROTOCOL]] — Transactional field-level delta sync engine
+- [[04 - LifeOS DevDocs/WEB_FAILSAFE|WEB_FAILSAFE]] — Zero-trust proxy architecture
+- [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|INFRASTRUCTURE_CONTROL]] — Hyper-V, Docker, WOL infrastructure
+
+### Architecture Blueprints
+- [[04 - LifeOS DevDocs/Architecture/System_Design|System Design]]
+- [[04 - LifeOS DevDocs/Architecture/Core_UI_Dashboard|Core UI Dashboard]]
+- [[04 - LifeOS DevDocs/Architecture/Widget_System|Widget System]]
+- [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]]
+- [[04 - LifeOS DevDocs/Architecture/Custom_Sync_Engine|Custom Sync Engine]]
+- [[04 - LifeOS DevDocs/Architecture/Test_Environment|Test Environment]]
+- [[04 - LifeOS DevDocs/Architecture/Web_Failsafe|Web Failsafe]]
+
+### Database & Protocol Schemas
+- [[04 - LifeOS DevDocs/Schemas/Database_Specs|Database Specs]]
+- [[04 - LifeOS DevDocs/Schemas/Sync_Protocols|Sync Protocols]]
 
 ---
 
 ## Active Workspace & Sprint Tracking
 Active registries, task logs, subagent boundaries, and system blueprints are tracked under the `03 - work` directory:
 - [[Step_Trace_Log]]: The historical ledger of all architectural milestones.
-- [[current_sprint.json]]: Task checklist registry.
-- [[subagent_delegation]]: Scopes and boundaries for Alpha, Beta, and Gamma.
-- [[system_architecture]]: System architecture and data flow diagrams.
+- [[03 - work/current_sprint.json|current_sprint.json]]: Task checklist registry.
+- [[03 - work/subagent_delegation|subagent_delegation]]: Scopes and boundaries for Alpha, Beta, and Gamma.
+- [[03 - work/system_architecture|system_architecture]]: System architecture and data flow diagrams.
+- [[04 - LifeOS DevDocs/Sprints/Step_Trace_Log|DevDocs Sprint Log]]: Sprint-specific trace log.
 
 ---
 

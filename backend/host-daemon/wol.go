@@ -49,8 +49,14 @@ func BroadcastMagicPacket(macStr string) error {
 }
 
 func sendUDP(ip string, packet []byte) {
-	addr, _ := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:9", ip))
-	conn, _ := net.DialUDP("udp", nil, addr)
+	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:9", ip))
+	if err != nil {
+		return
+	}
+	conn, err := net.DialUDP("udp", nil, addr)
+	if err != nil {
+		return
+	}
 	if conn != nil {
 		conn.Write(packet)
 		conn.Close()

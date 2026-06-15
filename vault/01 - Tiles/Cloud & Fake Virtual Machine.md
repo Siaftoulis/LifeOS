@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Design Stage
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Dark Web Management]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Dark Web Management]], [[Photo Video Gallery]]*
 
 ---
 

@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Planning for Implementation
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Project Infinity]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Project Infinity]], [[Knowledge Base]], [[Point Star System]]*
 
 ---
 

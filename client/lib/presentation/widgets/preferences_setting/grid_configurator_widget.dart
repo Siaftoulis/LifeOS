@@ -14,13 +14,13 @@ class GridConfiguratorWidget extends StatelessWidget {
         children: [
           const Text('Launcher Layout Grid', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              children: List.generate(9, (index) => _DragSlot(index)),
-            ),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            children: List.generate(9, (index) => _DragSlot(index)),
           )
         ],
       ),

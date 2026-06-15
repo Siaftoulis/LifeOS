@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Design & Planning Stage
-> **Links:** [[Home]] | *Linked Modules: [[Calendar Habit Task Manager]], [[Obsidian Zen Editor]], [[Book Library]], [[Banking System]], [[Accounting]], [[Home Management]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Calendar Habit Task Manager]], [[Obsidian Zen Editor]], [[Book Library]], [[Banking System]], [[Accounting]], [[Home Management]], [[Flashcards]], [[Music Library]], [[Project Infinity]], [[Knowledge Base]]*
 
 ---
 

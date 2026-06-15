@@ -1,7 +1,7 @@
 # System Design Blueprint
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/Architecture/Core_UI_Dashboard|Core UI Dashboard]] · [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/DEPLOYMENT_CI_CD|Deployment CI/CD]] · [[03 - work/system_architecture|System Architecture (Work)]]
 
 
 ## 1. Core Architecture

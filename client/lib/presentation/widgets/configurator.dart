@@ -4,6 +4,10 @@ import 'dart:convert';
 import '../../theme/everforest_colors.dart';
 import '../../database/preferences_service.dart';
 import '../../api_client.dart';
+import '../../auth_service.dart';
+import 'preferences_setting/my_profile_widget.dart';
+import 'preferences_setting/admin_console_widget.dart';
+import 'preferences_setting/grid_configurator_widget.dart';
 
 class GridConfigurator extends StatefulWidget {
   const GridConfigurator({super.key});
@@ -58,50 +62,7 @@ class _GridConfiguratorState extends State<GridConfigurator> {
     }
   }
 
-  void _promptAdminPIN() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: EverforestColors.bg1,
-        title: const Text('Enter Administrator PIN', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          obscureText: true,
-          style: const TextStyle(color: EverforestColors.fg, fontFamily: 'JetBrainsMono'),
-          decoration: const InputDecoration(
-            hintText: 'Default PIN is 0000',
-            hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.red)),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text == '0000') {
-                PreferencesService.setActiveProfile('prof-admin', 'ADMIN');
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Access Granted: Admin Mode Activated')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Access Denied: Invalid PIN')),
-                );
-              }
-            },
-            child: const Text('Unlock', style: TextStyle(color: EverforestColors.green)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -153,50 +114,16 @@ class _GridConfiguratorState extends State<GridConfigurator> {
 
                 _buildSectionTitle('ACTIVE USER PROFILE'),
                 const SizedBox(height: 8),
-                _buildCard([
-                  ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    title: Text(
-                      'Profile: ${PreferencesService.activeProfileId.value.replaceAll('prof-', '').toUpperCase()}',
-                      style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      'Access Level Role: $currentRole',
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (currentRole == 'ADMIN')
-                          const Icon(Icons.security, color: EverforestColors.green, size: 20)
-                        else if (currentRole == 'NORMAL')
-                          const Icon(Icons.supervisor_account, color: EverforestColors.blue, size: 20)
-                        else
-                          const Icon(Icons.child_care, color: EverforestColors.yellow, size: 20),
-                      ],
-                    ),
-                  ),
-                  _buildDivider(),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildProfileSelectorButton('Admin', 'ADMIN', () {
-                          if (currentRole != 'ADMIN') {
-                            _promptAdminPIN();
-                          }
-                        }),
-                        _buildProfileSelectorButton('Normal', 'NORMAL', () {
-                          PreferencesService.setActiveProfile('prof-normal', 'NORMAL');
-                        }),
-                        _buildProfileSelectorButton('Child', 'CHILD', () {
-                          PreferencesService.setActiveProfile('prof-child', 'CHILD');
-                        }),
-                      ],
-                    ),
-                  ),
-                ]),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const MyProfileWidget(),
+                    if (AuthService.instance.isAdmin) ...[
+                      const SizedBox(height: 16),
+                      const AdminConsoleWidget(),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 _buildSectionTitle('SYSTEM PREFERENCES'),
@@ -422,6 +349,10 @@ class _GridConfiguratorState extends State<GridConfigurator> {
                     ),
                   ),
                 ]),
+                const SizedBox(height: 24),
+                _buildSectionTitle('LAUNCHER LAYOUT GRID'),
+                const SizedBox(height: 8),
+                const GridConfiguratorWidget(),
               ],
             ),
           );
@@ -430,27 +361,7 @@ class _GridConfiguratorState extends State<GridConfigurator> {
     );
   }
 
-  Widget _buildProfileSelectorButton(String label, String role, VoidCallback onTap) {
-    final activeRole = PreferencesService.activeProfileRole.value;
-    final isSelected = activeRole == role;
 
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? EverforestColors.green : EverforestColors.bg2,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -607,7 +518,6 @@ class _GridConfiguratorState extends State<GridConfigurator> {
       {'id': 'darkweb', 'name': 'Dark Web / Torrents'},
       {'id': 'flashcards', 'name': 'Flashcards / SRS'},
       {'id': 'home_management', 'name': 'Home Management'},
-      {'id': 'home_screen', 'name': 'Home Screen (Nexus)'},
       {'id': 'knowledge_base', 'name': 'Knowledge Base'},
       {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking'},
       {'id': 'movie_library', 'name': 'Movie Library'},
@@ -619,8 +529,10 @@ class _GridConfiguratorState extends State<GridConfigurator> {
       {'id': 'project_infinity', 'name': 'Project Infinity'},
       {'id': 'virtual_machine', 'name': 'Virtual Machine Management'},
       {'id': 'youtube_client', 'name': 'YouTube Client'},
+      {'id': 'app_drawer', 'name': 'App Drawer'},
+      {'id': 'tailscale_mesh', 'name': 'Tailscale Mesh Monitor'},
       {'id': 'void', 'name': 'Void / Empty'},
-    ];
+    ]..sort((a, b) => a['name']!.toLowerCase().compareTo(b['name']!.toLowerCase()));
 
     showModalBottomSheet(
       context: context,

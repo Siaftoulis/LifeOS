@@ -1,7 +1,7 @@
 # LifeOS Engineering Step Trace Log
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Also:** [[03 - work/Step_Trace_Log|Main Step Trace Log]] · [[03 - work/current_sprint.json|Current Sprint]] · [[03 - work/subagent_delegation|Subagent Delegation]]
 
 
 This document serves as the historical milestone log for the LifeOS project, providing a visible ledger of all architectural changes directly within the Vault.

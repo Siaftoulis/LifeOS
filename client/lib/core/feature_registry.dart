@@ -26,6 +26,8 @@ import '../presentation/widgets/music_library/music_dashboard_widget.dart';
 import '../presentation/widgets/photo_video_gallery/gallery_grid_widget.dart';
 import '../presentation/widgets/point_star_system/point_star_dashboard.dart';
 import '../presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
+import '../presentation/widgets/preferences_setting/android_launcher_widget.dart';
+import '../presentation/widgets/preferences_setting/tailscale_node_monitor_widget.dart';
 import '../presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 import '../presentation/widgets/virtual_machine/vm_management_dashboard.dart';
 import '../presentation/widgets/youtube_client/youtube_client_dashboard.dart';
@@ -57,7 +59,7 @@ class FeatureRegistry {
     ),
     'flashcards': () => const FlashcardsDashboard(),
     'home_management': () => const SmartHomeDashboard(),
-    'home_screen': () => const LockScreenOverlay(),
+    'home_screen': () => const HomeView(),
     'knowledge_base': () => const KnowledgeBaseDashboard(),
     'maps_live_tracking': () => const MapsDashboardWidget(),
     'movie_library': () => const GatedModuleWrapper(
@@ -84,6 +86,8 @@ class FeatureRegistry {
       moduleIcon: Icons.video_library,
       child: YoutubeClientDashboard(),
     ),
+    'app_drawer': () => const AndroidLauncherWidget(),
+    'tailscale_mesh': () => const TailscaleNodeMonitorWidget(),
     'void': () => const VoidSlot(),
   };
 

@@ -110,23 +110,41 @@ jobs:
       - name: Generate Release Body
         run: |
           BUILD_NUM=$(jq '.build_number' .agent/version.json)
-          cat << EOF > release_notes.md
-          ## Release Build #$BUILD_NUM
-          
-          ### State of the Application
-          - **Tablet Parity**: Implemented 1-to-1 Obsidian layouts with multi-pane support, tab bars, and interactive slide-over sidebars.
-          - **Mobile Responsive Flow**: Overhauled the action bar and resolved overflow errors with a fully native hierarchal Mobile Settings overlay.
-          - **File-System Integration**: Added continuous local Vault watchers to recursively map folders into an in-memory link graph.
-          
-          ### What's New
-          - Replaced side-by-side modal overflows on small viewports with 'MobileSettingsDialog'.
-          - Lowered spatial swipe velocity constraints for flawless desktop pointer drags.
-          - Added dynamic UI bounds blocking grids from collapsing into 1x1 traps.
-          - Pruned all obsolete navigation shells and integrated strict Everforest palette configurations.
-          
+          cat <<EOF > release_notes.md
+          ## Release Build #$BUILD_NUM — v1.0.2
+
+          ### Highlights
+          - **Full Authentication System**: Server-side user registration and login with bcrypt hashing, JWT-style token validation, and persistent client sessions.
+          - **Maps & Live Tracking Suite**: Real-time GPS tracking with OpenStreetMap integration, WebSocket live-feed, geofence zone drawing, navigation overlay, and location automation triggers.
+          - **Point Star System Overhaul**: Redesigned dashboard with progress bars, star level indicators, and a full voucher redemption shop with categorized rewards and animations.
+          - **Android Launcher Mode**: Stock-Android home screen experience with app drawer, wallpaper, dock bar, and point-gated app access control.
+          - **Remote System Management API**: Server endpoints for reboot, shutdown, service control, log streaming, and health diagnostics.
+
+          ### New Features
+          - Auth service with login screen, token persistence, and server URL configuration.
+          - Location tracker plugin with battery-optimized background GPS collection.
+          - Maps dashboard: header bar, OSM map widget, live feed preview, report banner, geofence drawer, and navigation overlay.
+          - Admin console and user profile widgets in Preferences.
+          - Backend: user management, location WebSocket, geofence engine, automation triggers, and full system router (status/reboot/shutdown/services/logs).
+
+          ### Bug Fixes & Improvements
+          - Removed 129 lines of obsolete spatial engine code (spatial_grid_layer, spatial_hud, spatial_layout_utils).
+          - Simplified configurator widget by stripping 80+ lines of dead code.
+          - Fixed import paths in desktop_widget_manager and diagnostics_controller.
+          - Enhanced lock screen overlay with PIN entry, biometric fallback, and animated transitions.
+          - Expanded notifications feed display logic.
+          - Added location history and geofences tables to local Drift database.
+
+          ### Infrastructure
+          - Bumped client version to 1.0.2+2.
+          - Added geolocator, flutter_map, and web_socket_channel dependencies.
+          - Updated AndroidManifest with fine/coarse/background location permissions.
+          - Updated .gitignore for compiled Linux binaries, Tailscale state, and editor configs.
+          - Extensive documentation updates across 30+ vault files.
+
           ### How It Was Built
           - **Android App**: Compiled targeting android-arm64 architecture.
-          - **Windows App**: Compiled native runner on Windows runner instance, packaged as ZIP archive.
+          - **Windows App**: Compiled native runner on Windows instance, packaged as ZIP archive.
           EOF
 
       - name: Publish Release

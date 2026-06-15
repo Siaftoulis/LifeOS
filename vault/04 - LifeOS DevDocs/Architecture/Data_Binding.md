@@ -1,7 +1,7 @@
 # Data Binding & Integration Contract
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/DATA_SCHEMAS|Data Schemas]] · [[04 - LifeOS DevDocs/STATE_MANAGEMENT|State Management]] · [[04 - LifeOS DevDocs/Architecture/Custom_Sync_Engine|Custom Sync Engine]] · [[04 - LifeOS DevDocs/Architecture/Core_UI_Dashboard|Core UI Dashboard]]
 
 
 ## 1. Network Hardening (HTTP Client)

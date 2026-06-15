@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Design & Planning Stage
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Point Star System]], [[Accounting]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Point Star System]], [[Accounting]], [[Home Screen]]*
 
 ---
 

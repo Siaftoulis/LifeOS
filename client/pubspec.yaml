@@ -1,7 +1,7 @@
 name: lifeos_client
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.0.1+1
+version: 1.0.2+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -16,6 +16,10 @@ dependencies:
   http: ^1.2.0
   url_launcher: ^6.3.2
   installed_apps: ^2.1.1
+  geolocator: ^14.0.3
+  flutter_map: ^8.3.0
+  latlong2: ^0.9.1
+  flutter_displaymode: ^0.7.0
 
 dev_dependencies:
   flutter_test:

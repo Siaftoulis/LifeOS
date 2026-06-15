@@ -20,7 +20,7 @@ class DesktopWidgetManager {
 }
 
 class WidgetOverlayApp extends StatelessWidget {
-  const WidgetOverlayApp({Key? key}) : super(key: key);
+  const WidgetOverlayApp({super.key});
 
   @override
   Widget build(BuildContext context) {

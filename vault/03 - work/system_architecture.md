@@ -31,7 +31,7 @@ lifeos-monorepo/
 
 ## 2. Platform Target System Integration
 
-The application compiles into native code targets, binding underlying OS capabilities directly.
+The application compiles into native code targets, binding underlying OS capabilities directly. See [[04 - LifeOS DevDocs/Architecture/System_Design|System Design]] for the full architectural blueprint and [[04 - LifeOS DevDocs/DEPLOYMENT_CI_CD|Deployment & CI/CD]] for build pipeline details.
 
 ```
                   +-----------------------------------+
@@ -59,6 +59,8 @@ The application compiles into native code targets, binding underlying OS capabil
 ## 3. Data Flow & Integration Lifecycle
 
 The synchronization process bridges three major architectural nodes: the **Obsidian Vault Directory**, the **Local SQLite Database Cache**, and the **Self-Hosted Syncer Stack**.
+
+Relevant tile modules: [[Maps & Live Tracking]] (telemetry), [[Calendar Habit Task Manager]] (data sync), [[Virtual Machine Management]] (Hyper-V), [[Obsidian Zen Editor]] (markdown vault), [[Home Management]] (smart home), [[Preferences Setting Tab]] (global config).
 
 ### Local Sidecar Side vs. Remote Mesh Topology
 The system enforces a localized split-plane topology:
@@ -95,7 +97,7 @@ The system enforces a localized split-plane topology:
 ### Path 1: Obsidian File Mutation Lifecycle
 1.  The user edits an Obsidian note inside their local directory using a standard Markdown editor.
 2.  The client's asynchronous **File Watcher** detects the file change. On Windows, this leverages native `ReadDirectoryChangesW`. On Android, due to Android 11+ Scoped Storage (SAF) restrictions, the client uses a hybrid **ContentObserver** coupled with a low-impact background periodic directory poll.
-3.  The client parses the YAML frontmatter block using safe regular expressions (defined in `DATA_SCHEMAS.md`).
+3.  The client parses the YAML frontmatter block using safe regular expressions (defined in [[04 - LifeOS DevDocs/DATA_SCHEMAS|DATA_SCHEMAS]]).
 4.  If metadata changes are found, corresponding update routines run inside the local **SQLite Cache** to sync metadata metrics.
 5.  Continuous auto-saves from the client's internal markdown editor (e.g., Zen Editor) are seamlessly flushed to the Go daemon's `/api/markdown/sync` endpoint.
 

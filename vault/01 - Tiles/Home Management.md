@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Hardware & Integration Planning
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Maps & Live Tracking]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Maps & Live Tracking]], [[Point Star System]]*
 
 ---
 

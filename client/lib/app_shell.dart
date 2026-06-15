@@ -10,6 +10,7 @@ import 'widgets/input_curtain.dart';
 import 'widgets/carousel_viewport.dart';
 import 'widgets/radial_dial.dart';
 import 'database/preferences_service.dart';
+import 'database/database.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -23,7 +24,7 @@ class _AppShellState extends State<AppShell> {
   @override void initState() {
     super.initState();
     if (Platform.isAndroid) SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(systemNavigationBarColor: OLEDTheme.bg, statusBarColor: Colors.transparent));
-    _feats = FeatureRegistry.buildRegistry(null, ApiClient.instance);
+    _feats = FeatureRegistry.buildRegistry(AppDatabase.instance, ApiClient.instance);
   }
   @override void dispose() { _pageCtrl.dispose(); super.dispose(); }
 

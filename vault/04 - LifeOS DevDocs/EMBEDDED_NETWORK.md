@@ -1,7 +1,7 @@
 # Technical Specification: On-Demand User-Space Mesh (tsnet)
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]] · [[04 - LifeOS DevDocs/DATA_SCHEMAS|Data Schemas]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]]
 
 
 This specification details the lifecycle management, authentication flow, and integration rules of an embedded user-space Tailscale mesh node using the `tsnet` Go library. This establishes a zero-configuration overlay connection directly between native clients and the self-hosted backup infrastructure.

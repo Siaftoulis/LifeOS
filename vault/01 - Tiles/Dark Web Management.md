@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** Conceptual Phase / Design Stage
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Cloud & Fake Virtual Machine]], [[Movie Library]], [[Book Library]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Cloud & Fake Virtual Machine]], [[Movie Library]], [[Book Library]], [[Point Star System]]*
 
 ---
 

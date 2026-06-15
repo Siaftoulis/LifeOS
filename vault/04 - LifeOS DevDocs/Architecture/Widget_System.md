@@ -1,7 +1,7 @@
 # Native Widget System Architecture
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/Architecture/Core_UI_Dashboard|Core UI Dashboard]] · [[04 - LifeOS DevDocs/UI_UX_GUIDELINES|UI/UX Guidelines]] · [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]] · [[Home Screen]] · [[Obsidian Zen Editor]]
 
 
 ## 1. Concurrent Database Configuration

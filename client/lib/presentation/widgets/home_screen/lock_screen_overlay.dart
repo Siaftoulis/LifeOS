@@ -2,91 +2,296 @@ import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import 'clock_widget.dart';
 import 'notifications_feed.dart';
+import '../../../auth_service.dart';
 
 class LockScreenOverlay extends StatefulWidget {
-  const LockScreenOverlay({super.key});
+  final VoidCallback onUnlocked;
+  const LockScreenOverlay({super.key, required this.onUnlocked});
 
   @override
   State<LockScreenOverlay> createState() => _LockScreenOverlayState();
 }
 
-class _LockScreenOverlayState extends State<LockScreenOverlay> {
-  String _pin = '';
+class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTickerProviderStateMixin {
+  bool _showLoginForm = false;
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _rememberMe = false;
+  String _errorMsg = '';
 
-  void _onDigit(String digit) {
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _toggleLoginForm(bool show) {
     setState(() {
-      if (_pin.length < 4) _pin += digit;
-    });
-    if (_pin.length == 4) {
-      // Validate PIN stub
-      if (_pin == '1234') {
-        // Unlock logic
+      _showLoginForm = show;
+      _errorMsg = '';
+      if (show) {
+        _animationController.forward();
       } else {
-        setState(() => _pin = '');
+        _animationController.reverse();
+        _usernameController.clear();
+        _passwordController.clear();
+        _rememberMe = false;
       }
+    });
+  }
+
+  Future<void> _handleLogin() async {
+    final user = _usernameController.text.trim();
+    final pass = _passwordController.text.trim();
+    if (user.isEmpty || pass.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMsg = '';
+    });
+
+    final success = await AuthService.instance.login(user, pass, rememberMe: _rememberMe);
+
+    if (!mounted) return;
+
+    if (success) {
+      widget.onUnlocked();
+    } else {
+      setState(() {
+        _isLoading = false;
+        _errorMsg = 'Invalid username or password';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: EverforestColors.bg0,
-      child: Stack(
-        children: [
-          const Positioned(top: 40, left: 16, right: 16, child: ClockWidget()),
-          const Positioned(top: 140, left: 16, right: 16, bottom: 400, child: NotificationsFeed()),
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(4, (i) => Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    width: 16, height: 16,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: i < _pin.length ? EverforestColors.green : EverforestColors.bg2,
+    return GestureDetector(
+      onVerticalDragUpdate: (details) {
+        if (!_showLoginForm && details.primaryDelta! < -8) {
+          _toggleLoginForm(true);
+        } else if (_showLoginForm && details.primaryDelta! > 8) {
+          _toggleLoginForm(false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: EverforestColors.bg0,
+        body: Stack(
+          children: [
+            // Main Lock Screen (Clock & Notifications)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 80),
+                  const ClockWidget(),
+                  const SizedBox(height: 48),
+                  const Expanded(
+                    child: NotificationsFeed(),
+                  ),
+                  const SizedBox(height: 24),
+                  Opacity(
+                    opacity: _showLoginForm ? 0.0 : 1.0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.keyboard_double_arrow_up,
+                          color: EverforestColors.green,
+                          size: 28,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Swipe up to login',
+                          style: TextStyle(
+                            color: EverforestColors.fg.withValues(alpha: 0.7),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
                     ),
-                  )),
-                ),
-                const SizedBox(height: 24),
-                _buildKeypad(),
-              ],
+                  ),
+                  const SizedBox(height: 48),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildKeypad() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 3,
-        childAspectRatio: 1.5,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        children: [
-          for (var i = 1; i <= 9; i++) _keyBtn('$i'),
-          const SizedBox(), _keyBtn('0'), _keyBtn('C', () => setState(() => _pin = '')),
+            // Sliding Login Form Overlay
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Visibility(
+                    visible: _animationController.value > 0,
+                    child: child!,
+                  );
+                },
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Container(
+                    color: EverforestColors.bg0.withValues(alpha: 0.95),
+                    child: SafeArea(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 24.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Icon(Icons.shield, size: 64, color: EverforestColors.green),
+                                const SizedBox(height: 32),
+                                const Text(
+                                  'SYSTEM LOGIN',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: EverforestColors.green,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 4,
+                                  ),
+                                ),
+                                const SizedBox(height: 48),
+                                TextField(
+                                  controller: _usernameController,
+                                  style: const TextStyle(color: EverforestColors.fg),
+                                  decoration: InputDecoration(
+                                    labelText: 'Username',
+                                    labelStyle: const TextStyle(color: EverforestColors.green),
+                                    enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: EverforestColors.bg2)),
+                                    focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: EverforestColors.green, width: 2)),
+                                    prefixIcon: const Icon(Icons.person, color: EverforestColors.green),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                TextField(
+                                  controller: _passwordController,
+                                  obscureText: _obscurePassword,
+                                  style: const TextStyle(color: EverforestColors.fg),
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                    labelStyle: const TextStyle(color: EverforestColors.green),
+                                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                                    focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
+                                    prefixIcon: const Icon(Icons.lock, color: EverforestColors.green),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                        color: EverforestColors.green,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  onSubmitted: (_) => _handleLogin(),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: Checkbox(
+                                        value: _rememberMe,
+                                        activeColor: EverforestColors.green,
+                                        checkColor: EverforestColors.bg0,
+                                        side: const BorderSide(color: EverforestColors.bg2),
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _rememberMe = val ?? false;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _rememberMe = !_rememberMe;
+                                        });
+                                      },
+                                      child: Text(
+                                        'Remember Me',
+                                        style: TextStyle(
+                                          color: EverforestColors.fg.withValues(alpha: 0.8),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                if (_errorMsg.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Text(
+                                      _errorMsg,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(color: EverforestColors.red, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: EverforestColors.green,
+                                    foregroundColor: EverforestColors.bg0,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: _isLoading ? null : _handleLogin,
+                                  child: _isLoading 
+                                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2))
+                                    : const Text('AUTHENTICATE', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2)),
+                                ),
+                                const SizedBox(height: 32),
+                                TextButton(
+                                  onPressed: () => _toggleLoginForm(false),
+                                  child: Text(
+                                    'CANCEL',
+                                    style: TextStyle(
+                                      color: EverforestColors.red.withValues(alpha: 0.8),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
-      ),
-    );
-  }
-
-  Widget _keyBtn(String text, [VoidCallback? onTap]) {
-    return InkWell(
-      onTap: onTap ?? () => _onDigit(text),
-      child: Container(
-        decoration: BoxDecoration(color: EverforestColors.bg1, border: Border.all(color: EverforestColors.bg2), borderRadius: BorderRadius.circular(12)),
-        alignment: Alignment.center,
-        child: Text(text, style: const TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
+        ),
       ),
     );
   }

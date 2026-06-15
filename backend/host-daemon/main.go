@@ -50,7 +50,6 @@ func main() {
 	home.RegisterRoutes(mux)
 	auth.RegisterRoutes(mux)
 	kb.RegisterRoutes(mux)
-	location.RegisterRoutes(mux)
 	movies.RegisterRoutes(mux)
 	music.RegisterRoutes(mux)
 	gallery.RegisterRoutes(mux)
@@ -61,6 +60,10 @@ func main() {
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)
+	
+	if err := InitTailnet("lifeos-host", 50051); err != nil {
+		log.Printf("Tailnet init error: %v", err)
+	}
 	
 	if err := http.ListenAndServe(port, mux); err != nil {
 		log.Fatalf("Host Daemon execution failed: %v", err)

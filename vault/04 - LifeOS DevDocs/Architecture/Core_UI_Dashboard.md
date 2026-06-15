@@ -1,7 +1,7 @@
 # Core UI Dashboard Architecture
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/UI_UX_GUIDELINES|UI/UX Guidelines]] · [[04 - LifeOS DevDocs/Architecture/Widget_System|Widget System]] · [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]] · [[04 - LifeOS DevDocs/Architecture/System_Design|System Design]]
 
 
 ## 1. Adaptive Breakpoint System

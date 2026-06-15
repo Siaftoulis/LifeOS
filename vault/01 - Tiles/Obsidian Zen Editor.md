@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status:** UI Built / Core Logic in Development
-> **Links:** [[Home]] | *Linked Modules: [[Maps & Live Tracking]], [[Movie Library]], [[Book Library]], [[Photo Video Gallery]], [[Home Management]], [[Banking System]], [[Accounting]], [[Calendar Habit Task Manager]]*
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Maps & Live Tracking]], [[Movie Library]], [[Book Library]], [[Photo Video Gallery]], [[Home Management]], [[Banking System]], [[Accounting]], [[Calendar Habit Task Manager]]*
 
 ---
 

@@ -1,7 +1,7 @@
 # Test Environment Architecture
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/DEPLOYMENT_CI_CD|Deployment CI/CD]] · [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[03 - work/Step_Trace_Log|Step Trace Log]]
 
 
 ## 1. Wireless ADB Targeting

@@ -16,4 +16,13 @@ class MapsDao extends DatabaseAccessor<AppDatabase> with _$MapsDaoMixin {
   Future<int> insertGeofence(GeofencesCompanion entry) => into(geofences).insert(entry);
   Future<int> insertLocationLog(LocationLogsCompanion entry) => into(locationLogs).insert(entry);
   Future<int> insertBookmark(BookmarksCompanion entry) => into(bookmarks).insert(entry);
+
+  Future<int> deleteGeofence(String id) =>
+      (delete(geofences)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteBookmark(String id) =>
+      (delete(bookmarks)..where((t) => t.id.equals(id))).go();
+
+  Future<int> updateGeofenceActive(String id, bool active) =>
+      (update(geofences)..where((t) => t.id.equals(id)))
+          .write(const GeofencesCompanion(isActive: Value(1)));
 }

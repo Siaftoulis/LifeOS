@@ -5,12 +5,13 @@ import 'package:flutter/foundation.dart';
 
 class ApiClient {
   final String baseUrl;
+  final String daemonUrl;
   final HttpClient _http = HttpClient()..connectionTimeout = const Duration(seconds: 2);
   final List<Map<String, dynamic>> _syncQueue = [];
   final ValueNotifier<int> queueLengthNotifier = ValueNotifier<int>(0);
   static ApiClient? _instance;
-  ApiClient._internal(this.baseUrl);
-  factory ApiClient({String? baseUrl}) => _instance ??= ApiClient._internal(baseUrl!);
+  ApiClient._internal(this.baseUrl, this.daemonUrl);
+  factory ApiClient({String? baseUrl, String? daemonUrl}) => _instance ??= ApiClient._internal(baseUrl!, daemonUrl!);
   static ApiClient get instance => _instance!;
 
   File _getLogFile() => File('${Directory.systemTemp.path}/sync_queue.json');
@@ -35,14 +36,25 @@ class ApiClient {
   }
 
   static Future<String> discoverBaseUrl() async {
-    final urls = ['http://localhost:8080', 'http://100.76.247.27:8080', 'http://pds-laptop-1.husky-forel.ts.net:8080', 'http://192.168.1.7:8080'];
+    final urls = ['http://100.115.141.4:8080', 'http://100.76.247.27:8080', 'http://192.168.1.20:8080', 'http://localhost:8080'];
     final comp = Completer<String>(); int fails = 0;
     for (final url in urls) {
-      HttpClient().postUrl(Uri.parse('$url/api/health')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
+      HttpClient().postUrl(Uri.parse('$url/api/sync')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
         .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
-        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://100.76.247.27:8080') : null);
+        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://100.115.141.4:8080') : null);
     }
-    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://100.76.247.27:8080');
+    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://100.115.141.4:8080');
+  }
+
+  static Future<String> discoverDaemonUrl() async {
+    final urls = ['http://100.115.141.4:50051', 'http://100.76.247.27:50051', 'http://192.168.1.20:50051', 'http://localhost:50051'];
+    final comp = Completer<String>(); int fails = 0;
+    for (final url in urls) {
+      HttpClient().postUrl(Uri.parse('$url/api/v1/auth/lock')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
+        .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
+        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://100.115.141.4:50051') : null);
+    }
+    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://100.115.141.4:50051');
   }
 
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
@@ -59,6 +71,29 @@ class ApiClient {
       debugPrint('Local-First Engine: Request buffered. Queue length: ${_syncQueue.length}');
       return {};
     }
+  }
+
+  Future<dynamic> postDaemon(String endpoint, Map<String, dynamic> body) async {
+    final req = await _http.postUrl(Uri.parse('$daemonUrl$endpoint'));
+    req.headers.contentType = ContentType.json; req.add(utf8.encode(jsonEncode(body)));
+    final res = await req.close().timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    throw Exception();
+  }
+
+  Future<dynamic> putDaemon(String endpoint, Map<String, dynamic> body) async {
+    final req = await _http.putUrl(Uri.parse('$daemonUrl$endpoint'));
+    req.headers.contentType = ContentType.json; req.add(utf8.encode(jsonEncode(body)));
+    final res = await req.close().timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    throw Exception();
+  }
+
+  Future<dynamic> getDaemon(String endpoint) async {
+    final req = await _http.getUrl(Uri.parse('$daemonUrl$endpoint'));
+    final res = await req.close().timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    throw Exception();
   }
 
   Future<void> _flushQueue() async {

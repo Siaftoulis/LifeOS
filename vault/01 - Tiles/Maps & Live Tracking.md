@@ -1,8 +1,8 @@
 # Maps & Live Tracking | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
-> **Links:** [[Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Home Management]], [[Photo Video Gallery]]*
+> **Status:** Implementation Phase — REST API, WebSocket, Geofence Engine Active
+> **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Home Management]], [[Photo Video Gallery]], [[Point Star System]]*
 
 ---
 
@@ -26,12 +26,24 @@ The Maps & Live Tracking module acts as the private geospatial visualizer and re
 ## Work Done So Far
 - **Module Concept Defined:** Proximity triggers, GPS telemetry protocols, and offline map cache parameters mapped out.
 - **Design Philosophy:** Everforest Minimalist Flat-Line UI (clean mapping layers, solid card outlines for trackers, flat coordinate overlays, minimalist status indicators) drafted.
+- **Go Backend Location API Implemented:**
+  - `GET /api/v1/radar/geofences` — Returns active geofences with coordinates and radius.
+  - `POST /api/v1/radar/report` — Parses GPS reports, runs haversine proximity checks, broadcasts via WebSocket.
+  - `WS /api/v1/radar/live` — Real-time WebSocket broker for live coordinate streaming between devices.
+  - `geofence.go` — Haversine distance engine and proximity trigger detection.
+  - `websocket.go` — WebSocket broker with client registration, broadcast, and auto-cleanup.
+- **Flutter Client Integration:**
+  - `LiveSharingPlugin` — WebSocket client that connects to `/api/v1/radar/live` and displays live feeds.
+  - `MapsDashboardWidget` — Converted to StatefulWidget; fetches backend data, shows WebSocket connection status, and displays live location cards.
+  - `MapsDao` — Extended with `deleteGeofence`, `deleteBookmark`, `updateGeofenceActive` queries.
 
 ---
 
 ## Current Focus & Actions
-- **GPS Coordinates API:** Designing HTTP post endpoints in the Go server for client devices to report background GPS coordinates securely.
-- **Geofence Calculation Library:** Writing spatial range checks in Go to calculate circular or polygon geofence overlaps.
+- **GPS Coordinates API** ✅ `POST /api/v1/radar/report` — Endpoint active and processing background GPS reports.
+- **Geofence Calculation Library** ✅ Haversine distance engine implemented with proximity trigger detection.
+- **WebSocket Telemetry** ✅ Live coordinate streaming operational via gorilla/websocket broker.
+- **Flutter Integration** ✅ Dashboard wired to backend; LiveSharing plugin displays real-time location feeds.
 
 ---
 

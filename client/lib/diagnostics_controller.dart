@@ -19,7 +19,7 @@ class DiagnosticsController {
 
   Future<(DiagStatus, String)> checkNet() async {
     try {
-      await api.post('/api/health', {});
+      await api.post('/api/sync', {});
       return (DiagStatus.healthy, 'Daemon online · 0% packet loss');
     } catch (_) { return (DiagStatus.blocked, 'Host daemon unreachable'); }
   }

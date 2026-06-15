@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:drift/native.dart';
+import 'package:drift/drift.dart' show Value, Variable;
+import 'dart:io';
+import 'dart:async';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'update_manager.dart';
 import 'api_client.dart';
 import 'desktop_widget_manager.dart';
@@ -31,28 +36,50 @@ import 'presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
 import 'presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
 import 'presentation/widgets/movie_library/movie_library_dashboard.dart';
 import 'presentation/widgets/music_library/music_dashboard_widget.dart';
-import 'presentation/widgets/obsidian_zen/zen_editor_widget.dart';
 import 'presentation/widgets/photo_video_gallery/gallery_grid_widget.dart';
 import 'presentation/widgets/point_star_system/point_star_dashboard.dart';
 import 'presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
+import 'presentation/widgets/preferences_setting/android_launcher_widget.dart';
+import 'presentation/widgets/preferences_setting/tailscale_node_monitor_widget.dart';
 import 'presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 import 'presentation/widgets/virtual_machine/vm_management_dashboard.dart';
 import 'presentation/widgets/youtube_client/youtube_client_dashboard.dart';
+import 'plugins/location_tracker/location_tracker_plugin.dart';
 import 'theme/everforest_colors.dart';
+import 'auth_service.dart';
 
 Future<void> main(List<String> args) async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    if (Platform.isAndroid) {
+      try {
+        await FlutterDisplayMode.setHighRefreshRate();
+      } catch (e) {
+        debugPrint('Failed to set high refresh rate: $e');
+      }
+    }
     await PreferencesService.load();
+    if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
+      AuthService.instance.restoreSession(
+        PreferencesService.authToken.value,
+        PreferencesService.userProfileJson.value,
+      );
+    }
     if (args.contains('multi_window')) {
       DesktopWidgetManager.runWidgetOverlay(args);
       return;
     }
 
-    final db = AppDatabase(NativeDatabase.memory());
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final dbFile = File('${dbFolder.path}/lifeos.sqlite');
+    final db = AppDatabase(NativeDatabase(dbFile));
     final baseUrl = await ApiClient.discoverBaseUrl();
-    final api = ApiClient(baseUrl: baseUrl);
+    final daemonUrl = await ApiClient.discoverDaemonUrl();
+    final api = ApiClient(baseUrl: baseUrl, daemonUrl: daemonUrl);
     FeatureRegistry.buildRegistry(db, api);
+
+    final locationPlugin = LocationTrackerPlugin();
+    await locationPlugin.initialize(db, api);
 
     runApp(const LifeOSMainApp());
   } catch (e, stack) {
@@ -81,6 +108,64 @@ class LifeOSMainApp extends StatefulWidget {
 
 class _LifeOSMainAppState extends State<LifeOSMainApp> {
   bool _isUnlocked = false;
+  Timer? _notificationTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _isUnlocked = AuthService.instance.isAuthenticated;
+    AuthService.instance.currentUser.addListener(_handleAuthChange);
+    _startNotificationPolling();
+  }
+
+  @override
+  void dispose() {
+    AuthService.instance.currentUser.removeListener(_handleAuthChange);
+    _notificationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleAuthChange() {
+    final authenticated = AuthService.instance.isAuthenticated;
+    if (authenticated != _isUnlocked) {
+      setState(() {
+        _isUnlocked = authenticated;
+      });
+    }
+  }
+
+  void _startNotificationPolling() {
+    _notificationTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
+      try {
+        final List<dynamic> list = await ApiClient.instance.postDaemon('/api/v1/notifications', {});
+        final dao = AppDatabase.instance.homeScreenDao;
+        for (final item in list) {
+          final String id = item['id'] ?? '';
+          final String title = item['title'] ?? '';
+          final String message = item['message'] ?? '';
+          final String category = item['category'] ?? 'SYSTEM';
+          final int createdAt = item['created_at'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          
+          final existing = await AppDatabase.instance.customSelect(
+            'SELECT 1 FROM local_notifications WHERE id = ?',
+            variables: [Variable.withString(id)],
+          ).getSingleOrNull();
+
+          if (existing == null) {
+            await dao.insertNotification(LocalNotificationsCompanion.insert(
+              id: id,
+              title: title,
+              message: message,
+              category: category,
+              createdAt: createdAt,
+            ));
+          }
+        }
+      } catch (e) {
+        debugPrint('Error polling notifications: $e');
+      }
+    });
+  }
 
   @override Widget build(BuildContext context) {
     return MaterialApp(
@@ -103,23 +188,8 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
             }
 
             if (!_isUnlocked) {
-              return Scaffold(
-                backgroundColor: EverforestColors.bg0,
-                body: Stack(
-                  children: [
-                    const HomeView(),
-                    Positioned.fill(
-                      child: GestureDetector(
-                        onVerticalDragUpdate: (details) {
-                          if (details.primaryDelta! < -20) {
-                            _showPinDialog(context);
-                          }
-                        },
-                        behavior: HitTestBehavior.translucent,
-                      ),
-                    ),
-                  ],
-                ),
+              return LockScreenOverlay(
+                onUnlocked: () => setState(() => _isUnlocked = true),
               );
             }
 
@@ -165,7 +235,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                   } else if (moduleId == 'home_management') {
                     return const SmartHomeDashboard();
                   } else if (moduleId == 'home_screen') {
-                    return const LockScreenOverlay();
+                    return const HomeView();
                   } else if (moduleId == 'knowledge_base') {
                     return const KnowledgeBaseDashboard();
                   } else if (moduleId == 'maps_live_tracking') {
@@ -175,7 +245,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                   } else if (moduleId == 'music_library') {
                     return const MusicDashboardWidget();
                   } else if (moduleId == 'obsidian_zen') {
-                    return const ZenEditorWidget();
+                    return const ZenWorkspace();
                   } else if (moduleId == 'photo_video_gallery') {
                     return const GalleryGridWidget();
                   } else if (moduleId == 'point_star_system') {
@@ -188,6 +258,10 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                     return const VMManagementDashboard();
                   } else if (moduleId == 'youtube_client') {
                     return const YoutubeClientDashboard();
+                  } else if (moduleId == 'app_drawer') {
+                    return const AndroidLauncherWidget();
+                  } else if (moduleId == 'tailscale_mesh') {
+                    return const TailscaleNodeMonitorWidget();
                   } else if (moduleId == 'void') {
                     return const VoidSlot();
                   } else {
