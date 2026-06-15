@@ -25,19 +25,19 @@ Think of it as a private operating system for your life.
 
 ### Core Principles
 
-- **🔒 You Own Your Data** — Everything stays on your devices. No cloud. No subscriptions. No tracking.
-- **📴 Works Offline** — Every feature works without internet. Sync happens automatically when devices reconnect.
-- **🎮 Gamified Productivity** — Earn Star Points for completing tasks, habits, and learning. Spend them to unlock rewards.
-- **👨‍👩‍👧‍👦 Family-Friendly** — Built-in parental controls, family leaderboards, and role-based access.
+- ** You Own Your Data** — Everything stays on your devices. No cloud. No subscriptions. No tracking.
+- ** Works Offline** — Every feature works without internet. Sync happens automatically when devices reconnect.
+- ** Gamified Productivity** — Earn Star Points for completing tasks, habits, and learning. Spend them to unlock rewards.
+- ** Family-Friendly** — Built-in parental controls, family leaderboards, and role-based access.
 
 ---
 
 ## Features
 
-### 🏠 Home Screen
+###  Home Screen
 A custom lock screen with swipe-to-unlock, real-time clock, and a live notifications feed color-coded by category (system, habits, security, finances).
 
-### ⭐ Point Star System
+###  Point Star System
 A household gamification engine where family members earn points through productive activities:
 
 | Earn Points | Spend Points |
@@ -51,26 +51,26 @@ A household gamification engine where family members earn points through product
 
 Features a **family leaderboard** with gold/silver/bronze rankings, a **voucher rewards shop**, and **point-gated app access** — each app launch can cost Star Points.
 
-### 🗺️ Maps & Live Tracking
+###  Maps & Live Tracking
 Real-time GPS tracking with OpenStreetMap, live location feed via WebSocket, interactive geofence zone drawing, and turn-by-turn navigation overlay. Includes an animated dark radar sweep visualization.
 
-### 📱 Android Launcher Mode
+###  Android Launcher Mode
 A full Android home screen replacement with an app drawer, dock bar, and AI-powered app categorization (powered by Gemini). Apps are organized into folders and each launch can be gated behind Star Points.
 
-### 📝 Obsidian Zen Editor
+###  Obsidian Zen Editor
 A built-in markdown editor integrated with your local vault. Read, edit, and link notes with frontmatter support and automatic link tokenization.
 
-### ⚙️ Preferences & Settings
+###  Preferences & Settings
 System settings hub with:
 - **My Profile** — Edit display name, status, and avatar
 - **Admin Console** — Create and manage family user accounts
 - **Grid Configurator** — Customize your dashboard layout
 - **Tailscale Node Monitor** — View all devices on your mesh network
 
-### 🔐 Authentication
+###  Authentication
 Secure login with username/password, bcrypt-hashed credentials, "Remember Me" session persistence, and role-based access control (Admin, User, Child).
 
-### 📡 Remote System Management
+###  Remote System Management
 Control your host machine from anywhere on your network — reboot, shutdown, view services, stream logs, and run diagnostics.
 
 ---
@@ -470,5 +470,5 @@ docker-compose up -d
 ---
 
 <p align="center">
-  <sub>Built with 🛡️ privacy-first principles. No cloud. No tracking. Your data, your rules.</sub>
+  <sub>Built with privacy-first principles. No cloud. No tracking. Your data, your rules.</sub>
 </p>
