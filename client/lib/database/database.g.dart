@@ -20879,6 +20879,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final InfinityDao infinityDao = InfinityDao(this as AppDatabase);
   late final VmDao vmDao = VmDao(this as AppDatabase);
   late final YoutubeDao youtubeDao = YoutubeDao(this as AppDatabase);
+  late final BooksDao booksDao = BooksDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

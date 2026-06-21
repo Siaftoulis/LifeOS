@@ -1,27 +1,88 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' show Value;
 import '../../../theme/everforest_colors.dart';
+import '../../../database/database.dart';
+import 'epub_viewer_pane.dart';
 
 class EPUBReaderScreen extends StatefulWidget {
-  const EPUBReaderScreen({Key? key}) : super(key: key);
+  final Book book;
+  const EPUBReaderScreen({super.key, required this.book});
 
   @override
-  _EPUBReaderScreenState createState() => _EPUBReaderScreenState();
+  State<EPUBReaderScreen> createState() => _EPUBReaderScreenState();
 }
 
 class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
-  int _currentPage = 1;
-  final int _totalPages = 342;
+  late int _currentPage;
+  late int _totalPages;
+  int _sessionPagesRead = 0;
+  String _selectedText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPage = widget.book.currentPage > 0 ? widget.book.currentPage : 1;
+    _totalPages = widget.book.totalPages > 0 ? widget.book.totalPages : 300;
+  }
+
+  Future<void> _updateProgress() async {
+    final db = AppDatabase.instance;
+    await db.booksDao.updateBookProgress(
+      widget.book.id,
+      _currentPage,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+
+    if (_sessionPagesRead >= 10) {
+      _sessionPagesRead -= 10;
+      await db.pointsDao.awardPoints(1, 'Read 10 pages of ${widget.book.title}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Earning: +1 Star Point for reading!'),
+            backgroundColor: EverforestColors.green,
+          ),
+        );
+      }
+    }
+  }
 
   void _nextPage() {
     if (_currentPage < _totalPages) {
-      setState(() => _currentPage++);
-      // Trigger Point Star logic internally here (1 point per 10 pages)
+      setState(() {
+        _currentPage++;
+        _sessionPagesRead++;
+      });
+      _updateProgress();
     }
   }
 
   void _prevPage() {
     if (_currentPage > 1) {
-      setState(() => _currentPage--);
+      setState(() {
+        _currentPage--;
+      });
+      _updateProgress();
+    }
+  }
+
+  Future<void> _addHighlight() async {
+    if (_selectedText.isEmpty) return;
+    final db = AppDatabase.instance;
+    final highlightId = 'hl-${DateTime.now().millisecondsSinceEpoch}';
+    await db.booksDao.insertHighlight(BookHighlightsCompanion.insert(
+      id: highlightId,
+      bookId: widget.book.id,
+      textContent: _selectedText,
+      noteContent: const Value('User highlight'),
+      pageNumber: Value(_currentPage),
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      isDirty: const Value(1),
+    ));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Highlight saved!'), backgroundColor: EverforestColors.purple),
+      );
     }
   }
 
@@ -32,50 +93,24 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
-        title: Text(
-          'Sample Book Title',
-          style: TextStyle(color: EverforestColors.fg, fontSize: 16),
-        ),
-        iconTheme: IconThemeData(color: EverforestColors.fg),
+        title: Text(widget.book.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        actions: [
+          if (_selectedText.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.border_color, color: EverforestColors.yellow),
+              onPressed: _addHighlight,
+              tooltip: 'Highlight selected text',
+            ),
+        ],
       ),
-      body: GestureDetector(
-        onTapUp: (details) {
-          double width = MediaQuery.of(context).size.width;
-          if (details.globalPosition.dx < width * 0.3) {
-            _prevPage();
-          } else if (details.globalPosition.dx > width * 0.7) {
-            _nextPage();
-          } else {
-            // Center tap: toggle UI overlay
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          color: EverforestColors.bg1,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    'Chapter $_currentPage\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n(Tap left/right edges to turn pages)',
-                    style: TextStyle(
-                      color: EverforestColors.fg,
-                      fontSize: 18,
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  'Page $_currentPage of $_totalPages',
-                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ),
+      body: EPUBViewerPane(
+        currentPage: _currentPage,
+        totalPages: _totalPages,
+        selectedText: _selectedText,
+        onSelectionChanged: (text) => setState(() => _selectedText = text),
+        onPrevPage: _prevPage,
+        onNextPage: _nextPage,
       ),
     );
   }

@@ -1,131 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' show Value;
 import '../../../theme/everforest_colors.dart';
-import 'epub_reader_screen.dart';
-import 'audio_player_widget.dart';
+import '../../../database/database.dart';
+import 'book_card_widget.dart';
 import 'highlight_curtain.dart';
 
-class BookLibraryDashboard extends StatelessWidget {
-  const BookLibraryDashboard({Key? key}) : super(key: key);
+class BookLibraryDashboard extends StatefulWidget {
+  const BookLibraryDashboard({super.key});
+
+  @override
+  State<BookLibraryDashboard> createState() => _BookLibraryDashboardState();
+}
+
+class _BookLibraryDashboardState extends State<BookLibraryDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    _seedIfEmpty();
+  }
+
+  Future<void> _seedIfEmpty() async {
+    final db = AppDatabase.instance;
+    final existing = await db.booksDao.watchAllBooks().first;
+    if (existing.isEmpty) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.booksDao.insertBook(BooksCompanion.insert(
+        id: 'book-1', title: 'The Pragmatic Programmer', author: const Value('Andrew Hunt'),
+        currentPage: const Value(45), totalPages: const Value(320),
+        filePath: 'storage/books/pragmatic.epub', updatedAt: now, isDirty: const Value(0),
+      ));
+      await db.booksDao.insertBook(BooksCompanion.insert(
+        id: 'book-2', title: 'Clean Code', author: const Value('Robert C. Martin'),
+        currentPage: const Value(120), totalPages: const Value(464),
+        filePath: 'storage/books/cleancode.epub', updatedAt: now, isDirty: const Value(0),
+      ));
+      await db.booksDao.insertAudiobook(AudiobooksCompanion.insert(
+        id: 'audio-2', bookId: 'book-2', filePath: 'storage/audiobooks/cleancode.mp3',
+        durationSeconds: const Value(36000), currentSeconds: const Value(7200),
+        updatedAt: now, isDirty: const Value(0),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: EverforestColors.bg0,
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'LIBRARY',
-                style: TextStyle(
-                  color: EverforestColors.fg,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2.0,
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.bookmarks_outlined, color: EverforestColors.fg),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (_) => const HighlightCurtain(),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: 4, // Stub
-              itemBuilder: (context, index) {
-                return _buildBookCard(context, index);
-              },
-            ),
+    final db = AppDatabase.instance;
+    return Scaffold(
+      backgroundColor: EverforestColors.bg0,
+      appBar: AppBar(
+        backgroundColor: EverforestColors.bg1,
+        title: const Text('Book Library', style: TextStyle(color: EverforestColors.fg)),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmarks_outlined),
+            onPressed: () => showDialog(context: context, builder: (_) => const HighlightCurtain()),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBookCard(BuildContext context, int index) {
-    bool isAudiobook = index % 2 == 1;
-    return GestureDetector(
-      onTap: () {
-        if (isAudiobook) {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const AudioPlayerWidget(),
+      body: StreamBuilder<List<Book>>(
+        stream: db.booksDao.watchAllBooks(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final books = snapshot.data!;
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 200, childAspectRatio: 0.65, crossAxisSpacing: 16, mainAxisSpacing: 16,
+            ),
+            itemCount: books.length,
+            itemBuilder: (context, index) => BookCardWidget(book: books[index]),
           );
-        } else {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const EPUBReaderScreen(),
-          ));
-        }
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: EverforestColors.bg1,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: EverforestColors.bg2, width: 1),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: EverforestColors.bg2,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Icon(
-                    isAudiobook ? Icons.headphones : Icons.menu_book,
-                    color: EverforestColors.grey,
-                    size: 32,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Sample Book ${index + 1}',
-              style: TextStyle(
-                color: EverforestColors.fg,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Unknown Author',
-              style: TextStyle(
-                color: EverforestColors.grey,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: 0.4,
-              backgroundColor: EverforestColors.bg0,
-              valueColor: AlwaysStoppedAnimation<Color>(EverforestColors.green),
-            ),
-          ],
-        ),
+        },
       ),
     );
   }

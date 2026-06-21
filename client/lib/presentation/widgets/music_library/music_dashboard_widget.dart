@@ -1,99 +1,112 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
-import 'music_player_overlay.dart';
 
 class MusicDashboardWidget extends StatelessWidget {
   const MusicDashboardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: EverforestColors.bg0,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('Music Cloud', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(flex: 2, child: _buildPlaylists()),
-                const SizedBox(width: 16),
-                Expanded(flex: 3, child: _buildTrackGrid()),
-              ],
-            ),
+    final tracks = [
+      {'title': 'Bohemian Rhapsody', 'artist': 'Queen', 'color': EverforestColors.red},
+      {'title': 'Stairway to Heaven', 'artist': 'Led Zeppelin', 'color': EverforestColors.yellow},
+      {'title': 'Hotel California', 'artist': 'Eagles', 'color': EverforestColors.orange},
+      {'title': 'Smells Like Teen Spirit', 'artist': 'Nirvana', 'color': EverforestColors.aqua},
+      {'title': 'Imagine', 'artist': 'John Lennon', 'color': EverforestColors.blue},
+      {'title': 'Sweet Child O\' Mine', 'artist': 'Guns N\' Roses', 'color': EverforestColors.purple},
+      {'title': 'Billie Jean', 'artist': 'Michael Jackson', 'color': EverforestColors.green},
+      {'title': 'Hey Jude', 'artist': 'The Beatles', 'color': EverforestColors.cyan},
+    ];
+
+    return Scaffold(
+      backgroundColor: EverforestColors.bg0,
+      appBar: AppBar(
+        backgroundColor: EverforestColors.bg1,
+        title: const Text('Music Library', style: TextStyle(color: EverforestColors.fg)),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: EverforestColors.fg),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 180,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
           ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.music_note),
-            label: const Text('Open Player Mock'),
-            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.bg2),
-            onPressed: () => showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => const MusicPlayerOverlay(),
-            ),
-          ),
-        ],
+          itemCount: tracks.length,
+          itemBuilder: (context, index) {
+            final track = tracks[index];
+            return Container(
+              decoration: BoxDecoration(
+                color: EverforestColors.bg1,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: track['color'] as Color,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (track['color'] as Color).withOpacity(0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.music_note, size: 40, color: EverforestColors.bg0),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      track['title'] as String,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: EverforestColors.fg,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      track['artist'] as String,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: EverforestColors.grey,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
-    );
-  }
-
-  Widget _buildPlaylists() {
-    return Container(
-      decoration: BoxDecoration(
-        color: EverforestColors.bg1,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: EverforestColors.bg2),
-      ),
-      child: ListView(
-        children: const [
-          ListTile(leading: Icon(Icons.queue_music, color: EverforestColors.green), title: Text('Focus Drive', style: TextStyle(color: EverforestColors.fg))),
-          ListTile(leading: Icon(Icons.queue_music, color: EverforestColors.blue), title: Text('Synthwave 80s', style: TextStyle(color: EverforestColors.fg))),
-          ListTile(leading: Icon(Icons.queue_music, color: EverforestColors.purple), title: Text('Acoustic Chill', style: TextStyle(color: EverforestColors.fg))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrackGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      childAspectRatio: 1.5,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      children: const [
-        _TrackCard(title: 'Nightcall', artist: 'Kavinsky', icon: Icons.album),
-        _TrackCard(title: 'Resonance', artist: 'HOME', icon: Icons.album),
-        _TrackCard(title: 'Blinding Lights', artist: 'The Weeknd', icon: Icons.album),
-        _TrackCard(title: 'A Real Hero', artist: 'College', icon: Icons.album),
-      ],
-    );
-  }
-}
-
-class _TrackCard extends StatelessWidget {
-  final String title, artist;
-  final IconData icon;
-
-  const _TrackCard({required this.title, required this.artist, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: EverforestColors.bg1, borderRadius: BorderRadius.circular(12), border: Border.all(color: EverforestColors.bg2)),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: EverforestColors.grey, size: 32),
-          const Spacer(),
-          Text(title, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
-          Text(artist, style: const TextStyle(color: EverforestColors.cyan, fontSize: 12)),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: EverforestColors.green,
+        child: const Icon(Icons.play_arrow, color: EverforestColors.bg0, size: 32),
       ),
     );
   }

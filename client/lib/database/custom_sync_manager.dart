@@ -7,7 +7,20 @@ class CustomSyncManager {
   final ApiClient api;
   final dynamic db;
   bool _isSyncing = false;
+  Timer? _pollingScheduler;
+
   CustomSyncManager(this.api, this.db);
+
+  void startPollingScheduler(Duration interval) {
+    // Synchronization polling scheduler loop connected to virtual tsnet network dial context
+    _pollingScheduler?.cancel();
+    _pollingScheduler = Timer.periodic(interval, (_) => runSyncCycle());
+  }
+
+  void stopPollingScheduler() {
+    _pollingScheduler?.cancel();
+    _pollingScheduler = null;
+  }
 
   Future<void> runSyncCycle() async {
     if (_isSyncing) return;

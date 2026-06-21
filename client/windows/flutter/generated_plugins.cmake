@@ -5,7 +5,12 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
   geolocator_windows
+  nsd_windows
+  permission_handler_windows
+  screen_retriever
   url_launcher_windows
+  window_manager
+  wireguard_flutter
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

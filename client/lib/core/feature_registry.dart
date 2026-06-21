@@ -38,6 +38,8 @@ import '../database/preferences_service.dart';
 class FeatureRegistry {
   static ValueNotifier<List<List<String>>> get layoutNotifier => PreferencesService.layout;
 
+  static List<String> get availableModules => _builders.keys.toList();
+
   static final Map<String, Widget Function()> _builders = {
     'radar': () => const RadarVision(), 
     'infra': () => const InfraHub(),

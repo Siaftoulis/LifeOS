@@ -39,7 +39,7 @@
 
         <!-- Home Screen Widget Provider -->
         <receiver
-            android:name=".LifeOSWidgetProvider"
+            android:name="com.lifeos.app.LifeOSWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

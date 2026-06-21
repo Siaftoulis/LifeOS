@@ -17,4 +17,25 @@ class PointsDao extends DatabaseAccessor<AppDatabase> with _$PointsDaoMixin {
   Future<bool> updateUser(SystemUser user) => update(systemUsers).replace(user);
   Future<int> insertLedger(PointsLedgersCompanion entry) => into(pointsLedgers).insert(entry);
   Future<int> insertVoucher(VouchersCompanion entry) => into(vouchers).insert(entry);
+
+  Future<void> awardPoints(int points, String event) async {
+    final users = await watchAllUsers().first;
+    if (users.isNotEmpty) {
+      final user = users.first;
+      final updatedUser = user.copyWith(
+        currentPoints: user.currentPoints + points,
+        updatedAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        isDirty: 1,
+      );
+      await updateUser(updatedUser);
+      await insertLedger(PointsLedgersCompanion.insert(
+        id: 'l-${DateTime.now().millisecondsSinceEpoch}',
+        userId: user.id,
+        event: event,
+        points: points,
+        timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        isDirty: const Value(1),
+      ));
+    }
+  }
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // InitTailnet initializes the embedded Tailscale mesh network listener.
-func InitTailnet(hostname string, port int) error {
+func InitTailnet(hostname string, port int, appMux *http.ServeMux) error {
 	dir, err := filepath.Abs("./tsnet-state")
 	if err != nil {
 		return fmt.Errorf("failed to resolve absolute state path: %w", err)
@@ -19,7 +19,7 @@ func InitTailnet(hostname string, port int) error {
 	s := &tsnet.Server{
 		Hostname: hostname,
 		Dir:      dir,
-		Logf:     func(format string, args ...any) {}, // Silence engine noise
+		Logf:     log.Printf, // Output engine noise to see auth link
 	}
 
 	ln, err := s.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -27,20 +27,22 @@ func InitTailnet(hostname string, port int) error {
 		return fmt.Errorf("tailnet offline or bind failed: %w", err)
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	authMiddleware := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lc, _ := s.LocalClient()
 		info, err := lc.WhoIs(r.Context(), r.RemoteAddr)
 		if err != nil {
 			http.Error(w, "Unauthorized: Tailnet identity verification failed", http.StatusUnauthorized)
 			return
 		}
-		// Validated request
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Verified Node Identity: %s", info.UserProfile.LoginName)
+		
+		// Optional: you can pass the identity down to handlers using headers
+		r.Header.Set("X-Tailnet-User", info.UserProfile.LoginName)
+		
+		// Serve the actual application
+		appMux.ServeHTTP(w, r)
 	})
 
 	log.Printf("Mesh Active: Node [%s] securely listening on Tailnet :%d", hostname, port)
-	go http.Serve(ln, mux)
+	go http.Serve(ln, authMiddleware)
 	return nil
 }

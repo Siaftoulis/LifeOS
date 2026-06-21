@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:window_manager/window_manager.dart';
 import 'update_manager.dart';
 import 'api_client.dart';
 import 'desktop_widget_manager.dart';
@@ -47,10 +48,40 @@ import 'presentation/widgets/youtube_client/youtube_client_dashboard.dart';
 import 'plugins/location_tracker/location_tracker_plugin.dart';
 import 'theme/everforest_colors.dart';
 import 'auth_service.dart';
+import 'core/dev_simulation_service.dart' as import_dev_sim;
+import 'core/local_discovery_service.dart';
+import 'core/vpn_manager.dart';
+
+final GlobalKey devScreenCaptureKey = GlobalKey();
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<SpatialEngineState> spatialEngineKey = GlobalKey<SpatialEngineState>();
 
 Future<void> main(List<String> args) async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    
+    // Initialize built-in VPN before any network requests (Custom DDNS)
+    await VpnManager.instance.initialize();
+    
+    // Start local peer discovery (mDNS) for offline sync
+    LocalDiscoveryService.instance.start();
+    
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      await windowManager.ensureInitialized();
+      WindowOptions windowOptions = const WindowOptions(
+        size: Size(1280, 720),
+        minimumSize: Size(1024, 600),
+        center: true,
+        backgroundColor: Colors.transparent,
+        skipTaskbar: false,
+        titleBarStyle: TitleBarStyle.normal,
+      );
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    }
+
     if (Platform.isAndroid) {
       try {
         await FlutterDisplayMode.setHighRefreshRate();
@@ -73,13 +104,16 @@ Future<void> main(List<String> args) async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final dbFile = File('${dbFolder.path}/lifeos.sqlite');
     final db = AppDatabase(NativeDatabase(dbFile));
-    final baseUrl = await ApiClient.discoverBaseUrl();
-    final daemonUrl = await ApiClient.discoverDaemonUrl();
-    final api = ApiClient(baseUrl: baseUrl, daemonUrl: daemonUrl);
+    final urls = await Future.wait([
+      ApiClient.discoverBaseUrl(),
+      ApiClient.discoverDaemonUrl(),
+    ]);
+    final api = ApiClient(baseUrl: urls[0], daemonUrl: urls[1]);
     FeatureRegistry.buildRegistry(db, api);
 
     final locationPlugin = LocationTrackerPlugin();
-    await locationPlugin.initialize(db, api);
+    // Fire and forget so we don't block runApp
+    locationPlugin.initialize(db, api);
 
     runApp(const LifeOSMainApp());
   } catch (e, stack) {
@@ -169,6 +203,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
 
   @override Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
       home: Builder(builder: (ctx) {
         WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));
@@ -193,91 +228,106 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
               );
             }
 
-            return Scaffold(
-              backgroundColor: EverforestColors.bg0,
-              body: SpatialEngine(
-                layout: layout,
-                startX: startX,
-                startY: startY,
-                builder: (moduleId, y, x) {
-                  if (moduleId == 'configurator') {
-                    return const GridConfigurator();
-                  } else if (moduleId == 'nexus') {
-                    return const NexusDashboard();
-                  } else if (moduleId == 'radar') {
-                    return const RadarVision();
-                  } else if (moduleId == 'obsidian') {
-                    return const ZenWorkspace();
-                  } else if (moduleId == 'infra') {
-                    return const InfraHub();
-                  } else if (moduleId == 'quests') {
-                    return const QuestBoard();
-                  } else if (moduleId == 'home') {
-                    return const HomeView();
-                  } else if (moduleId == 'media') {
-                    return const MediaVault();
-                  } else if (moduleId == 'capture') {
-                    return FastCapturePanel(db: AppDatabase.instance);
-                  } else if (moduleId == 'accounting') {
-                    return const AccountingView();
-                  } else if (moduleId == 'banking') {
-                    return const BankingDashboardView();
-                  } else if (moduleId == 'books') {
-                    return const BookLibraryDashboard();
-                  } else if (moduleId == 'chtm') {
-                    return const CHTMView();
-                  } else if (moduleId == 'cloud') {
-                    return const CloudBackupDashboard();
-                  } else if (moduleId == 'darkweb') {
-                    return const TorrentDashboardView();
-                  } else if (moduleId == 'flashcards') {
-                    return const FlashcardsDashboard();
-                  } else if (moduleId == 'home_management') {
-                    return const SmartHomeDashboard();
-                  } else if (moduleId == 'home_screen') {
-                    return const HomeView();
-                  } else if (moduleId == 'knowledge_base') {
-                    return const KnowledgeBaseDashboard();
-                  } else if (moduleId == 'maps_live_tracking') {
-                    return const MapsDashboardWidget();
-                  } else if (moduleId == 'movie_library') {
-                    return const MovieLibraryDashboard();
-                  } else if (moduleId == 'music_library') {
-                    return const MusicDashboardWidget();
-                  } else if (moduleId == 'obsidian_zen') {
-                    return const ZenWorkspace();
-                  } else if (moduleId == 'photo_video_gallery') {
-                    return const GalleryGridWidget();
-                  } else if (moduleId == 'point_star_system') {
-                    return const PointStarDashboard();
-                  } else if (moduleId == 'preferences_setting') {
-                    return const PreferencesDashboardView();
-                  } else if (moduleId == 'project_infinity') {
-                    return const ProjectInfinityDashboard();
-                  } else if (moduleId == 'virtual_machine') {
-                    return const VMManagementDashboard();
-                  } else if (moduleId == 'youtube_client') {
-                    return const YoutubeClientDashboard();
-                  } else if (moduleId == 'app_drawer') {
-                    return const AndroidLauncherWidget();
-                  } else if (moduleId == 'tailscale_mesh') {
-                    return const TailscaleNodeMonitorWidget();
-                  } else if (moduleId == 'void') {
-                    return const VoidSlot();
-                  } else {
-                    return Container(
-                      color: const Color(0xFF09090B),
-                      child: Center(
-                        child: Text(
-                          'MODULE: ${moduleId.toUpperCase()}',
-                          style: const TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono'),
-                        ),
-                      ),
-                    );
-                  }
+            return RepaintBoundary(
+              key: devScreenCaptureKey,
+              child: Listener(
+                onPointerUp: (e) {
+                  import_dev_sim.DevSimulationService.onUserInteraction();
                 },
-              ),
-            );
+                child: Scaffold(
+                  backgroundColor: EverforestColors.bg0,
+                  body: SpatialEngine(
+                    key: spatialEngineKey,
+                    layout: layout,
+                    startX: startX,
+                    startY: startY,
+                    builder: (moduleId, y, x) {
+                      final moduleWidget = () {
+                        if (moduleId == 'configurator') {
+                          return const GridConfigurator();
+                        } else if (moduleId == 'nexus') {
+                          return const NexusDashboard();
+                        } else if (moduleId == 'radar') {
+                          return const RadarVision();
+                        } else if (moduleId == 'obsidian') {
+                          return const ZenWorkspace();
+                        } else if (moduleId == 'infra') {
+                          return const InfraHub();
+                        } else if (moduleId == 'quests') {
+                          return const QuestBoard();
+                        } else if (moduleId == 'home') {
+                          return const HomeView();
+                        } else if (moduleId == 'media') {
+                          return const MediaVault();
+                        } else if (moduleId == 'capture') {
+                          return FastCapturePanel(db: AppDatabase.instance);
+                        } else if (moduleId == 'accounting') {
+                          return const AccountingView();
+                        } else if (moduleId == 'banking') {
+                          return const BankingDashboardView();
+                        } else if (moduleId == 'books') {
+                          return const BookLibraryDashboard();
+                        } else if (moduleId == 'chtm') {
+                          return const CHTMView();
+                        } else if (moduleId == 'cloud') {
+                          return const CloudBackupDashboard();
+                        } else if (moduleId == 'darkweb') {
+                          return const TorrentDashboardView();
+                        } else if (moduleId == 'flashcards') {
+                          return const FlashcardsDashboard();
+                        } else if (moduleId == 'home_management') {
+                          return const SmartHomeDashboard();
+                        } else if (moduleId == 'home_screen') {
+                          return const HomeView();
+                        } else if (moduleId == 'knowledge_base') {
+                          return const KnowledgeBaseDashboard();
+                        } else if (moduleId == 'maps_live_tracking') {
+                          return const MapsDashboardWidget();
+                        } else if (moduleId == 'movie_library') {
+                          return const MovieLibraryDashboard();
+                        } else if (moduleId == 'music_library') {
+                          return const MusicDashboardWidget();
+                        } else if (moduleId == 'obsidian_zen') {
+                          return const ZenWorkspace();
+                        } else if (moduleId == 'photo_video_gallery') {
+                          return const GalleryGridWidget();
+                        } else if (moduleId == 'point_star_system') {
+                          return const PointStarDashboard();
+                        } else if (moduleId == 'preferences_setting') {
+                          return const PreferencesDashboardView();
+                        } else if (moduleId == 'project_infinity') {
+                          return const ProjectInfinityDashboard();
+                        } else if (moduleId == 'virtual_machine') {
+                          return const VMManagementDashboard();
+                        } else if (moduleId == 'youtube_client') {
+                          return const YoutubeClientDashboard();
+                        } else if (moduleId == 'app_drawer') {
+                          return const AndroidLauncherWidget();
+                        } else if (moduleId == 'tailscale_mesh') {
+                          return const TailscaleNodeMonitorWidget();
+                        } else if (moduleId == 'void') {
+                          return const VoidSlot();
+                        } else {
+                          return Container(
+                            color: const Color(0xFF09090B),
+                            child: Center(
+                              child: Text(
+                                'MODULE: ${moduleId.toUpperCase()}',
+                                style: const TextStyle(color: Colors.white, fontFamily: 'JetBrainsMono'),
+                              ),
+                            ),
+                          );
+                        }
+                      }();
+                      return KeyedSubtree(
+                        key: import_dev_sim.DevSimulationService.getModuleKey(moduleId),
+                        child: moduleWidget,
+                      );
+                    },
+              ), // SpatialEngine
+            ), // Scaffold
+            ), // Listener
+          ); // RepaintBoundary
           },
         );
       }),

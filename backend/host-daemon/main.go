@@ -27,6 +27,7 @@ import (
 	"lifeos/host-daemon/internal/infinity"
 	"lifeos/host-daemon/internal/vm"
 	"lifeos/host-daemon/internal/youtube"
+	"lifeos/host-daemon/internal/devsim"
 )
 
 func main() {
@@ -57,11 +58,15 @@ func main() {
 	infinity.RegisterRoutes(mux)
 	vm.RegisterRoutes(mux)
 	youtube.RegisterRoutes(mux)
+	devsim.RegisterRoutes(mux)
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)
 	
-	if err := InitTailnet("lifeos-host", 50051); err != nil {
+	// Start the Custom DDNS Updater routine
+	go startCustomDDNSUpdater()
+	
+	if err := InitTailnet("lifeos-host", 50051, mux); err != nil {
 		log.Printf("Tailnet init error: %v", err)
 	}
 	

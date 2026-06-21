@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../api_client.dart';
 import '../../core/obsidian/config_parser.dart';
+import '../../core/obsidian/vault_scanner.dart';
 import '../../theme/everforest_colors.dart';
 
 class MarkdownEditingController extends TextEditingController {
@@ -35,6 +38,20 @@ class MarkdownEditingController extends TextEditingController {
   }
 }
 
+class FileNode {
+  final String name;
+  final String path;
+  final bool isDirectory;
+  final List<FileNode> children;
+
+  FileNode({
+    required this.name,
+    required this.path,
+    required this.isDirectory,
+    required this.children,
+  });
+}
+
 class ZenWorkspace extends StatefulWidget {
   const ZenWorkspace({super.key});
   @override 
@@ -42,49 +59,529 @@ class ZenWorkspace extends StatefulWidget {
 }
 
 class _ZenWorkspaceState extends State<ZenWorkspace> {
-  late final MarkdownEditingController _noteCtr;
+  final MarkdownEditingController _noteCtr = MarkdownEditingController();
   Timer? _debounce;
   ObsidianConfig? _config;
-  
+  VaultScanner? _vaultScanner;
+
   bool _leftSidebarOpen = true;
-  bool _rightSidebarOpen = false; // Closed by default to show split pane
-  
-  // Tablet/Desktop specific states
+  bool _rightSidebarOpen = false;
+
   bool _isLeftSidebarPinned = true;
-  bool _isSplitPane = true;
-  int _activeTabIndex = 0;
-  final List<String> _tabs = ['Writing is telepathy', 'Everything is a remix', 'Cross the chasm'];
+  bool _isSplitPane = false;
+
+  final List<String> _openFilePaths = [];
+  String? _activeFilePath;
+  String? _selectedNodePath;
+  List<FileNode> _fileTree = [];
+  final Set<String> _expandedFolderPaths = {};
 
   final Color _accentColor = const Color(0xFF7E57C2);
 
-  @override 
-  void initState() { 
-    super.initState(); 
-    _noteCtr = _buildEditorController();
-    _loadInitialNote(); 
+  @override
+  void initState() {
+    super.initState();
+    _vaultScanner = VaultScanner('vault');
+    _vaultScanner?.addListener(_onScannerUpdate);
+    _refreshFileTree();
     _loadConfig();
+    _loadInitialNote();
   }
 
-  MarkdownEditingController _buildEditorController() {
-    return MarkdownEditingController();
+  void _onScannerUpdate() {
+    if (mounted) {
+      _refreshFileTree();
+    }
   }
-  
+
+  void _refreshFileTree() {
+    setState(() {
+      _fileTree = _buildFileTree();
+    });
+  }
+
+  List<FileNode> _buildFileTree() {
+    final rootDir = Directory('vault');
+    if (!rootDir.existsSync()) {
+      rootDir.createSync(recursive: true);
+    }
+    return _scanDir(rootDir);
+  }
+
+  List<FileNode> _scanDir(Directory dir) {
+    final List<FileNode> nodes = [];
+    try {
+      final entities = dir.listSync();
+      entities.sort((a, b) {
+        final aIsDir = a is Directory;
+        final bIsDir = b is Directory;
+        if (aIsDir && !bIsDir) return -1;
+        if (!aIsDir && bIsDir) return 1;
+        return a.path.toLowerCase().compareTo(b.path.toLowerCase());
+      });
+
+      for (final entity in entities) {
+        final name = entity.uri.pathSegments.last.isEmpty
+            ? entity.uri.pathSegments[entity.uri.pathSegments.length - 2]
+            : entity.uri.pathSegments.last;
+
+        if (name.startsWith('.')) continue;
+
+        if (entity is Directory) {
+          nodes.add(FileNode(
+            name: name,
+            path: entity.path,
+            isDirectory: true,
+            children: _scanDir(entity),
+          ));
+        } else if (entity is File && name.endsWith('.md')) {
+          nodes.add(FileNode(
+            name: name.replaceAll('.md', ''),
+            path: entity.path,
+            isDirectory: false,
+            children: [],
+          ));
+        }
+      }
+    } catch (e) {
+      debugPrint('Error listing directory ${dir.path}: $e');
+    }
+    return nodes;
+  }
+
+  String _getTargetDirectory() {
+    if (_selectedNodePath == null) return 'vault';
+    final isDir = Directory(_selectedNodePath!).existsSync();
+    if (isDir) return _selectedNodePath!;
+    final file = File(_selectedNodePath!);
+    return file.parent.path;
+  }
+
+  String _generateUuid() {
+    final random = Random();
+    final parts = List.generate(4, (_) => random.nextInt(0xFFFFFFFF).toRadixString(16).padLeft(8, '0'));
+    return parts.join('-');
+  }
+
+  void _createNewFile(String name) {
+    final parentDir = _getTargetDirectory();
+    final sanitizedName = name.endsWith('.md') ? name : '$name.md';
+    final filePath = '$parentDir/$sanitizedName';
+
+    final file = File(filePath);
+    if (file.existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File already exists: $name')),
+      );
+      return;
+    }
+
+    final uuid = _generateUuid();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final content = '''---
+id: "$uuid"
+updated_at: $timestamp
+synced_at: null
+---
+# $name
+
+''';
+
+    try {
+      file.writeAsStringSync(content);
+      final relativePath = filePath.replaceAll('vault/', '').replaceAll('vault\\', '');
+      ApiClient.instance.postDaemon('/api/markdown/sync', {
+        'file_path': relativePath,
+        'content': content,
+      }).catchError((_) {});
+
+      _refreshFileTree();
+      _openFile(filePath);
+    } catch (e) {
+      debugPrint('Error creating file: $e');
+    }
+  }
+
+  void _createNewFolder(String name) {
+    final parentDir = _getTargetDirectory();
+    final dirPath = '$parentDir/$name';
+
+    final dir = Directory(dirPath);
+    if (dir.existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Folder already exists: $name')),
+      );
+      return;
+    }
+
+    try {
+      dir.createSync(recursive: true);
+      _refreshFileTree();
+    } catch (e) {
+      debugPrint('Error creating folder: $e');
+    }
+  }
+
+  void _openFile(String filePath) {
+    if (!_openFilePaths.contains(filePath)) {
+      _openFilePaths.add(filePath);
+    }
+    _activeFilePath = filePath;
+
+    try {
+      final file = File(filePath);
+      if (file.existsSync()) {
+        _noteCtr.text = file.readAsStringSync();
+      }
+    } catch (e) {
+      debugPrint('Error loading file $filePath: $e');
+    }
+  }
+
+  void _closeTab(int index) {
+    final filePath = _openFilePaths[index];
+    _openFilePaths.removeAt(index);
+
+    if (_activeFilePath == filePath) {
+      if (_openFilePaths.isNotEmpty) {
+        final newIndex = index.clamp(0, _openFilePaths.length - 1);
+        _openFile(_openFilePaths[newIndex]);
+      } else {
+        _activeFilePath = null;
+        _noteCtr.clear();
+      }
+    }
+    _refreshFileTree();
+  }
+
+  void _saveCurrentNote() {
+    if (_activeFilePath == null) return;
+    final text = _noteCtr.text;
+
+    try {
+      File(_activeFilePath!).writeAsStringSync(text);
+    } catch (e) {
+      debugPrint('Error saving file locally: $e');
+    }
+
+    final relativePath = _activeFilePath!.replaceAll('vault/', '').replaceAll('vault\\', '');
+    ApiClient.instance.postDaemon('/api/markdown/sync', {
+      'file_path': relativePath,
+      'content': text,
+    }).catchError((e) {
+      debugPrint('Daemon sync failed: $e');
+    });
+  }
+
+  void _openOrCreateDailyNote() {
+    final now = DateTime.now();
+    final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    final dailyDir = Directory('vault/Daily');
+    if (!dailyDir.existsSync()) {
+      dailyDir.createSync(recursive: true);
+    }
+
+    final filePath = 'vault/Daily/$dateStr.md';
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      final uuid = _generateUuid();
+      final timestamp = now.millisecondsSinceEpoch;
+      final content = '''---
+id: "$uuid"
+updated_at: $timestamp
+synced_at: null
+---
+# Daily Note: $dateStr
+
+''';
+      try {
+        file.writeAsStringSync(content);
+        final relativePath = 'Daily/$dateStr.md';
+        ApiClient.instance.postDaemon('/api/markdown/sync', {
+          'file_path': relativePath,
+          'content': content,
+        }).catchError((_) {});
+      } catch (e) {
+        debugPrint('Error creating daily note: $e');
+      }
+    }
+
+    _refreshFileTree();
+    _openFile(filePath);
+  }
+
+  void _insertLink(String noteName) {
+    final text = _noteCtr.text;
+    final selection = _noteCtr.selection;
+    final linkText = '[[$noteName]]';
+
+    if (selection.start >= 0 && selection.end >= 0) {
+      final newText = text.replaceRange(selection.start, selection.end, linkText);
+      _noteCtr.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: selection.start + linkText.length),
+      );
+    } else {
+      _noteCtr.text = '$text$linkText';
+    }
+    _saveCurrentNote();
+  }
+
+  List<FileNode> _getAllNotes() {
+    final List<FileNode> notes = [];
+    void traverse(List<FileNode> list) {
+      for (final node in list) {
+        if (node.isDirectory) {
+          traverse(node.children);
+        } else {
+          notes.add(node);
+        }
+      }
+    }
+    traverse(_fileTree);
+    return notes;
+  }
+
+  void _showNewFolderDialog() {
+    final targetDir = _getTargetDirectory();
+    final relativeTarget = targetDir.replaceAll('vault/', '').replaceAll('vault\\', '');
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: Row(
+            children: const [
+              Icon(Icons.create_new_folder, color: EverforestColors.blue),
+              SizedBox(width: 8),
+              Text('New Folder', style: TextStyle(color: EverforestColors.fg)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Creating in: ${relativeTarget.isEmpty ? "Vault Root" : relativeTarget}',
+                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                style: const TextStyle(color: EverforestColors.fg),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Folder name',
+                  hintStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: EverforestColors.bg2),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: EverforestColors.blue),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+            TextButton(
+              onPressed: () {
+                final name = controller.text.trim();
+                if (name.isNotEmpty) {
+                  _createNewFolder(name);
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Create', style: TextStyle(color: EverforestColors.blue)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showNewFileDialog() {
+    final targetDir = _getTargetDirectory();
+    final relativeTarget = targetDir.replaceAll('vault/', '').replaceAll('vault\\', '');
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: Row(
+            children: const [
+              Icon(Icons.post_add, color: EverforestColors.green),
+              SizedBox(width: 8),
+              Text('New Note', style: TextStyle(color: EverforestColors.fg)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Creating in: ${relativeTarget.isEmpty ? "Vault Root" : relativeTarget}',
+                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                style: const TextStyle(color: EverforestColors.fg),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Note title',
+                  hintStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: EverforestColors.bg2),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: EverforestColors.green),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+            TextButton(
+              onPressed: () {
+                final name = controller.text.trim();
+                if (name.isNotEmpty) {
+                  _createNewFile(name);
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Create', style: TextStyle(color: EverforestColors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showInsertLinkDialog() {
+    final notes = _getAllNotes();
+    final controller = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final query = controller.text.toLowerCase();
+            final filtered = notes.where((note) => note.name.toLowerCase().contains(query)).toList();
+
+            return AlertDialog(
+              backgroundColor: EverforestColors.bg1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              title: const Text('Insert Link to Note', style: TextStyle(color: EverforestColors.fg)),
+              content: SizedBox(
+                width: 400,
+                height: 400,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: controller,
+                      style: const TextStyle(color: EverforestColors.fg),
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        hintText: 'Search notes...',
+                        hintStyle: TextStyle(color: EverforestColors.grey),
+                        prefixIcon: Icon(Icons.search, color: EverforestColors.grey),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: EverforestColors.bg2),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: EverforestColors.green),
+                        ),
+                      ),
+                      onChanged: (val) {
+                        setStateDialog(() {});
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(
+                              child: Text('No notes found', style: TextStyle(color: EverforestColors.grey)),
+                            )
+                          : ListView.builder(
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final note = filtered[index];
+                                return ListTile(
+                                  title: Text(note.name, style: const TextStyle(color: EverforestColors.fg)),
+                                  leading: const Icon(Icons.description_outlined, color: EverforestColors.grey),
+                                  onTap: () {
+                                    _insertLink(note.name);
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   Future<void> _loadConfig() async {
     final parser = ConfigParser('vault');
     final cfg = await parser.parseConfig();
     if (mounted) setState(() => _config = cfg);
   }
 
-  @override 
-  void dispose() { 
-    _debounce?.cancel(); 
-    _noteCtr.dispose(); 
-    super.dispose(); 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _noteCtr.dispose();
+    _vaultScanner?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialNote() async {
-    final res = await ApiClient.instance.post('/api/obsidian/load', {});
-    if (res['content'] != null && mounted) setState(() => _noteCtr.text = res['content']);
+    final List<String> paths = [];
+    void collect(List<FileNode> nodes) {
+      for (final n in nodes) {
+        if (n.isDirectory) {
+          collect(n.children);
+        } else {
+          paths.add(n.path);
+        }
+      }
+    }
+    collect(_fileTree);
+    if (paths.isNotEmpty) {
+      _openFile(paths.first);
+    } else {
+      _createNewFile('Welcome to LifeOS Zen Editor');
+    }
   }
   
   void _showSettingsModal(BuildContext context) {
@@ -272,7 +769,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         children: [
           const SizedBox(height: 16),
           _buildHoverIconButton(Icons.hub, 'Open Graph', () {}),
-          _buildHoverIconButton(Icons.today, 'Daily Note', () {}),
+          _buildHoverIconButton(Icons.today, 'Daily Note', () => _openOrCreateDailyNote()),
           _buildHoverIconButton(Icons.folder_shared, 'Switch Vault', () {}),
           const Spacer(),
           _buildHoverIconButton(Icons.settings, 'Settings', () => _showSettingsModal(context)),
@@ -290,7 +787,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         alignment: WrapAlignment.spaceEvenly,
         children: [
           _buildHoverIconButton(Icons.hub, 'Open Graph', () {}),
-          _buildHoverIconButton(Icons.today, 'Daily Note', () {}),
+          _buildHoverIconButton(Icons.today, 'Daily Note', () => _openOrCreateDailyNote()),
           _buildHoverIconButton(Icons.folder_shared, 'Switch Vault', () {}),
           _buildHoverIconButton(Icons.settings, 'Settings', () => _showSettingsModal(context)),
         ],
@@ -346,8 +843,9 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                 ),
                 Row(
                   children: [
-                    _buildHoverIconButton(Icons.swap_vert, 'Sort', () {}),
-                    _buildHoverIconButton(Icons.post_add, 'New File', () {}),
+                    _buildHoverIconButton(Icons.create_new_folder, 'New Folder', () => _showNewFolderDialog()),
+                    _buildHoverIconButton(Icons.post_add, 'New File', () => _showNewFileDialog()),
+                    _buildHoverIconButton(Icons.link, 'Insert Link', () => _showInsertLinkDialog()),
                   ],
                 )
               ],
@@ -355,30 +853,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView(
-              children: [
-                _buildTreeItem('Clippings', true),
-                _buildTreeItem('Daily', true),
-                _buildTreeItem('Ideas', true, isExpanded: true),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: Material(
-                    color: Colors.white10,
-                    child: ListTile(
-                      title: const Text('Writing is telepathy', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
-                      dense: true,
-                      onTap: () {},
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ),
-                _buildTreeItem('Projects', true),
-                _buildTreeItem('References', true),
-                const SizedBox(height: 16),
-                _buildTreeItem('1,000 true fans', false),
-                _buildTreeItem('A company is a superorganism', false),
-                _buildTreeItem('A little bit every day', false),
-              ],
+            child: SingleChildScrollView(
+              child: _buildFileTreeWidget(_fileTree),
             ),
           ),
         ],
@@ -386,26 +862,120 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     );
   }
 
-  Widget _buildTreeItem(String title, bool isFolder, {bool isExpanded = false}) {
+  Widget _buildFileTreeWidget(List<FileNode> nodes, {double depth = 0}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: nodes.map((node) {
+        if (node.isDirectory) {
+          final isExpanded = _expandedFolderPaths.contains(node.path);
+          final isSelected = _selectedNodePath == node.path;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTreeRow(
+                title: node.name,
+                path: node.path,
+                isFolder: true,
+                isExpanded: isExpanded,
+                isSelected: isSelected,
+                depth: depth,
+                onTap: () {
+                  setState(() {
+                    _selectedNodePath = node.path;
+                    if (isExpanded) {
+                      _expandedFolderPaths.remove(node.path);
+                    } else {
+                      _expandedFolderPaths.add(node.path);
+                    }
+                  });
+                },
+              ),
+              if (isExpanded)
+                _buildFileTreeWidget(node.children, depth: depth + 12),
+            ],
+          );
+        } else {
+          final isSelected = _selectedNodePath == node.path;
+          return _buildTreeRow(
+            title: node.name,
+            path: node.path,
+            isFolder: false,
+            isExpanded: false,
+            isSelected: isSelected,
+            depth: depth,
+            onTap: () {
+              setState(() {
+                _selectedNodePath = node.path;
+                _openFile(node.path);
+              });
+            },
+          );
+        }
+      }).toList(),
+    );
+  }
+
+  Widget _buildTreeRow({
+    required String title,
+    required String path,
+    required bool isFolder,
+    required bool isExpanded,
+    required bool isSelected,
+    required double depth,
+    required VoidCallback onTap,
+  }) {
     return Material(
-      type: MaterialType.transparency,
-      child: ListTile(
-        leading: Icon(
-          isFolder ? (isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right) : Icons.description,
-          color: EverforestColors.grey,
-          size: 16,
-        ),
-        title: Text(title, style: const TextStyle(color: EverforestColors.grey, fontSize: 13)),
-        dense: true,
+      color: isSelected ? EverforestColors.bg2 : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         hoverColor: Colors.white10,
-        visualDensity: VisualDensity.compact,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        onTap: () {},
+        child: Padding(
+          padding: EdgeInsets.only(left: depth + 8.0, top: 6, bottom: 6, right: 8),
+          child: Row(
+            children: [
+              Icon(
+                isFolder
+                    ? (isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right)
+                    : Icons.description_outlined,
+                color: isSelected ? EverforestColors.green : EverforestColors.grey,
+                size: 16,
+              ),
+              const SizedBox(width: 6),
+              if (isFolder)
+                const Icon(Icons.folder, color: EverforestColors.blue, size: 14)
+              else
+                const SizedBox.shrink(),
+              if (isFolder) const SizedBox(width: 4) else const SizedBox.shrink(),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isSelected ? EverforestColors.green : EverforestColors.fg,
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
   
   Widget _buildRightSidebar({bool isMobile = false}) {
+    final List<String> backlinks = [];
+    if (_activeFilePath != null && _vaultScanner != null) {
+      final targetKey = _activeFilePath!;
+      final incoming = _vaultScanner!.graph.backlinks[targetKey];
+      if (incoming != null) {
+        for (final src in incoming) {
+          backlinks.add(src);
+        }
+      }
+    }
+
     Widget content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -420,16 +990,30 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             ],
           ),
         ),
-        Material(
-          type: MaterialType.transparency,
-          child: ListTile(
-            title: const Text('Concepts MOC', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
-            leading: const Icon(Icons.link, color: EverforestColors.grey, size: 16),
-            dense: true,
-            hoverColor: Colors.white10,
-            onTap: () {},
-          ),
-        ),
+        if (backlinks.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('No incoming links', style: TextStyle(color: EverforestColors.grey, fontSize: 13, fontStyle: FontStyle.italic)),
+          )
+        else
+          ...backlinks.map((path) {
+            final name = path.split(RegExp(r'[/\\]')).last.replaceAll('.md', '');
+            return Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                title: Text(name, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                leading: const Icon(Icons.link, color: EverforestColors.grey, size: 16),
+                dense: true,
+                hoverColor: Colors.white10,
+                onTap: () {
+                  setState(() {
+                    _selectedNodePath = path;
+                    _openFile(path);
+                  });
+                },
+              ),
+            );
+          }).toList(),
       ],
     );
 
@@ -459,11 +1043,13 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: _tabs.length,
+              itemCount: _openFilePaths.length,
               itemBuilder: (context, index) {
-                bool isActive = _activeTabIndex == index;
+                final path = _openFilePaths[index];
+                bool isActive = _activeFilePath == path;
+                final fileName = path.split(RegExp(r'[/\\]')).last.replaceAll('.md', '');
                 return GestureDetector(
-                  onTap: () => setState(() => _activeTabIndex = index),
+                  onTap: () => setState(() => _openFile(path)),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -477,11 +1063,11 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                       children: [
                         Icon(Icons.description, color: isActive ? _accentColor : EverforestColors.grey, size: 14),
                         const SizedBox(width: 8),
-                        Text(_tabs[index], style: TextStyle(color: isActive ? EverforestColors.fg : EverforestColors.grey, fontSize: 13)),
+                        Text(fileName, style: TextStyle(color: isActive ? EverforestColors.fg : EverforestColors.grey, fontSize: 13)),
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.close, size: 14, color: EverforestColors.grey),
-                          onPressed: () {},
+                          onPressed: () => setState(() => _closeTab(index)),
                           splashRadius: 16,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -493,8 +1079,36 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
               },
             ),
           ),
-          _buildHoverIconButton(Icons.add, 'New tab', () {}),
-          _buildHoverIconButton(Icons.keyboard_arrow_down, 'More tabs', () {}),
+          _buildHoverIconButton(Icons.add, 'New tab', () => _showNewFileDialog()),
+          _buildHoverIconButton(Icons.keyboard_arrow_down, 'More tabs', () {
+            if (_openFilePaths.isEmpty) return;
+            final RenderBox button = context.findRenderObject() as RenderBox;
+            final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+            final RelativeRect position = RelativeRect.fromRect(
+              Rect.fromPoints(
+                button.localToGlobal(Offset.zero, ancestor: overlay),
+                button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+              ),
+              Offset.zero & overlay.size,
+            );
+            
+            showMenu(
+              context: context,
+              position: position,
+              color: EverforestColors.bg1,
+              items: _openFilePaths.map((path) {
+                final name = path.split(RegExp(r'[/\\]')).last.replaceAll('.md', '');
+                return PopupMenuItem(
+                  value: path,
+                  child: Text(name, style: const TextStyle(color: EverforestColors.fg)),
+                );
+              }).toList(),
+            ).then((selectedPath) {
+              if (selectedPath != null) {
+                setState(() => _openFile(selectedPath));
+              }
+            });
+          }),
           _buildHoverIconButton(Icons.vertical_split, 'Split Right', () => setState(() => _isSplitPane = !_isSplitPane)),
           _buildHoverIconButton(Icons.menu_open, 'Toggle Backlinks', () => setState(() => _rightSidebarOpen = !_rightSidebarOpen)),
         ],
@@ -628,23 +1242,24 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                     Expanded(
                       child: TextField(
                         controller: _noteCtr,
+                        enabled: _activeFilePath != null,
                         maxLines: null,
                         expands: true,
                         textAlignVertical: TextAlignVertical.top,
                         style: const TextStyle(color: EverforestColors.fg, fontFamily: 'JetBrainsMono', fontSize: 16, height: 1.6),
-                        decoration: const InputDecoration(
-                          hintText: 'Start typing...', 
-                          hintStyle: TextStyle(color: EverforestColors.grey), 
+                        decoration: InputDecoration(
+                          hintText: _activeFilePath != null ? 'Start typing...' : 'No open file. Select or create a note.', 
+                          hintStyle: const TextStyle(color: EverforestColors.grey), 
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.only(top: 12),
+                          contentPadding: const EdgeInsets.only(top: 12),
                         ),
                         onChanged: (text) {
                           if (_config?.showLineNumber == true) {
                             setState(() {}); 
                           }
                           if (_debounce?.isActive ?? false) _debounce!.cancel();
-                          _debounce = Timer(const Duration(milliseconds: 800), () async {
-                            ApiClient.instance.post('/api/obsidian/save', {'content': text});
+                          _debounce = Timer(const Duration(milliseconds: 800), () {
+                            _saveCurrentNote();
                           });
                         },
                       ),

@@ -13,43 +13,47 @@ class LocationTrackerPlugin implements BasePlugin {
 
   @override 
   Future<void> initialize(dynamic db, ApiClient api) async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    try {
+      bool serviceEnabled;
+      LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
         return;
       }
-    }
-    
-    if (permission == LocationPermission.deniedForever) {
-      return;
-    }
 
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 10,
-    );
-
-    _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position position) {
-        api.postDaemon('/api/v1/radar/report', {
-          'device_id': 'flutter_dashboard',
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-          'velocity': position.speed,
-          'altitude': position.altitude,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        }).catchError((_) {});
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return;
+        }
       }
-    );
+      
+      if (permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      );
+
+      _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+        (Position position) {
+          api.postDaemon('/api/v1/radar/report', {
+            'device_id': 'flutter_dashboard',
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'velocity': position.speed,
+            'altitude': position.altitude,
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          }).catchError((_) {});
+        }
+      );
+    } catch (e) {
+      debugPrint("Failed to initialize location plugin: $e");
+    }
   }
 
   @override 

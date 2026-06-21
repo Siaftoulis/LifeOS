@@ -5,6 +5,8 @@ import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../database/preferences_service.dart';
 import '../../../api_client.dart';
+import 'dart:io' show Platform;
+import 'dart:typed_data';
 
 class AndroidLauncherWidget extends StatefulWidget {
   const AndroidLauncherWidget({super.key});
@@ -17,7 +19,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
   List<AppInfo> _apps = [];
   bool _isLoading = true;
   int _currentPoints = 0;
-  final int _costPerAppLaunch = 10;
+  Map<String, int> _appCosts = {};
   final Map<String, bool> _expandedFolders = {};
 
   @override
@@ -25,6 +27,20 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
     super.initState();
     _loadApps();
     _loadPoints();
+    _loadAppCosts();
+  }
+
+  Future<void> _loadAppCosts() async {
+    try {
+      final res = await ApiClient.instance.getDaemon('/api/v1/points/app-costs');
+      if (res != null && mounted) {
+        setState(() {
+          _appCosts = Map<String, int>.from(res.cast<String, dynamic>());
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading app costs: $e');
+    }
   }
 
   Future<void> _loadPoints() async {
@@ -40,21 +56,35 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
     }
   }
 
-  Future<void> _deductPoints() async {
+  Future<void> _deductPoints(AppInfo app, int cost) async {
     try {
-      final user = await AppDatabase.instance.pointsDao.getUserProfile('admin');
-      if (user != null) {
-        await AppDatabase.instance.pointsDao.updateUser(user.copyWith(currentPoints: user.currentPoints - _costPerAppLaunch));
+      final res = await ApiClient.instance.postDaemon('/api/v1/points/apps/deduct', {
+        'user_id': 'admin',
+        'app_package': app.packageName,
+        'duration': 30, // Default duration stub
+      });
+      if (res != null && mounted) {
         _loadPoints();
       }
     } catch (e) {
-      debugPrint('Error deducting points: $e');
+      debugPrint('Error deducting points from backend: $e');
     }
   }
 
   Future<void> _loadApps() async {
     try {
-      final apps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true);
+      List<AppInfo> fetchedApps = [];
+      if (Platform.isWindows) {
+        fetchedApps = [
+          AppInfo.create({"name": "Instagram", "package_name": "com.instagram.android"}),
+          AppInfo.create({"name": "YouTube", "package_name": "com.google.android.youtube"}),
+          AppInfo.create({"name": "Gallery", "package_name": "com.gallery.android"}),
+          AppInfo.create({"name": "Games", "package_name": "com.games.retro"}),
+        ];
+      } else {
+        fetchedApps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true);
+      }
+
       if (mounted) {
         // Detect old categories schema and trigger reset
         final cached = PreferencesService.appCategories.value;
@@ -73,7 +103,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
         }
 
         setState(() {
-          _apps = apps.where((a) => a.packageName != 'com.example.lifeos_client').toList();
+          _apps = fetchedApps.where((a) => a.packageName != 'com.example.lifeos_client').toList();
           _isLoading = false;
         });
         await _categorizeMissingApps();
@@ -240,13 +270,21 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
   }
 
   void _openApp(AppInfo app) async {
-    if (_currentPoints >= _costPerAppLaunch) {
+    final cost = _appCosts[app.packageName] ?? 0;
+    
+    if (cost == 0) {
+      // Free app
+      InstalledApps.startApp(app.packageName);
+      return;
+    }
+
+    if (_currentPoints >= cost) {
       bool? confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: EverforestColors.bg1,
           title: Text('Launch ${app.name}?', style: const TextStyle(color: EverforestColors.fg)),
-          content: Text('Launching this app will cost $_costPerAppLaunch Star Points.\n\nCurrent Points: $_currentPoints', style: const TextStyle(color: EverforestColors.grey)),
+          content: Text('Launching this app will cost $cost Star Points.\n\nCurrent Points: $_currentPoints', style: const TextStyle(color: EverforestColors.grey)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -262,13 +300,13 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
       );
 
       if (confirm == true) {
-        await _deductPoints();
+        await _deductPoints(app, cost);
         InstalledApps.startApp(app.packageName);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Not enough points! You need $_costPerAppLaunch to launch this app.'),
+          content: Text('Not enough points! You need $cost to launch this app.'),
           backgroundColor: EverforestColors.red,
         )
       );

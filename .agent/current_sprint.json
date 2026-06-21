@@ -105,7 +105,7 @@
                               "dependencies":  [
                                                    "DOC-002"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "NET-002",
@@ -113,7 +113,7 @@
                               "dependencies":  [
                                                    "DOC-002"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "NET-003",
@@ -121,7 +121,7 @@
                               "dependencies":  [
                                                    "DOC-002"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "NET-004",
@@ -129,7 +129,7 @@
                               "dependencies":  [
                                                    "DOC-002"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "SYNC-001",
@@ -145,7 +145,7 @@
                               "dependencies":  [
                                                    "SYNC-001"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "SYNC-003",
@@ -153,7 +153,7 @@
                               "dependencies":  [
                                                    "DOC-003"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "SYNC-004",
@@ -162,7 +162,7 @@
                                                    "SYNC-002",
                                                    "SYNC-003"
                                                ],
-                              "status":  "pending"
+                              "status":  "completed"
                           },
                           {
                               "id":  "PROXY-001",
@@ -438,7 +438,7 @@
         "macro_task":  "UI-FEATURES",
         "sub_tasks":  [
                           {
-                              "status":  "pending",
+                              "status":  "completed",
                               "description":  "Implement high-performance local Markdown file reader and RegExp link tokenizer",
                               "id":  "FEAT-001"
                           },

@@ -16,10 +16,10 @@ class SpatialEngine extends StatefulWidget {
   });
 
   @override
-  State<SpatialEngine> createState() => _SpatialEngineState();
+  State<SpatialEngine> createState() => SpatialEngineState();
 }
 
-class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderStateMixin {
+class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderStateMixin {
   late int x, y;
   late AnimationController _animCtrl;
   late Animation<Offset> _anim;
@@ -84,7 +84,7 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
     _dragOffset.value += d.delta;
   }
 
-  void _navigateTo(int newX, int newY) {
+  void navigateTo(int newX, int newY) {
     if (_animCtrl.isAnimating) return;
 
     setState(() {
@@ -113,7 +113,7 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
     int newY = (y + dy + h) % h;
     final newRowWidth = widget.layout[newY].length;
     if (newX >= newRowWidth) newX = newRowWidth - 1;
-    _navigateTo(newX, newY);
+    navigateTo(newX, newY);
   }
 
   void _handlePanEnd(DragEndDetails d) {
@@ -150,7 +150,7 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
     final newRowWidth = widget.layout[newY].length;
     if (newX >= newRowWidth) newX = newRowWidth - 1;
 
-    _navigateTo(newX, newY);
+    navigateTo(newX, newY);
   }
 
   @override
@@ -172,34 +172,14 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
             });
           }
 
-          // Hardcoded layout failsafe
-          final List<List<String>> finalLayout = widget.layout.map((r) => List<String>.from(r)).toList();
-          bool hasHome = false;
-          bool hasConfigurator = false;
-          for (final row in finalLayout) {
-            if (row.contains('home')) hasHome = true;
-            if (row.contains('configurator')) hasConfigurator = true;
-          }
-          if (!hasHome) {
-            finalLayout[0][0] = 'home';
-          }
-          if (!hasConfigurator) {
-            final int cols = finalLayout[0].length;
-            if (cols > 1) {
-              finalLayout[0][1] = 'configurator';
-            } else {
-              finalLayout[1][0] = 'configurator';
-            }
-          }
-
           // ΚΡΥΦΗ ΔΥΝΑΜΗ: Χτίζουμε τα γραφικά 1 φορά και τα "κλειδώνουμε" στη μνήμη (RepaintBoundary)
           final List<List<Widget>> cachedChildren = [];
-          for (int r = 0; r < finalLayout.length; r++) {
+          for (int r = 0; r < widget.layout.length; r++) {
             final rowChildren = <Widget>[];
-            for (int c = 0; c < finalLayout[r].length; c++) {
+            for (int c = 0; c < widget.layout[r].length; c++) {
               rowChildren.add(
                 RepaintBoundary(
-                  child: widget.builder(finalLayout[r][c], r, c),
+                  child: widget.builder(widget.layout[r][c], r, c),
                 )
               );
             }
@@ -247,8 +227,8 @@ class _SpatialEngineState extends State<SpatialEngine> with SingleTickerProvider
                         clipBehavior: Clip.none,
                         children: [
                           // Τοποθετούμε τις 9 οθόνες ΔΥΝΑΜΙΚΑ μέσα στο κανονικό μέγεθος του παραθύρου!
-                          for (int r = 0; r < finalLayout.length; r++)
-                            for (int c = 0; c < finalLayout[r].length; c++)
+                          for (int r = 0; r < widget.layout.length; r++)
+                            for (int c = 0; c < widget.layout[r].length; c++)
                               Positioned(
                                 left: c * _w + offset.dx,
                                 top: r * _h + offset.dy,

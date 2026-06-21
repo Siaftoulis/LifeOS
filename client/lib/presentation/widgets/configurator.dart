@@ -8,6 +8,7 @@ import '../../auth_service.dart';
 import 'preferences_setting/my_profile_widget.dart';
 import 'preferences_setting/admin_console_widget.dart';
 import 'preferences_setting/grid_configurator_widget.dart';
+import '../../core/dev_simulation_service.dart';
 
 class GridConfigurator extends StatefulWidget {
   const GridConfigurator({super.key});
@@ -83,11 +84,11 @@ class _GridConfiguratorState extends State<GridConfigurator> {
           final currentRole = PreferencesService.activeProfileRole.value;
           final layout = PreferencesService.layout.value;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isDesktop = constraints.maxWidth > 900;
+              
+              final leftColumn = <Widget>[
                 if (isChild) ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -149,6 +150,36 @@ class _GridConfiguratorState extends State<GridConfigurator> {
                     PreferencesService.devMode.value,
                     isChild ? null : (val) => PreferencesService.setDevMode(val),
                   ),
+                  if (PreferencesService.devMode.value) ...[
+                    _buildDivider(),
+                    _buildActionTile(
+                      'Mount All Modules',
+                      'Pre-warm and mount all registered features into memory',
+                      Icons.memory,
+                      () => DevSimulationService.mountAllModules(context),
+                    ),
+                    _buildDivider(),
+                    _buildActionTile(
+                      'Capture UI State',
+                      'Take screenshots of all active modules and save locally',
+                      Icons.camera_alt,
+                      () => DevSimulationService.captureScreenshots(context),
+                    ),
+                    _buildDivider(),
+                    _buildActionTile(
+                      'Trace Runtime Logs',
+                      'Analyze and dump all recent system events',
+                      Icons.bug_report,
+                      () => DevSimulationService.traceLogs(context),
+                    ),
+                    _buildDivider(),
+                    _buildActionTile(
+                      'Run Full Automation Suite',
+                      'Automatically iterate, screenshot, and upload to Daemon',
+                      Icons.auto_awesome,
+                      () => DevSimulationService.runFullSimulation(context),
+                    ),
+                  ],
                 ]),
                 const SizedBox(height: 24),
 
@@ -204,8 +235,9 @@ class _GridConfiguratorState extends State<GridConfigurator> {
                       if (n != _nodes.last) _buildDivider(),
                     ],
                 ]),
-                const SizedBox(height: 24),
+              ];
 
+              final rightColumn = <Widget>[
                 _buildSectionTitle('SPATIAL MATRIX EDITOR'),
                 const SizedBox(height: 8),
                 _buildCard([
@@ -353,8 +385,44 @@ class _GridConfiguratorState extends State<GridConfigurator> {
                 _buildSectionTitle('LAUNCHER LAYOUT GRID'),
                 const SizedBox(height: 8),
                 const GridConfiguratorWidget(),
-              ],
-            ),
+              ];
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: isDesktop
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: leftColumn,
+                                ),
+                              ),
+                              const SizedBox(width: 48),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: rightColumn,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ...leftColumn,
+                              const SizedBox(height: 24),
+                              ...rightColumn,
+                            ],
+                          ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -379,18 +447,16 @@ class _GridConfiguratorState extends State<GridConfigurator> {
   }
 
   Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: EverforestColors.bg1,
+    return Material(
+      color: EverforestColors.bg1,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: EverforestColors.bg2, width: 1.0),
+        side: const BorderSide(color: EverforestColors.bg2, width: 1.0),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
     );
   }
@@ -424,6 +490,23 @@ class _GridConfiguratorState extends State<GridConfigurator> {
         inactiveTrackColor: EverforestColors.bg2,
         onChanged: onChanged,
       ),
+    );
+  }
+
+  Widget _buildActionTile(String title, String subtitle, IconData icon, VoidCallback onTap) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      leading: Icon(icon, color: EverforestColors.green),
+      title: Text(
+        title,
+        style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
+      onTap: onTap,
     );
   }
 

@@ -10,6 +10,8 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/points/leaderboard", handleLeaderboard)
 	mux.HandleFunc("/api/v1/points/ledger", handleLedger)
 	mux.HandleFunc("/api/v1/points/vouchers/redeem", handleVoucherRedeem)
+	mux.HandleFunc("/api/v1/points/app-costs", handleAppCosts)
+	mux.HandleFunc("/api/v1/points/apps/deduct", handleAppDeduct)
 }
 
 func handleLeaderboard(w http.ResponseWriter, r *http.Request) {
@@ -61,5 +63,70 @@ func handleVoucherRedeem(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "redeemed",
 		"transaction_id": "tx_abc123",
+	})
+}
+
+var appCosts = map[string]int{
+	"com.instagram.android": 50,
+	"com.google.android.youtube": 30,
+}
+
+func handleAppCosts(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(appCosts)
+		return
+	} else if r.Method == http.MethodPost {
+		var payload struct {
+			AppPackage string `json:"app_package"`
+			Cost       int    `json:"cost"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, "Invalid payload", http.StatusBadRequest)
+			return
+		}
+		appCosts[payload.AppPackage] = payload.Cost
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{"status": "success", "appCosts": appCosts})
+		return
+	}
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
+func handleAppDeduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var payload struct {
+		UserID     string `json:"user_id"`
+		AppPackage string `json:"app_package"`
+		Duration   int    `json:"duration"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	costPerLaunch, exists := appCosts[payload.AppPackage]
+	if !exists {
+		costPerLaunch = 0
+	}
+	
+	// Stub processing delta
+	currentBalance := 100 // Stub
+	newBalance := currentBalance - costPerLaunch
+
+	if newBalance < 0 {
+		http.Error(w, "Insufficient points", http.StatusPaymentRequired)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "success",
+		"new_balance": newBalance,
 	})
 }

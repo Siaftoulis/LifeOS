@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 import 'database/database.dart';
 import 'database/dao.dart';
+import 'core/obsidian/frontmatter_service.dart';
 
 class VaultWatcher {
   final String vaultPath;
@@ -22,22 +23,17 @@ class VaultWatcher {
   Future<void> _processFile(File file) async {
     try {
       final content = await file.readAsString();
-      final regex = RegExp(r'^---\n(.*?)\n---', multiLine: true, dotAll: true);
-      final match = regex.firstMatch(content);
-      if (match == null) return;
+      final fm = FrontmatterService.parseFrontmatter(content);
       
-      final fm = match.group(1)!;
-      final idMatch = RegExp(r'id:\s*(.+)').firstMatch(fm);
-      final updateMatch = RegExp(r'updated_at:\s*(\d+)').firstMatch(fm);
-      final syncMatch = RegExp(r'synced_at:\s*(\d+)').firstMatch(fm);
+      if (fm.isEmpty) return;
       
-      if (idMatch != null) {
-        final updatedAt = updateMatch != null ? int.parse(updateMatch.group(1)!) : 0;
-        final syncedAt = syncMatch != null ? int.parse(syncMatch.group(1)!) : null;
+      if (fm.containsKey('id')) {
+        final String id = fm['id'].toString().trim();
+        final int updatedAt = fm.containsKey('updated_at') ? int.parse(fm['updated_at'].toString()) : 0;
         
         // Push metadata changes to local cache
         await dao.insertOrUpdate(LifeEntitiesCompanion.insert(
-          id: idMatch.group(1)!.trim(),
+          id: id,
           title: file.uri.pathSegments.last.replaceAll('.md', ''),
           createdAt: updatedAt,
           updatedAt: updatedAt,

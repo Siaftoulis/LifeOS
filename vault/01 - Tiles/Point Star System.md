@@ -24,6 +24,7 @@ The Point Star System is the central gamification engine and behavioral ledger o
 
 3. **Voucher Redemption & Access Restrictions:**
    - **Ticket Store:** Stars can be accumulated and redeemed for physical or financial rewards (e.g. 1000 stars = €10 pocket money, or vacation planning tickets).
+   - **App Gating:** Each individual app in the Android Launcher can have a custom star point cost assigned by an Admin. Launching an app dynamically checks and deducts points from the user.
    - **Dynamic Privileges:** If an individual's behavior metrics fall below specific thresholds, the server can trigger automated webhooks to lock or restrict leisure systems (like smart TV access in [[Home Management]] or custom entertainment streams) until the score is restored.
 
 4. **No-Code Rule configurator:**

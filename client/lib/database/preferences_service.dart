@@ -45,7 +45,8 @@ class PreferencesService {
         userProfileJson.value = data['userProfileJson'] ?? '';
         if (data['layout'] != null) {
           final List<dynamic> rawLayout = data['layout'];
-          layout.value = rawLayout.map((row) => List<String>.from(row)).toList();
+          final parsed = rawLayout.map((row) => List<String>.from(row)).toList();
+          layout.value = _sanitizeLayout(parsed);
         }
         if (data['appCategories'] != null) {
           final Map<String, dynamic> rawCategories = data['appCategories'];
@@ -108,8 +109,53 @@ class PreferencesService {
     await save();
   }
 
+  static List<List<String>> _sanitizeLayout(List<List<String>> val) {
+    if (val.isEmpty || val[0].isEmpty) return [['home', 'configurator']];
+    bool hasHome = false;
+    bool hasConfigurator = false;
+    for (final row in val) {
+      if (row.contains('home')) hasHome = true;
+      if (row.contains('configurator')) hasConfigurator = true;
+    }
+
+    if (!hasHome) {
+      bool placed = false;
+      for (int r = 0; r < val.length; r++) {
+        for (int c = 0; c < val[r].length; c++) {
+          if (val[r][c] == 'void' || val[r][c] == '') {
+            val[r][c] = 'home';
+            placed = true;
+            break;
+          }
+        }
+        if (placed) break;
+      }
+      if (!placed) val[0][0] = 'home';
+    }
+
+    if (!hasConfigurator) {
+      bool placed = false;
+      for (int r = 0; r < val.length; r++) {
+        for (int c = 0; c < val[r].length; c++) {
+          if (val[r][c] == 'void' || val[r][c] == '') {
+            val[r][c] = 'configurator';
+            placed = true;
+            break;
+          }
+        }
+        if (placed) break;
+      }
+      if (!placed) {
+        if (val[0].length > 1) val[0][1] = 'configurator';
+        else if (val.length > 1) val[1][0] = 'configurator';
+        else val.add(['configurator']);
+      }
+    }
+    return val;
+  }
+
   static Future<void> setLayout(List<List<String>> val) async {
-    layout.value = val;
+    layout.value = _sanitizeLayout(val);
     await save();
   }
 
