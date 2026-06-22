@@ -80,16 +80,24 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
       _errorMsg = '';
     });
 
-    final success = await AuthService.instance.login(user, pass, rememberMe: _rememberMe);
+    try {
+      final success = await AuthService.instance.login(user, pass, rememberMe: _rememberMe);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (success) {
-      widget.onUnlocked();
-    } else {
+      if (success) {
+        widget.onUnlocked();
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMsg = 'Invalid username or password';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMsg = 'Invalid username or password';
+        _errorMsg = e.toString().replaceAll('Exception: ', '');
       });
     }
   }

@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'core/local_discovery_service.dart';
 
 class ApiClient {
-  final String baseUrl;
-  final String daemonUrl;
+  String baseUrl;
+  String daemonUrl;
   final HttpClient _http = HttpClient()..connectionTimeout = const Duration(seconds: 2);
   final List<Map<String, dynamic>> _syncQueue = [];
   final ValueNotifier<int> queueLengthNotifier = ValueNotifier<int>(0);
@@ -14,6 +14,12 @@ class ApiClient {
   ApiClient._internal(this.baseUrl, this.daemonUrl);
   factory ApiClient({String? baseUrl, String? daemonUrl}) => _instance ??= ApiClient._internal(baseUrl!, daemonUrl!);
   static ApiClient get instance => _instance!;
+
+  void updateUrls(String base, String daemon) {
+    baseUrl = base;
+    daemonUrl = daemon;
+    debugPrint('ApiClient: Updated URLs base=$base daemon=$daemon');
+  }
 
   File _getLogFile() => File('${Directory.systemTemp.path}/sync_queue.json');
   void _updateQueueState() { queueLengthNotifier.value = _syncQueue.length; }
@@ -38,26 +44,26 @@ class ApiClient {
 
   static Future<String> discoverBaseUrl() async {
     final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value.map((p) => 'http://${p.address}:50051').toList();
-    final urls = [...dynamicUrls, 'http://192.168.1.20:50051', 'http://localhost:50051'];
+    final urls = [...dynamicUrls, 'https://pds-laptop-old.husky-forel.ts.net', 'http://192.168.1.20:50051', 'http://192.168.1.10:50051', 'http://10.0.2.2:50051', 'http://localhost:50051'];
     final comp = Completer<String>(); int fails = 0;
     for (final url in urls) {
       HttpClient().postUrl(Uri.parse('$url/api/sync')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
         .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
-        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://192.168.1.20:50051') : null);
+        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('https://pds-laptop-old.husky-forel.ts.net') : null);
     }
-    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://192.168.1.20:50051');
+    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'https://pds-laptop-old.husky-forel.ts.net');
   }
 
   static Future<String> discoverDaemonUrl() async {
     final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value.map((p) => 'http://${p.address}:50051').toList();
-    final urls = [...dynamicUrls, 'http://192.168.1.20:50051', 'http://localhost:50051'];
+    final urls = [...dynamicUrls, 'https://pds-laptop-old.husky-forel.ts.net', 'http://192.168.1.20:50051', 'http://192.168.1.10:50051', 'http://10.0.2.2:50051', 'http://localhost:50051'];
     final comp = Completer<String>(); int fails = 0;
     for (final url in urls) {
       HttpClient().postUrl(Uri.parse('$url/api/v1/auth/lock')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
         .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
-        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://192.168.1.20:50051') : null);
+        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('https://pds-laptop-old.husky-forel.ts.net') : null);
     }
-    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://192.168.1.20:50051');
+    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'https://pds-laptop-old.husky-forel.ts.net');
   }
 
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {

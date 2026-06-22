@@ -17,9 +17,10 @@ func InitTailnet(hostname string, port int, appMux *http.ServeMux) error {
 	}
 
 	s := &tsnet.Server{
-		Hostname: hostname,
-		Dir:      dir,
-		Logf:     log.Printf, // Output engine noise to see auth link
+		Hostname:   hostname,
+		Dir:        dir,
+		Logf:       log.Printf, // Output engine noise to see auth link
+		ControlURL: "http://109.242.136.196:8090",
 	}
 
 	ln, err := s.Listen("tcp", fmt.Sprintf(":%d", port))

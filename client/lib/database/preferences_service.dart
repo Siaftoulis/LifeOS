@@ -19,6 +19,8 @@ class PreferencesService {
   ]);
   static final ValueNotifier<Map<String, String>> appCategories = ValueNotifier({});
   static final ValueNotifier<bool> appDrawerFolderView = ValueNotifier(true);
+  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
+  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
 
   static Future<File> get _file async {
     if (Platform.isAndroid) {
@@ -53,6 +55,8 @@ class PreferencesService {
           appCategories.value = rawCategories.map((key, value) => MapEntry(key, value.toString()));
         }
         appDrawerFolderView.value = data['appDrawerFolderView'] ?? true;
+        cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
+        cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
       }
     } catch (_) {}
   }
@@ -72,10 +76,18 @@ class PreferencesService {
         'userProfileJson': userProfileJson.value,
         'appCategories': appCategories.value,
         'appDrawerFolderView': appDrawerFolderView.value,
+        'cachedBaseUrl': cachedBaseUrl.value,
+        'cachedDaemonUrl': cachedDaemonUrl.value,
       };
       final f = await _file;
       await f.writeAsString(jsonEncode(data));
     } catch (_) {}
+  }
+
+  static Future<void> setCachedUrls(String base, String daemon) async {
+    cachedBaseUrl.value = base;
+    cachedDaemonUrl.value = daemon;
+    await save();
   }
 
   static Future<void> setNavProfile(String val) async {

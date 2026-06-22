@@ -45,13 +45,10 @@ import 'presentation/widgets/preferences_setting/tailscale_node_monitor_widget.d
 import 'presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 import 'presentation/widgets/virtual_machine/vm_management_dashboard.dart';
 import 'presentation/widgets/youtube_client/youtube_client_dashboard.dart';
-import 'plugins/location_tracker/location_tracker_plugin.dart';
 import 'theme/everforest_colors.dart';
 import 'auth_service.dart';
 import 'core/dev_simulation_service.dart' as import_dev_sim;
 import 'core/local_discovery_service.dart';
-import 'core/vpn_manager.dart';
-
 final GlobalKey devScreenCaptureKey = GlobalKey();
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 final GlobalKey<SpatialEngineState> spatialEngineKey = GlobalKey<SpatialEngineState>();
@@ -59,12 +56,6 @@ final GlobalKey<SpatialEngineState> spatialEngineKey = GlobalKey<SpatialEngineSt
 Future<void> main(List<String> args) async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    
-    // Initialize built-in VPN before any network requests (Custom DDNS)
-    await VpnManager.instance.initialize();
-    
-    // Start local peer discovery (mDNS) for offline sync
-    LocalDiscoveryService.instance.start();
     
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       await windowManager.ensureInitialized();
@@ -89,33 +80,14 @@ Future<void> main(List<String> args) async {
         debugPrint('Failed to set high refresh rate: $e');
       }
     }
-    await PreferencesService.load();
-    if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
-      AuthService.instance.restoreSession(
-        PreferencesService.authToken.value,
-        PreferencesService.userProfileJson.value,
-      );
-    }
+
     if (args.contains('multi_window')) {
       DesktopWidgetManager.runWidgetOverlay(args);
       return;
     }
 
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final dbFile = File('${dbFolder.path}/lifeos.sqlite');
-    final db = AppDatabase(NativeDatabase(dbFile));
-    final urls = await Future.wait([
-      ApiClient.discoverBaseUrl(),
-      ApiClient.discoverDaemonUrl(),
-    ]);
-    final api = ApiClient(baseUrl: urls[0], daemonUrl: urls[1]);
-    FeatureRegistry.buildRegistry(db, api);
-
-    final locationPlugin = LocationTrackerPlugin();
-    // Fire and forget so we don't block runApp
-    locationPlugin.initialize(db, api);
-
-    runApp(const LifeOSMainApp());
+    // Call runApp immediately to eliminate Android splash screen delay
+    runApp(const BootstrapApp());
   } catch (e, stack) {
     debugPrint("CRITICAL INITIALIZATION ERROR: $e\n$stack");
     runApp(MaterialApp(
@@ -131,6 +103,153 @@ Future<void> main(List<String> args) async {
       ),
     ));
   }
+}
+
+class BootstrapApp extends StatefulWidget {
+  const BootstrapApp({super.key});
+
+  @override
+  State<BootstrapApp> createState() => _BootstrapAppState();
+}
+
+class _BootstrapAppState extends State<BootstrapApp> {
+  bool _initialized = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      // Start local peer discovery (mDNS) for offline sync
+      LocalDiscoveryService.instance.start();
+
+      // Load preferences
+      await PreferencesService.load();
+      if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
+        AuthService.instance.restoreSession(
+          PreferencesService.authToken.value,
+          PreferencesService.userProfileJson.value,
+        );
+      }
+
+      // Initialize database
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbFile = File('${dbFolder.path}/lifeos.sqlite');
+      final db = AppDatabase(NativeDatabase(dbFile));
+
+      // Initialize ApiClient
+      final base = PreferencesService.cachedBaseUrl.value;
+      final daemon = PreferencesService.cachedDaemonUrl.value;
+      final api = ApiClient(baseUrl: base, daemonUrl: daemon);
+      FeatureRegistry.buildRegistry(db, api);
+
+      // Run service discovery asynchronously in background
+      _startBackgroundDiscovery();
+
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    } catch (e, stack) {
+      debugPrint("Bootstrap error: $e\n$stack");
+      if (mounted) {
+        setState(() {
+          _error = "$e\n$stack";
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: const Color(0xFF09090B),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!_initialized) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: EverforestColors.bg0,
+          body: Stack(
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/logo.png',
+                  width: 80,
+                  height: 80,
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 48.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'from',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'LIFE OS',
+                        style: TextStyle(
+                          color: EverforestColors.fg, // or Colors.white
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return const LifeOSMainApp();
+  }
+}
+
+void _startBackgroundDiscovery() {
+  Future.microtask(() async {
+    try {
+      final resolved = await Future.wait([
+        ApiClient.discoverBaseUrl(),
+        ApiClient.discoverDaemonUrl(),
+      ]).timeout(const Duration(seconds: 4));
+      
+      final base = resolved[0];
+      final daemon = resolved[1];
+      ApiClient.instance.updateUrls(base, daemon);
+      await PreferencesService.setCachedUrls(base, daemon);
+    } catch (e) {
+      debugPrint('Background URL discovery failed: $e');
+    }
+  });
 }
 
 class LifeOSMainApp extends StatefulWidget {

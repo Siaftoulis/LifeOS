@@ -2,7 +2,9 @@
 <resources>
     <!-- Flutter launch theme: transparent window so the splash screen shows correctly -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/everforest_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
 
     <!-- Normal theme after launch: matches the Flutter default window style -->

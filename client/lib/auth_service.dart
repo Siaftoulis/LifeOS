@@ -70,6 +70,7 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Login error: $e');
+      throw Exception('Login Failed: $e');
     }
     return false;
   }
