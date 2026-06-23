@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/gestures.dart';
 import '../../theme/everforest_colors.dart';
 import '../../database/preferences_service.dart';
 
@@ -133,63 +131,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     _lastBumpDirection = direction;
   }
 
-  bool _isOverInteractiveWidget(Offset globalPosition) {
-    const double deadZoneRadius = 24.0;
-    final offsets = [
-      Offset.zero,
-      const Offset(deadZoneRadius, 0),
-      const Offset(-deadZoneRadius, 0),
-      const Offset(0, deadZoneRadius),
-      const Offset(0, -deadZoneRadius),
-      const Offset(deadZoneRadius * 0.707, deadZoneRadius * 0.707),
-      const Offset(-deadZoneRadius * 0.707, deadZoneRadius * 0.707),
-      const Offset(deadZoneRadius * 0.707, -deadZoneRadius * 0.707),
-      const Offset(-deadZoneRadius * 0.707, -deadZoneRadius * 0.707),
-      const Offset(12.0, 0),
-      const Offset(-12.0, 0),
-      const Offset(0, 12.0),
-      const Offset(0, -12.0),
-    ];
 
-    for (final offset in offsets) {
-      final point = globalPosition + offset;
-      try {
-        final hitTestResult = HitTestResult();
-        GestureBinding.instance.hitTest(hitTestResult, point);
-        for (final entry in hitTestResult.path) {
-          final target = entry.target;
-          final targetName = target.runtimeType.toString().toLowerCase();
-          
-          if (targetName.contains('semanticsgesturehandler') ||
-              targetName.contains('inkwell') ||
-              targetName.contains('inksplash') ||
-              targetName.contains('inkfeatures') ||
-              targetName.contains('renderink') ||
-              targetName.contains('button') ||
-              targetName.contains('switch') ||
-              targetName.contains('toggle') ||
-              targetName.contains('checkbox') ||
-              targetName.contains('radio') ||
-              targetName.contains('editable') ||
-              targetName.contains('textfield') ||
-              targetName.contains('input') ||
-              targetName.contains('field') ||
-              targetName.contains('menu') ||
-              targetName.contains('popup') ||
-              targetName.contains('dropdown') ||
-              targetName.contains('dialog') ||
-              targetName.contains('overlay') ||
-              targetName.contains('select') ||
-              targetName.contains('picker') ||
-              targetName.contains('slider') ||
-              targetName.contains('scrollbar')) {
-            return true;
-          }
-        }
-      } catch (_) {}
-    }
-    return false;
-  }
 
   void _handlePanUpdate(DragUpdateDetails d) {
     if (_animCtrl.isAnimating) return;
@@ -340,8 +282,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                         },
                         onPanUpdate: gesturesEnabled ? _handlePanUpdate : null,
                         onPanEnd: gesturesEnabled ? _handlePanEnd : null,
-                        onDoubleTapDown: (details) {
-                          if (_isOverInteractiveWidget(details.globalPosition)) return;
+                        onDoubleTap: () {
                           PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
                         },
                         child: ValueListenableBuilder<Offset>(
@@ -380,8 +321,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                               _focusNode.requestFocus();
                               _nav(-1, 0);
                             },
-                            onDoubleTapDown: (details) {
-                              if (_isOverInteractiveWidget(details.globalPosition)) return;
+                            onDoubleTap: () {
                               PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
                             },
                             onHorizontalDragEnd: (details) {
@@ -404,8 +344,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                               _focusNode.requestFocus();
                               _nav(1, 0);
                             },
-                            onDoubleTapDown: (details) {
-                              if (_isOverInteractiveWidget(details.globalPosition)) return;
+                            onDoubleTap: () {
                               PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
                             },
                             onHorizontalDragEnd: (details) {
@@ -428,8 +367,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                               _focusNode.requestFocus();
                               _nav(0, -1);
                             },
-                            onDoubleTapDown: (details) {
-                              if (_isOverInteractiveWidget(details.globalPosition)) return;
+                            onDoubleTap: () {
                               PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
                             },
                             onVerticalDragEnd: (details) {
@@ -452,8 +390,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                               _focusNode.requestFocus();
                               _nav(0, 1);
                             },
-                            onDoubleTapDown: (details) {
-                              if (_isOverInteractiveWidget(details.globalPosition)) return;
+                            onDoubleTap: () {
                               PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
                             },
                             onVerticalDragEnd: (details) {
