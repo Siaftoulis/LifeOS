@@ -15,20 +15,19 @@ class TailscaleNodeMonitorWidget extends StatelessWidget {
           const Text('Tailscale Network Mesh', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                final isOnline = index % 2 == 0;
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: isOnline ? EverforestColors.green : EverforestColors.red,
-                    radius: 8,
+            child: Center(
+              child: ListTile(
+                leading: Container(
+                  width: 12, height: 12,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: EverforestColors.green,
                   ),
-                  title: Text('Node $index', style: const TextStyle(color: EverforestColors.fg)),
-                  subtitle: Text('100.76.247.1$index', style: const TextStyle(color: EverforestColors.grey)),
-                  trailing: const Icon(Icons.settings_ethernet, color: EverforestColors.blue),
-                );
-              },
+                ),
+                title: const Text('Tunnel Connected', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
+                subtitle: const Text('Active Relay Server Mesh', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                trailing: const Icon(Icons.settings_ethernet, color: EverforestColors.green),
+              ),
             ),
           )
         ],

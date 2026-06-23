@@ -5,10 +5,6 @@
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="windowSplashScreenAnimationDuration">200</item>
         <item name="postSplashScreenTheme">@style/NormalTheme</item>
-    </style>
-
-    <!-- Normal theme after launch: matches the Flutter default window style -->
-    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/branding_logo</item>
     </style>
 </resources>

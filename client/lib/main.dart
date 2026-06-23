@@ -18,11 +18,9 @@ import 'presentation/widgets/configurator.dart';
 import 'presentation/widgets/nexus_dashboard.dart';
 import 'presentation/widgets/zen_workspace.dart';
 import 'fast_capture_panel.dart';
-import 'presentation/widgets/radar_vision.dart';
 import 'presentation/widgets/infra_hub.dart';
 import 'presentation/widgets/quest_board.dart';
 import 'presentation/widgets/home_view.dart';
-import 'presentation/widgets/media_vault.dart';
 import 'presentation/widgets/void_slot.dart';
 import 'presentation/widgets/accounting/accounting_view.dart';
 import 'presentation/widgets/banking/banking_dashboard_view.dart';
@@ -49,8 +47,11 @@ import 'theme/everforest_colors.dart';
 import 'auth_service.dart';
 import 'core/dev_simulation_service.dart' as import_dev_sim;
 import 'core/local_discovery_service.dart';
+import 'core/p2p_transfer_service.dart';
+import 'core/p2p_models.dart';
 final GlobalKey devScreenCaptureKey = GlobalKey();
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<SpatialEngineState> spatialEngineKey = GlobalKey<SpatialEngineState>();
 
 Future<void> main(List<String> args) async {
@@ -74,11 +75,9 @@ Future<void> main(List<String> args) async {
     }
 
     if (Platform.isAndroid) {
-      try {
-        await FlutterDisplayMode.setHighRefreshRate();
-      } catch (e) {
+      unawaited(FlutterDisplayMode.setHighRefreshRate().catchError((e) {
         debugPrint('Failed to set high refresh rate: $e');
-      }
+      }));
     }
 
     if (args.contains('multi_window')) {
@@ -123,40 +122,65 @@ class _BootstrapAppState extends State<BootstrapApp> {
   }
 
   Future<void> _initializeApp() async {
+    final s = Stopwatch()..start();
+    debugPrint('LifeOSInit: _initializeApp started');
     try {
-      // Start local peer discovery (mDNS) for offline sync
-      LocalDiscoveryService.instance.start();
+      // Run P2P and mDNS discovery in the background so it doesn't block startup
+      Future.microtask(() async {
+        final discoveryStart = s.elapsedMilliseconds;
+        LocalDiscoveryService.instance.start();
+        await P2PTransferService.instance.startServer();
+        debugPrint('LifeOSInit: P2P & mDNS started at ${s.elapsedMilliseconds}ms (took ${s.elapsedMilliseconds - discoveryStart}ms)');
+      });
 
+      final docDirStart = s.elapsedMilliseconds;
+      // Start fetching the documents directory concurrently with prefs load
+      final dbFolderFuture = getApplicationDocumentsDirectory();
+      debugPrint('LifeOSInit: getApplicationDocumentsDirectory called at ${s.elapsedMilliseconds}ms');
+
+      final prefsStart = s.elapsedMilliseconds;
       // Load preferences
       await PreferencesService.load();
+      debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
+      
       if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
+        final authStart = s.elapsedMilliseconds;
         AuthService.instance.restoreSession(
           PreferencesService.authToken.value,
           PreferencesService.userProfileJson.value,
         );
+        debugPrint('LifeOSInit: restoreSession took ${s.elapsedMilliseconds - authStart}ms');
       }
 
-      // Initialize database
-      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbWaitStart = s.elapsedMilliseconds;
+      // Initialize database in background isolate to avoid blocking UI thread
+      final dbFolder = await dbFolderFuture;
+      debugPrint('LifeOSInit: dbFolderFuture resolved in ${s.elapsedMilliseconds - dbWaitStart}ms');
+      
+      final dbInitStart = s.elapsedMilliseconds;
       final dbFile = File('${dbFolder.path}/lifeos.sqlite');
-      final db = AppDatabase(NativeDatabase(dbFile));
+      final db = AppDatabase(NativeDatabase.createInBackground(dbFile));
+      debugPrint('LifeOSInit: AppDatabase creation took ${s.elapsedMilliseconds - dbInitStart}ms');
 
+      final registryStart = s.elapsedMilliseconds;
       // Initialize ApiClient
       final base = PreferencesService.cachedBaseUrl.value;
       final daemon = PreferencesService.cachedDaemonUrl.value;
       final api = ApiClient(baseUrl: base, daemonUrl: daemon);
       FeatureRegistry.buildRegistry(db, api);
+      debugPrint('LifeOSInit: FeatureRegistry.buildRegistry took ${s.elapsedMilliseconds - registryStart}ms');
 
       // Run service discovery asynchronously in background
       _startBackgroundDiscovery();
 
+      debugPrint('LifeOSInit: initialization complete at ${s.elapsedMilliseconds}ms');
       if (mounted) {
         setState(() {
           _initialized = true;
         });
       }
     } catch (e, stack) {
-      debugPrint("Bootstrap error: $e\n$stack");
+      debugPrint("LifeOSInit: Bootstrap error: $e\n$stack");
       if (mounted) {
         setState(() {
           _error = "$e\n$stack";
@@ -269,13 +293,115 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
     _isUnlocked = AuthService.instance.isAuthenticated;
     AuthService.instance.currentUser.addListener(_handleAuthChange);
     _startNotificationPolling();
+    P2PTransferService.instance.onReceiveRequest = _handleP2PReceiveRequest;
   }
 
   @override
   void dispose() {
     AuthService.instance.currentUser.removeListener(_handleAuthChange);
     _notificationTimer?.cancel();
+    P2PTransferService.instance.onReceiveRequest = null;
     super.dispose();
+  }
+
+  void _handleP2PReceiveRequest(String senderName, String fileName, int fileSize, dynamic socket) {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) {
+      P2PTransferService.instance.declineFile(socket);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          title: const Text('Incoming File Transfer', style: TextStyle(color: EverforestColors.fg)),
+          content: Text(
+            '$senderName wants to send you "$fileName" (${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB). Do you accept?',
+            style: const TextStyle(color: EverforestColors.fg),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                P2PTransferService.instance.declineFile(socket);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Decline', style: TextStyle(color: EverforestColors.red)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showP2PReceiveProgressOverlay(fileName, fileSize);
+                P2PTransferService.instance.acceptFile(socket, fileName, fileSize);
+              },
+              child: const Text('Accept', style: TextStyle(color: EverforestColors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showP2PReceiveProgressOverlay(String fileName, int fileSize) {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return ValueListenableBuilder<P2PProgress?>(
+          valueListenable: P2PTransferService.instance.progressNotifier,
+          builder: (context, progress, _) {
+            if (progress == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.canPop(context)) Navigator.pop(context);
+              });
+              return const SizedBox();
+            }
+
+            return AlertDialog(
+              backgroundColor: EverforestColors.bg1,
+              title: const Text('Receiving File', style: TextStyle(color: EverforestColors.fg)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    progress.fileName,
+                    style: const TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(
+                    value: progress.percent,
+                    color: EverforestColors.green,
+                    backgroundColor: EverforestColors.bg2,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${(progress.percent * 100).toStringAsFixed(0)}%',
+                        style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                      ),
+                      Text(
+                        '${progress.speedMBs.toStringAsFixed(2)} MB/s',
+                        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _handleAuthChange() {
@@ -322,6 +448,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
 
   @override Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: rootNavigatorKey,
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
       home: Builder(builder: (ctx) {
@@ -366,8 +493,6 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                           return const GridConfigurator();
                         } else if (moduleId == 'nexus') {
                           return const NexusDashboard();
-                        } else if (moduleId == 'radar') {
-                          return const RadarVision();
                         } else if (moduleId == 'obsidian') {
                           return const ZenWorkspace();
                         } else if (moduleId == 'infra') {
@@ -376,8 +501,6 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                           return const QuestBoard();
                         } else if (moduleId == 'home') {
                           return const HomeView();
-                        } else if (moduleId == 'media') {
-                          return const MediaVault();
                         } else if (moduleId == 'capture') {
                           return FastCapturePanel(db: AppDatabase.instance);
                         } else if (moduleId == 'accounting') {
@@ -396,8 +519,6 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                           return const FlashcardsDashboard();
                         } else if (moduleId == 'home_management') {
                           return const SmartHomeDashboard();
-                        } else if (moduleId == 'home_screen') {
-                          return const HomeView();
                         } else if (moduleId == 'knowledge_base') {
                           return const KnowledgeBaseDashboard();
                         } else if (moduleId == 'maps_live_tracking') {

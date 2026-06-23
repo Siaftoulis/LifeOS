@@ -11,7 +11,7 @@ class UpdateManager extends StatelessWidget {
 
   Future<void> _triggerOTAUpdate() async {
     final baseUrl = ApiClient.instance.baseUrl;
-    final otaUrl = baseUrl.replaceAll(':8080', ':8081') + '/app-release.apk';
+    final otaUrl = '$baseUrl/api/update/download';
     final uri = Uri.parse(otaUrl);
     try { await launchUrl(uri, mode: LaunchMode.externalApplication); }
     catch (e) { debugPrint("OTA Launch error: $e"); }

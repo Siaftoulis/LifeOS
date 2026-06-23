@@ -38,7 +38,10 @@ class _GridConfiguratorState extends State<GridConfigurator> {
           final List<dynamic> data = jsonDecode(response.body);
           if (mounted) {
             setState(() {
-              _nodes = data;
+              _nodes = data.where((n) {
+                final name = (n['name']?.toString() ?? '').toLowerCase();
+                return !name.contains('panel') && !name.contains('ingest');
+              }).toList();
               _nodesError = '';
             });
           }
@@ -216,24 +219,21 @@ class _GridConfiguratorState extends State<GridConfigurator> {
                       child: Text('No active nodes discovered', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                     )
                   else
-                    for (var n in _nodes) ...[
-                      ListTile(
-                        leading: Container(
-                          width: 8, height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: n['online'] == true ? EverforestColors.green : EverforestColors.red,
-                          ),
-                        ),
-                        title: Text(n['name']?.toString() ?? 'Peer Node', style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontFamily: 'JetBrainsMono')),
-                        subtitle: Text(n['ip']?.toString() ?? '100.x.y.z', style: const TextStyle(color: EverforestColors.grey, fontSize: 10, fontFamily: 'JetBrainsMono')),
-                        trailing: Text(
-                          n['online'] == true ? 'ONLINE' : 'OFFLINE',
-                          style: TextStyle(color: n['online'] == true ? EverforestColors.green : EverforestColors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                    ListTile(
+                      leading: Container(
+                        width: 10, height: 10,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: EverforestColors.green,
                         ),
                       ),
-                      if (n != _nodes.last) _buildDivider(),
-                    ],
+                      title: const Text('Tunnel Connected', style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontFamily: 'JetBrainsMono', fontWeight: FontWeight.bold)),
+                      subtitle: Text('${_nodes.length} Active Relay Nodes', style: const TextStyle(color: EverforestColors.grey, fontSize: 10, fontFamily: 'JetBrainsMono')),
+                      trailing: const Text(
+                        'SECURE',
+                        style: TextStyle(color: EverforestColors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                 ]),
               ];
 
@@ -584,38 +584,45 @@ class _GridConfiguratorState extends State<GridConfigurator> {
   }
 
   void _showModuleSelector(BuildContext context, int r, int c) {
-    final modules = [
-      {'id': 'radar', 'name': 'Radar & Vision'},
-      {'id': 'obsidian', 'name': 'Zen Workspace'},
-      {'id': 'infra', 'name': 'Infra Hub'},
-      {'id': 'quests', 'name': 'Quest Board'},
-      {'id': 'home', 'name': 'Home View'},
-      {'id': 'media', 'name': 'Media Vault'},
-      {'id': 'capture', 'name': 'Fast Capture'},
-      {'id': 'configurator', 'name': 'System Config'},
-      {'id': 'accounting', 'name': 'Accounting'},
-      {'id': 'banking', 'name': 'Banking System'},
-      {'id': 'books', 'name': 'Book Library'},
-      {'id': 'chtm', 'name': 'Calendar & Tasks'},
-      {'id': 'cloud', 'name': 'Cloud Backups'},
-      {'id': 'darkweb', 'name': 'Dark Web / Torrents'},
-      {'id': 'flashcards', 'name': 'Flashcards / SRS'},
-      {'id': 'home_management', 'name': 'Home Management'},
-      {'id': 'knowledge_base', 'name': 'Knowledge Base'},
-      {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking'},
-      {'id': 'movie_library', 'name': 'Movie Library'},
-      {'id': 'music_library', 'name': 'Music Library'},
-      {'id': 'obsidian_zen', 'name': 'Obsidian Zen Editor'},
-      {'id': 'photo_video_gallery', 'name': 'Photo Video Gallery'},
-      {'id': 'point_star_system', 'name': 'Point Star System'},
-      {'id': 'preferences_setting', 'name': 'Preferences Setting Tab'},
-      {'id': 'project_infinity', 'name': 'Project Infinity'},
-      {'id': 'virtual_machine', 'name': 'Virtual Machine Management'},
-      {'id': 'youtube_client', 'name': 'YouTube Client'},
-      {'id': 'app_drawer', 'name': 'App Drawer'},
-      {'id': 'tailscale_mesh', 'name': 'Tailscale Mesh Monitor'},
-      {'id': 'void', 'name': 'Void / Empty'},
-    ]..sort((a, b) => a['name']!.toLowerCase().compareTo(b['name']!.toLowerCase()));
+    final groupedModules = {
+      'System & Core': [
+        {'id': 'home', 'name': 'Home View'},
+        {'id': 'configurator', 'name': 'System Config'},
+        {'id': 'tailscale_mesh', 'name': 'Tailscale Mesh Monitor'},
+        {'id': 'app_drawer', 'name': 'App Drawer'},
+        {'id': 'capture', 'name': 'Fast Capture'},
+        {'id': 'void', 'name': 'Void / Empty'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Productivity & Knowledge': [
+        {'id': 'obsidian_zen', 'name': 'Obsidian Zen Editor'},
+        {'id': 'knowledge_base', 'name': 'Knowledge Base'},
+        {'id': 'flashcards', 'name': 'Flashcards / SRS'},
+        {'id': 'books', 'name': 'Book Library'},
+        {'id': 'project_infinity', 'name': 'Project Infinity'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Gamification & Tasks': [
+        {'id': 'point_star_system', 'name': 'Point Star System'},
+        {'id': 'quests', 'name': 'Quest Board'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Media & Entertainment': [
+        {'id': 'photo_video_gallery', 'name': 'Photo Video Gallery'},
+        {'id': 'movie_library', 'name': 'Movie Library'},
+        {'id': 'music_library', 'name': 'Music Library'},
+        {'id': 'youtube_client', 'name': 'YouTube Client'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Finance': [
+        {'id': 'accounting', 'name': 'Accounting'},
+        {'id': 'banking', 'name': 'Banking System'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Infrastructure & Utils': [
+        {'id': 'infra', 'name': 'Infra Hub'},
+        {'id': 'cloud', 'name': 'Cloud Backups'},
+        {'id': 'darkweb', 'name': 'Dark Web / Torrents'},
+        {'id': 'home_management', 'name': 'Home Management'},
+        {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking'},
+        {'id': 'virtual_machine', 'name': 'Virtual Machine Management'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+    };
 
     showModalBottomSheet(
       context: context,
@@ -643,64 +650,80 @@ class _GridConfiguratorState extends State<GridConfigurator> {
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: modules.length,
+                  itemCount: groupedModules.keys.length,
                   itemBuilder: (context, index) {
-                    final item = modules[index];
-                    return ListTile(
+                    final category = groupedModules.keys.elementAt(index);
+                    final modules = groupedModules[category]!;
+                    
+                    return ExpansionTile(
+                      iconColor: EverforestColors.green,
+                      collapsedIconColor: EverforestColors.grey,
                       title: Text(
-                        item['name']!,
-                        style: const TextStyle(color: EverforestColors.fg),
+                        category,
+                        style: const TextStyle(
+                          color: EverforestColors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      onTap: () {
-                        final currentLayout = PreferencesService.layout.value;
-                        final List<List<String>> newLayout = currentLayout.map((row) => List<String>.from(row)).toList();
-                        
-                        final String targetModuleId = item['id']!;
-                        int foundRow = -1;
-                        int foundCol = -1;
-                        for (int i = 0; i < newLayout.length; i++) {
-                          for (int j = 0; j < newLayout[i].length; j++) {
-                            if (newLayout[i][j] == targetModuleId && targetModuleId != 'void') {
-                              foundRow = i;
-                              foundCol = j;
-                            }
-                          }
-                        }
-
-                        final protected = ['home', 'configurator'];
-                        final evicted = currentLayout[r][c];
-
-                        if (foundRow != -1 && foundCol != -1) {
-                          newLayout[foundRow][foundCol] = evicted;
-                          newLayout[r][c] = targetModuleId;
-                        } else {
-                          if (protected.contains(evicted) && targetModuleId != evicted) {
-                            bool relocated = false;
+                      children: modules.map((item) {
+                        return ListTile(
+                          contentPadding: const EdgeInsets.only(left: 32.0, right: 16.0),
+                          title: Text(
+                            item['name']!,
+                            style: const TextStyle(color: EverforestColors.fg),
+                          ),
+                          onTap: () {
+                            final currentLayout = PreferencesService.layout.value;
+                            final List<List<String>> newLayout = currentLayout.map((row) => List<String>.from(row)).toList();
+                            
+                            final String targetModuleId = item['id']!;
+                            int foundRow = -1;
+                            int foundCol = -1;
                             for (int i = 0; i < newLayout.length; i++) {
                               for (int j = 0; j < newLayout[i].length; j++) {
-                                if (newLayout[i][j] == 'void' || newLayout[i][j] == '') {
-                                  newLayout[i][j] = evicted;
-                                  relocated = true;
-                                  break;
+                                if (newLayout[i][j] == targetModuleId && targetModuleId != 'void') {
+                                  foundRow = i;
+                                  foundCol = j;
                                 }
                               }
-                              if (relocated) break;
                             }
-                            
-                            if (!relocated) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Cannot replace protected module. Add a void slot first.')),
-                              );
-                              Navigator.pop(context);
-                              return;
-                            }
-                          }
-                          newLayout[r][c] = targetModuleId;
-                        }
 
-                        PreferencesService.setLayout(newLayout);
-                        Navigator.pop(context);
-                      },
+                            final protected = ['home', 'configurator'];
+                            final evicted = currentLayout[r][c];
+
+                            if (foundRow != -1 && foundCol != -1) {
+                              newLayout[foundRow][foundCol] = evicted;
+                              newLayout[r][c] = targetModuleId;
+                            } else {
+                              if (protected.contains(evicted) && targetModuleId != evicted) {
+                                bool relocated = false;
+                                for (int i = 0; i < newLayout.length; i++) {
+                                  for (int j = 0; j < newLayout[i].length; j++) {
+                                    if (newLayout[i][j] == 'void' || newLayout[i][j] == '') {
+                                      newLayout[i][j] = evicted;
+                                      relocated = true;
+                                      break;
+                                    }
+                                  }
+                                  if (relocated) break;
+                                }
+                                
+                                if (!relocated) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Cannot replace protected module. Add a void slot first.')),
+                                  );
+                                  Navigator.pop(context);
+                                  return;
+                                }
+                              }
+                              newLayout[r][c] = targetModuleId;
+                            }
+
+                            PreferencesService.setLayout(newLayout);
+                            Navigator.pop(context);
+                          },
+                        );
+                      }).toList(),
                     );
                   },
                 ),

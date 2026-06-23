@@ -3,11 +3,9 @@ import '../theme/everforest_colors.dart';
 import '../presentation/widgets/zen_workspace.dart';
 import '../fast_capture_panel.dart';
 import '../database/database.dart';
-import '../presentation/widgets/radar_vision.dart';
 import '../presentation/widgets/infra_hub.dart';
 import '../presentation/widgets/quest_board.dart';
 import '../presentation/widgets/home_view.dart';
-import '../presentation/widgets/media_vault.dart';
 import '../presentation/widgets/configurator.dart';
 import '../presentation/widgets/void_slot.dart';
 import '../presentation/widgets/accounting/accounting_view.dart';
@@ -41,11 +39,9 @@ class FeatureRegistry {
   static List<String> get availableModules => _builders.keys.toList();
 
   static final Map<String, Widget Function()> _builders = {
-    'radar': () => const RadarVision(), 
     'infra': () => const InfraHub(),
     'quests': () => const QuestBoard(), 
     'home': () => const HomeView(), 
-    'media': () => const MediaVault(),
     'capture': () => FastCapturePanel(db: AppDatabase.instance), 
     'configurator': () => const GridConfigurator(), 
     'accounting': () => const AccountingView(),
@@ -61,7 +57,6 @@ class FeatureRegistry {
     ),
     'flashcards': () => const FlashcardsDashboard(),
     'home_management': () => const SmartHomeDashboard(),
-    'home_screen': () => const HomeView(),
     'knowledge_base': () => const KnowledgeBaseDashboard(),
     'maps_live_tracking': () => const MapsDashboardWidget(),
     'movie_library': () => const GatedModuleWrapper(

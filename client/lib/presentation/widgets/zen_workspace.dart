@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../api_client.dart';
 import '../../core/obsidian/config_parser.dart';
 import '../../core/obsidian/vault_scanner.dart';
+import '../../core/p2p_transfer_service.dart';
+import '../../core/p2p_models.dart';
 import '../../theme/everforest_colors.dart';
 
 class MarkdownEditingController extends TextEditingController {
@@ -81,11 +83,27 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   @override
   void initState() {
     super.initState();
+    _noteCtr.addListener(_onNoteCursorChanged);
     _vaultScanner = VaultScanner('vault');
     _vaultScanner?.addListener(_onScannerUpdate);
     _refreshFileTree();
     _loadConfig();
     _loadInitialNote();
+  }
+
+  void _onNoteCursorChanged() {
+    if (_activeFilePath != null) {
+      final offset = _noteCtr.selection.baseOffset;
+      if (offset >= 0) {
+        final relativePath = _activeFilePath!.replaceAll('vault/', '').replaceAll('vault\\', '');
+        P2PTransferService.instance.broadcastCursor(
+          'User_${Platform.localHostname}',
+          offset.toDouble(),
+          0.0,
+          relativePath,
+        );
+      }
+    }
   }
 
   void _onScannerUpdate() {
@@ -560,6 +578,7 @@ synced_at: null
   @override
   void dispose() {
     _debounce?.cancel();
+    _noteCtr.removeListener(_onNoteCursorChanged);
     _noteCtr.dispose();
     _vaultScanner?.dispose();
     super.dispose();
@@ -855,6 +874,56 @@ synced_at: null
           Expanded(
             child: SingleChildScrollView(
               child: _buildFileTreeWidget(_fileTree),
+            ),
+          ),
+          const Divider(color: EverforestColors.bg2),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.people, color: EverforestColors.green, size: 16),
+                    SizedBox(width: 8),
+                    Text('LAN Co-editors', style: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ValueListenableBuilder<Map<String, RemoteCursor>>(
+                  valueListenable: P2PTransferService.instance.cursorsNotifier,
+                  builder: (context, cursors, _) {
+                    if (cursors.isEmpty) {
+                      return const Text('No active co-editors', style: TextStyle(color: EverforestColors.grey, fontSize: 11));
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: cursors.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 8, height: 8,
+                                decoration: const BoxDecoration(shape: BoxShape.circle, color: EverforestColors.green),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${entry.key} editing ${entry.value.filePath}',
+                                  style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],
