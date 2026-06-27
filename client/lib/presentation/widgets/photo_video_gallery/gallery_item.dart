@@ -1,3 +1,5 @@
+import 'package:photo_manager/photo_manager.dart';
+
 class GalleryItem {
   final String id;
   final String label;
@@ -12,6 +14,7 @@ class GalleryItem {
   final double? latitude;
   final double? longitude;
   final bool isLocal;
+  final AssetEntity? assetEntity;
 
   GalleryItem({
     required this.id,
@@ -27,5 +30,6 @@ class GalleryItem {
     this.latitude,
     this.longitude,
     required this.isLocal,
+    this.assetEntity,
   });
 }

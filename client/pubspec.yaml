@@ -25,6 +25,13 @@ dependencies:
   yaml_edit: ^2.2.4
   permission_handler: ^11.3.1
   nsd: ^5.0.1
+  photo_manager: ^3.9.0
+  photo_manager_image_provider: ^2.2.0
+  extended_image: ^10.0.1
+  image_cropper: ^8.0.2
+  share_plus: ^13.2.0
+  video_player: ^2.11.1
+  flutter_map_marker_cluster: ^8.2.2
 
 dev_dependencies:
   flutter_test:

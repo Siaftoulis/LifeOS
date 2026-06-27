@@ -48,57 +48,77 @@ class MetadataSheet extends StatelessWidget {
                 _buildMetaRow('Camera Device', item.camera),
                 _buildMetaRow('Lens Specs', item.lens),
                 _buildMetaRow('Tags', item.tags.join(', ')),
-                if (item.latitude != null && item.longitude != null) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Location Map',
-                    style: TextStyle(
-                      color: EverforestColors.fg,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      height: 180,
-                      child: FlutterMap(
-                        options: MapOptions(
-                          initialCenter: LatLng(item.latitude!, item.longitude!),
-                          initialZoom: 13.0,
-                        ),
+                if (item.assetEntity != null)
+                  FutureBuilder<LatLng?>(
+                    future: item.assetEntity!.latlngAsync().then((l) {
+                      if (l != null && l.latitude != null && l.longitude != null && l.latitude != 0.0) {
+                        return LatLng(l.latitude!, l.longitude!);
+                      }
+                      return null;
+                    }),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return const SizedBox.shrink();
+                      }
+                      final lat = snapshot.data!.latitude;
+                      final lng = snapshot.data!.longitude;
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.lifeos.client',
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Location Map',
+                            style: TextStyle(
+                              color: EverforestColors.fg,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: LatLng(item.latitude!, item.longitude!),
-                                width: 40,
-                                height: 40,
-                                child: const Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 32,
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              height: 180,
+                              child: FlutterMap(
+                                options: MapOptions(
+                                  initialCenter: LatLng(lat, lng),
+                                  initialZoom: 13.0,
                                 ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                    userAgentPackageName: 'com.lifeos.client',
+                                  ),
+                                  MarkerLayer(
+                                    markers: [
+                                      Marker(
+                                        point: LatLng(lat, lng),
+                                        width: 40,
+                                        height: 40,
+                                        child: const Icon(
+                                          Icons.location_on,
+                                          color: Colors.red,
+                                          size: 32,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Center(
+                            child: Text(
+                              'GPS Coordinates: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
+                              style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                            ),
                           ),
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      'GPS Coordinates: ${item.latitude!.toStringAsFixed(4)}, ${item.longitude!.toStringAsFixed(4)}',
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

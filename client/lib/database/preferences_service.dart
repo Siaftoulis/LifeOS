@@ -21,18 +21,20 @@ class PreferencesService {
   static final ValueNotifier<bool> appDrawerFolderView = ValueNotifier(true);
   static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
   static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
+  static final ValueNotifier<bool> showPerformanceOverlay = ValueNotifier(false);
+  static final ValueNotifier<List<String>> favoriteAssetIds = ValueNotifier([]);
 
-  static Future<File> get _file async {
+  static Future<File> _getFile(Directory? cachedDir) async {
     if (Platform.isAndroid) {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = cachedDir ?? await getApplicationDocumentsDirectory();
       return File('${dir.path}/prefs.json');
     }
     return File('prefs.json');
   }
 
-  static Future<void> load() async {
+  static Future<void> load({Directory? dir}) async {
     try {
-      final f = await _file;
+      final f = await _getFile(dir);
       if (await f.exists()) {
         final data = jsonDecode(await f.readAsString());
         navProfile.value = data['navProfile'] ?? 'Swipe';
@@ -57,6 +59,10 @@ class PreferencesService {
         appDrawerFolderView.value = data['appDrawerFolderView'] ?? true;
         cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
         cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
+        showPerformanceOverlay.value = data['showPerformanceOverlay'] ?? false;
+        if (data['favoriteAssetIds'] != null) {
+          favoriteAssetIds.value = List<String>.from(data['favoriteAssetIds']);
+        }
       }
     } catch (_) {}
   }
@@ -78,8 +84,10 @@ class PreferencesService {
         'appDrawerFolderView': appDrawerFolderView.value,
         'cachedBaseUrl': cachedBaseUrl.value,
         'cachedDaemonUrl': cachedDaemonUrl.value,
+        'showPerformanceOverlay': showPerformanceOverlay.value,
+        'favoriteAssetIds': favoriteAssetIds.value,
       };
-      final f = await _file;
+      final f = await _getFile(null);
       await f.writeAsString(jsonEncode(data));
     } catch (_) {}
   }
@@ -92,6 +100,17 @@ class PreferencesService {
 
   static Future<void> setNavProfile(String val) async {
     navProfile.value = val;
+    await save();
+  }
+
+  static Future<void> toggleFavorite(String assetId) async {
+    final currentList = List<String>.from(favoriteAssetIds.value);
+    if (currentList.contains(assetId)) {
+      currentList.remove(assetId);
+    } else {
+      currentList.add(assetId);
+    }
+    favoriteAssetIds.value = currentList;
     await save();
   }
 
@@ -195,6 +214,11 @@ class PreferencesService {
     final current = Map<String, String>.from(appCategories.value);
     current.addAll(newCategories);
     appCategories.value = current;
+    await save();
+  }
+
+  static Future<void> setShowPerformanceOverlay(bool val) async {
+    showPerformanceOverlay.value = val;
     await save();
   }
 }

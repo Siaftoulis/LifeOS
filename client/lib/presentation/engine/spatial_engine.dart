@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/everforest_colors.dart';
 import '../../database/preferences_service.dart';
+import '../widgets/keyboard_integrity/smooth_keyboard_integrity.dart';
 
 class SpatialEngine extends StatefulWidget {
   final List<List<String>> layout;
@@ -29,6 +30,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   DateTime? _lastBumpTime;
   String? _lastBumpDirection;
   
+  bool _isFirstLayout = true;
   Offset _baseOffset = Offset.zero;
   final ValueNotifier<Offset> _dragOffset = ValueNotifier(Offset.zero);
   
@@ -36,10 +38,26 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   double _h = 0;
   final FocusNode _focusNode = FocusNode();
 
+  List<List<Widget>> _cachedModules = [];
+
+  void _buildModuleCache() {
+    _cachedModules = [];
+    for (int r = 0; r < widget.layout.length; r++) {
+      final rowChildren = <Widget>[];
+      for (int c = 0; c < widget.layout[r].length; c++) {
+        rowChildren.add(
+          widget.builder(widget.layout[r][c], r, c),
+        );
+      }
+      _cachedModules.add(rowChildren);
+    }
+  }
+
   @override
   void didUpdateWidget(SpatialEngine oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.layout != oldWidget.layout) {
+      _buildModuleCache();
       if (widget.layout.isNotEmpty) {
         y = y.clamp(0, widget.layout.length - 1);
         if (widget.layout[y].isNotEmpty) {
@@ -59,6 +77,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     super.initState();
     x = widget.startX;
     y = widget.startY;
+    _buildModuleCache();
     
     _animCtrl = AnimationController(
       vsync: this, 
@@ -209,34 +228,43 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: EverforestColors.bg0,
-      body: ValueListenableBuilder<bool>(
-        valueListenable: PreferencesService.spatialGestures,
-        builder: (context, gesturesEnabled, _) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
+      resizeToAvoidBottomInset: false,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool gesturesEnabled = true; // Always enabled now
+              
+              final double trueWidth = constraints.maxWidth;
+              final double trueHeight = constraints.maxHeight + mq.viewInsets.bottom;
+
+              if (trueWidth == 0 || trueHeight == 0) {
                 return const SizedBox.shrink();
               }
               
-              if (_w != constraints.maxWidth || _h != constraints.maxHeight) {
-                _w = constraints.maxWidth;
-                _h = constraints.maxHeight;
+              if (_w != trueWidth || _h != trueHeight) {
+                _w = trueWidth;
+                _h = trueHeight;
                 _baseOffset = Offset(-x * _w, -y * _h);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_isFirstLayout) _isFirstLayout = false;
                   _dragOffset.value = _baseOffset;
                 });
               }
 
-              // ΚΡΥΦΗ ΔΥΝΑΜΗ: Χτίζουμε τα γραφικά 1 φορά και τα "κλειδώνουμε" στη μνήμη (RepaintBoundary)
+              // ΚΡΥΦΗ ΔΥΝΑΜΗ: Χρησιμοποιούμε τα προ-φορτωμένα γραφικά (cached modules) 
+              // έτσι ώστε να μην γίνεται ΚΑΝΕΝΑ απολύτως build στις οθόνες!
               final List<List<Widget>> cachedChildren = [];
               for (int r = 0; r < widget.layout.length; r++) {
                 final rowChildren = <Widget>[];
                 for (int c = 0; c < widget.layout[r].length; c++) {
                   rowChildren.add(
-                    RepaintBoundary(
-                      child: widget.builder(widget.layout[r][c], r, c),
+                    SmoothKeyboardIntegrity(
+                      isActive: (c == x && r == y),
+                      child: RepaintBoundary(
+                        child: _cachedModules[r][c],
+                      ),
                     )
                   );
                 }
@@ -280,11 +308,8 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                         onPanDown: (_) {
                           _focusNode.requestFocus();
                         },
-                        onPanUpdate: gesturesEnabled ? _handlePanUpdate : null,
-                        onPanEnd: gesturesEnabled ? _handlePanEnd : null,
-                        onDoubleTap: () {
-                          PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
-                        },
+                        onPanUpdate: _handlePanUpdate,
+                        onPanEnd: _handlePanEnd,
                         child: ValueListenableBuilder<Offset>(
                           valueListenable: _dragOffset,
                           builder: (context, offset, _) {
@@ -306,102 +331,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                           },
                         ),
                       ),
-                      
-                      // Kotatsu 3x3 Overlay Grid System (Active ONLY when spatialGestures is disabled)
-                      if (!gesturesEnabled) ...[
-                        // Left Column overlay zone (Column 0)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          width: colW,
-                          height: _h,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              _focusNode.requestFocus();
-                              _nav(-1, 0);
-                            },
-                            onDoubleTap: () {
-                              PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
-                            },
-                            onHorizontalDragEnd: (details) {
-                              final vx = details.velocity.pixelsPerSecond.dx;
-                              if (vx.abs() > 200) {
-                                _nav(vx > 0 ? -1 : 1, 0);
-                              }
-                            },
-                          ),
-                        ),
-                        // Right Column overlay zone (Column 2)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          width: colW,
-                          height: _h,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              _focusNode.requestFocus();
-                              _nav(1, 0);
-                            },
-                            onDoubleTap: () {
-                              PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
-                            },
-                            onHorizontalDragEnd: (details) {
-                              final vx = details.velocity.pixelsPerSecond.dx;
-                              if (vx.abs() > 200) {
-                                _nav(vx > 0 ? -1 : 1, 0);
-                              }
-                            },
-                          ),
-                        ),
-                        // Top Center overlay zone (Column 1, Row 0)
-                        Positioned(
-                          left: colW,
-                          top: 0,
-                          width: colW,
-                          height: rowH,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              _focusNode.requestFocus();
-                              _nav(0, -1);
-                            },
-                            onDoubleTap: () {
-                              PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
-                            },
-                            onVerticalDragEnd: (details) {
-                              final vy = details.velocity.pixelsPerSecond.dy;
-                              if (vy.abs() > 200) {
-                                _nav(0, vy > 0 ? -1 : 1);
-                              }
-                            },
-                          ),
-                        ),
-                        // Bottom Center overlay zone (Column 1, Row 2)
-                        Positioned(
-                          left: colW,
-                          bottom: 0,
-                          width: colW,
-                          height: rowH,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              _focusNode.requestFocus();
-                              _nav(0, 1);
-                            },
-                            onDoubleTap: () {
-                              PreferencesService.setSpatialGestures(!PreferencesService.spatialGestures.value);
-                            },
-                            onVerticalDragEnd: (details) {
-                              final vy = details.velocity.pixelsPerSecond.dy;
-                              if (vy.abs() > 200) {
-                                _nav(0, vy > 0 ? -1 : 1);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
+
 
                       // Το Spatial HUD 
                       Positioned(
@@ -409,7 +339,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                         child: IgnorePointer(
                           child: Center(
                             child: Text(
-                              '[ $x , $y ] ${gesturesEnabled ? "• GESTURES" : "• GRID"}',
+                              '[ $x , $y ]',
                               style: const TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 12,
@@ -426,9 +356,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
     );
   }
 }

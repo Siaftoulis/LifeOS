@@ -111,15 +111,14 @@ jobs:
         run: |
           BUILD_NUM=$(jq '.build_number' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## Release Build #$BUILD_NUM — v1.1.0
+          ## Release Build #$BUILD_NUM — v1.2.0 (Aves Libre Replica)
 
           ### Highlights
-          - **Spatial Engine Performance Optimization**: Resolved aggressive module culling by enforcing `clipBehavior: Clip.none` on the primary translation Stack. Bypassed the 60FPS widget rebuild loop during pan gestures by wrapping all spatial matrix modules in `RepaintBoundary` nodes, converting pan gestures to `ValueNotifier<Offset>`, and executing `Transform.translate` within a `ValueListenableBuilder`. This ensures near-zero CPU/GPU overhead during cross-matrix navigation.
-          - **Ultra-Fast App Startup**: Pre-warmed preferences and async startup sequences (Preferences, session restoration, database init, registry mounting) resolved instantly in under **60 milliseconds** (instant startup).
-          - **Simplified Double-Tap Gesture Engine**: Simplified double-tap functionality to toggle spatial navigation gestures seamlessly across all screens, eliminating hit-test culling collisions.
-          - **OTA Update Alignment**: Configured the client `UpdateManager` OTA path to map directly to the Go daemon's `/api/update/download` endpoint, enabling clean local/Tailscale network updates.
-          - **Direct USB Deployment**: Deployed and launched the compiled release binary directly onto the USB-connected Android test device.
-          - **Windows Build Warnings**: Silenced MSVC experimental coroutine warnings for clean compiler diagnostics.
+          - **1:1 Aves Libre Viewer Engine**: Integrated high-performance `extended_image` for exact pinch-to-zoom, pan physics, and gesture mechanics identical to Aves Libre.
+          - **Native Media Access**: Replaced platform channels with direct native integration via `photo_manager` for instant, raw device gallery access without serialization bottlenecks.
+          - **Smart Video Player & Scrubber**: Engineered a gesture-aware video player that syncs perfectly with immersive mode, overlay menus, and includes precise drag-to-scrub functionality.
+          - **Dynamic Map Clustering**: Deployed `flutter_map_marker_cluster` on the Map View to smoothly cluster hundreds of geo-tagged photos dynamically, optimizing RAM and preventing map overloading.
+          - **Async Location Extraction**: Implemented granular `ACCESS_MEDIA_LOCATION` permission requests and async EXIF parsing to load real GPS metadata on-the-fly.
           EOF
 
       - name: Publish Release

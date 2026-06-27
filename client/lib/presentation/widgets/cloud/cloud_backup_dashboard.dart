@@ -7,12 +7,14 @@ class CloudBackupDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
         color: EverforestColors.bg0,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -54,29 +56,30 @@ class CloudBackupDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Expanded(
-            child: ListView.separated(
-              itemCount: mockBackups.length,
-              separatorBuilder: (context, index) => const Divider(color: EverforestColors.bg2),
-              itemBuilder: (context, index) {
-                final backup = mockBackups[index];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: EverforestColors.bg2,
-                    child: Icon(
-                      backup.status == 'Completed' ? Icons.check_circle : Icons.sync,
-                      color: backup.status == 'Completed' ? EverforestColors.green : EverforestColors.yellow,
-                    ),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: mockBackups.length,
+            separatorBuilder: (context, index) => const Divider(color: EverforestColors.bg2),
+            itemBuilder: (context, index) {
+              final backup = mockBackups[index];
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: EverforestColors.bg2,
+                  child: Icon(
+                    backup.status == 'Completed' ? Icons.check_circle : Icons.sync,
+                    color: backup.status == 'Completed' ? EverforestColors.green : EverforestColors.yellow,
                   ),
-                  title: Text(backup.name, style: const TextStyle(color: EverforestColors.fg)),
-                  subtitle: Text(backup.date, style: const TextStyle(color: EverforestColors.grey)),
-                  trailing: Text(backup.size, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w500)),
-                );
-              },
-            ),
+                ),
+                title: Text(backup.name, style: const TextStyle(color: EverforestColors.fg)),
+                subtitle: Text(backup.date, style: const TextStyle(color: EverforestColors.grey)),
+                trailing: Text(backup.size, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w500)),
+              );
+            },
           ),
         ],
+      ),
       ),
     );
   }

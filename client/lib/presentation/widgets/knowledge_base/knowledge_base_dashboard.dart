@@ -8,10 +8,12 @@ class KnowledgeBaseDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: EverforestColors.bg0,
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           _buildHeader(),
           const SizedBox(height: 32),
           _buildSearchBar(),
@@ -38,8 +40,9 @@ class KnowledgeBaseDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Expanded(child: _buildRecentArticles()),
+          _buildRecentArticles(),
         ],
+      ),
       ),
     );
   }
@@ -182,6 +185,8 @@ class KnowledgeBaseDashboard extends StatelessWidget {
     ];
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: articles.length,
       itemBuilder: (context, index) {
         final article = articles[index];

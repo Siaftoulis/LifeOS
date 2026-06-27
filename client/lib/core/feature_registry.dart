@@ -21,7 +21,7 @@ import '../presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
 import '../presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
 import '../presentation/widgets/movie_library/movie_library_dashboard.dart';
 import '../presentation/widgets/music_library/music_dashboard_widget.dart';
-import '../presentation/widgets/photo_video_gallery/gallery_grid_widget.dart';
+import '../../plugins/gallery/gallery_home_view.dart';
 import '../presentation/widgets/point_star_system/point_star_dashboard.dart';
 import '../presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
 import '../presentation/widgets/preferences_setting/android_launcher_widget.dart';
@@ -67,7 +67,7 @@ class FeatureRegistry {
     ),
     'music_library': () => const MusicDashboardWidget(),
     'obsidian_zen': () => const ZenWorkspace(),
-    'photo_video_gallery': () => const GalleryGridWidget(),
+    'photo_video_gallery': () => const GalleryHomeView(),
     'point_star_system': () => const PointStarDashboard(),
     'preferences_setting': () => const PreferencesDashboardView(),
     'project_infinity': () => const ProjectInfinityDashboard(),

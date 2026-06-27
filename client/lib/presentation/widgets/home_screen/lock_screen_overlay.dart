@@ -317,7 +317,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
       );
     }
 
-    // Mobile layout
+    // Optimized Mobile Layout: Decoupled from nested viewInset animations
     return GestureDetector(
       onVerticalDragUpdate: (details) {
         if (!_showLoginForm && details.primaryDelta! < -8) {
@@ -327,33 +327,56 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true, // Leave false; handled at spatial wrapper level
         backgroundColor: EverforestColors.bg0,
-        body: Stack(
-          children: [
-            _buildMainScreen(),
-            Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return Visibility(
-                    visible: _animationController.value > 0,
-                    child: child!,
-                  );
-                },
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Container(
-                    color: EverforestColors.bg0.withValues(alpha: 0.95),
-                    child: SafeArea(
-                      child: Center(
-                        child: _buildLoginFormContent(),
-                      ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: Stack(
+                      children: [
+                        // 1. ISOLATED HEAVY GRAPHICS (Cached Bitmaps Layer)
+                        RepaintBoundary(
+                          child: _buildMainScreen(),
+                        ),
+                        
+                        // 2. FORM I PUTS LAYER
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: _animationController,
+                            builder: (context, child) {
+                              return Visibility(
+                                visible: _animationController.value > 0,
+                                child: child!,
+                              );
+                            },
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: Container(
+                                color: EverforestColors.bg0.withValues(alpha: 0.95),
+                                child: SafeArea(
+                                  child: Center(
+                                    child: _buildLoginFormContent(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

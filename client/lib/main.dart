@@ -35,7 +35,7 @@ import 'presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
 import 'presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
 import 'presentation/widgets/movie_library/movie_library_dashboard.dart';
 import 'presentation/widgets/music_library/music_dashboard_widget.dart';
-import 'presentation/widgets/photo_video_gallery/gallery_grid_widget.dart';
+import 'plugins/gallery/gallery_home_view.dart';
 import 'presentation/widgets/point_star_system/point_star_dashboard.dart';
 import 'presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
 import 'presentation/widgets/preferences_setting/android_launcher_widget.dart';
@@ -134,13 +134,13 @@ class _BootstrapAppState extends State<BootstrapApp> {
       });
 
       final docDirStart = s.elapsedMilliseconds;
-      // Start fetching the documents directory concurrently with prefs load
-      final dbFolderFuture = getApplicationDocumentsDirectory();
-      debugPrint('LifeOSInit: getApplicationDocumentsDirectory called at ${s.elapsedMilliseconds}ms');
+      // Fetch the documents directory once
+      final dbFolder = await getApplicationDocumentsDirectory();
+      debugPrint('LifeOSInit: getApplicationDocumentsDirectory resolved at ${s.elapsedMilliseconds}ms');
 
       final prefsStart = s.elapsedMilliseconds;
-      // Load preferences
-      await PreferencesService.load();
+      // Load preferences concurrently using pre-resolved directory
+      await PreferencesService.load(dir: dbFolder);
       debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
       
       if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
@@ -152,11 +152,6 @@ class _BootstrapAppState extends State<BootstrapApp> {
         debugPrint('LifeOSInit: restoreSession took ${s.elapsedMilliseconds - authStart}ms');
       }
 
-      final dbWaitStart = s.elapsedMilliseconds;
-      // Initialize database in background isolate to avoid blocking UI thread
-      final dbFolder = await dbFolderFuture;
-      debugPrint('LifeOSInit: dbFolderFuture resolved in ${s.elapsedMilliseconds - dbWaitStart}ms');
-      
       final dbInitStart = s.elapsedMilliseconds;
       final dbFile = File('${dbFolder.path}/lifeos.sqlite');
       final db = AppDatabase(NativeDatabase.createInBackground(dbFile));
@@ -447,10 +442,14 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
   }
 
   @override Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: rootNavigatorKey,
-      scaffoldMessengerKey: rootScaffoldMessengerKey,
-      debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
+    return ListenableBuilder(
+      listenable: PreferencesService.showPerformanceOverlay,
+      builder: (context, _) {
+        return MaterialApp(
+          navigatorKey: rootNavigatorKey,
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          debugShowCheckedModeBanner: false, title: 'LifeOS', theme: OLEDTheme.build(),
+          showPerformanceOverlay: PreferencesService.showPerformanceOverlay.value,
       home: Builder(builder: (ctx) {
         WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));
         return ValueListenableBuilder<List<List<String>>>(
@@ -468,19 +467,18 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
               }
             }
 
-            if (!_isUnlocked) {
-              return LockScreenOverlay(
-                onUnlocked: () => setState(() => _isUnlocked = true),
-              );
-            }
-
-            return RepaintBoundary(
-              key: devScreenCaptureKey,
+            return Stack(
+              children: [
+                Offstage(
+                  offstage: !_isUnlocked,
+                  child: RepaintBoundary(
+                    key: devScreenCaptureKey,
               child: Listener(
                 onPointerUp: (e) {
                   import_dev_sim.DevSimulationService.onUserInteraction();
                 },
                 child: Scaffold(
+                  resizeToAvoidBottomInset: true,
                   backgroundColor: EverforestColors.bg0,
                   body: SpatialEngine(
                     key: spatialEngineKey,
@@ -530,7 +528,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                         } else if (moduleId == 'obsidian_zen') {
                           return const ZenWorkspace();
                         } else if (moduleId == 'photo_video_gallery') {
-                          return const GalleryGridWidget();
+                          return const GalleryHomeView();
                         } else if (moduleId == 'point_star_system') {
                           return const PointStarDashboard();
                         } else if (moduleId == 'preferences_setting') {
@@ -567,10 +565,37 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
               ), // SpatialEngine
             ), // Scaffold
             ), // Listener
-          ); // RepaintBoundary
+          ), // RepaintBoundary
+          ), // Offstage
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 800),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: !_isUnlocked
+                  ? LockScreenOverlay(
+                      key: const ValueKey('lock_screen'),
+                      onUnlocked: () {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        setState(() => _isUnlocked = true);
+                      },
+                    )
+                  : const SizedBox.shrink(key: ValueKey('empty_lock')),
+            ),
+          ),
+        ],
+      ); // Stack
           },
         );
       }),
+        );
+      },
     );
   }
 

@@ -3,6 +3,12 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 
+    <!-- Gallery: Media access (Android 13+ granular, legacy fallback) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <application
         android:label="LifeOS"
         android:name="${applicationName}"
@@ -27,6 +33,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
+        <!-- Image Cropper Activity -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
         <meta-data
             android:name="flutterEmbedding"
@@ -34,7 +46,7 @@
 
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="false" />
+            android:value="true" />
 
         <!-- Home Screen Widget Provider -->
         <receiver
