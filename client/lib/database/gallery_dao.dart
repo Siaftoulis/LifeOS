@@ -12,4 +12,6 @@ class GalleryDao extends DatabaseAccessor<AppDatabase> with _$GalleryDaoMixin {
   
   Future<int> insertAsset(MediaAssetsCompanion entry) => into(mediaAssets).insert(entry);
   Future<int> insertTag(MediaTagsCompanion entry) => into(mediaTags).insert(entry);
+  Future<List<MediaAsset>> getAllAssets() => select(mediaAssets).get();
+  Future<int> insertOrUpdateAsset(MediaAssetsCompanion entry) => into(mediaAssets).insertOnConflictUpdate(entry);
 }

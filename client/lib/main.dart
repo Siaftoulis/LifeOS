@@ -12,6 +12,10 @@ import 'desktop_widget_manager.dart';
 import 'theme.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
+import 'package:lifeos/database/tables.dart';
+import 'package:lifeos/presentation/engine/spatial_engine.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 import 'feature_registry.dart';
 import 'presentation/engine/spatial_engine.dart';
 import 'presentation/widgets/configurator.dart';
@@ -631,7 +635,9 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                           if (pin.length < 4) {
                             setDialogState(() => pin += '$digit');
                             if (pin.length == 4) {
-                              if (pin == '0000') {
+                              final bytes = utf8.encode(pin);
+                              final digest = sha256.convert(bytes);
+                              if (digest.toString() == PreferencesService.hashedPin.value) {
                                 Navigator.pop(context);
                                 setState(() => _isUnlocked = true);
                               } else {

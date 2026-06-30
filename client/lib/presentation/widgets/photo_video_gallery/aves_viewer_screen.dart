@@ -11,7 +11,7 @@ import '../../../database/preferences_service.dart';
 import 'gallery_item.dart';
 import 'metadata_sheet.dart';
 import 'video_player_widget.dart';
-
+import '../../../core/cloud_gallery_service.dart';
 class AvesViewerScreen extends StatefulWidget {
   final List<GalleryItem> items;
   final int initialIndex;
@@ -31,6 +31,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
   late int _currentIndex;
   bool _isImmersive = false;
   double _bgOpacity = 1.0;
+  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -152,6 +153,74 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
+                        if (_isSyncing)
+                          const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: SizedBox(
+                              width: 20, height: 20, 
+                              child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.green)
+                            ),
+                          )
+                        else
+                          IconButton(
+                            icon: Icon(
+                              widget.items[_currentIndex].isLocal ? Icons.cloud_upload : Icons.cloud_download,
+                              color: widget.items[_currentIndex].isBackedUp ? EverforestColors.green : EverforestColors.fg,
+                            ),
+                            tooltip: widget.items[_currentIndex].isLocal ? 'Backup to Cloud' : 'Download to Device',
+                            onPressed: () async {
+                              final currentItem = widget.items[_currentIndex];
+                              if (currentItem.isBackedUp) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Already backed up to cloud')),
+                                );
+                                return;
+                              }
+
+                              setState(() => _isSyncing = true);
+
+                              if (currentItem.isLocal) {
+                                // Upload
+                                final resolved = await _resolveFullMetadata(currentItem);
+                                final success = await CloudGalleryService.uploadAsset(resolved);
+                                if (success && mounted) {
+                                  setState(() {
+                                    widget.items[_currentIndex] = GalleryItem(
+                                      id: currentItem.id,
+                                      label: currentItem.label,
+                                      pathOrUrl: currentItem.pathOrUrl,
+                                      type: currentItem.type,
+                                      date: currentItem.date,
+                                      tags: currentItem.tags,
+                                      sizeBytes: currentItem.sizeBytes,
+                                      resolution: currentItem.resolution,
+                                      camera: currentItem.camera,
+                                      lens: currentItem.lens,
+                                      latitude: currentItem.latitude,
+                                      longitude: currentItem.longitude,
+                                      isLocal: currentItem.isLocal,
+                                      isBackedUp: true,
+                                      isCloudOnly: currentItem.isCloudOnly,
+                                      assetEntity: currentItem.assetEntity,
+                                    );
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploaded successfully')));
+                                } else if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload failed')));
+                                }
+                              } else {
+                                // Download
+                                final success = await CloudGalleryService.downloadAssetToDevice(currentItem.id, currentItem.type);
+                                if (success && mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloaded successfully')));
+                                } else if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download failed')));
+                                }
+                              }
+
+                              setState(() => _isSyncing = false);
+                            },
+                          ),
                       ],
                     ),
                   ),

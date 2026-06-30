@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
+import '../../../core/device_backup_service.dart';
 
-class CloudBackupDashboard extends StatelessWidget {
+class CloudBackupDashboard extends StatefulWidget {
   const CloudBackupDashboard({super.key});
+
+  @override
+  State<CloudBackupDashboard> createState() => _CloudBackupDashboardState();
+}
+
+class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,19 +37,49 @@ class CloudBackupDashboard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.cloud_upload, color: EverforestColors.bg0),
-                label: const Text(
-                  'Backup Now',
-                  style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: EverforestColors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+              Row(
+                children: [
+                  if (_isRestoring)
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.blue)))
+                  else
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        setState(() => _isRestoring = true);
+                        final success = await DeviceBackupService.restoreFromCloud();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Restored successfully from .pds file' : 'Restore failed')));
+                          setState(() => _isRestoring = false);
+                        }
+                      },
+                      icon: const Icon(Icons.download, color: EverforestColors.bg0, size: 18),
+                      label: const Text('Restore', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: EverforestColors.blue,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                    ),
+                  const SizedBox(width: 8),
+                  if (_isBackingUp)
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.green)))
+                  else
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        setState(() => _isBackingUp = true);
+                        final success = await DeviceBackupService.performSmartBackup();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? 'Backup successfully created (.pds)' : 'Backup failed')));
+                          setState(() => _isBackingUp = false);
+                        }
+                      },
+                      icon: const Icon(Icons.cloud_upload, color: EverforestColors.bg0),
+                      label: const Text('Backup Now', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: EverforestColors.green,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -128,15 +167,15 @@ class CloudBackupDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '650 GB used out of 1 TB',
+                  '180 GB used out of 500 GB',
                   style: TextStyle(color: EverforestColors.grey, fontSize: 14),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildLegendItem('Documents', EverforestColors.blue),
+                    _buildLegendItem('System & Apps', EverforestColors.blue),
                     const SizedBox(width: 16),
-                    _buildLegendItem('Media', EverforestColors.purple),
+                    _buildLegendItem('Downloads', EverforestColors.purple),
                     const SizedBox(width: 16),
                     _buildLegendItem('Other', EverforestColors.bg2),
                   ],
@@ -174,8 +213,8 @@ class MockBackup {
 }
 
 final mockBackups = [
-  MockBackup('System Image Backup', 'Today, 10:00 AM', '45.2 GB', 'Completed'),
-  MockBackup('Documents Sync', 'Yesterday, 08:30 PM', '2.1 GB', 'Completed'),
-  MockBackup('Media Library', 'Jun 16, 2026', '120.5 GB', 'In Progress'),
+  MockBackup('Full Device Backup (App Data, Settings, Contacts)', 'Today, 10:00 AM', '45.2 GB', 'Completed'),
+  MockBackup('Local Downloads Sync', 'Yesterday, 08:30 PM', '2.1 GB', 'Completed'),
+  MockBackup('System Image', 'Jun 16, 2026', '120.5 GB', 'In Progress'),
   MockBackup('App Configurations', 'Jun 15, 2026', '450 MB', 'Completed'),
 ];

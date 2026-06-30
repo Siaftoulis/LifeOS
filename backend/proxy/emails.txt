@@ -1,2 +1,1 @@
 admin@lifeos.local
-# Add authorized Google or GitHub account emails below this line to permit web proxy access.

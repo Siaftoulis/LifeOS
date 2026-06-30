@@ -141,6 +141,8 @@ CREATE TABLE user_tasks (
     notes TEXT,
     priority INTEGER DEFAULT 1,
     status TEXT DEFAULT 'TODO',
+    attribute TEXT,           -- (e.g. 'stamina', 'intelligence', 'focus')
+    base_xp INTEGER DEFAULT 10,
     due_date INTEGER,
     completed_at INTEGER,
     updated_at INTEGER NOT NULL,
@@ -153,6 +155,8 @@ CREATE TABLE user_habits (
     name TEXT NOT NULL,
     frequency_cron TEXT NOT NULL,
     target_streak INTEGER DEFAULT 0,
+    attribute TEXT,           -- (e.g. 'stamina', 'intelligence', 'focus')
+    base_xp INTEGER DEFAULT 10,
     updated_at INTEGER NOT NULL,
     is_dirty INTEGER DEFAULT 0
 );
@@ -678,6 +682,61 @@ The database supports arbitrary gamification hooks across its models. Current re
 For Point Star System transactions, conflicts regarding user balance totals must be resolved using Server-Authoritative Last-Write-Wins (LWW). Specifically, the backend daemon is the ultimate source of truth for the ledger. Any client `is_dirty = 1` updates are queued as ledger deltas (e.g., `event: "habit_run", points: +10`), and the central server calculates the definitive `current_points` state during reconciliation.
 For Preferences Setting Tab, Project Infinity, and Virtual Machine Management tables, changes are synced using standard timestamp-based Last-Write-Wins (LWW) resolution, with active VM states being strictly server-authoritative.
 For YouTube Client downloads lists, conflicts are resolved using Client-driven Last-Write-Wins (LWW) resolution.
+
+---
+
+## RPG & Illness Systems Schema Definitions
+
+```sql
+-- SQLite Table Definition: player_stats (Drift Managed)
+CREATE TABLE player_stats (
+    id TEXT PRIMARY KEY NOT NULL,
+    level INTEGER DEFAULT 1,
+    lifetime_xp INTEGER DEFAULT 0,
+    stamina INTEGER DEFAULT 1,
+    intelligence INTEGER DEFAULT 1,
+    focus INTEGER DEFAULT 1,
+    charisma INTEGER DEFAULT 1,
+    willpower INTEGER DEFAULT 1,
+    updated_at INTEGER NOT NULL,
+    synced_at INTEGER,
+    is_dirty INTEGER DEFAULT 0
+);
+
+-- SQLite Table Definition: xp_ledger (Drift Managed)
+CREATE TABLE xp_ledger (
+    id TEXT PRIMARY KEY NOT NULL,
+    task_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    attribute_type TEXT,
+    timestamp INTEGER NOT NULL,
+    synced_at INTEGER,
+    is_dirty INTEGER DEFAULT 0
+);
+
+-- SQLite Table Definition: atrophy_log (Drift Managed)
+CREATE TABLE atrophy_log (
+    id TEXT PRIMARY KEY NOT NULL,
+    attribute_type TEXT NOT NULL,
+    points_lost INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    synced_at INTEGER,
+    is_dirty INTEGER DEFAULT 0
+);
+
+-- SQLite Table Definition: status_effects (Drift Managed)
+CREATE TABLE status_effects (
+    id TEXT PRIMARY KEY NOT NULL,
+    type TEXT NOT NULL, -- 'STASIS', 'INJURY', 'ILLNESS'
+    affected_attributes TEXT,
+    start_time INTEGER NOT NULL,
+    base_duration_days INTEGER NOT NULL,
+    actual_duration_days INTEGER NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    synced_at INTEGER,
+    is_dirty INTEGER DEFAULT 0
+);
+```
 
 ---
 

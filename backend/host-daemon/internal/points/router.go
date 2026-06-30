@@ -16,11 +16,7 @@ func RegisterRoutes(mux *http.ServeMux) {
 
 func handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode([]map[string]interface{}{
-		{"username": "Alice (Admin)", "points": 1540, "rank": 1},
-		{"username": "Bob", "points": 820, "rank": 2},
-		{"username": "Charlie", "points": 310, "rank": 3},
-	})
+	json.NewEncoder(w).Encode(GetLeaderboard())
 }
 
 func handleLedger(w http.ResponseWriter, r *http.Request) {
@@ -39,9 +35,7 @@ func handleLedger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Stub processing delta and checking lockouts
-	currentBalance := 100 // Stub
-	newBalance := currentBalance + payload.Points
+	newBalance := AddPoints(payload.UserID, payload.Points)
 
 	if newBalance < 0 {
 		log.Printf("Appliance Lock Webhooks: Triggering TV Lock Webhook for user %s due to negative balance!", payload.UserID)
@@ -49,7 +43,7 @@ func handleLedger(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
+		"status":      "success",
 		"new_balance": newBalance,
 	})
 }
@@ -61,22 +55,22 @@ func handleVoucherRedeem(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "redeemed",
+		"status":         "redeemed",
 		"transaction_id": "tx_abc123",
 	})
 }
 
 var appCosts = map[string]int{
-	"com.instagram.android": 50,
+	"com.instagram.android":      50,
 	"com.google.android.youtube": 30,
 }
 
 func handleAppCosts(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(appCosts)
-		return
-	} else if r.Method == http.MethodPost {
+	case http.MethodPost:
 		var payload struct {
 			AppPackage string `json:"app_package"`
 			Cost       int    `json:"cost"`
@@ -89,9 +83,9 @@ func handleAppCosts(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{"status": "success", "appCosts": appCosts})
-		return
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
 func handleAppDeduct(w http.ResponseWriter, r *http.Request) {
@@ -113,10 +107,9 @@ func handleAppDeduct(w http.ResponseWriter, r *http.Request) {
 	if !exists {
 		costPerLaunch = 0
 	}
-	
-	// Stub processing delta
-	currentBalance := 100 // Stub
-	newBalance := currentBalance - costPerLaunch
+
+	// Deduct points
+	newBalance := AddPoints(payload.UserID, -costPerLaunch)
 
 	if newBalance < 0 {
 		http.Error(w, "Insufficient points", http.StatusPaymentRequired)
@@ -126,7 +119,7 @@ func handleAppDeduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
+		"status":      "success",
 		"new_balance": newBalance,
 	})
 }

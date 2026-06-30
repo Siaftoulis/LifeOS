@@ -15,8 +15,8 @@ func handleDaily(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"word": map[string]string{
-			"greek": "Ενσυναίσθηση",
-			"english": "Empathy",
+			"greek":      "Ενσυναίσθηση",
+			"english":    "Empathy",
 			"definition": "The ability to understand and share the feelings of another.",
 		},
 		"trivia": []string{

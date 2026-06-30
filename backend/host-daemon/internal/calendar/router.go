@@ -1,6 +1,7 @@
 package calendar
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
@@ -11,13 +12,35 @@ func RegisterRoutes(mux *http.ServeMux) {
 }
 
 func HandleGetEvents(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	events := GetEvents()
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`[]`))
+	json.NewEncoder(w).Encode(events)
 }
 
 func HandleCreateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var event CalendarEvent
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	CreateEvent(event)
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"status":"created"}`))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "created",
+		"event":  event,
+	})
 }
 
 func HandleLiveSync(w http.ResponseWriter, r *http.Request) {

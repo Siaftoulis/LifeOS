@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"lifeos/host-daemon/internal/auth/middleware"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/auth/login", HandleLogin)
 	mux.HandleFunc("/api/v1/auth/lock", HandleLock)
-	mux.HandleFunc("/api/v1/auth/users", HandleUsers)
-	mux.HandleFunc("/api/v1/auth/profile", HandleProfile)
-	mux.HandleFunc("/api/v1/notifications", HandleNotifications)
+	mux.HandleFunc("/api/v1/auth/users", middleware.RequireAuth(HandleUsers))
+	mux.HandleFunc("/api/v1/auth/profile", middleware.RequireAuth(HandleProfile))
+	mux.HandleFunc("/api/v1/notifications", middleware.RequireAuth(HandleNotifications))
 }
 
 type LoginRequest struct {
@@ -36,9 +39,20 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": user.Username,
+		"role":     user.Role,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	})
+	tokenString, err := token.SignedString(middleware.JwtSecret)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"authenticated": true,
-		"token":         "mock_jwt_token_" + user.Username,
+		"token":         tokenString,
 		"role":          user.Role,
 		"user":          user,
 	})
@@ -111,50 +125,7 @@ func HandleLock(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-var startTime = time.Now()
-
 func HandleNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
-	elapsed := time.Since(startTime)
-	
-	templates := []map[string]interface{}{
-		{"id": "mock-sys-1", "title": "System Update", "message": "LifeOS v2.4 downloaded successfully.", "category": "SYSTEM"},
-		{"id": "mock-habit-1", "title": "Habit Reminder", "message": "Drink water reminder (3/8 cups).", "category": "HABIT"},
-		{"id": "mock-sec-1", "title": "Security Log", "message": "Failed login attempt from ip 192.168.1.50.", "category": "SECURITY"},
-		{"id": "mock-fin-1", "title": "Financial Alert", "message": "Eurobank balance carrying over surplus: 124.50€.", "category": "FINANCIAL"},
-		{"id": "mock-vm-1", "title": "VM Manager", "message": "Hyper-V Dev-Node changed state to RUNNING.", "category": "SYSTEM"},
-		{"id": "mock-yt-1", "title": "YouTube Client", "message": "Finished download of 'Drift Tutorial'.", "category": "SYSTEM"},
-		{"id": "mock-map-1", "title": "Geofence Alert", "message": "Device exited 'Home Zone'.", "category": "SECURITY"},
-	}
-	
-	var activeNotifications []map[string]interface{}
-	count := int(elapsed.Seconds() / 15)
-	if count > len(templates) {
-		count = len(templates)
-	}
-	
-	for i := 0; i < count; i++ {
-		createdTime := startTime.Add(time.Duration(i*15) * time.Second).Unix()
-		note := map[string]interface{}{
-			"id":         templates[i]["id"],
-			"title":      templates[i]["title"],
-			"message":    templates[i]["message"],
-			"category":   templates[i]["category"],
-			"created_at": createdTime,
-		}
-		activeNotifications = append(activeNotifications, note)
-	}
-	
-	if len(activeNotifications) == 0 {
-		activeNotifications = append(activeNotifications, map[string]interface{}{
-			"id":         "mock-start",
-			"title":      "LifeOS Online",
-			"message":    "Host-daemon connected & monitoring.",
-			"category":   "SYSTEM",
-			"created_at": startTime.Unix(),
-		})
-	}
-	
-	json.NewEncoder(w).Encode(activeNotifications)
+	json.NewEncoder(w).Encode(GetNotifications())
 }

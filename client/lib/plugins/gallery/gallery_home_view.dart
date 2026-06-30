@@ -4,6 +4,7 @@ import 'gallery_view.dart';
 import 'album_list_view.dart';
 
 import 'gallery_map_view.dart';
+import 'cloud_view.dart';
 
 class GalleryHomeView extends StatefulWidget {
   const GalleryHomeView({super.key});
@@ -19,6 +20,7 @@ class _GalleryHomeViewState extends State<GalleryHomeView> {
     GalleryView(),
     AlbumListView(),
     GalleryMapView(),
+    CloudView(),
   ];
 
   @override
@@ -49,6 +51,10 @@ class _GalleryHomeViewState extends State<GalleryHomeView> {
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
             label: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.cloud),
+            label: 'Cloud',
           ),
         ],
       ),

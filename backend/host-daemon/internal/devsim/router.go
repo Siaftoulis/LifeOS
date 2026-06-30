@@ -2,11 +2,11 @@ package devsim
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"fmt"
 	"time"
 )
 
@@ -56,7 +56,7 @@ func HandleReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue
 		}
-		
+
 		out, err := os.Create(filepath.Join(simDir, fileHeader.Filename))
 		if err == nil {
 			io.Copy(out, file)

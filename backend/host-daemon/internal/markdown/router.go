@@ -12,7 +12,7 @@ func RegisterRoutes(mux *http.ServeMux, storagePath string) {
 
 	mux.HandleFunc("/api/markdown/sync", HandleSync)
 	mux.HandleFunc("/api/markdown/collab", HandleCollab)
-	
+
 	mux.HandleFunc("/api/markdown/history", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"history": []}`)) // Stub

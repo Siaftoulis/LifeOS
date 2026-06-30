@@ -475,5 +475,92 @@
                               "id":  "UPD-002"
                           }
                       ]
+    },
+    {
+        "macro_task":  "40+ Issue Audit \u0026 New Systems Implementation",
+        "status":  "in_progress",
+        "sub_tasks":  [
+                          {
+                              "id":  "AUDIT-001",
+                              "description":  "Systems Design \u0026 Documentation (Workstream 0)",
+                              "dependencies":  [
+
+                                               ],
+                              "status":  "in_progress"
+                          },
+                          {
+                              "id":  "AUDIT-002",
+                              "description":  "Security (Workstream 1)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-003",
+                              "description":  "Blocking Bug Fix (Workstream 2)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-004",
+                              "description":  "Replace All Stubs (Workstream 3)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-005",
+                              "description":  "New Systems Backend (Workstream 4)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-006",
+                              "description":  "New Systems Frontend (Workstream 5)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-007",
+                              "description":  "Frontend Refactor \u0026 Optimization (Workstream 6)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-008",
+                              "description":  "Backend Refactor \u0026 Optimization (Workstream 7)",
+                              "dependencies":  [
+                                                   "AUDIT-001"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-009",
+                              "description":  "Hygiene \u0026 Version Sync (Workstream 8)",
+                              "dependencies":  [
+                                                   "AUDIT-007",
+                                                   "AUDIT-008"
+                                               ],
+                              "status":  "pending"
+                          },
+                          {
+                              "id":  "AUDIT-010",
+                              "description":  "Documentation Update (Workstream 9)",
+                              "dependencies":  [
+                                                   "AUDIT-009"
+                                               ],
+                              "status":  "pending"
+                          }
+                      ]
     }
 ]

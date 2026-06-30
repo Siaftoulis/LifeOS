@@ -106,6 +106,12 @@ To maintain simplicity and prevent text parsing corruptions, Markdown documents 
 ### 4.3. Future Roadmap: Sequence CRDTs
 For future iterations demanding concurrent offline multi-user document editing, the system architecture maps out a Sequence CRDT framework representing notes as distinct blocks (mapped to unique cryptographic hashes) that merge using logical logical clocks, preventing total document loss during editing collisions.
 
+### 4.4. RPG & Illness Systems Sync Rules
+To prevent cheating and ensure integrity in the RPG mechanics, the synchronization of `player_stats`, `xp_ledger`, `atrophy_log`, and `status_effects` tables utilizes a **Server-Authoritative LWW Sync** rule.
+1. The client caches state transitions locally with `is_dirty = 1`.
+2. Upon sync, the backend daemon performs a validation check against the `xp_ledger` to verify the calculated level and attributes.
+3. The server pushes back the absolute source-of-truth state, resolving any conflicts in favor of the backend's calculations.
+
 ---
 
 ## Related Specifications

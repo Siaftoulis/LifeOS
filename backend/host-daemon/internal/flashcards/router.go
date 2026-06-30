@@ -22,16 +22,16 @@ func HandleImportAnki(w http.ResponseWriter, r *http.Request) {
 	// Stub: We bypass actual SQLite parsing of collection.anki2 to avoid CGO requirements on the host machine.
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
+		"status":         "success",
 		"imported_cards": 42,
-		"message": "Stubbed Anki Import (No CGO required)",
+		"message":        "Stubbed Anki Import (No CGO required)",
 	})
 }
 
 func HandleScanNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
+		"status":       "success",
 		"parsed_cards": 5,
 	})
 }

@@ -17,7 +17,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	// Simulate clamav scanning check. We won't strictly enforce execution
 	// to avoid crashing if clamdscan isn't installed natively on the system.
 	cmd := exec.Command("clamdscan", "--version")

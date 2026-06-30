@@ -16,20 +16,20 @@ func RegisterRoutes(mux *http.ServeMux) {
 func HandleGeofences(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(defaultGeofences())
+		json.NewEncoder(w).Encode(GetGeofences())
 		return
 	}
-	
+
 	if r.Method == http.MethodPost {
-		// Mock saving geofence
 		var geo Geofence
 		json.NewDecoder(r.Body).Decode(&geo)
+		AddGeofence(geo)
 		log.Printf("Saved new geofence: %+v", geo)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 		return
 	}
-	
+
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
@@ -38,16 +38,8 @@ func HandleRouting(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	// Return a dummy route for now
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
-		"route": []map[string]float64{
-			{"lat": 37.9838, "lon": 23.7275},
-			{"lat": 37.9850, "lon": 23.7300},
-			{"lat": 37.9870, "lon": 23.7350},
-		},
-	})
+	// OSRM Integration planned for future. Return proper error for now.
+	http.Error(w, "Routing service not configured (OSRM integration pending)", http.StatusNotImplemented)
 }
 
 func HandleReportLocation(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +59,7 @@ func HandleReportLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	triggered := checkProximity(report, defaultGeofences())
+	triggered := checkProximity(report, GetGeofences())
 	if len(triggered) > 0 {
 		TriggerAutomation(report, triggered)
 	}
@@ -84,9 +76,9 @@ func HandleReportLocation(w http.ResponseWriter, r *http.Request) {
 	DefaultBroker.Broadcast(update)
 
 	resp := map[string]interface{}{
-		"status":             "success",
+		"status":              "success",
 		"triggered_geofences": triggered,
-		"geofence_count":     len(triggered),
+		"geofence_count":      len(triggered),
 	}
 
 	if len(triggered) > 0 {

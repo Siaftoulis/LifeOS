@@ -15,7 +15,7 @@ func RegisterRoutes(mux *http.ServeMux, allowedDir string) {
 				http.Error(w, "Internal Server Error", 500)
 			}
 		}()
-		
+
 		target := r.URL.Query().Get("file")
 		if target == "" {
 			target = r.URL.Path[len("/api/media/"):]

@@ -12,8 +12,8 @@ func StreamAudiobookHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing audiobook ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	filePath := filepath.Join("storage", "audiobooks", audioID+".mp3")
-	
+
 	http.ServeFile(w, r, filePath)
 }

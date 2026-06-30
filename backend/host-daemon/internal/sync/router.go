@@ -19,21 +19,33 @@ var (
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/sync/push", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[SUCCESS] Secure mTLS Sync Handshake Established with Mobile Target Profile")
-		var payload struct{ Data string `json:"data"` }
-		if json.NewDecoder(r.Body).Decode(&payload) != nil { http.Error(w, "Bad Request", 400); return }
+		var payload struct {
+			Data string `json:"data"`
+		}
+		if json.NewDecoder(r.Body).Decode(&payload) != nil {
+			http.Error(w, "Bad Request", 400)
+			return
+		}
 		raw, err := base64.StdEncoding.DecodeString(payload.Data)
-		if err != nil { http.Error(w, "Base64 Error", 400); return }
+		if err != nil {
+			http.Error(w, "Base64 Error", 400)
+			return
+		}
 		gz := gzipPool.Get().(*gzip.Reader)
-		if err := gz.Reset(bytes.NewReader(raw)); err != nil { 
+		if err := gz.Reset(bytes.NewReader(raw)); err != nil {
 			http.Error(w, "Gzip Error", 500)
-			return 
+			return
 		}
 		defer gzipPool.Put(gz)
 		decodedBytes, _ := io.ReadAll(gz)
 		var syncData map[string]any
-		if json.Unmarshal(decodedBytes, &syncData) != nil { http.Error(w, "Integrity Error", 400); return }
-		
-		dbMutex.Lock(); defer dbMutex.Unlock()
+		if json.Unmarshal(decodedBytes, &syncData) != nil {
+			http.Error(w, "Integrity Error", 400)
+			return
+		}
+
+		dbMutex.Lock()
+		defer dbMutex.Unlock()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"status": "ok", "inbound_b64": nil})
 	})

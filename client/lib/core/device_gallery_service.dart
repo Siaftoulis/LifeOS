@@ -92,13 +92,62 @@ class DeviceGalleryService {
   /// Fetch ALL media (paginated internally, returns flat list).
   /// Useful for initial grid load. Caps at [maxItems] to avoid OOM.
   Future<List<GalleryItem>> fetchAllMedia({int maxItems = 10000, String? albumId}) async {
+    if (!_hasPermission) {
+      final granted = await requestPermission();
+      if (!granted) return [];
+    }
+
+    final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+      type: RequestType.common,
+      filterOption: FilterOptionGroup(
+        orders: [const OrderOption(type: OrderOptionType.createDate, asc: false)],
+      ),
+    );
+
+    if (albums.isEmpty) return [];
+
+    AssetPathEntity targetAlbum = albums.first;
+    if (albumId != null) {
+      final found = albums.where((a) => a.id == albumId).toList();
+      if (found.isNotEmpty) targetAlbum = found.first;
+    }
+
+    final int totalCount = await targetAlbum.assetCountAsync;
+    if (totalCount == 0) return [];
+
     final List<GalleryItem> allItems = [];
     int page = 0;
 
-    while (allItems.length < maxItems) {
-      final batch = await fetchMediaPage(page: page, albumId: albumId);
-      if (batch.isEmpty) break;
-      allItems.addAll(batch);
+    while (allItems.length < maxItems && page * _pageSize < totalCount) {
+      final List<AssetEntity> assets = await targetAlbum.getAssetListPaged(
+        page: page,
+        size: _pageSize,
+      );
+      
+      if (assets.isEmpty) break;
+
+      for (final asset in assets) {
+        final String resolution = '${asset.width}x${asset.height}';
+        final String type = asset.type == AssetType.video ? 'video' : 'photo';
+
+        allItems.add(GalleryItem(
+          id: asset.id,
+          label: asset.title ?? 'Asset ${asset.id}',
+          pathOrUrl: '', // Will be resolved lazily on-demand
+          type: type,
+          date: asset.createDateTime,
+          tags: const [],
+          sizeBytes: 0,
+          resolution: resolution,
+          camera: '',
+          lens: '',
+          latitude: asset.latitude,
+          longitude: asset.longitude,
+          isLocal: true,
+          assetEntity: asset,
+        ));
+      }
+      
       page++;
     }
 
@@ -152,25 +201,25 @@ class DeviceGalleryService {
     if (!_hasPermission) return [];
 
     final albums = await PhotoManager.getAssetPathList(type: RequestType.common);
-    final List<AlbumInfo> result = [];
-
-    for (final album in albums) {
+    
+    final List<AlbumInfo?> results = await Future.wait(albums.map((album) async {
       final count = await album.assetCountAsync;
       if (count > 0) {
         final assets = await album.getAssetListPaged(page: 0, size: 1);
         AssetEntity? coverAsset;
         if (assets.isNotEmpty) coverAsset = assets.first;
         
-        result.add(AlbumInfo(
+        return AlbumInfo(
           id: album.id,
           name: album.name,
           assetCount: count,
           coverAsset: coverAsset,
-        ));
+        );
       }
-    }
+      return null;
+    }));
 
-    return result;
+    return results.whereType<AlbumInfo>().toList();
   }
 
   /// Delete an asset by its ID. Returns true if successful.

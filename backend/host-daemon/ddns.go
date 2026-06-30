@@ -1,14 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
-
-// The URL of your Custom API (Cloudflare Worker)
-const customDDNSApiUrl = "https://your-worker-name.your-cloudflare-subdomain.workers.dev/update"
-const customDDNSAuthToken = "Bearer lifeos_super_secret_token_123"
 
 func startCustomDDNSUpdater() {
 	for {
@@ -18,30 +16,38 @@ func startCustomDDNSUpdater() {
 		} else {
 			log.Printf("Successfully updated Custom DDNS IP")
 		}
-		
+
 		// Wait 10 minutes before the next update
 		time.Sleep(10 * time.Minute)
 	}
 }
 
 func updateCustomDDNS() error {
-	req, err := http.NewRequest("POST", customDDNSApiUrl, nil)
+	apiUrl := os.Getenv("DDNS_API_URL")
+	authToken := os.Getenv("DDNS_AUTH_TOKEN")
+	if apiUrl == "" {
+		return fmt.Errorf("DDNS_API_URL environment variable is not set")
+	}
+
+	req, err := http.NewRequest("POST", apiUrl, nil)
 	if err != nil {
 		return err
 	}
-	
-	req.Header.Set("Authorization", customDDNSAuthToken)
-	
+
+	if authToken != "" {
+		req.Header.Set("Authorization", authToken)
+	}
+
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Custom DDNS API returned status: %d", resp.StatusCode)
+		return fmt.Errorf("Custom DDNS API returned status: %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }

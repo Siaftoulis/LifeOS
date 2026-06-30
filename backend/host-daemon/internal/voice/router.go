@@ -16,7 +16,7 @@ func HandleVoiceParse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	response := map[string]interface{}{
 		"title":    "Clean room",
 		"due_date": 1780000000000,

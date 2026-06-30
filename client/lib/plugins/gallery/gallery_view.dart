@@ -7,6 +7,7 @@ import '../../database/preferences_service.dart';
 import '../../presentation/widgets/photo_video_gallery/aves_viewer_screen.dart';
 import '../../presentation/widgets/photo_video_gallery/gallery_item.dart';
 import '../../theme/everforest_colors.dart';
+import '../../core/cloud_gallery_service.dart';
 
 class GalleryView extends StatefulWidget {
   final String? albumId;
@@ -23,7 +24,9 @@ class _GalleryViewState extends State<GalleryView> {
   Map<String, List<GalleryItem>> _groupedItems = {};
   bool _isLoading = true;
   bool _hasPermission = false;
+  Set<String> _cloudAssetIds = {};
   
+  String _sourceMode = 'local'; // 'local' or 'cloud'
   bool _isFolderView = false;
   
   // Filter states
@@ -59,6 +62,10 @@ class _GalleryViewState extends State<GalleryView> {
         if (_filterPhotos && item.type == 'photo') return true;
         return false;
       }).toList();
+    }
+
+    if (_sourceMode == 'cloud') {
+      filtered = filtered.where((item) => _cloudAssetIds.contains(item.id)).toList();
     }
 
     setState(() {
@@ -100,8 +107,11 @@ class _GalleryViewState extends State<GalleryView> {
 
     if (hasPermission) {
       final items = await _galleryService.fetchAllMedia(albumId: widget.albumId);
+      final cloudIds = await CloudGalleryService.fetchCloudAssetIds();
+      
       setState(() {
         _items = items;
+        _cloudAssetIds = cloudIds;
         _applyFilters();
       });
     }
@@ -189,7 +199,7 @@ class _GalleryViewState extends State<GalleryView> {
       );
     }
 
-    if (_items.isEmpty) {
+    if (_items.isEmpty && _sourceMode == 'local') {
       return const Center(
         child: Text('No media found on device.', style: TextStyle(color: EverforestColors.fg)),
       );
@@ -200,7 +210,25 @@ class _GalleryViewState extends State<GalleryView> {
         backgroundColor: EverforestColors.bg0,
         floating: true,
         pinned: false,
-        title: Text(widget.albumName ?? 'Collection', style: const TextStyle(color: EverforestColors.fg)),
+        title: SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'local', label: Text('Local'), icon: Icon(Icons.phone_android, size: 18)),
+            ButtonSegment(value: 'cloud', label: Text('Cloud'), icon: Icon(Icons.cloud_outlined, size: 18)),
+          ],
+          selected: {_sourceMode},
+          onSelectionChanged: (Set<String> newSelection) {
+            setState(() {
+              _sourceMode = newSelection.first;
+              _applyFilters();
+            });
+          },
+          style: SegmentedButton.styleFrom(
+            backgroundColor: EverforestColors.bg1,
+            selectedForegroundColor: EverforestColors.bg0,
+            selectedBackgroundColor: EverforestColors.green,
+            side: const BorderSide(color: EverforestColors.bg2),
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(_isFolderView ? Icons.grid_view : Icons.folder_copy_outlined, color: EverforestColors.fg), 
@@ -229,7 +257,8 @@ class _GalleryViewState extends State<GalleryView> {
       )
     ];
 
-    if (_isFolderView) {
+
+      if (_isFolderView) {
       // Samsung Mobile Folder View
       slivers.add(
         SliverPadding(
@@ -347,6 +376,12 @@ class _GalleryViewState extends State<GalleryView> {
             fit: StackFit.expand,
             children: [
               imageWidget,
+              if (_cloudAssetIds.contains(item.id))
+                const Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Icon(Icons.cloud_done, color: EverforestColors.green, size: 20),
+                ),
               if (isFavorite)
                 const Positioned(
                   bottom: 4,

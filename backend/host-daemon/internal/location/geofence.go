@@ -1,7 +1,12 @@
 package location
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"math"
+	"os"
+	"sync"
 )
 
 type Point struct {
@@ -10,14 +15,77 @@ type Point struct {
 }
 
 type Geofence struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Type     string  `json:"type"` // "circle" or "polygon"
-	Latitude float64 `json:"lat,omitempty"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"` // "circle" or "polygon"
+	Latitude  float64 `json:"lat,omitempty"`
 	Longitude float64 `json:"lon,omitempty"`
-	Radius   float64 `json:"radius,omitempty"`
-	Polygon  []Point `json:"polygon,omitempty"`
-	IsActive bool    `json:"is_active"`
+	Radius    float64 `json:"radius,omitempty"`
+	Polygon   []Point `json:"polygon,omitempty"`
+	IsActive  bool    `json:"is_active"`
+}
+
+var (
+	gfLock        sync.RWMutex
+	geofencesList []Geofence
+	gfFile        = "./data/geofences.json"
+)
+
+func init() {
+	loadGeofences()
+}
+
+func loadGeofences() {
+	gfLock.Lock()
+	defer gfLock.Unlock()
+
+	data, err := os.ReadFile(gfFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			os.MkdirAll("./data", 0755)
+			geofencesList = []Geofence{
+				{ID: "g1", Name: "Home Base", Type: "circle", Latitude: 37.9838, Longitude: 23.7275, Radius: 150, IsActive: true},
+				{ID: "g2", Name: "Work Polygon", Type: "polygon", Polygon: []Point{
+					{37.9760, 23.7350}, {37.9765, 23.7350}, {37.9765, 23.7360}, {37.9760, 23.7360},
+				}, IsActive: true},
+			}
+			saveGeofences()
+			return
+		}
+		log.Printf("Error reading geofences.json: %v", err)
+		return
+	}
+
+	if err := json.Unmarshal(data, &geofencesList); err != nil {
+		log.Printf("Error parsing geofences.json: %v", err)
+	}
+}
+
+func saveGeofences() {
+	data, err := json.MarshalIndent(geofencesList, "", "  ")
+	if err != nil {
+		log.Printf("Error marshaling geofences: %v", err)
+		return
+	}
+
+	if err := ioutil.WriteFile(gfFile, data, 0644); err != nil {
+		log.Printf("Error writing geofences.json: %v", err)
+	}
+}
+
+func GetGeofences() []Geofence {
+	gfLock.RLock()
+	defer gfLock.RUnlock()
+	cpy := make([]Geofence, len(geofencesList))
+	copy(cpy, geofencesList)
+	return cpy
+}
+
+func AddGeofence(gf Geofence) {
+	gfLock.Lock()
+	defer gfLock.Unlock()
+	geofencesList = append(geofencesList, gf)
+	saveGeofences()
 }
 
 type LocationReport struct {
@@ -63,7 +131,7 @@ func checkProximity(report LocationReport, fences []Geofence) []TriggeredGeofenc
 		if !f.IsActive {
 			continue
 		}
-		
+
 		if f.Type == "polygon" && len(f.Polygon) >= 3 {
 			if pointInPolygon(Point{Latitude: report.Latitude, Longitude: report.Longitude}, f.Polygon) {
 				triggered = append(triggered, TriggeredGeofence{
@@ -86,11 +154,4 @@ func checkProximity(report LocationReport, fences []Geofence) []TriggeredGeofenc
 	return triggered
 }
 
-func defaultGeofences() []Geofence {
-	return []Geofence{
-		{ID: "g1", Name: "Home Base", Type: "circle", Latitude: 37.9838, Longitude: 23.7275, Radius: 150, IsActive: true},
-		{ID: "g2", Name: "Work Polygon", Type: "polygon", Polygon: []Point{
-			{37.9760, 23.7350}, {37.9765, 23.7350}, {37.9765, 23.7360}, {37.9760, 23.7360},
-		}, IsActive: true},
-	}
-}
+// Removed defaultGeofences()

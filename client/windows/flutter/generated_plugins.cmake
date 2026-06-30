@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
+  flutter_secure_storage_windows
   geolocator_windows
   nsd_windows
   permission_handler_windows

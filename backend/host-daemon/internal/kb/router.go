@@ -38,7 +38,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"query": query,
+		"query":   query,
 		"results": []string{},
 	})
 }

@@ -11,9 +11,11 @@ class GalleryItem {
   final String resolution;
   final String camera;
   final String lens;
-  final double? latitude;
-  final double? longitude;
+  double? latitude;
+  double? longitude;
   final bool isLocal;
+  final bool isBackedUp;
+  final bool isCloudOnly;
   final AssetEntity? assetEntity;
 
   GalleryItem({
@@ -30,6 +32,8 @@ class GalleryItem {
     this.latitude,
     this.longitude,
     required this.isLocal,
+    this.isBackedUp = false,
+    this.isCloudOnly = false,
     this.assetEntity,
   });
 }

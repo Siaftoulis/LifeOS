@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../theme/everforest_colors.dart';
 
 class NavigationOverlay extends StatelessWidget {
   final VoidCallback onClose;
+  final Function(LatLng) onRouteSelected;
   
-  const NavigationOverlay({super.key, required this.onClose});
+  const NavigationOverlay({
+    super.key, 
+    required this.onClose,
+    required this.onRouteSelected,
+  });
+
+  static const LatLng homeLocation = LatLng(38.000, 23.733); // Stavropoulou 41, Athens
+  static const LatLng workLocation = LatLng(38.0402, 23.7880); // The Mall Athens
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +33,13 @@ class NavigationOverlay extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
                 const Icon(Icons.directions, color: EverforestColors.blue),
                 const SizedBox(width: 12),
-                const Text('Navigation', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Quick Navigation', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close, color: EverforestColors.grey),
@@ -38,39 +48,36 @@ class NavigationOverlay extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _buildInput('Choose starting point', Icons.my_location),
-            const SizedBox(height: 12),
-            _buildInput('Choose destination', Icons.location_on, isDest: true),
-            const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.navigation),
-              label: const Text('Start Navigation'),
+              onPressed: () {
+                onRouteSelected(homeLocation);
+                onClose();
+              },
+              icon: const Icon(Icons.home),
+              label: const Text('Route to Home (Stavropoulou 41)'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: EverforestColors.green,
+                foregroundColor: EverforestColors.bg0,
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                onRouteSelected(workLocation);
+                onClose();
+              },
+              icon: const Icon(Icons.work),
+              label: const Text('Route to Work (The Mall Athens)'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: EverforestColors.blue,
                 foregroundColor: EverforestColors.bg0,
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            )
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInput(String hint, IconData icon, {bool isDest = false}) {
-    return TextField(
-      style: const TextStyle(color: EverforestColors.fg),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: EverforestColors.grey),
-        prefixIcon: Icon(icon, color: isDest ? EverforestColors.red : EverforestColors.green),
-        filled: true,
-        fillColor: EverforestColors.bg1,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
         ),
       ),
     );

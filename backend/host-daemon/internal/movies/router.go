@@ -23,7 +23,7 @@ func HandleGetMovies(w http.ResponseWriter, r *http.Request) {
 func HandleAddToWatchlist(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "added",
+		"status":  "added",
 		"message": "Movie pushed to download pipeline successfully.",
 	})
 }

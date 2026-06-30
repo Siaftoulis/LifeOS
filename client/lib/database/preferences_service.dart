@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PreferencesService {
+  static const _secureStorage = FlutterSecureStorage();
   static final ValueNotifier<String> navProfile = ValueNotifier('Swipe');
   static final ValueNotifier<bool> bgSync = ValueNotifier(true);
   static final ValueNotifier<bool> spatialGestures = ValueNotifier(true);
@@ -12,6 +14,7 @@ class PreferencesService {
   static final ValueNotifier<String> activeProfileRole = ValueNotifier('ADMIN'); // 'ADMIN', 'NORMAL', 'CHILD'
   static final ValueNotifier<int> dailyLimitMinutes = ValueNotifier(0);
   static final ValueNotifier<bool> rememberMe = ValueNotifier(false);
+  static final ValueNotifier<String> hashedPin = ValueNotifier('');
   static final ValueNotifier<String> authToken = ValueNotifier('');
   static final ValueNotifier<String> userProfileJson = ValueNotifier('');
   static final ValueNotifier<List<List<String>>> layout = ValueNotifier([
@@ -45,7 +48,8 @@ class PreferencesService {
         activeProfileRole.value = data['activeProfileRole'] ?? 'ADMIN';
         dailyLimitMinutes.value = data['dailyLimitMinutes'] ?? 0;
         rememberMe.value = data['rememberMe'] ?? false;
-        authToken.value = data['authToken'] ?? '';
+        hashedPin.value = data['hashedPin'] ?? '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // "0000" by default
+        authToken.value = await _secureStorage.read(key: 'authToken') ?? '';
         userProfileJson.value = data['userProfileJson'] ?? '';
         if (data['layout'] != null) {
           final List<dynamic> rawLayout = data['layout'];
@@ -78,7 +82,7 @@ class PreferencesService {
         'activeProfileRole': activeProfileRole.value,
         'layout': layout.value,
         'rememberMe': rememberMe.value,
-        'authToken': authToken.value,
+        'hashedPin': hashedPin.value,
         'userProfileJson': userProfileJson.value,
         'appCategories': appCategories.value,
         'appDrawerFolderView': appDrawerFolderView.value,
@@ -89,6 +93,7 @@ class PreferencesService {
       };
       final f = await _getFile(null);
       await f.writeAsString(jsonEncode(data));
+      await _secureStorage.write(key: 'authToken', value: authToken.value);
     } catch (_) {}
   }
 

@@ -232,6 +232,8 @@ class UserTasks extends Table {
   TextColumn get notes => text().nullable()();
   IntColumn get priority => integer().withDefault(const Constant(1))();
   TextColumn get status => text().withDefault(const Constant('TODO'))();
+  TextColumn get attribute => text().nullable()();
+  IntColumn get baseXp => integer().withDefault(const Constant(10))();
   IntColumn get dueDate => integer().nullable()();
   IntColumn get completedAt => integer().nullable()();
   IntColumn get updatedAt => integer()();
@@ -247,6 +249,8 @@ class UserHabits extends Table {
   TextColumn get name => text()();
   TextColumn get frequencyCron => text()();
   IntColumn get targetStreak => integer().withDefault(const Constant(0))();
+  TextColumn get attribute => text().nullable()();
+  IntColumn get baseXp => integer().withDefault(const Constant(10))();
   IntColumn get updatedAt => integer()();
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 

@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:drift/drift.dart' show Value;
 import '../../../api_client.dart';
 import '../../../database/database.dart';
 import '../../../database/maps_dao.dart';
 import '../../../theme/everforest_colors.dart';
 import 'geofence_drawer_overlay.dart';
-import 'navigation_overlay.dart';
 import 'maps_dashboard_header.dart';
 import 'maps_report_banner.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -29,17 +29,45 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
   List<Map<String, dynamic>> _liveLocations = [];
   Map<String, dynamic>? _lastReport;
   bool _showGeofenceMenu = false;
-  bool _showNavMenu = false;
   bool _isDrawingMode = false;
   final MapController _mapController = MapController();
   bool _isLocating = false;
   LatLng? _myLocation;
+  StreamSubscription<Position>? _positionStreamSub;
+  List<Geofence> _geofences = [];
+  StreamSubscription? _geofenceSub;
 
   @override
   void initState() {
     super.initState();
     _connectWebSocket();
     _sendTestReport();
+    _startLocationTracking();
+    _geofenceSub = _dao.watchAllGeofences().listen((list) {
+      if (mounted) {
+        setState(() => _geofences = list);
+      }
+    });
+  }
+
+  Future<void> _startLocationTracking() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+      if (mounted) {
+        setState(() => _myLocation = LatLng(pos.latitude, pos.longitude));
+      }
+    } catch (_) {}
+
+    _positionStreamSub = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 2,
+      ),
+    ).listen((Position pos) {
+      if (mounted) {
+        setState(() => _myLocation = LatLng(pos.latitude, pos.longitude));
+      }
+    });
   }
 
   void _connectWebSocket() {
@@ -85,9 +113,82 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
 
   @override
   void dispose() {
+    _positionStreamSub?.cancel();
     _wsSub?.cancel();
     _wsChannel?.sink.close();
+    _geofenceSub?.cancel();
     super.dispose();
+  }
+
+  void _onMapTap(LatLng point) {
+    final nameController = TextEditingController();
+    final radiusController = TextEditingController(text: '200');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: EverforestColors.bg0,
+        title: const Text('Create Geofence Zone', style: TextStyle(color: EverforestColors.fg)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              autofocus: true,
+              style: const TextStyle(color: EverforestColors.fg),
+              decoration: const InputDecoration(
+                labelText: 'Zone Name (e.g. University)',
+                labelStyle: TextStyle(color: EverforestColors.grey),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: radiusController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: EverforestColors.fg),
+              decoration: const InputDecoration(
+                labelText: 'Radius (meters)',
+                labelStyle: TextStyle(color: EverforestColors.grey),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final radius = double.tryParse(radiusController.text) ?? 200.0;
+              if (name.isNotEmpty) {
+                await _dao.insertGeofence(GeofencesCompanion(
+                  id: Value(DateTime.now().millisecondsSinceEpoch.toString()),
+                  name: Value(name),
+                  latitude: Value(point.latitude),
+                  longitude: Value(point.longitude),
+                  radius: Value(radius),
+                  isActive: const Value(1),
+                  updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+                  isDirty: const Value(1),
+                ));
+                if (mounted) {
+                  setState(() => _isDrawingMode = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Geofence "$name" created!')),
+                  );
+                }
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Save', style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -110,6 +211,8 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                     isDrawingMode: _isDrawingMode,
                     mapController: _mapController,
                     myLocation: _myLocation,
+                    geofences: _geofences,
+                    onMapTap: _onMapTap,
                   ),
                 ),
                 Positioned(
@@ -118,19 +221,11 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                   child: Column(
                     children: [
                       FloatingActionButton(
-                        heroTag: 'nav_fab',
-                        mini: true,
-                        backgroundColor: EverforestColors.bg1.withOpacity(0.9),
-                        child: const Icon(Icons.directions, color: EverforestColors.blue),
-                        onPressed: () => setState(() { _showNavMenu = true; _showGeofenceMenu = false; }),
-                      ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton(
                         heroTag: 'geo_fab',
                         mini: true,
                         backgroundColor: EverforestColors.bg1.withOpacity(0.9),
                         child: const Icon(Icons.share_location, color: EverforestColors.green),
-                        onPressed: () => setState(() { _showGeofenceMenu = true; _showNavMenu = false; }),
+                        onPressed: () => setState(() { _showGeofenceMenu = true; }),
                       ),
                       const SizedBox(height: 8),
                       FloatingActionButton(
@@ -145,13 +240,14 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                     ],
                   ),
                 ),
-                if (_showNavMenu)
-                  NavigationOverlay(onClose: () => setState(() => _showNavMenu = false)),
                 if (_showGeofenceMenu)
                   GeofenceDrawerOverlay(
                     onClose: () => setState(() => _showGeofenceMenu = false),
                     isDrawingMode: _isDrawingMode,
                     onToggleDrawMode: () => setState(() => _isDrawingMode = !_isDrawingMode),
+                    geofences: _geofences,
+                    onToggleActive: (id, active) => _dao.updateGeofenceActive(id, active),
+                    onDelete: (id) => _dao.deleteGeofence(id),
                   ),
               ],
             ),

@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true },
+	CheckOrigin: func(r *http.Request) bool {
+		// Restrict to Tailscale IP space (100.x.y.z)
+		return strings.HasPrefix(r.RemoteAddr, "100.")
+	},
 }
 
 type LiveUpdate struct {

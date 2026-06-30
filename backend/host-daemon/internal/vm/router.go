@@ -49,7 +49,7 @@ func handleExplore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Stub File Explorer
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"path": r.URL.Query().Get("path"),
+		"path":  r.URL.Query().Get("path"),
 		"files": []string{"src", "docs", "main.py", "requirements.txt"},
 	})
 }

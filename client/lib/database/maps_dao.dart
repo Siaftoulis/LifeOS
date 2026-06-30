@@ -24,5 +24,5 @@ class MapsDao extends DatabaseAccessor<AppDatabase> with _$MapsDaoMixin {
 
   Future<int> updateGeofenceActive(String id, bool active) =>
       (update(geofences)..where((t) => t.id.equals(id)))
-          .write(const GeofencesCompanion(isActive: Value(1)));
+          .write(GeofencesCompanion(isActive: Value(active ? 1 : 0)));
 }

@@ -47,7 +47,7 @@ class SyncInterceptor extends QueryInterceptor {
         await super.runInsert(
           executor,
           'INSERT INTO sync_queue (id, target_table, record_id, field_name, client_updated_at) VALUES (?, ?, ?, ?, ?)',
-          ['sq-\$ts-\$targetTable', targetTable, 'unknown', operation, ts]
+          ['sq-${ts}-${targetTable}', targetTable, 'unknown', operation, ts]
         );
       }
     } catch (e) {

@@ -23,7 +23,7 @@ func HandleToggleDevice(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Stubbed HA action
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status": "success",
+		"status":  "success",
 		"message": "Stubbed Device Toggle",
 	})
 }
