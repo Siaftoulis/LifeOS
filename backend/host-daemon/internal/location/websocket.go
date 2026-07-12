@@ -3,7 +3,9 @@ package location
 import (
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -12,8 +14,21 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		// Restrict to Tailscale IP space (100.x.y.z)
-		return strings.HasPrefix(r.RemoteAddr, "100.")
+		// Restrict to tailnet IPs (100.x.y.z) or localhost, OR check ALLOWED_ORIGIN env var
+		remoteIP, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			remoteIP = r.RemoteAddr
+		}
+		if strings.HasPrefix(remoteIP, "100.") || remoteIP == "127.0.0.1" || remoteIP == "::1" || remoteIP == "localhost" {
+			return true
+		}
+
+		allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+		origin := r.Header.Get("Origin")
+		if allowedOrigin != "" && origin == allowedOrigin {
+			return true
+		}
+		return false
 	},
 }
 

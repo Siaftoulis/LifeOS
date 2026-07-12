@@ -4,8 +4,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import '../../core/device_gallery_service.dart';
 import '../../database/preferences_service.dart';
-import '../../presentation/widgets/photo_video_gallery/aves_viewer_screen.dart';
-import '../../presentation/widgets/photo_video_gallery/gallery_item.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_screen.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
 import '../../theme/everforest_colors.dart';
 import '../../core/cloud_gallery_service.dart';
 
@@ -401,13 +401,13 @@ class _GalleryViewState extends State<GalleryView> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.2) : EverforestColors.bg1,
+          color: isActive ? color.withValues(alpha: 0.2) : EverforestColors.bg1,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isActive ? color : color.withOpacity(0.5)),
+          border: Border.all(color: isActive ? color : color.withValues(alpha: 0.5)),
           boxShadow: [
             if (!isActive)
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),

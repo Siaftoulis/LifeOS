@@ -19,7 +19,7 @@ class _FCPState extends State<FastCapturePanel> {
 
   @override Widget build(BuildContext context) {
     return Column(children: [
-      Container(margin: const EdgeInsets.all(16), padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(24)), child: Row(children: [
+      Container(margin: const EdgeInsets.all(16), padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(24)), child: Row(children: [
         Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(controller: _c, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(hintText: "Capture...", hintStyle: TextStyle(color: Colors.white38), border: InputBorder.none), maxLines: null))),
         IconButton(icon: const Icon(Icons.send_rounded, color: Colors.blueAccent), onPressed: _save)
       ])),
@@ -27,7 +27,7 @@ class _FCPState extends State<FastCapturePanel> {
         final List notes = (snap.data as List?) ?? [];
         return ListView.builder(itemCount: notes.length, itemBuilder: (_, i) {
           final n = notes[i].data;
-          return Container(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), decoration: BoxDecoration(color: Colors.white.withOpacity(0.02), borderRadius: BorderRadius.circular(12)), child: ListTile(
+          return Container(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02), borderRadius: BorderRadius.circular(12)), child: ListTile(
             title: Text(n['id'], style: const TextStyle(color: Colors.white70, fontSize: 12)),
             subtitle: Text(n['content'].split('\n').last, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white)),
             trailing: n['is_dirty'] == 1 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2)) : const Icon(Icons.check_circle, color: Colors.green),

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"sync"
@@ -26,7 +25,7 @@ func loadUsers() {
 	usersLock.Lock()
 	defer usersLock.Unlock()
 
-	data, err := ioutil.ReadFile(usersFile)
+	data, err := os.ReadFile(usersFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			os.MkdirAll("./data", 0755)
@@ -64,13 +63,17 @@ func saveUsers() {
 		return
 	}
 
-	if err := ioutil.WriteFile(usersFile, data, 0644); err != nil {
+	if err := os.WriteFile(usersFile, data, 0644); err != nil {
 		log.Printf("Error writing users.json: %v", err)
 	}
 }
 
 func seedAdmin() {
-	hash, _ := bcrypt.GenerateFromPassword([]byte("1897"), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte("1897"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error generating admin seed password hash: %v", err)
+		return
+	}
 	admin := User{
 		ID:           "u-admin-1",
 		Username:     "panospds",

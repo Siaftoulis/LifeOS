@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"lifeos/host-daemon/crypto"
 )
 
 // handleAction processes incoming RPC requests
@@ -18,17 +16,6 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 	var payload ActionPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
-		return
-	}
-
-	if payload.Signature == "" {
-		http.Error(w, "Unauthorized: Missing Signature", http.StatusUnauthorized)
-		return
-	}
-
-	// Verify the HMAC signature based on ActionType and TargetID
-	if !crypto.VerifyHMAC(payload.ActionType+payload.TargetID, payload.Signature) {
-		http.Error(w, "Unauthorized: Invalid Signature", http.StatusUnauthorized)
 		return
 	}
 

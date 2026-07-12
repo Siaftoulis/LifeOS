@@ -6,7 +6,6 @@ import '../../../database/database.dart';
 import '../../../database/preferences_service.dart';
 import '../../../api_client.dart';
 import 'dart:io' show Platform;
-import 'dart:typed_data';
 
 class AndroidLauncherWidget extends StatefulWidget {
   const AndroidLauncherWidget({super.key});

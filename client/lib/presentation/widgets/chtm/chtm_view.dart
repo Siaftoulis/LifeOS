@@ -2,59 +2,134 @@ import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../database/chtm_dao.dart';
-import 'chtm_calendar_strip.dart';
-import 'chtm_habit_list.dart';
-import 'chtm_task_timeline.dart';
-import 'package:provider/provider.dart';
+import 'chtm_full_calendar.dart';
+import 'chtm_daily_list.dart';
+import 'habit_tracker_view.dart';
 
-class CHTMView extends StatelessWidget {
+class CHTMView extends StatefulWidget {
   const CHTMView({super.key});
 
   @override
+  State<CHTMView> createState() => _CHTMViewState();
+}
+
+class _CHTMViewState extends State<CHTMView> {
+  DateTime _selectedDate = DateTime.now();
+  int _currentTab = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final db = Provider.of<AppDatabase>(context, listen: false);
+    final db = AppDatabase.instance;
     final dao = ChtmDao(db);
 
+    return Scaffold(
+      backgroundColor: EverforestColors.bg0,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: _buildHeader(context),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: _buildTabs(),
+            ),
+            Expanded(
+              child: _currentTab == 0 ? _buildCalendarTab(dao) : const HabitTrackerView(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabs() {
     return Container(
-      color: EverforestColors.bg0,
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      decoration: BoxDecoration(
+        color: EverforestColors.bg1,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: EverforestColors.bg2),
+      ),
+      child: Row(
         children: [
-          _buildHeader(context),
-          const SizedBox(height: 32),
-          CHTMCalendarStrip(eventsStream: dao.watchAllEvents()),
-          const SizedBox(height: 32),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Daily Habits', style: TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Expanded(child: CHTMHabitList(dao: dao, habitsStream: dao.watchAllHabits())),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 32),
-                Expanded(
-                  flex: 4,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Time Ledger', style: TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Expanded(child: CHTMTaskTimeline(dao: dao, tasksStream: dao.watchAllTasks())),
-                    ],
-                  ),
-                ),
-              ],
+          Expanded(child: _buildTabButton(0, 'Calendar', Icons.calendar_month)),
+          Expanded(child: _buildTabButton(1, 'Habits', Icons.track_changes)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(int index, String title, IconData icon) {
+    final isSelected = _currentTab == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentTab = index;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? EverforestColors.green.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: isSelected ? EverforestColors.green : EverforestColors.grey),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? EverforestColors.green : EverforestColors.grey,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarTab(ChtmDao dao) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CHTMFullCalendar(
+            eventsStream: dao.watchAllEvents(),
+            tasksStream: dao.watchAllTasks(),
+            habitLogsStream: dao.watchAllHabitLogs(),
+            initialDate: _selectedDate,
+            onDateSelected: (date) {
+              setState(() {
+                _selectedDate = date;
+              });
+            },
+          ),
+          const SizedBox(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'Daily Agenda',
+              style: TextStyle(
+                color: EverforestColors.fg,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
+          const SizedBox(height: 16),
+          CHTMDailyList(
+            dao: dao,
+            selectedDate: _selectedDate,
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -72,11 +147,11 @@ class CHTMView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Calendar & Habits',
+              'CHTM',
               style: TextStyle(
                 color: EverforestColors.fg,
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 4),
@@ -84,7 +159,7 @@ class CHTMView extends StatelessWidget {
               dateStr,
               style: const TextStyle(
                 color: EverforestColors.green,
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -99,15 +174,17 @@ class CHTMView extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.mic, color: EverforestColors.blue),
+                icon: const Icon(Icons.mic, color: EverforestColors.blue, size: 20),
                 onPressed: () {},
                 tooltip: 'Voice Note',
+                constraints: const BoxConstraints(),
               ),
-              Container(width: 1, height: 24, color: EverforestColors.bg2),
+              Container(width: 1, height: 20, color: EverforestColors.bg2),
               IconButton(
-                icon: const Icon(Icons.add_task, color: EverforestColors.green),
+                icon: const Icon(Icons.add_task, color: EverforestColors.green, size: 20),
                 onPressed: () {},
                 tooltip: 'Add Task',
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

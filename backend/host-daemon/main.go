@@ -16,6 +16,7 @@ import (
 	"lifeos/host-daemon/internal/illness"
 	"lifeos/host-daemon/internal/infinity"
 	"lifeos/host-daemon/internal/kb"
+	"lifeos/host-daemon/internal/knowledge"
 	"lifeos/host-daemon/internal/location"
 	"lifeos/host-daemon/internal/markdown"
 	"lifeos/host-daemon/internal/media"
@@ -39,6 +40,78 @@ func main() {
 
 	if err := gallery.InitDB("./data"); err != nil {
 		log.Printf("Gallery DB init error: %v", err)
+	}
+
+	if err := movies.InitDB("./data"); err != nil {
+		log.Printf("Movies DB init error: %v", err)
+	}
+
+	if err := books.InitDB("./data"); err != nil {
+		log.Printf("Books DB init error: %v", err)
+	}
+
+	if err := banking.InitDB("./data"); err != nil {
+		log.Printf("Banking DB init error: %v", err)
+	}
+
+	if err := player.InitDB("./data"); err != nil {
+		log.Printf("Player DB init error: %v", err)
+	}
+
+	if err := knowledge.InitDB("./data"); err != nil {
+		log.Printf("Knowledge DB init error: %v", err)
+	}
+
+	if err := flashcards.InitDB("./data"); err != nil {
+		log.Printf("Flashcards DB init error: %v", err)
+	}
+
+	if err := music.InitDB("./data"); err != nil {
+		log.Printf("Music DB init error: %v", err)
+	}
+
+	if err := home.InitDB("./data"); err != nil {
+		log.Printf("Home DB init error: %v", err)
+	}
+
+	if err := infinity.InitDB("./data"); err != nil {
+		log.Printf("Infinity DB init error: %v", err)
+	}
+
+	if err := backup.InitDB("./data"); err != nil {
+		log.Printf("Backup DB init error: %v", err)
+	}
+
+	if err := darkweb.InitDB("./data"); err != nil {
+		log.Printf("Darkweb DB init error: %v", err)
+	}
+
+	if err := vm.InitDB("./data"); err != nil {
+		log.Printf("VM DB init error: %v", err)
+	}
+
+	if err := voice.InitDB("./data"); err != nil {
+		log.Printf("Voice DB init error: %v", err)
+	}
+
+	if err := youtube.InitDB("./data"); err != nil {
+		log.Printf("YouTube DB init error: %v", err)
+	}
+
+	if err := system.InitDB("./data"); err != nil {
+		log.Printf("System DB init error: %v", err)
+	}
+
+	if err := sync.InitDB("./data"); err != nil {
+		log.Printf("Sync DB init error: %v", err)
+	}
+
+	if err := sandbox.InitDB("./data"); err != nil {
+		log.Printf("Sandbox DB init error: %v", err)
+	}
+
+	if err := devsim.InitDB("./data"); err != nil {
+		log.Printf("DevSim DB init error: %v", err)
 	}
 
 	sync.RegisterRoutes(mux)
@@ -69,6 +142,7 @@ func main() {
 	devsim.RegisterRoutes(mux)
 	illness.RegisterRoutes(mux)
 	player.RegisterRoutes(mux)
+	knowledge.RegisterRoutes(mux)
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)

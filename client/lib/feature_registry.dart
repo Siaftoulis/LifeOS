@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'core/base_plugin.dart';
 import 'api_client.dart';
 import 'vm_card.dart';
-import 'habit_panel.dart';
 import 'fast_capture_panel.dart';
 import 'plugins/markdown/markdown_plugin.dart';
 import 'plugins/gallery/gallery_plugin.dart';
@@ -29,7 +28,6 @@ class FeatureRegistry {
     if (_plugins.isEmpty) {
       _plugins.addAll([
         _LegacyPlugin('FEAT-001', 'Fast Capture', Icons.flash_on, FastCapturePanel(db: db)),
-        _LegacyPlugin('UI-002', 'Habits Matrix', Icons.grid_on, HabitMatrixGrid(db: db)),
         _LegacyPlugin('UI-003', 'Hyper-V Control', Icons.computer, VMControlCard(name: 'Dev-Node', initialState: VMState.stopped, apiClient: api)),
         MarkdownPlugin(),
         GalleryPlugin(),

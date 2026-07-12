@@ -12,5 +12,6 @@ class VmDao extends DatabaseAccessor<AppDatabase> with _$VmDaoMixin {
   Stream<List<RemoteSession>> watchActiveSessions() => (select(remoteSessions)..where((t) => t.isActive.equals(1))).watch();
 
   Future<int> insertVM(VirtualMachinesCompanion entry) => into(virtualMachines).insert(entry);
+  Future<bool> updateVM(VirtualMachinesCompanion entry) => update(virtualMachines).replace(entry);
   Future<int> insertSession(RemoteSessionsCompanion entry) => into(remoteSessions).insert(entry);
 }

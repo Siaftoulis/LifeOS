@@ -223,7 +223,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                       FloatingActionButton(
                         heroTag: 'geo_fab',
                         mini: true,
-                        backgroundColor: EverforestColors.bg1.withOpacity(0.9),
+                        backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
                         child: const Icon(Icons.share_location, color: EverforestColors.green),
                         onPressed: () => setState(() { _showGeofenceMenu = true; }),
                       ),
@@ -231,7 +231,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                       FloatingActionButton(
                         heroTag: 'my_loc_fab',
                         mini: true,
-                        backgroundColor: EverforestColors.bg1.withOpacity(0.9),
+                        backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
                         child: _isLocating 
                             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.red))
                             : const Icon(Icons.my_location, color: EverforestColors.red),

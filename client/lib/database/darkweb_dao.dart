@@ -14,5 +14,6 @@ class DarkWebDao extends DatabaseAccessor<AppDatabase> with _$DarkWebDaoMixin {
   Stream<List<SharedFile>> watchSharedFiles() => select(sharedFiles).watch();
 
   Future<int> insertTorrent(TorrentsCompanion entry) => into(torrents).insert(entry);
+  Future<bool> updateTorrent(TorrentsCompanion entry) => update(torrents).replace(entry);
   Future<int> insertSharedFile(SharedFilesCompanion entry) => into(sharedFiles).insert(entry);
 }

@@ -36,7 +36,7 @@ class UpdateManager extends StatelessWidget {
     return Container(margin: const EdgeInsets.all(16), child: ElevatedButton.icon(
       onPressed: _triggerOTAUpdate, icon: const Icon(Icons.system_update, color: Colors.white),
       label: const Text("Check & Install OTA Update", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent.withValues(alpha: 0.8), padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
     ));
   }
 }

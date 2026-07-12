@@ -20,7 +20,7 @@ class InputCurtain extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(child: Row(children: [
-                  Expanded(child: TextField(autofocus: true, style: const TextStyle(color: Colors.white, fontSize: 18), decoration: const InputDecoration(border: InputBorder.none, hintText: 'Fast capture...', hintStyle: TextStyle(color: Colors.white30)))),
+                  Expanded(child: TextField(autofocus: true, style: const TextStyle(color: Colors.white, fontSize: 18), decoration: const InputDecoration(border: InputBorder.none, hintText: 'Search...', hintStyle: TextStyle(color: Colors.white30)))),
                   const _MicPulse(),
                 ])),
                 GestureDetector(onTap: onClose, child: const Icon(Icons.keyboard_arrow_up, color: Colors.white54)),
@@ -38,7 +38,7 @@ class _MState extends State<_MicPulse> with SingleTickerProviderStateMixin {
   late final AnimationController c = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
   @override void dispose() { c.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) => AnimatedBuilder(animation: c, builder: (_,__) => Container(
-    decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0x6600E5FF).withOpacity(1-c.value), spreadRadius: c.value*15, blurRadius: 10)]),
+    decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: const Color(0x6600E5FF).withValues(alpha: 1-c.value), spreadRadius: c.value*15, blurRadius: 10)]),
     child: IconButton(icon: const Icon(Icons.mic, color: Color(0xFF00E5FF)), onPressed: (){}),
   ));
 }

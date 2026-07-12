@@ -1,10 +1,17 @@
 package gallery
 
 import (
+	"bytes"
 	"encoding/json"
+	"image"
+	"image/jpeg"
+	_ "image/png"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
+
+	"golang.org/x/image/draw"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -101,8 +108,60 @@ func handleAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleThumbnail(w http.ResponseWriter, r *http.Request) {
-	// For now just return empty, since client can try to load original file stream or cache
-	w.WriteHeader(http.StatusNotImplemented)
+	id := r.URL.Query().Get("id")
+	if DB == nil || id == "" {
+		http.Error(w, "Missing ID", http.StatusBadRequest)
+		return
+	}
+
+	var relPath string
+	err := DB.QueryRow("SELECT filepath FROM assets WHERE id = ?", id).Scan(&relPath)
+	if err != nil {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	absPath := filepath.Join("./data", relPath)
+	file, err := os.Open(absPath)
+	if err != nil {
+		http.Error(w, "Could not open file", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		// Might be a video or unsupported image, just fallback to stream or error
+		http.Error(w, "Unsupported format for thumbnail", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	// Calculate thumbnail size (e.g. max 300px)
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	var newWidth, newHeight int
+
+	if width > height {
+		newWidth = 300
+		newHeight = (height * 300) / width
+	} else {
+		newHeight = 300
+		newWidth = (width * 300) / height
+	}
+
+	dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+	draw.CatmullRom.Scale(dst, dst.Bounds(), img, bounds, draw.Over, nil)
+
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, dst, &jpeg.Options{Quality: 75}); err != nil {
+		http.Error(w, "Error generating thumbnail", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Cache-Control", "public, max-age=604800")
+	w.Write(buf.Bytes())
 }
 
 func handleStream(w http.ResponseWriter, r *http.Request) {

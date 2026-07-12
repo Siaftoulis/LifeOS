@@ -24,7 +24,7 @@ class SettingsView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             children: [
               Card(
-                color: isChild ? const Color(0xFF121214).withOpacity(0.5) : const Color(0xFF121214),
+                color: isChild ? const Color(0xFF121214).withValues(alpha: 0.5) : const Color(0xFF121214),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
                   leading: Icon(isChild ? Icons.lock : Icons.system_update, color: isChild ? Colors.grey : const Color(0xFF00E5FF)),
@@ -34,7 +34,7 @@ class SettingsView extends StatelessWidget {
                   ),
                   subtitle: Text(
                     isChild ? 'Locked for child profile access' : 'Fetch latest build from local host or GitHub',
-                    style: TextStyle(color: isChild ? Colors.grey.withOpacity(0.5) : Colors.white30, fontSize: 11),
+                    style: TextStyle(color: isChild ? Colors.grey.withValues(alpha: 0.5) : Colors.white30, fontSize: 11),
                   ),
                   onTap: isChild ? null : () => UpdateManager(api: api).downloadAndInstallAPK(),
                 ),

@@ -43,7 +43,7 @@ class _VMCState extends State<VMControlCard> with SingleTickerProviderStateMixin
         
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
           child: ListTile(
             title: Text(widget.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: FadeTransition(
@@ -63,7 +63,7 @@ class _VMCState extends State<VMControlCard> with SingleTickerProviderStateMixin
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: col.withOpacity(0.2)),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: col.withValues(alpha: 0.2)),
                   child: Icon(
                     isChild ? Icons.lock : (_s == VMState.running ? Icons.stop : Icons.play_arrow),
                     color: col,

@@ -37,33 +37,46 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
                 isChild ? null : () => SpatialMatrixManager.dropColumn(),
                 isChild ? null : () => SpatialMatrixManager.addColumn(),
               ),
-              const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Tap any slot to assign or swap a module.',
-                      style: TextStyle(color: EverforestColors.grey, fontSize: 12),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: layout[0].length,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 1.0,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cols = layout[0].length;
+                    final rows = layout.length;
+                    final double slotSize = (constraints.maxWidth / cols).clamp(60.0, 140.0);
+                    final double gridWidth = cols * slotSize + (cols - 1) * 12.0;
+
+                    return Center(
+                      child: SizedBox(
+                        width: gridWidth,
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Tap any slot to assign or swap a module.',
+                              style: TextStyle(color: EverforestColors.grey, fontSize: 12),
+                            ),
+                            const SizedBox(height: 16),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: cols,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1.0,
+                              ),
+                              itemCount: rows * cols,
+                              itemBuilder: (context, index) {
+                                final r = index ~/ cols;
+                                final c = index % cols;
+                                return _buildMatrixSlot(context, r, c, layout, isChild, slotSize);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      itemCount: layout.length * layout[0].length,
-                      itemBuilder: (context, index) {
-                        final r = index ~/ layout[0].length;
-                        final c = index % layout[0].length;
-                        return _buildMatrixSlot(context, r, c, layout, isChild);
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -113,13 +126,13 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
     return Divider(
       height: 1,
       thickness: 1,
-      color: EverforestColors.bg2.withOpacity(0.5),
+      color: EverforestColors.bg2.withValues(alpha: 0.5),
       indent: 16,
       endIndent: 16,
     );
   }
 
-  Widget _buildMatrixSlot(BuildContext context, int r, int c, List<List<String>> layout, bool isChild) {
+  Widget _buildMatrixSlot(BuildContext context, int r, int c, List<List<String>> layout, bool isChild, double slotSize) {
     final String moduleId = layout[r][c];
     final isHome = (moduleId == 'home');
     
@@ -144,10 +157,11 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
         child: Center(
           child: Text(
             displayText,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: isHome ? const Color(0xFF00E5FF) : const Color(0xFFF8FFF4),
               fontFamily: 'JetBrainsMono',
-              fontSize: 11,
+              fontSize: (slotSize * 0.1).clamp(9.0, 12.0),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -156,48 +170,39 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
     );
   }
 
-  void _showModuleSelector(BuildContext context, int r, int c) {
-    // For now we use the static definitions representing the OS ecosystem scope.
-    // Future architectural step: merge with FeatureRegistry.
-    final groupedModules = {
+  Map<String, List<Map<String, String>>> _getGroupedModules() {
+    return {
       'System & Core': [
         {'id': 'home', 'name': 'Home View'},
-        {'id': 'configurator', 'name': 'System Config'},
-        {'id': 'tailscale_mesh', 'name': 'Tailscale Mesh Monitor'},
+        {'id': 'configurator', 'name': 'Settings'},
         {'id': 'app_drawer', 'name': 'App Drawer'},
-        {'id': 'capture', 'name': 'Fast Capture'},
         {'id': 'void', 'name': 'Void / Empty'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Productivity & Knowledge': [
-        {'id': 'obsidian_zen', 'name': 'Obsidian Zen Editor'},
-        {'id': 'knowledge_base', 'name': 'Knowledge Base'},
-        {'id': 'flashcards', 'name': 'Flashcards / SRS'},
-        {'id': 'books', 'name': 'Book Library'},
-        {'id': 'project_infinity', 'name': 'Project Infinity'},
+        {'id': 'knowledge_hub', 'name': 'Knowledge Hub'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Gamification & Tasks': [
-        {'id': 'point_star_system', 'name': 'Point Star System'},
-        {'id': 'quests', 'name': 'Quest Board'},
+        {'id': 'rpg_hub', 'name': 'RPG & Star System Hub'},
+        {'id': 'chtm', 'name': 'CHTM (Calendar/Habits/Tasks)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Media & Entertainment': [
-        {'id': 'photo_video_gallery', 'name': 'Photo Video Gallery'},
-        {'id': 'movie_library', 'name': 'Movie Library'},
-        {'id': 'music_library', 'name': 'Music Library'},
-        {'id': 'youtube_client', 'name': 'YouTube Client'},
+        {'id': 'media_hub', 'name': 'Media Hub'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Finance': [
-        {'id': 'accounting', 'name': 'Accounting'},
-        {'id': 'banking', 'name': 'Banking System'},
+        {'id': 'finance', 'name': 'Finance Hub'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Infrastructure & Utils': [
-        {'id': 'infra', 'name': 'Infra Hub'},
-        {'id': 'cloud', 'name': 'Cloud Backups'},
-        {'id': 'darkweb', 'name': 'Dark Web / Torrents'},
+        {'id': 'infra', 'name': 'Infrastructure Hub'},
         {'id': 'home_management', 'name': 'Home Management'},
         {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking'},
-        {'id': 'virtual_machine', 'name': 'Virtual Machine Management'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
     };
+  }
+
+  void _showModuleSelector(BuildContext context, int r, int c) {
+    // For now we use the static definitions representing the OS ecosystem scope.
+    // Future architectural step: merge with FeatureRegistry.
+    final groupedModules = _getGroupedModules();
 
     showModalBottomSheet(
       context: context,

@@ -30,7 +30,7 @@ $connectedDeviceAddress = $null
 
 foreach ($line in $devices) {
     if ($line -match "(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)\s+device") {
-        $connectedDeviceAddress = $Matches[0]
+        $connectedDeviceAddress = "$($Matches[1]):$($Matches[2])"
         Write-Host "Found already connected ADB device: $connectedDeviceAddress" -ForegroundColor Green
         break
     }

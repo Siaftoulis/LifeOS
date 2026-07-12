@@ -5,47 +5,63 @@ import (
 	"net/http"
 )
 
+type Transaction struct {
+	ID       string  `json:"id"`
+	Title    string  `json:"title"`
+	Amount   float64 `json:"amount"`
+	Category string  `json:"category"`
+	Date     string  `json:"date"`
+	Type     string  `json:"type"`
+}
+
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/banking/parse-pdf", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		// Stub implementation returning mock JSON
-		response := map[string]interface{}{
-			"provider":                "DEI",
-			"amount_cents":            18640,
-			"due_date":                1781222400000,
-			"rounded_target_cents":    20000,
-			"rollover_deducted_cents": 1360,
-		}
-
+		// keeping old stub
+		response := map[string]interface{}{"provider": "DEI"}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	})
 
 	mux.HandleFunc("/api/v1/banking/status", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		
+		var balance float64
+		err := DB.QueryRow("SELECT balance FROM accounts WHERE id = 'acc-1'").Scan(&balance)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Stub implementation returning aggregated statistics
 		response := map[string]interface{}{
-			"monthly_income_cents":        100000,
-			"total_bills_cents":           18640,
-			"rounded_bill_transfer_cents": 20000,
-			"rollover_surplus_cents":      1360,
-			"allocations": map[string]int64{
-				"essentials_cents":                 500000,
-				"savings_cents":                    200000,
-				"personal_allowance_user_cents":    178000,
-				"personal_allowance_partner_cents": 122000,
-			},
+			"balance": balance,
+			"monthly_income_cents": 420000,
+			"total_bills_cents": 18640,
+		}
+		json.NewEncoder(w).Encode(response)
+	})
+
+	mux.HandleFunc("/api/v1/banking/transactions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		rows, err := DB.Query("SELECT id, title, amount, category, date, type FROM transactions ORDER BY rowid DESC")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var txs []Transaction
+		for rows.Next() {
+			var t Transaction
+			if err := rows.Scan(&t.ID, &t.Title, &t.Amount, &t.Category, &t.Date, &t.Type); err == nil {
+				txs = append(txs, t)
+			}
+		}
+		
+		if txs == nil {
+			txs = []Transaction{}
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(txs)
 	})
 }

@@ -11,6 +11,7 @@ class ChtmDao extends DatabaseAccessor<AppDatabase> with _$ChtmDaoMixin {
   Stream<List<CalendarEvent>> watchAllEvents() => select(calendarEvents).watch();
   Stream<List<UserTask>> watchAllTasks() => select(userTasks).watch();
   Stream<List<UserHabit>> watchAllHabits() => select(userHabits).watch();
+  Stream<List<HabitLog>> watchAllHabitLogs() => select(habitLogs).watch();
   Stream<List<HabitLog>> watchHabitLogs(String habitId) =>
       (select(habitLogs)..where((t) => t.habitId.equals(habitId))).watch();
 

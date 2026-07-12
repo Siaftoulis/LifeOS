@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
+import '../../../api_client.dart';
 
 class VoiceRecorderDialog extends StatefulWidget {
   const VoiceRecorderDialog({super.key});
@@ -42,16 +43,38 @@ class _VoiceRecorderDialogState extends State<VoiceRecorderDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
-          onPressed: () {
-            setState(() {
-              _isRecording = !_isRecording;
-            });
+          onPressed: () async {
             if (!_isRecording) {
-              // Stub: submit to backend
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Voice task submitted!')),
-              );
+              setState(() => _isRecording = true);
+            } else {
+              setState(() => _isRecording = false);
+              
+              // Submit to backend
+              try {
+                final res = await ApiClient.instance.postDaemon('/api/v1/voice-parse', {
+                  'text': 'Simulated voice input text...',
+                });
+                
+                if (mounted) {
+                  Navigator.pop(context);
+                  if (res is Map && res['title'] != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Task parsed: ${res['title']} (Priority ${res['priority']})')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Voice task submitted!')),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to parse voice: $e', style: const TextStyle(color: EverforestColors.red))),
+                  );
+                }
+              }
             }
           },
           child: Text(_isRecording ? 'Stop & Send' : 'Record', style: const TextStyle(color: EverforestColors.bg0)),

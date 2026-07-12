@@ -1,14 +1,43 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:photo_manager/photo_manager.dart';
-import '../presentation/widgets/photo_video_gallery/gallery_item.dart';
+import '../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
+import '../api_client.dart';
 
 class CloudGalleryService {
-  static const String baseUrl = 'http://192.168.1.36:50051/api/v1/gallery';
+  static String get baseUrl => '${ApiClient.instance.daemonUrl}/api/v1/gallery';
   static const String userId = 'u-pds-123';
   static const String deviceId = 'dev-mobile-01';
+
+  /// Fetch all cloud asset metadata as GalleryItems
+  static Future<List<GalleryItem>> fetchCloudAssets() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/assets'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map<GalleryItem>((e) {
+           return GalleryItem(
+             id: e['id'],
+             label: e['filename'] ?? 'cloud_item',
+             pathOrUrl: '$baseUrl/stream?id=${e['id']}',
+             type: e['type'] != null ? e['type'].toString().toLowerCase() : 'photo',
+             date: DateTime.tryParse(e['created_at'] ?? '') ?? DateTime.now(),
+             tags: [],
+             sizeBytes: e['size_bytes'] ?? 0,
+             resolution: '',
+             camera: '',
+             lens: '',
+             isLocal: false,
+             isBackedUp: true,
+             isCloudOnly: true,
+           );
+        }).toList();
+      }
+    } catch (e) {
+      print('Error fetching cloud assets: $e');
+    }
+    return [];
+  }
 
   /// Fetch all cloud asset IDs
   static Future<Set<String>> fetchCloudAssetIds() async {

@@ -16,6 +16,13 @@ func HandleVoiceParse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	
+	var req map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+		if text := req["text"]; text != "" {
+			DB.Exec("INSERT INTO transcripts (text, timestamp) VALUES (?, strftime('%s', 'now'))", text)
+		}
+	}
 
 	response := map[string]interface{}{
 		"title":    "Clean room",

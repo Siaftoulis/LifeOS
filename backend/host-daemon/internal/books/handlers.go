@@ -14,15 +14,28 @@ func RegisterRoutes(mux *http.ServeMux) {
 }
 
 func ListBooksHandler(w http.ResponseWriter, r *http.Request) {
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
-	db, err := loadDB()
+	w.Header().Set("Content-Type", "application/json")
+
+	rows, err := DB.Query("SELECT id, title, author, current_page, total_pages, file_path FROM books")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(db.Books)
+	defer rows.Close()
+
+	var books []Book
+	for rows.Next() {
+		var b Book
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.CurrentPage, &b.TotalPages, &b.FilePath); err == nil {
+			books = append(books, b)
+		}
+	}
+
+	if books == nil {
+		books = []Book{}
+	}
+
+	json.NewEncoder(w).Encode(books)
 }
 
 func SyncProgressHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,36 +49,15 @@ func SyncProgressHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
-	db, err := loadDB()
+	_, err := DB.Exec("INSERT INTO reading_progress (book_id, page, seconds) VALUES (?, ?, ?) ON CONFLICT(book_id) DO UPDATE SET page=?, seconds=?",
+		req.BookID, req.Page, req.Seconds, req.Page, req.Seconds)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Update progress list
-	found := false
-	for i, p := range db.Progress {
-		if p.BookID == req.BookID {
-			db.Progress[i] = req
-			found = true
-			break
-		}
-	}
-	if !found {
-		db.Progress = append(db.Progress, req)
-	}
-
-	// Update corresponding book current page if matched
-	for i, b := range db.Books {
-		if b.ID == req.BookID {
-			db.Books[i].CurrentPage = req.Page
-			break
-		}
-	}
-
-	if err := saveDB(db); err != nil {
+	_, err = DB.Exec("UPDATE books SET current_page = ? WHERE id = ?", req.Page, req.BookID)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -85,16 +77,9 @@ func SyncHighlightHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbMutex.Lock()
-	defer dbMutex.Unlock()
-	db, err := loadDB()
+	_, err := DB.Exec("INSERT INTO book_highlights (id, book_id, text_content, note_content, page_number) VALUES (?, ?, ?, ?, ?)",
+		req.ID, req.BookID, req.TextContent, req.NoteContent, req.PageNumber)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	db.Highlights = append(db.Highlights, req)
-	if err := saveDB(db); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

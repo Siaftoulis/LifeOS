@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:async';
 import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:crypto/crypto.dart';
+import '../api_client.dart';
 
 class DeviceBackupService {
-  static const String baseUrl = 'http://192.168.1.36:50051/api/v1/backup';
+  static String get baseUrl => '${ApiClient.instance.daemonUrl}/api/v1/backup';
 
   /// Generates a mock sandbox directory containing test files to prevent
   /// affecting the user's real phone data during E2E testing.
@@ -82,17 +85,100 @@ class DeviceBackupService {
       encoder.addDirectory(phoneDataDir);
       encoder.close();
 
-      // 2. Upload the .pds file to the server.
-      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
-      request.fields['device_id'] = 'dev-mobile-01';
-      request.files.add(await http.MultipartFile.fromPath('backup_file', pdsFile.path));
+      // Calculate file size and checksum
+      final fileLength = await pdsFile.length();
+      final fileBytes = await pdsFile.readAsBytes();
+      final checksum = sha256.convert(fileBytes).toString();
 
-      var response = await request.send();
-      
+      const int chunkSize = 1024 * 1024; // 1 MB chunks
+      final int totalChunks = (fileLength / chunkSize).ceil();
+      final String uploadId = 'backup_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000)}';
+
+      // Helper function to upload a single chunk
+      Future<bool> uploadChunk(int index) async {
+        final start = index * chunkSize;
+        final end = min(start + chunkSize, fileLength);
+        final chunkBytes = fileBytes.sublist(start, end);
+
+        var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload/chunk'));
+        request.fields['upload_id'] = uploadId;
+        request.fields['chunk_index'] = index.toString();
+        request.files.add(http.MultipartFile.fromBytes(
+          'chunk_file',
+          chunkBytes,
+          filename: 'chunk_$index',
+        ));
+
+        var response = await request.send();
+        return response.statusCode == 200;
+      }
+
+      // Concurrency worker pool for uploading chunks
+      int activeWorkers = 0;
+      int nextIndex = 0;
+      bool success = true;
+      final completer = Completer<bool>();
+
+      void startWorker() async {
+        if (!success || nextIndex >= totalChunks) {
+          if (activeWorkers == 0 && !completer.isCompleted) {
+            completer.complete(success);
+          }
+          return;
+        }
+
+        final int currentIndex = nextIndex++;
+        activeWorkers++;
+
+        try {
+          final ok = await uploadChunk(currentIndex);
+          if (!ok) {
+            success = false;
+          }
+        } catch (e) {
+          print('Chunk upload failed for index $currentIndex: $e');
+          success = false;
+        } finally {
+          activeWorkers--;
+          startWorker();
+        }
+      }
+
+      // Spawn up to 4 parallel workers
+      const int maxConcurrency = 4;
+      if (totalChunks > 0) {
+        for (int i = 0; i < min(maxConcurrency, totalChunks); i++) {
+          startWorker();
+        }
+      } else {
+        completer.complete(false);
+      }
+
+      final uploadSuccess = await completer.future;
+
+      if (!uploadSuccess) {
+        if (pdsFile.existsSync()) pdsFile.deleteSync();
+        return false;
+      }
+
+      // 3. Send Merge request
+      final mergeUrl = Uri.parse('$baseUrl/upload/merge');
+      final mergeResponse = await http.post(
+        mergeUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'upload_id': uploadId,
+          'filename': 'backup_dev-mobile-01_${DateTime.now().millisecondsSinceEpoch}.pds',
+          'total_chunks': totalChunks,
+          'checksum': checksum,
+          'device_id': 'dev-mobile-01',
+        }),
+      );
+
       // Cleanup temp
       if (pdsFile.existsSync()) pdsFile.deleteSync();
 
-      return response.statusCode == 201;
+      return mergeResponse.statusCode == 200;
     } catch (e) {
       print('Backup Error: $e');
       return false;

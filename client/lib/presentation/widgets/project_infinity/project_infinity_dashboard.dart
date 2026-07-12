@@ -24,34 +24,37 @@ class ProjectInfinityDashboard extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Project Infinity',
-              style: TextStyle(
-                color: EverforestColors.fg,
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Project Infinity',
+                style: TextStyle(
+                  color: EverforestColors.fg,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Manage your grandest ambitions',
-              style: TextStyle(
-                color: EverforestColors.fg.withOpacity(0.7),
-                fontSize: 16,
+              const SizedBox(height: 4),
+              Text(
+                'Manage your grandest ambitions',
+                style: TextStyle(
+                  color: EverforestColors.fg.withValues(alpha: 0.7),
+                  fontSize: 14,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 16),
         ElevatedButton.icon(
           onPressed: () {},
           icon: const Icon(Icons.add, color: EverforestColors.bg0),
-          label: const Text('New Project', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+          label: const Text('New', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: EverforestColors.purple,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
@@ -164,7 +167,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                         border: Border.all(color: EverforestColors.bg2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -176,7 +179,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: (task['tagColor'] as Color).withOpacity(0.2),
+                              color: (task['tagColor'] as Color).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -207,7 +210,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                               const Spacer(),
                               CircleAvatar(
                                 radius: 12,
-                                backgroundColor: EverforestColors.green.withOpacity(0.3),
+                                backgroundColor: EverforestColors.green.withValues(alpha: 0.3),
                                 child: const Icon(Icons.person, size: 16, color: EverforestColors.green),
                               )
                             ],

@@ -63,13 +63,13 @@ class _RadarPainter extends CustomPainter {
     canvas.drawLine(Offset(10, center.dy), Offset(size.width - 10, center.dy), paintGrid);
 
     // Geofences
-    final paintGeofence = Paint()..color = EverforestColors.green.withOpacity(0.3)..style = PaintingStyle.fill;
+    final paintGeofence = Paint()..color = EverforestColors.green.withValues(alpha: 0.3)..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(center.dx + 40, center.dy - 30), 20, paintGeofence);
 
     // Radar Sweep
     final paintSweep = Paint()
       ..shader = SweepGradient(
-        colors: [EverforestColors.cyan.withOpacity(0.0), EverforestColors.cyan.withOpacity(0.5)],
+        colors: [EverforestColors.cyan.withValues(alpha: 0.0), EverforestColors.cyan.withValues(alpha: 0.5)],
         stops: const [0.0, 1.0],
         transform: GradientRotation(sweepAngle * 2 * pi),
       ).createShader(Rect.fromCircle(center: center, radius: maxRadius))

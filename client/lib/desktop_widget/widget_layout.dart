@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'habit_panel.dart';
 import 'vm_panel.dart';
 
 class WidgetGlassmorphismLayout extends StatelessWidget {
@@ -15,12 +14,10 @@ class WidgetGlassmorphismLayout extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
         child: Container(
           padding: const EdgeInsets.all(16.0),
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha: 0.2),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: HabitPanel(data: data)),
-              const SizedBox(width: 16),
               Expanded(child: VmPanel(data: data)),
             ],
           ),

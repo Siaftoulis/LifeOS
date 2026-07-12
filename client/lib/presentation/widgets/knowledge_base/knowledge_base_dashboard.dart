@@ -1,11 +1,80 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
+import '../../../api_client.dart';
 
-class KnowledgeBaseDashboard extends StatelessWidget {
+class KnowledgeBaseDashboard extends StatefulWidget {
   const KnowledgeBaseDashboard({super.key});
 
   @override
+  State<KnowledgeBaseDashboard> createState() => _KnowledgeBaseDashboardState();
+}
+
+class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
+  List<dynamic> _categories = [];
+  List<dynamic> _articles = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final categoriesRes = await ApiClient.instance.getDaemon('/api/v1/knowledge/categories');
+      final articlesRes = await ApiClient.instance.getDaemon('/api/v1/knowledge/articles');
+
+      if (mounted) {
+        setState(() {
+          _categories = categoriesRes as List<dynamic>;
+          _articles = articlesRes as List<dynamic>;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching knowledge base data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'lightbulb_outline':
+        return Icons.lightbulb_outline;
+      case 'computer':
+        return Icons.computer;
+      case 'science_outlined':
+        return Icons.science_outlined;
+      case 'account_balance':
+        return Icons.account_balance;
+      default:
+        return Icons.folder;
+    }
+  }
+
+  Color _getColor(String colorString) {
+    if (colorString.startsWith('0x')) {
+      try {
+        return Color(int.parse(colorString));
+      } catch (e) {
+        return EverforestColors.grey;
+      }
+    }
+    return EverforestColors.grey;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        color: EverforestColors.bg0,
+        child: const Center(child: CircularProgressIndicator(color: EverforestColors.green)),
+      );
+    }
+
     return Container(
       color: EverforestColors.bg0,
       child: SingleChildScrollView(
@@ -14,35 +83,35 @@ class KnowledgeBaseDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          _buildHeader(),
-          const SizedBox(height: 32),
-          _buildSearchBar(),
-          const SizedBox(height: 32),
-          const Text(
-            'Categories',
-            style: TextStyle(
-              color: EverforestColors.fg,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+            _buildHeader(),
+            const SizedBox(height: 32),
+            _buildSearchBar(),
+            const SizedBox(height: 32),
+            const Text(
+              'Categories',
+              style: TextStyle(
+                color: EverforestColors.fg,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildCategories(),
-          const SizedBox(height: 32),
-          const Text(
-            'Recent Articles',
-            style: TextStyle(
-              color: EverforestColors.fg,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+            const SizedBox(height: 16),
+            _buildCategories(),
+            const SizedBox(height: 32),
+            const Text(
+              'Recent Articles',
+              style: TextStyle(
+                color: EverforestColors.fg,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildRecentArticles(),
-        ],
-      ),
+            const SizedBox(height: 16),
+            _buildRecentArticles(),
+          ],
+        ),
       ),
     );
   }
@@ -66,7 +135,7 @@ class KnowledgeBaseDashboard extends StatelessWidget {
             Text(
               'Your personal wiki and notes',
               style: TextStyle(
-                color: EverforestColors.fg.withOpacity(0.7),
+                color: EverforestColors.fg.withValues(alpha: 0.7),
                 fontSize: 16,
               ),
             ),
@@ -93,7 +162,7 @@ class KnowledgeBaseDashboard extends StatelessWidget {
         border: Border.all(color: EverforestColors.bg2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -103,7 +172,7 @@ class KnowledgeBaseDashboard extends StatelessWidget {
         style: const TextStyle(color: EverforestColors.fg),
         decoration: InputDecoration(
           hintText: 'Search articles, topics, or tags...',
-          hintStyle: TextStyle(color: EverforestColors.grey.withOpacity(0.8)),
+          hintStyle: TextStyle(color: EverforestColors.grey.withValues(alpha: 0.8)),
           prefixIcon: const Icon(Icons.search, color: EverforestColors.grey),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -113,17 +182,15 @@ class KnowledgeBaseDashboard extends StatelessWidget {
   }
 
   Widget _buildCategories() {
-    final categories = [
-      {'title': 'Philosophy', 'icon': Icons.lightbulb_outline, 'color': EverforestColors.orange},
-      {'title': 'Technology', 'icon': Icons.computer, 'color': EverforestColors.blue},
-      {'title': 'Science', 'icon': Icons.science_outlined, 'color': EverforestColors.aqua},
-      {'title': 'History', 'icon': Icons.account_balance, 'color': EverforestColors.yellow},
-    ];
-
+    if (_categories.isEmpty) {
+      return const Text('No categories found.', style: TextStyle(color: EverforestColors.grey));
+    }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: categories.map((cat) {
+        children: _categories.map((cat) {
+          final iconData = _getIconData(cat['icon'] ?? '');
+          final color = _getColor(cat['color'] ?? '');
           return Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -134,10 +201,10 @@ class KnowledgeBaseDashboard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(cat['icon'] as IconData, color: cat['color'] as Color),
+                Icon(iconData, color: color),
                 const SizedBox(width: 12),
                 Text(
-                  cat['title'] as String,
+                  cat['title'] ?? 'Unknown',
                   style: const TextStyle(
                     color: EverforestColors.fg,
                     fontWeight: FontWeight.w600,
@@ -153,43 +220,16 @@ class KnowledgeBaseDashboard extends StatelessWidget {
   }
 
   Widget _buildRecentArticles() {
-    final articles = [
-      {
-        'title': 'The Principles of Stoicism',
-        'excerpt': 'A deep dive into the core tenets of Stoic philosophy and how they apply to modern life.',
-        'date': 'Oct 12, 2023',
-        'category': 'Philosophy',
-        'color': EverforestColors.orange,
-      },
-      {
-        'title': 'Understanding Docker Internals',
-        'excerpt': 'Exploring namespaces, cgroups, and the union filesystem that power Docker containers.',
-        'date': 'Oct 10, 2023',
-        'category': 'Technology',
-        'color': EverforestColors.blue,
-      },
-      {
-        'title': 'Calculus: Limits and Continuity',
-        'excerpt': 'Notes on the foundational concepts of differential calculus.',
-        'date': 'Oct 08, 2023',
-        'category': 'Science',
-        'color': EverforestColors.aqua,
-      },
-      {
-        'title': 'The Fall of the Roman Empire',
-        'excerpt': 'Key events and structural flaws that led to the decline of ancient Rome.',
-        'date': 'Oct 05, 2023',
-        'category': 'History',
-        'color': EverforestColors.yellow,
-      },
-    ];
-
+    if (_articles.isEmpty) {
+      return const Text('No recent articles.', style: TextStyle(color: EverforestColors.grey));
+    }
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: articles.length,
+      itemCount: _articles.length,
       itemBuilder: (context, index) {
-        final article = articles[index];
+        final article = _articles[index];
+        final color = _getColor(article['color'] ?? '');
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(20),
@@ -199,7 +239,7 @@ class KnowledgeBaseDashboard extends StatelessWidget {
             border: Border.all(color: EverforestColors.bg2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -213,13 +253,13 @@ class KnowledgeBaseDashboard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: (article['color'] as Color).withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      article['category'] as String,
+                      article['category'] ?? 'Uncategorized',
                       style: TextStyle(
-                        color: article['color'] as Color,
+                        color: color,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -227,14 +267,14 @@ class KnowledgeBaseDashboard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    article['date'] as String,
+                    article['date'] ?? '',
                     style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
-                article['title'] as String,
+                article['title'] ?? 'Untitled',
                 style: const TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 18,
@@ -243,9 +283,9 @@ class KnowledgeBaseDashboard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                article['excerpt'] as String,
+                article['excerpt'] ?? '',
                 style: TextStyle(
-                  color: EverforestColors.fg.withOpacity(0.7),
+                  color: EverforestColors.fg.withValues(alpha: 0.7),
                   fontSize: 14,
                   height: 1.5,
                 ),

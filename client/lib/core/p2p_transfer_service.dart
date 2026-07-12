@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'p2p_models.dart';
 import 'local_discovery_service.dart';
+import '../database/layout_sanitizer.dart';
 
 class P2PTransferService {
   static final P2PTransferService instance = P2PTransferService._internal();
@@ -236,7 +236,8 @@ class P2PTransferService {
       socket.write(jsonEncode({'status': 'accepted'}) + '\n');
       await socket.flush();
 
-      final dir = Directory('vault/Media');
+      final vaultPath = await getVaultPath();
+      final dir = Directory('$vaultPath/Media');
       if (!dir.existsSync()) {
         dir.createSync(recursive: true);
       }

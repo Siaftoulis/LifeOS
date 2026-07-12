@@ -61,7 +61,19 @@ func handleSync(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Initialize the Database
+	initDB("lifeos.db")
+	defer db.Close()
+
+	// Initialize the WebSocket Hub
+	hub := newHub()
+	go hub.run()
+
 	http.HandleFunc("/api/sync", handleSync)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(hub, w, r)
+	})
+
 	log.Println("Starting LifeOS Daemon on :8080...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)

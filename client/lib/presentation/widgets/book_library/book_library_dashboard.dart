@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' show Value;
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
+import '../../../api_client.dart';
 import 'book_card_widget.dart';
 import 'highlight_curtain.dart';
 
@@ -16,29 +17,37 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard> {
   @override
   void initState() {
     super.initState();
-    _seedIfEmpty();
+    _syncBooksFromBackend();
   }
 
-  Future<void> _seedIfEmpty() async {
+  Future<void> _syncBooksFromBackend() async {
     final db = AppDatabase.instance;
-    final existing = await db.booksDao.watchAllBooks().first;
-    if (existing.isEmpty) {
+    try {
+      final res = await ApiClient.instance.getDaemon('/api/v1/books');
+      final List<dynamic> booksList = res as List<dynamic>;
+      
       final now = DateTime.now().millisecondsSinceEpoch;
-      await db.booksDao.insertBook(BooksCompanion.insert(
-        id: 'book-1', title: 'The Pragmatic Programmer', author: const Value('Andrew Hunt'),
-        currentPage: const Value(45), totalPages: const Value(320),
-        filePath: 'storage/books/pragmatic.epub', updatedAt: now, isDirty: const Value(0),
-      ));
-      await db.booksDao.insertBook(BooksCompanion.insert(
-        id: 'book-2', title: 'Clean Code', author: const Value('Robert C. Martin'),
-        currentPage: const Value(120), totalPages: const Value(464),
-        filePath: 'storage/books/cleancode.epub', updatedAt: now, isDirty: const Value(0),
-      ));
-      await db.booksDao.insertAudiobook(AudiobooksCompanion.insert(
-        id: 'audio-2', bookId: 'book-2', filePath: 'storage/audiobooks/cleancode.mp3',
-        durationSeconds: const Value(36000), currentSeconds: const Value(7200),
-        updatedAt: now, isDirty: const Value(0),
-      ));
+      for (var b in booksList) {
+        final bookId = b['id'];
+        final existingBook = await db.booksDao.getBookById(bookId);
+        
+        if (existingBook == null) {
+          await db.booksDao.insertBook(BooksCompanion.insert(
+            id: bookId, 
+            title: b['title'] ?? 'Unknown', 
+            author: Value(b['author']),
+            currentPage: Value(b['current_page'] ?? 0), 
+            totalPages: Value(b['total_pages'] ?? 1),
+            filePath: b['file_path'] ?? '', 
+            updatedAt: now, 
+            isDirty: const Value(0),
+          ));
+        } else {
+           // Optional: Update existing book if needed, omitting for now to not overwrite local reading progress 
+        }
+      }
+    } catch (e) {
+      debugPrint('Error syncing books: $e');
     }
   }
 

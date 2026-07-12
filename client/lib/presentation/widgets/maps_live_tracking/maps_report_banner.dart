@@ -15,7 +15,7 @@ class MapsReportBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: triggered.isNotEmpty ? EverforestColors.green.withOpacity(0.15) : EverforestColors.bg1,
+        color: triggered.isNotEmpty ? EverforestColors.green.withValues(alpha: 0.15) : EverforestColors.bg1,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: triggered.isNotEmpty ? EverforestColors.green : EverforestColors.bg2),
       ),

@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../api_client.dart';
 import '../database/preferences_service.dart';
 import 'feature_registry.dart';
-import '../main.dart'; // To access devScreenCaptureKey
+import '../global_keys.dart'; // To access devScreenCaptureKey
 
 class DevSimulationService {
   static final List<String> _traceLogs = [];
@@ -303,7 +303,7 @@ class DevSimulationService {
             
             progress.value = currentModuleIndex / totalModules;
           
-          final moduleKey = getModuleKey(moduleId);
+          final moduleKey = getModuleKey('${moduleId}_${r}_$c');
           final moduleContext = moduleKey.currentContext;
           if (moduleContext == null) {
             appendTraceLog('Failed to capture module context for $moduleId');

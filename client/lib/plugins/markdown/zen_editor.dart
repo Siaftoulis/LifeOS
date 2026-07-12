@@ -294,7 +294,7 @@ class _ZenState extends State<ZenEditor> with SingleTickerProviderStateMixin {
                               width: 48,
                               height: 4,
                               decoration: BoxDecoration(
-                                color: MochaColors.overlay1.withOpacity(0.5),
+                                color: MochaColors.overlay1.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),

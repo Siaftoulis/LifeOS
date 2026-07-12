@@ -38,7 +38,7 @@ class _DeviceGridToggleState extends State<DeviceGridToggle> {
           color: EverforestColors.bg1,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: _isOn ? EverforestColors.green : EverforestColors.bg2),
-          boxShadow: _isOn ? [BoxShadow(color: EverforestColors.green.withOpacity(0.2), blurRadius: 8, spreadRadius: 1)] : [],
+          boxShadow: _isOn ? [BoxShadow(color: EverforestColors.green.withValues(alpha: 0.2), blurRadius: 8, spreadRadius: 1)] : [],
         ),
         padding: const EdgeInsets.all(16),
         child: Column(

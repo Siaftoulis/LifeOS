@@ -1,13 +1,15 @@
 import 'dart:convert';
+import '../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
 import 'package:http/http.dart' as http;
 import 'device_gallery_service.dart';
+import '../api_client.dart';
 
 class CloudSyncService {
   static final CloudSyncService _instance = CloudSyncService._internal();
   factory CloudSyncService() => _instance;
   CloudSyncService._internal();
 
-  final String serverUrl = 'http://192.168.1.36:50051/api/v1/gallery'; // Replace with dynamic host later
+  String get serverUrl => '${ApiClient.instance.daemonUrl}/api/v1/gallery';
   final String userId = 'default_user';
   final String deviceId = 'default_device';
 

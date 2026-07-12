@@ -62,7 +62,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
       decoration: BoxDecoration(
         color: EverforestColors.bg1,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: EverforestColors.red.withOpacity(0.5)),
+        border: Border.all(color: EverforestColors.red.withValues(alpha: 0.5)),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -100,7 +100,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _selectedRole,
+            initialValue: _selectedRole,
             dropdownColor: EverforestColors.bg1,
             style: const TextStyle(color: EverforestColors.fg),
             decoration: const InputDecoration(

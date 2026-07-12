@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+
 	"sync"
 )
 
@@ -54,4 +55,9 @@ func RegisterRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Type", "application/vnd.android.package-archive")
 		http.ServeFile(w, r, "../../client/build/app/outputs/flutter-apk/app-profile.apk")
 	})
+
+	mux.HandleFunc("/api/sync/vault/stream", HandleVaultSyncStream)
+
+	// Vault Watcher setup
+	go InitVaultWatcher("../../vault")
 }

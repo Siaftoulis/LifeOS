@@ -40,8 +40,8 @@ class _DarkRadarState extends State<DarkRadar> with SingleTickerProviderStateMix
       color: const Color(0xFF09090B),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         AnimatedBuilder(animation: _ctrl, builder: (_, __) => Stack(alignment: Alignment.center, children: [
-          Container(width: 80 + (_ctrl.value * 120), height: 80 + (_ctrl.value * 120), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00E5FF).withOpacity(1 - _ctrl.value), width: 2))),
-          Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF00E5FF), boxShadow: [BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.5), blurRadius: 16)])),
+          Container(width: 80 + (_ctrl.value * 120), height: 80 + (_ctrl.value * 120), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 1 - _ctrl.value), width: 2))),
+          Container(width: 24, height: 24, decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFF00E5FF), boxShadow: [BoxShadow(color: const Color(0xFF00E5FF).withValues(alpha: 0.5), blurRadius: 16)])),
         ])),
         const SizedBox(height: 48),
         Text('LAT: $_lat  LNG: $_lng', style: const TextStyle(color: Colors.white54, letterSpacing: 2, fontSize: 12, fontWeight: FontWeight.bold)),

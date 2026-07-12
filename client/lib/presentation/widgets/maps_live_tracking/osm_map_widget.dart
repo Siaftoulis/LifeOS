@@ -81,7 +81,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
                             point: LatLng(g.latitude, g.longitude),
                             radius: g.radius,
                             useRadiusInMeter: true,
-                            color: EverforestColors.green.withOpacity(0.15),
+                            color: EverforestColors.green.withValues(alpha: 0.15),
                             borderColor: EverforestColors.green,
                             borderStrokeWidth: 2,
                           ))
@@ -94,8 +94,8 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
                       point: widget.myLocation!,
                       radius: 40,
                       useRadiusInMeter: false,
-                      color: Colors.blue.withOpacity(0.2),
-                      borderColor: Colors.blue.withOpacity(0.4),
+                      color: Colors.blue.withValues(alpha: 0.2),
+                      borderColor: Colors.blue.withValues(alpha: 0.4),
                       borderStrokeWidth: 1,
                     ),
                   ],
@@ -146,7 +146,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
               duration: const Duration(milliseconds: 200),
               child: FloatingActionButton(
                 mini: true,
-                backgroundColor: EverforestColors.bg1.withOpacity(0.9),
+                backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
                 onPressed: () {
                   widget.mapController.rotate(0.0);
                 },

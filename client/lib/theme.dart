@@ -24,7 +24,7 @@ abstract class OLEDTheme {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      indicatorColor: accent.withOpacity(0.12),
+      indicatorColor: accent.withValues(alpha: 0.12),
       iconTheme: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? const IconThemeData(color: accent, size: 26) : const IconThemeData(color: textSecondary, size: 24)),
       labelTextStyle: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? const TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w600) : const TextStyle(color: textSecondary, fontSize: 11)),
     ),

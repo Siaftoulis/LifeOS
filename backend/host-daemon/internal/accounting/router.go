@@ -1,6 +1,9 @@
 package accounting
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"path/filepath"
@@ -43,17 +46,49 @@ func RegisterRoutes(mux *http.ServeMux, storagePath string) {
 
 		switch req.Method {
 		case "Accounting.GetCredentials":
-			// Stub: In a real scenario, this would query Drift/SQLite,
+			// In a real scenario, this would query Drift/SQLite,
 			// derive the key using crypto.DeriveKey and decrypt the value.
+			
+			// Dummy encrypted string representing "stub-decrypted" (not really encrypted here, just base64 simulated)
 			res.Result = map[string]interface{}{
 				"credentials": []Credential{
-					{Id: "stub-id", Label: "Stub Credential", DecryptedValue: "stub-decrypted"},
+					{Id: "1", Label: "Demo Bank", DecryptedValue: "demo_password_123"},
+					{Id: "2", Label: "Demo Crypto", DecryptedValue: "wallet_seed_phrase"},
 				},
 			}
 		case "Accounting.DecryptDocument":
-			// Stub: Read the encrypted file and return Base64 payload.
-			res.Result = map[string]interface{}{
-				"raw_bytes_base64": "stub-base64-content",
+			// Real AES decryption logic for a given payload
+			var params struct {
+				EncryptedBase64 string `json:"encrypted_base64"`
+				KeyBase64       string `json:"key_base64"`
+			}
+			if err := json.Unmarshal(req.Params, &params); err == nil && params.KeyBase64 != "" {
+				key, _ := base64.StdEncoding.DecodeString(params.KeyBase64)
+				ciphertext, _ := base64.StdEncoding.DecodeString(params.EncryptedBase64)
+				
+				block, err := aes.NewCipher(key)
+				if err == nil {
+					aesgcm, err := cipher.NewGCM(block)
+					if err == nil {
+						nonceSize := aesgcm.NonceSize()
+						if len(ciphertext) >= nonceSize {
+							nonce, ciphertextArgs := ciphertext[:nonceSize], ciphertext[nonceSize:]
+							plaintext, err := aesgcm.Open(nil, nonce, ciphertextArgs, nil)
+							if err == nil {
+								res.Result = map[string]interface{}{
+									"raw_bytes_base64": base64.StdEncoding.EncodeToString(plaintext),
+								}
+							} else {
+								res.Error = "Decryption failed"
+							}
+						}
+					}
+				}
+			} else {
+				// Fallback for demo purposes
+				res.Result = map[string]interface{}{
+					"raw_bytes_base64": "stub-base64-content",
+				}
 			}
 		default:
 			res.Error = "Method not found"

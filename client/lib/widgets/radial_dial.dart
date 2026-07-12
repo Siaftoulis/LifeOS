@@ -17,7 +17,7 @@ class _RadialDialState extends State<RadialDial> {
     if (dx > 0 && dy < 0) return 0; // Gallery
     if (dx < 0 && dy < 0) return 1; // Notes
     if (dx < 0 && dy > 0) return 2; // Habits
-    return 3;                       // Capture
+    return 3;                       // Hub
   }
 
   void _onUp() {
@@ -35,7 +35,7 @@ class _RadialDialState extends State<RadialDial> {
         child: Container(
           color: const Color(0x1A7C3AED),
           child: Stack(alignment: Alignment.bottomCenter, children: [
-            Positioned(bottom: -60, child: Container(width: 320, height: 320, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black54, border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.3), width: 2)))),
+            Positioned(bottom: -60, child: Container(width: 320, height: 320, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black54, border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.3), width: 2)))),
             ...List.generate(4, (i) => _sector(i)),
           ]),
         ),
@@ -52,6 +52,6 @@ class _RadialDialState extends State<RadialDial> {
 
   Widget _sector(int i) {
     final sel = _active == i; final align = [const Alignment(0.4, 0.75), const Alignment(-0.4, 0.75), const Alignment(-0.4, 0.95), const Alignment(0.4, 0.95)][i];
-    return Align(alignment: align, child: Text(['Gallery', 'Notes', 'Habits', 'Capture'][i], style: TextStyle(color: sel ? const Color(0xFF00E5FF) : Colors.white60, fontWeight: FontWeight.bold, fontSize: 13)));
+    return Align(alignment: align, child: Text(['Gallery', 'Notes', 'Habits', 'Hub'][i], style: TextStyle(color: sel ? const Color(0xFF00E5FF) : Colors.white60, fontWeight: FontWeight.bold, fontSize: 13)));
   }
 }

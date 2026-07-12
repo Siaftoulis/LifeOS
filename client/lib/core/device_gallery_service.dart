@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
-import '../presentation/widgets/photo_video_gallery/gallery_item.dart';
+import '../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
 
 /// DeviceGalleryService — native device media provider using photo_manager.
 /// Handles permissions, paginated fetching, date grouping, and album listing.

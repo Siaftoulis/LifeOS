@@ -2,8 +2,11 @@ package youtube
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -15,12 +18,26 @@ func RegisterRoutes(mux *http.ServeMux) {
 
 func handleVideos(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// Stub downloaded media list
-	json.NewEncoder(w).Encode([]map[string]interface{}{
-		{"id": "yt_1", "title": "Flutter Tutorial - State Management", "size": "345 MB"},
-		{"id": "yt_2", "title": "Lofi Hip Hop Radio 24/7", "size": "1.2 GB"},
-		{"id": "yt_3", "title": "Tech News Weekly", "size": "128 MB"},
-	})
+	
+	rows, err := DB.Query("SELECT id, title, size FROM videos")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var videos []map[string]interface{}
+	for rows.Next() {
+		var id, title, size string
+		if err := rows.Scan(&id, &title, &size); err == nil {
+			videos = append(videos, map[string]interface{}{
+				"id":    id,
+				"title": title,
+				"size":  size,
+			})
+		}
+	}
+	json.NewEncoder(w).Encode(videos)
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {
@@ -33,8 +50,36 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	// Stub yt-dlp execution
-	log.Printf("yt-dlp download triggered for URL: %s", payload["video_url"])
+
+	videoURL := payload["video_url"]
+	log.Printf("Starting yt-dlp download for URL: %s", videoURL)
+
+	go func(url string) {
+		cmd := exec.Command("yt-dlp", "-o", "./data/media/%(title)s.%(ext)s", "--print", "after_move:filepath", url)
+		out, err := cmd.Output()
+		if err != nil {
+			log.Printf("yt-dlp error: %v", err)
+			return
+		}
+		
+		filePath := string(out) // The printed filepath from yt-dlp
+		
+		// In a real scenario we parse the output to get the file size, or use os.Stat
+		var size int64 = 0
+		if fileInfo, err := os.Stat(filePath); err == nil {
+			size = fileInfo.Size()
+		}
+
+		// Update database
+		_, dbErr := DB.Exec("INSERT INTO videos (id, title, size) VALUES (?, ?, ?)",
+			url, "Downloaded Video", fmt.Sprintf("%d", size))
+		if dbErr != nil {
+			log.Printf("yt-dlp DB update error: %v", dbErr)
+		} else {
+			log.Printf("yt-dlp download finished for %s, size: %d", url, size)
+		}
+	}(videoURL)
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "download_started"})
 }

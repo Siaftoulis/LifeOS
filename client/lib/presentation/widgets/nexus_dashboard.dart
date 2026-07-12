@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../api_client.dart';
 import '../../database/database.dart';
-import '../../database/tasks_extension.dart';
 import '../../theme/everforest_colors.dart';
 
 class NexusDashboard extends StatefulWidget {
@@ -54,8 +53,8 @@ class _NexusDashboardState extends State<NexusDashboard> {
               ),
             ),
             const SizedBox(height: 8),
-            StreamBuilder<List<TaskData>>(
-              stream: AppDatabase.instance.watchAllTasks(),
+            StreamBuilder<List<UserTask>>(
+              stream: AppDatabase.instance.chtmDao.watchAllTasks(),
               builder: (_, s) {
                 final count = s.data?.length ?? 0;
                 return Card(

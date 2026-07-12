@@ -23,10 +23,12 @@ class WidgetChannel {
         await _channel.invokeMethod('update_widget', data);
         
         // Windows 11 Desktop In-Memory IPC Bus
-        final subWindowIds = await DesktopMultiWindow.getAllSubWindowIds();
+        final controllers = await WindowController.getAll();
         final jsonPayload = jsonEncode(data);
-        for (final windowId in subWindowIds) {
-          await DesktopMultiWindow.invokeMethod(windowId, 'update_metrics', jsonPayload);
+        for (final controller in controllers) {
+          if (controller.windowId != 0.toString()) { // Avoid sending to main window if windowId is string/int depending on API
+            await controller.invokeMethod('update_metrics', jsonPayload);
+          }
         }
       } catch (e) {
         print('Widget Channel Error: $e');

@@ -9,8 +9,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import '../../theme/everforest_colors.dart';
 import '../../core/device_gallery_service.dart';
-import '../../presentation/widgets/photo_video_gallery/gallery_item.dart';
-import '../../presentation/widgets/photo_video_gallery/aves_viewer_screen.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_screen.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
@@ -149,7 +149,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
       await Future.wait(chunk.map((item) async {
         if (item.assetEntity != null) {
           final latlng = await item.assetEntity!.latlngAsync();
-          if (latlng != null && latlng.latitude != null && latlng.longitude != null && latlng.latitude != 0.0 && latlng.longitude != 0.0) {
+          if (latlng != null && latlng.latitude != 0.0 && latlng.longitude != 0.0) {
             item.latitude = latlng.latitude;
             item.longitude = latlng.longitude;
             newlyMapped.add(item);
@@ -286,7 +286,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
                 return Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: EverforestColors.green.withOpacity(0.9),
+                    color: EverforestColors.green.withValues(alpha: 0.9),
                     border: Border.all(color: Colors.white, width: 2),
                     boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
                   ),
@@ -336,7 +336,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
                 duration: const Duration(milliseconds: 200),
                 child: FloatingActionButton(
                   mini: true,
-                  backgroundColor: EverforestColors.bg1.withOpacity(0.9),
+                  backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
                   onPressed: () {
                     _mapController.rotate(0.0);
                   },

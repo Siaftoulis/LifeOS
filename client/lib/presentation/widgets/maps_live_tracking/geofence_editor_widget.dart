@@ -49,8 +49,8 @@ class _GeofenceRow extends StatelessWidget {
           Switch(
             value: active,
             onChanged: (val) {},
-            activeColor: EverforestColors.green,
-            activeTrackColor: EverforestColors.green.withOpacity(0.3),
+            activeThumbColor: EverforestColors.green,
+            activeTrackColor: EverforestColors.green.withValues(alpha: 0.3),
             inactiveThumbColor: EverforestColors.grey,
             inactiveTrackColor: EverforestColors.bg2,
           ),

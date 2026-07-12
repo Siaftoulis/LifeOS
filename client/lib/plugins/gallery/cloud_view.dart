@@ -1,8 +1,52 @@
 import 'package:flutter/material.dart';
 import '../../theme/everforest_colors.dart';
+import '../../core/cloud_gallery_service.dart';
+import '../../core/gallery_sync_engine.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
+import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_screen.dart';
+import '../../api_client.dart';
+import 'package:extended_image/extended_image.dart';
 
-class CloudView extends StatelessWidget {
+class CloudView extends StatefulWidget {
   const CloudView({super.key});
+
+  @override
+  State<CloudView> createState() => _CloudViewState();
+}
+
+class _CloudViewState extends State<CloudView> {
+  final GallerySyncEngine _syncEngine = GallerySyncEngine.instance;
+  List<GalleryItem> _cloudItems = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCloudData();
+    _syncEngine.isSyncing.addListener(_onSyncStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _syncEngine.isSyncing.removeListener(_onSyncStateChanged);
+    super.dispose();
+  }
+
+  void _onSyncStateChanged() {
+    if (!_syncEngine.isSyncing.value) {
+      _fetchCloudData();
+    }
+    setState(() {});
+  }
+
+  Future<void> _fetchCloudData() async {
+    setState(() => _isLoading = true);
+    final items = await CloudGalleryService.fetchCloudAssets();
+    setState(() {
+      _cloudItems = items;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,21 +68,95 @@ class CloudView extends StatelessWidget {
             ],
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.sync, color: EverforestColors.green),
-              onPressed: () {
-                // Trigger manual sync
+            ValueListenableBuilder<bool>(
+              valueListenable: _syncEngine.isSyncing,
+              builder: (context, isSyncing, child) {
+                if (isSyncing) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: _syncEngine.syncedCount,
+                        builder: (context, synced, child) {
+                          return Text(
+                            '$synced / ${_syncEngine.totalToSync.value}',
+                            style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                }
+                return IconButton(
+                  icon: const Icon(Icons.sync, color: EverforestColors.green),
+                  onPressed: () {
+                    _syncEngine.startSync();
+                  },
+                );
               },
             ),
           ],
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            Center(child: Text('Timeline View (All users)', style: TextStyle(color: EverforestColors.fg))),
-            Center(child: Text('Folder View (By User/Device)', style: TextStyle(color: EverforestColors.fg))),
+            _buildTimelineView(),
+            const Center(child: Text('Folder View (By User/Device)', style: TextStyle(color: EverforestColors.fg))),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTimelineView() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+    }
+    if (_cloudItems.isEmpty) {
+      return const Center(child: Text('No media in the cloud.', style: TextStyle(color: EverforestColors.fg)));
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+      ),
+      itemCount: _cloudItems.length,
+      itemBuilder: (context, index) {
+        final item = _cloudItems[index];
+        return GestureDetector(
+          onTap: () => Navigator.push(context, PageRouteBuilder(
+            pageBuilder: (_, __, ___) => AvesViewerScreen(
+              items: _cloudItems,
+              initialIndex: index,
+            ),
+          )),
+          child: Hero(
+            tag: 'gallery_hero_${item.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: ExtendedImage.network(
+                '${ApiClient.instance.daemonUrl}/api/v1/gallery/thumbnail?id=${item.id}',
+                fit: BoxFit.cover,
+                cache: true,
+                loadStateChanged: (ExtendedImageState state) {
+                  switch (state.extendedImageLoadState) {
+                    case LoadState.loading:
+                      return Container(color: EverforestColors.bg1);
+                    case LoadState.failed:
+                      return Container(
+                        color: EverforestColors.bg1,
+                        child: const Icon(Icons.broken_image, color: EverforestColors.grey),
+                      );
+                    case LoadState.completed:
+                      return state.completedWidget;
+                  }
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

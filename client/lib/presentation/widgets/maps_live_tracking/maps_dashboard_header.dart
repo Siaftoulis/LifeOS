@@ -18,7 +18,7 @@ class MapsDashboardHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: (wsChannel != null ? EverforestColors.green : EverforestColors.red).withOpacity(0.2),
+            color: (wsChannel != null ? EverforestColors.green : EverforestColors.red).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(

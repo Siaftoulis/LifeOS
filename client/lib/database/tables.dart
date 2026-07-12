@@ -45,8 +45,39 @@ class UserProfiles extends Table {
   TextColumn get id => text()();
   TextColumn get username => text()();
   TextColumn get role => text()(); // 'ADMIN', 'NORMAL', 'CHILD'
+  TextColumn get familyId => text().nullable()(); // NEW: Link to family group
   IntColumn get dailyLimit => integer().withDefault(const Constant(0))();
   IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('Quest')
+class Quests extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+  TextColumn get description => text().nullable()();
+  IntColumn get rewardPoints => integer().withDefault(const Constant(0))();
+  TextColumn get assignedTo => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('PENDING'))(); // PENDING, ACCEPTED, REJECTED, COMPLETED
+  TextColumn get createdBy => text()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('QuestLog')
+class QuestLogs extends Table {
+  TextColumn get id => text()();
+  TextColumn get questId => text().customConstraint('NOT NULL REFERENCES quests(id) ON DELETE CASCADE')();
+  TextColumn get action => text()(); // 'ACCEPTED', 'DENIED', 'COMPLETED'
+  TextColumn get userId => text()();
+  IntColumn get timestamp => integer()();
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 
   @override
@@ -251,6 +282,9 @@ class UserHabits extends Table {
   IntColumn get targetStreak => integer().withDefault(const Constant(0))();
   TextColumn get attribute => text().nullable()();
   IntColumn get baseXp => integer().withDefault(const Constant(10))();
+  TextColumn get type => text().withDefault(const Constant('CHECK'))(); // CHECK, DISTANCE, STEPS, TIMER, ZEN
+  RealColumn get goalValue => real().withDefault(const Constant(1.0))();
+  TextColumn get unit => text().nullable()(); // 'km', 'steps', 'mins'
   IntColumn get updatedAt => integer()();
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 
@@ -264,6 +298,8 @@ class HabitLogs extends Table {
   TextColumn get habitId => text().customConstraint('NOT NULL REFERENCES user_habits(id) ON DELETE CASCADE')();
   IntColumn get checkinDate => integer()();
   IntColumn get pointsAwarded => integer()();
+  RealColumn get completedValue => real().withDefault(const Constant(1.0))();
+  TextColumn get status => text().withDefault(const Constant('DONE'))(); // DONE, PARTIAL, FAILED
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 
   @override
@@ -756,6 +792,33 @@ class YoutubeDownloads extends Table {
   TextColumn get filePath => text()();
   IntColumn get sizeBytes => integer()();
   IntColumn get createdAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('ZenNode')
+class ZenNodes extends Table {
+  TextColumn get id => text()(); // UUID
+  TextColumn get name => text()(); // e.g., 'My Note.md' or 'MyFolder'
+  TextColumn get path => text().customConstraint('UNIQUE NOT NULL')(); // Vault relative path e.g., '/MyFolder/My Note.md'
+  IntColumn get isDirectory => integer().withDefault(const Constant(0))(); // 0 or 1
+  TextColumn get parentId => text().nullable()(); // UUID of parent ZenNode
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('ZenDocument')
+class ZenDocuments extends Table {
+  TextColumn get id => text()(); // UUID
+  TextColumn get nodeId => text().customConstraint('NOT NULL REFERENCES zen_nodes(id) ON DELETE CASCADE')();
+  TextColumn get textContent => text()(); // The actual markdown text or CRDT state
+  IntColumn get updatedAt => integer()();
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 
   @override

@@ -31,7 +31,10 @@ func CreateUser(username, password, role string) (*User, error) {
 		return nil, os.ErrExist
 	}
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
 	newUser := User{
 		ID:           "u-" + time.Now().Format("20060102150405"),
 		Username:     username,

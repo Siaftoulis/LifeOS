@@ -28,7 +28,7 @@ class DevDocsPanel extends StatelessWidget {
   @override Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.02), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02), borderRadius: BorderRadius.circular(16)),
       child: FutureBuilder<List<String>>(
         future: _load(),
         builder: (ctx, snap) {

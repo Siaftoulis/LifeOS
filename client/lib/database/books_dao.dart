@@ -10,6 +10,9 @@ class BooksDao extends DatabaseAccessor<AppDatabase> with _$BooksDaoMixin {
 
   Stream<List<Book>> watchAllBooks() => select(books).watch();
   
+  Future<Book?> getBookById(String id) =>
+      (select(books)..where((t) => t.id.equals(id))).getSingleOrNull();
+  
   Stream<List<Audiobook>> watchAllAudiobooks() => select(audiobooks).watch();
   
   Stream<List<ReadingProgressData>> watchAllReadingProgress() => select(readingProgress).watch();

@@ -15,8 +15,6 @@ type IllnessState struct {
 	IsActive   bool    `json:"is_active"`
 }
 
-var currentIllness *IllnessState
-
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/illness/current", handleGetCurrentIllness)
 	mux.HandleFunc("/api/v1/illness/apply", handleApplyIllness)
@@ -30,12 +28,13 @@ func handleGetCurrentIllness(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if currentIllness == nil || !currentIllness.IsActive {
+	state := GetIllness()
+	if state == nil || !state.IsActive {
 		json.NewEncoder(w).Encode(map[string]interface{}{"status": "healthy"})
 		return
 	}
 
-	json.NewEncoder(w).Encode(currentIllness)
+	json.NewEncoder(w).Encode(state)
 }
 
 func handleApplyIllness(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +63,7 @@ func handleApplyIllness(w http.ResponseWriter, r *http.Request) {
 
 	actualDays := req.BaseDays * (1.0 - (effectiveWP / 300.0))
 
-	currentIllness = &IllnessState{
+	newState := &IllnessState{
 		ID:         "ill_" + time.Now().Format("20060102150405"),
 		Type:       req.Type,
 		BaseDays:   req.BaseDays,
@@ -72,9 +71,10 @@ func handleApplyIllness(w http.ResponseWriter, r *http.Request) {
 		StartTime:  time.Now().Unix(),
 		IsActive:   true,
 	}
+	SetIllness(newState)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(currentIllness)
+	json.NewEncoder(w).Encode(newState)
 }
 
 func handleRecoverIllness(w http.ResponseWriter, r *http.Request) {
@@ -83,9 +83,7 @@ func handleRecoverIllness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if currentIllness != nil {
-		currentIllness.IsActive = false
-	}
+	ClearIllness()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "recovered"})

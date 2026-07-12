@@ -5,6 +5,8 @@ import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../api_client.dart';
 
+import '../../../database/layout_sanitizer.dart';
+
 class HighlightCurtain extends StatelessWidget {
   const HighlightCurtain({super.key});
 
@@ -24,7 +26,8 @@ class HighlightCurtain extends StatelessWidget {
 
     final sanitizedTitle = book.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
     final relativePath = 'Highlights_$sanitizedTitle.md';
-    final file = File('vault/$relativePath');
+    final vaultPath = await getVaultPath();
+    final file = File('$vaultPath/$relativePath');
 
     String fileContent;
     if (file.existsSync()) {

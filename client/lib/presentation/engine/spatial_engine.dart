@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import '../../theme/everforest_colors.dart';
 import '../../database/preferences_service.dart';
 import '../widgets/keyboard_integrity/smooth_keyboard_integrity.dart';
@@ -115,15 +116,47 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
       final delta = notification.scrollDelta ?? 0.0;
       if (delta == 0) return false;
 
-      final atTop = metrics.pixels <= metrics.minScrollExtent;
-      final atBottom = metrics.pixels >= metrics.maxScrollExtent;
+      final atStart = metrics.pixels <= metrics.minScrollExtent;
+      final atEnd = metrics.pixels >= metrics.maxScrollExtent;
 
-      if (atTop && delta < -1.0) {
-        _hasBumpedInCurrentDrag = true;
-        _registerBump('up');
-      } else if (atBottom && delta > 1.0) {
-        _hasBumpedInCurrentDrag = true;
-        _registerBump('down');
+      if (metrics.axis == Axis.vertical) {
+        if (atStart && delta < -1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('up');
+        } else if (atEnd && delta > 1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('down');
+        }
+      } else if (metrics.axis == Axis.horizontal) {
+        if (atStart && delta < -1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('left');
+        } else if (atEnd && delta > 1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('right');
+        }
+      }
+    } else if (notification is OverscrollNotification) {
+      if (_hasBumpedInCurrentDrag) return false;
+      final metrics = notification.metrics;
+      final overscroll = notification.overscroll;
+
+      if (metrics.axis == Axis.vertical) {
+        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('up');
+        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('down');
+        }
+      } else if (metrics.axis == Axis.horizontal) {
+        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('left');
+        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('right');
+        }
       }
     } else if (notification is ScrollEndNotification) {
       _hasBumpedInCurrentDrag = false;
@@ -139,9 +172,13 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
         _lastBumpTime = null;
         _lastBumpDirection = null;
         if (direction == 'up') {
-          _nav(0, -1);
-        } else {
-          _nav(0, 1);
+          nav(0, -1);
+        } else if (direction == 'down') {
+          nav(0, 1);
+        } else if (direction == 'left') {
+          nav(-1, 0);
+        } else if (direction == 'right') {
+          nav(1, 0);
         }
         return;
       }
@@ -178,7 +215,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     });
   }
 
-  void _nav(int dx, int dy) {
+  void nav(int dx, int dy) {
     if (_animCtrl.isAnimating) return;
     final h = widget.layout.length;
     final w = widget.layout[y].length;
@@ -224,6 +261,30 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     if (newX >= newRowWidth) newX = newRowWidth - 1;
 
     navigateTo(newX, newY);
+  }
+
+  bool _isUserTyping() {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus == null) return false;
+    final context = primaryFocus.context;
+    if (context == null) return false;
+    
+    if (context.widget.runtimeType.toString().contains('Text') ||
+        context.widget.runtimeType.toString().contains('Input') ||
+        context.widget.runtimeType.toString().contains('Editable')) {
+      return true;
+    }
+    
+    bool isEditable = false;
+    context.visitAncestorElements((element) {
+      final type = element.widget.runtimeType.toString();
+      if (type.contains('EditableText') || type.contains('TextField') || type.contains('TextFormField')) {
+        isEditable = true;
+        return false;
+      }
+      return true;
+    });
+    return isEditable;
   }
 
   @override
@@ -278,27 +339,50 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                 focusNode: _focusNode,
                 autofocus: true,
                 onKeyEvent: (FocusNode node, KeyEvent event) {
+                  if (_isUserTyping()) return KeyEventResult.ignored;
+
                   if (event is KeyDownEvent) {
                     final key = event.logicalKey;
                     if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
-                      _nav(-1, 0);
+                      nav(-1, 0);
                       return KeyEventResult.handled;
                     } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
-                      _nav(1, 0);
+                      nav(1, 0);
                       return KeyEventResult.handled;
                     } else if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
-                      _nav(0, -1);
+                      nav(0, -1);
                       return KeyEventResult.handled;
                     } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
-                      _nav(0, 1);
+                      nav(0, 1);
                       return KeyEventResult.handled;
                     }
                   }
                   return KeyEventResult.ignored;
                 },
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: _handleScrollNotification,
-                  child: Stack(
+                child: Listener(
+                  onPointerSignal: (PointerSignalEvent event) {
+                    if (event is PointerScrollEvent) {
+                      final dx = event.scrollDelta.dx;
+                      final dy = event.scrollDelta.dy;
+                      if (dx.abs() > dy.abs() && dx.abs() > 10) {
+                        _registerBump(dx > 0 ? 'right' : 'left');
+                      } else if (dy.abs() > dx.abs() && dy.abs() > 10) {
+                        _registerBump(dy > 0 ? 'down' : 'up');
+                      }
+                    }
+                  },
+                  onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
+                    final dx = event.panDelta.dx;
+                    final dy = event.panDelta.dy;
+                    if (dx.abs() > dy.abs() && dx.abs() > 10) {
+                      _registerBump(dx < 0 ? 'right' : 'left'); // panning left means moving right
+                    } else if (dy.abs() > dx.abs() && dy.abs() > 10) {
+                      _registerBump(dy < 0 ? 'down' : 'up');
+                    }
+                  },
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: _handleScrollNotification,
+                    child: Stack(
                     children: [
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
@@ -354,9 +438,10 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                     ],
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
+        ),
     );
   }
 }

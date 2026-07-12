@@ -2,7 +2,6 @@ package location
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -68,7 +67,7 @@ func saveGeofences() {
 		return
 	}
 
-	if err := ioutil.WriteFile(gfFile, data, 0644); err != nil {
+	if err := os.WriteFile(gfFile, data, 0644); err != nil {
 		log.Printf("Error writing geofences.json: %v", err)
 	}
 }

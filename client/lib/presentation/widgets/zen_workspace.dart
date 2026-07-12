@@ -2,12 +2,18 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../global_keys.dart';
 import '../../api_client.dart';
 import '../../core/obsidian/config_parser.dart';
 import '../../core/obsidian/vault_scanner.dart';
+import '../../core/obsidian/zen_sync_service.dart';
+import '../../core/obsidian/websocket_sync_service.dart';
 import '../../core/p2p_transfer_service.dart';
 import '../../core/p2p_models.dart';
 import '../../theme/everforest_colors.dart';
+import '../../database/layout_sanitizer.dart';
+import '../../database/database.dart';
 
 class MarkdownEditingController extends TextEditingController {
   @override
@@ -77,30 +83,88 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   String? _selectedNodePath;
   List<FileNode> _fileTree = [];
   final Set<String> _expandedFolderPaths = {};
+  String _vaultPath = 'vault';
 
   final Color _accentColor = const Color(0xFF7E57C2);
+
+  StreamSubscription? _textDeltaSub;
+  bool _isRemoteUpdate = false;
 
   @override
   void initState() {
     super.initState();
     _noteCtr.addListener(_onNoteCursorChanged);
-    _vaultScanner = VaultScanner('vault');
+    _initWorkspace();
+
+    _textDeltaSub = WebsocketSyncService.instance.onTextDelta.listen((payload) {
+      final filePath = payload['filePath'];
+      final textContent = payload['textContent'];
+      final userId = payload['userId'];
+      
+      if (userId == 'User_${Platform.localHostname}') return;
+      
+      if (_activeFilePath != null && _getRelativePath(_activeFilePath!) == filePath) {
+        _isRemoteUpdate = true;
+        final currentSelection = _noteCtr.selection;
+        _noteCtr.text = textContent;
+        // Try to maintain local cursor position safely
+        if (currentSelection.baseOffset >= 0 && currentSelection.baseOffset <= textContent.length) {
+          _noteCtr.selection = currentSelection;
+        }
+        _isRemoteUpdate = false;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textDeltaSub?.cancel();
+    WebsocketSyncService.instance.disconnect();
+    _debounce?.cancel();
+    _noteCtr.removeListener(_onNoteCursorChanged);
+    _noteCtr.dispose();
+    _vaultScanner?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initWorkspace() async {
+    _vaultPath = await getVaultPath();
+    await ZenSyncService.instance.initialize(_vaultPath);
+    ZenSyncService.instance.addListener(_onScannerUpdate);
+    _vaultScanner = VaultScanner(_vaultPath);
     _vaultScanner?.addListener(_onScannerUpdate);
+    
+    WebsocketSyncService.instance.connect();
+
     _refreshFileTree();
     _loadConfig();
     _loadInitialNote();
   }
 
+  String _getRelativePath(String absolutePath) {
+    if (absolutePath.startsWith(_vaultPath)) {
+      return absolutePath.substring(_vaultPath.length).replaceFirst(RegExp(r'^[/\\]'), '');
+    }
+    return absolutePath;
+  }
+
   void _onNoteCursorChanged() {
+    if (_isRemoteUpdate) return;
     if (_activeFilePath != null) {
       final offset = _noteCtr.selection.baseOffset;
       if (offset >= 0) {
-        final relativePath = _activeFilePath!.replaceAll('vault/', '').replaceAll('vault\\', '');
-        P2PTransferService.instance.broadcastCursor(
+        final relativePath = _getRelativePath(_activeFilePath!);
+        WebsocketSyncService.instance.broadcastCursor(
           'User_${Platform.localHostname}',
           offset.toDouble(),
           0.0,
           relativePath,
+        );
+        WebsocketSyncService.instance.broadcastTextDelta(
+          'User_${Platform.localHostname}',
+          relativePath,
+          _noteCtr.text,
+          offset,
         );
       }
     }
@@ -119,7 +183,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   }
 
   List<FileNode> _buildFileTree() {
-    final rootDir = Directory('vault');
+    final rootDir = Directory(_vaultPath);
     if (!rootDir.existsSync()) {
       rootDir.createSync(recursive: true);
     }
@@ -168,7 +232,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   }
 
   String _getTargetDirectory() {
-    if (_selectedNodePath == null) return 'vault';
+    if (_selectedNodePath == null) return _vaultPath;
     final isDir = Directory(_selectedNodePath!).existsSync();
     if (isDir) return _selectedNodePath!;
     final file = File(_selectedNodePath!);
@@ -181,7 +245,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     return parts.join('-');
   }
 
-  void _createNewFile(String name) {
+  Future<void> _createNewFile(String name) async {
     final parentDir = _getTargetDirectory();
     final sanitizedName = name.endsWith('.md') ? name : '$name.md';
     final filePath = '$parentDir/$sanitizedName';
@@ -194,9 +258,13 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       return;
     }
 
-    final uuid = _generateUuid();
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final content = '''---
+    try {
+      final parentRelPath = _getRelativePath(parentDir);
+      await ZenSyncService.instance.createNode(parentRelPath, sanitizedName, false);
+
+      final uuid = _generateUuid();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final content = '''---
 id: "$uuid"
 updated_at: $timestamp
 synced_at: null
@@ -204,14 +272,12 @@ synced_at: null
 # $name
 
 ''';
-
-    try {
-      file.writeAsStringSync(content);
-      final relativePath = filePath.replaceAll('vault/', '').replaceAll('vault\\', '');
-      ApiClient.instance.postDaemon('/api/markdown/sync', {
-        'file_path': relativePath,
-        'content': content,
-      }).catchError((_) {});
+      
+      final node = await AppDatabase.instance.select(AppDatabase.instance.zenNodes).get().then(
+        (nodes) => nodes.firstWhere((n) => n.path == '$parentRelPath/$sanitizedName')
+      );
+      
+      await ZenSyncService.instance.updateDocumentContent(node.id, content);
 
       _refreshFileTree();
       _openFile(filePath);
@@ -220,7 +286,7 @@ synced_at: null
     }
   }
 
-  void _createNewFolder(String name) {
+  Future<void> _createNewFolder(String name) async {
     final parentDir = _getTargetDirectory();
     final dirPath = '$parentDir/$name';
 
@@ -233,7 +299,8 @@ synced_at: null
     }
 
     try {
-      dir.createSync(recursive: true);
+      final parentRelPath = _getRelativePath(parentDir);
+      await ZenSyncService.instance.createNode(parentRelPath, name, true);
       _refreshFileTree();
     } catch (e) {
       debugPrint('Error creating folder: $e');
@@ -282,7 +349,7 @@ synced_at: null
       debugPrint('Error saving file locally: $e');
     }
 
-    final relativePath = _activeFilePath!.replaceAll('vault/', '').replaceAll('vault\\', '');
+    final relativePath = _getRelativePath(_activeFilePath!);
     ApiClient.instance.postDaemon('/api/markdown/sync', {
       'file_path': relativePath,
       'content': text,
@@ -295,12 +362,12 @@ synced_at: null
     final now = DateTime.now();
     final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
-    final dailyDir = Directory('vault/Daily');
+    final dailyDir = Directory('$_vaultPath/Daily');
     if (!dailyDir.existsSync()) {
       dailyDir.createSync(recursive: true);
     }
 
-    final filePath = 'vault/Daily/$dateStr.md';
+    final filePath = '$_vaultPath/Daily/$dateStr.md';
     final file = File(filePath);
     if (!file.existsSync()) {
       final uuid = _generateUuid();
@@ -363,7 +430,7 @@ synced_at: null
 
   void _showNewFolderDialog() {
     final targetDir = _getTargetDirectory();
-    final relativeTarget = targetDir.replaceAll('vault/', '').replaceAll('vault\\', '');
+    final relativeTarget = _getRelativePath(targetDir);
     final controller = TextEditingController();
 
     showDialog(
@@ -428,7 +495,7 @@ synced_at: null
 
   void _showNewFileDialog() {
     final targetDir = _getTargetDirectory();
-    final relativeTarget = targetDir.replaceAll('vault/', '').replaceAll('vault\\', '');
+    final relativeTarget = _getRelativePath(targetDir);
     final controller = TextEditingController();
 
     showDialog(
@@ -570,19 +637,12 @@ synced_at: null
 
 
   Future<void> _loadConfig() async {
-    final parser = ConfigParser('vault');
+    final parser = ConfigParser(_vaultPath);
     final cfg = await parser.parseConfig();
     if (mounted) setState(() => _config = cfg);
   }
 
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _noteCtr.removeListener(_onNoteCursorChanged);
-    _noteCtr.dispose();
-    _vaultScanner?.dispose();
-    super.dispose();
-  }
+
 
   Future<void> _loadInitialNote() async {
     final List<String> paths = [];
@@ -814,9 +874,9 @@ synced_at: null
     );
   }
   
-  Widget _buildLeftSidebar() {
+  Widget _buildLeftSidebar({bool isMobile = false}) {
     return Container(
-      width: 260,
+      width: isMobile ? null : 260,
       decoration: const BoxDecoration(
         color: EverforestColors.bg1, 
         border: Border(right: BorderSide(color: EverforestColors.bg2, width: 1)),
@@ -836,15 +896,16 @@ synced_at: null
                     Icon(Icons.keyboard_arrow_down, color: EverforestColors.grey, size: 20),
                   ],
                 ),
-                _buildHoverIconButton(
-                  _isLeftSidebarPinned ? Icons.push_pin : Icons.push_pin_outlined, 
-                  'Toggle Pin', 
-                  () => setState(() {
-                    _isLeftSidebarPinned = !_isLeftSidebarPinned;
-                    if (!_isLeftSidebarPinned) _leftSidebarOpen = false;
-                  }),
-                  color: _isLeftSidebarPinned ? _accentColor : EverforestColors.grey,
-                ),
+                if (!isMobile)
+                  _buildHoverIconButton(
+                    _isLeftSidebarPinned ? Icons.push_pin : Icons.push_pin_outlined, 
+                    'Toggle Pin', 
+                    () => setState(() {
+                      _isLeftSidebarPinned = !_isLeftSidebarPinned;
+                      if (!_isLeftSidebarPinned) _leftSidebarOpen = false;
+                    }),
+                    color: _isLeftSidebarPinned ? _accentColor : EverforestColors.grey,
+                  ),
               ],
             ),
           ),
@@ -886,12 +947,12 @@ synced_at: null
                   children: [
                     Icon(Icons.people, color: EverforestColors.green, size: 16),
                     SizedBox(width: 8),
-                    Text('LAN Co-editors', style: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text('Co-editors', style: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 8),
                 ValueListenableBuilder<Map<String, RemoteCursor>>(
-                  valueListenable: P2PTransferService.instance.cursorsNotifier,
+                  valueListenable: WebsocketSyncService.instance.cursorsNotifier,
                   builder: (context, cursors, _) {
                     if (cursors.isEmpty) {
                       return const Text('No active co-editors', style: TextStyle(color: EverforestColors.grey, fontSize: 11));
@@ -999,7 +1060,7 @@ synced_at: null
         onTap: onTap,
         hoverColor: Colors.white10,
         child: Padding(
-          padding: EdgeInsets.only(left: depth + 8.0, top: 6, bottom: 6, right: 8),
+          padding: EdgeInsets.only(left: depth + 8.0, top: 4, bottom: 4, right: 4),
           child: Row(
             children: [
               Icon(
@@ -1026,11 +1087,207 @@ synced_at: null
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 14, color: EverforestColors.grey),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 12,
+                color: EverforestColors.bg1,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'rename',
+                    child: Text('Rename', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                  ),
+                  const PopupMenuItem(
+                    value: 'move',
+                    child: Text('Move to folder', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Delete', style: TextStyle(color: EverforestColors.red, fontSize: 13)),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'rename') {
+                    _showRenameDialog(path, title);
+                  } else if (value == 'move') {
+                    _showMoveToFolderDialog(path, title);
+                  } else if (value == 'delete') {
+                    _showDeleteConfirmDialog(path, title);
+                  }
+                },
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _showRenameDialog(String path, String currentName) {
+    final controller = TextEditingController(text: currentName);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: const Text('Rename', style: TextStyle(color: EverforestColors.fg)),
+          content: TextField(
+            controller: controller,
+            style: const TextStyle(color: EverforestColors.fg),
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'New name',
+              hintStyle: TextStyle(color: EverforestColors.grey),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: EverforestColors.bg2),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: EverforestColors.green),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newName = controller.text.trim();
+                if (newName.isNotEmpty && newName != currentName) {
+                  final relPath = _getRelativePath(path);
+                  await ZenSyncService.instance.renameNode(relPath, newName);
+                  _refreshFileTree();
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Rename', style: TextStyle(color: EverforestColors.green)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmDialog(String path, String title) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: const Text('Delete Warning', style: TextStyle(color: EverforestColors.fg)),
+          content: Text('Are you sure you want to delete "$title"? This cannot be undone.', style: const TextStyle(color: EverforestColors.fg)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final relPath = _getRelativePath(path);
+                await ZenSyncService.instance.deleteNode(relPath);
+                if (_activeFilePath == path) {
+                  final idx = _openFilePaths.indexOf(path);
+                  if (idx >= 0) {
+                    _closeTab(idx);
+                  }
+                }
+                _refreshFileTree();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete', style: TextStyle(color: EverforestColors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<String> _getAllFolders() {
+    final List<String> folders = [_vaultPath];
+    void traverse(List<FileNode> list) {
+      for (final node in list) {
+        if (node.isDirectory) {
+          folders.add(node.path);
+          traverse(node.children);
+        }
+      }
+    }
+    traverse(_fileTree);
+    return folders;
+  }
+
+  void _showMoveToFolderDialog(String filePath, String fileName) {
+    final folders = _getAllFolders();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: Text('Move "$fileName" to folder', style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
+          content: SizedBox(
+            width: 300,
+            height: 300,
+            child: folders.isEmpty
+                ? const Center(child: Text('No folders found', style: TextStyle(color: EverforestColors.grey)))
+                : ListView.builder(
+                    itemCount: folders.length,
+                    itemBuilder: (context, index) {
+                      final folderPath = folders[index];
+                      final displayPath = folderPath == _vaultPath
+                          ? 'Vault Root'
+                          : _getRelativePath(folderPath);
+                      return ListTile(
+                        leading: const Icon(Icons.folder, color: EverforestColors.blue, size: 18),
+                        title: Text(displayPath, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                        dense: true,
+                        onTap: () async {
+                          Navigator.of(context).pop();
+                          await _moveFileToFolder(filePath, folderPath);
+                        },
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _moveFileToFolder(String oldFilePath, String newParentFolderPath) async {
+    final oldRelPath = _getRelativePath(oldFilePath);
+    final targetRelParent = _getRelativePath(newParentFolderPath);
+
+    try {
+      await ZenSyncService.instance.moveNode(oldRelPath, targetRelParent);
+      
+      final fileName = oldFilePath.split(RegExp(r'[/\\]')).last;
+      final newFilePath = newParentFolderPath == _vaultPath
+          ? '$_vaultPath/$fileName'
+          : '$newParentFolderPath/$fileName';
+
+      if (_activeFilePath == oldFilePath) {
+        _activeFilePath = newFilePath;
+      }
+      final idx = _openFilePaths.indexOf(oldFilePath);
+      if (idx >= 0) {
+        _openFilePaths[idx] = newFilePath;
+      }
+
+      _refreshFileTree();
+    } catch (e) {
+      debugPrint('Error moving file: $e');
+    }
   }
   
   Widget _buildRightSidebar({bool isMobile = false}) {
@@ -1309,28 +1566,65 @@ synced_at: null
                         ),
                       ),
                     Expanded(
-                      child: TextField(
-                        controller: _noteCtr,
-                        enabled: _activeFilePath != null,
-                        maxLines: null,
-                        expands: true,
-                        textAlignVertical: TextAlignVertical.top,
-                        style: const TextStyle(color: EverforestColors.fg, fontFamily: 'JetBrainsMono', fontSize: 16, height: 1.6),
-                        decoration: InputDecoration(
-                          hintText: _activeFilePath != null ? 'Start typing...' : 'No open file. Select or create a note.', 
-                          hintStyle: const TextStyle(color: EverforestColors.grey), 
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.only(top: 12),
-                        ),
-                        onChanged: (text) {
-                          if (_config?.showLineNumber == true) {
-                            setState(() {}); 
-                          }
-                          if (_debounce?.isActive ?? false) _debounce!.cancel();
-                          _debounce = Timer(const Duration(milliseconds: 800), () {
-                            _saveCurrentNote();
-                          });
-                        },
+                      child: Column(
+                        children: [
+                          ValueListenableBuilder<Map<String, RemoteCursor>>(
+                            valueListenable: WebsocketSyncService.instance.cursorsNotifier,
+                            builder: (context, cursors, child) {
+                              final activeInFile = cursors.values.where(
+                                (c) => _activeFilePath != null && _getRelativePath(_activeFilePath!) == c.filePath
+                              ).toList();
+                              
+                              if (activeInFile.isEmpty) return const SizedBox.shrink();
+                              
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.people, size: 16, color: EverforestColors.grey),
+                                    const SizedBox(width: 8),
+                                    ...activeInFile.map((c) => Padding(
+                                      padding: const EdgeInsets.only(right: 4.0),
+                                      child: Tooltip(
+                                        message: c.userId,
+                                        child: CircleAvatar(
+                                          radius: 12,
+                                          backgroundColor: _accentColor,
+                                          child: Text(c.userId.substring(0, 1).toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
+                                        ),
+                                      ),
+                                    )),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _noteCtr,
+                              enabled: _activeFilePath != null,
+                              maxLines: null,
+                              expands: true,
+                              textAlignVertical: TextAlignVertical.top,
+                              style: const TextStyle(color: EverforestColors.fg, fontFamily: 'JetBrainsMono', fontSize: 16, height: 1.6),
+                              decoration: InputDecoration(
+                                hintText: _activeFilePath != null ? 'Start typing...' : 'No open file. Select or create a note.', 
+                                hintStyle: const TextStyle(color: EverforestColors.grey), 
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.only(top: 12),
+                              ),
+                              onChanged: (text) {
+                                if (_config?.showLineNumber == true) {
+                                  setState(() {}); 
+                                }
+                                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                                _debounce = Timer(const Duration(milliseconds: 800), () {
+                                  _saveCurrentNote();
+                                });
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -1377,10 +1671,53 @@ synced_at: null
     );
   }
 
+  bool _isUserTyping() {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus == null) return false;
+    final context = primaryFocus.context;
+    if (context == null) return false;
+    
+    if (context.widget is EditableText) {
+      return true;
+    }
+    
+    bool isEditable = false;
+    context.visitAncestorElements((element) {
+      if (element.widget is EditableText) {
+        isEditable = true;
+        return false;
+      }
+      return true;
+    });
+    return isEditable;
+  }
+
   @override 
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return Focus(
+      onKeyEvent: (FocusNode node, KeyEvent event) {
+        if (event is KeyDownEvent) {
+          if (!_isUserTyping()) {
+            final key = event.logicalKey;
+            if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
+              spatialEngineKey.currentState?.nav(-1, 0);
+              return KeyEventResult.handled;
+            } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
+              spatialEngineKey.currentState?.nav(1, 0);
+              return KeyEventResult.handled;
+            } else if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+              spatialEngineKey.currentState?.nav(0, -1);
+              return KeyEventResult.handled;
+            } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+              spatialEngineKey.currentState?.nav(0, 1);
+              return KeyEventResult.handled;
+            }
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 768;
 
         if (isMobile) {
@@ -1395,7 +1732,7 @@ synced_at: null
                   children: [
                     _buildMobileRibbon(),
                     const Divider(height: 1, color: EverforestColors.bg1),
-                    Expanded(child: _buildLeftSidebar()),
+                    Expanded(child: _buildLeftSidebar(isMobile: true)),
                   ],
                 ),
               ),
@@ -1454,6 +1791,7 @@ synced_at: null
           ),
         );
       },
+    ),
     );
   }
 }

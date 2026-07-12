@@ -27,7 +27,7 @@ class MapsLiveFeedPreview extends StatelessWidget {
                 margin: const EdgeInsets.all(6),
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: EverforestColors.bg2.withOpacity(0.3),
+                  color: EverforestColors.bg2.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Column(

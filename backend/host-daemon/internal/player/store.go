@@ -3,8 +3,7 @@ package player
 import (
 	"encoding/json"
 	"log"
-	"os"
-	"sync"
+	"strings"
 	"time"
 )
 
@@ -16,98 +15,58 @@ type PlayerState struct {
 	LastActiveAt int64          `json:"last_active_at"`
 }
 
-var (
-	playerLock sync.RWMutex
-	state      PlayerState
-	playerFile = "./data/player.json"
-)
-
-func init() {
-	state = PlayerState{
-		XP:         15400,
-		Age:        30.0,
-		Willpower:  110.0,
-		Attributes: map[string]int{
-			"stamina":      100,
-			"intelligence": 150,
-			"focus":        120,
-			"charisma":     90,
-			"willpower":    110,
-		},
-	}
-	loadPlayerState()
-}
-
-func loadPlayerState() {
-	playerLock.Lock()
-	defer playerLock.Unlock()
-
-	data, err := os.ReadFile(playerFile)
+func GetPlayerState() PlayerState {
+	var state PlayerState
+	var attrs string
+	
+	err := DB.QueryRow("SELECT xp, age, willpower, attributes, last_active_at FROM player WHERE id = 'player-1'").Scan(
+		&state.XP, &state.Age, &state.Willpower, &attrs, &state.LastActiveAt)
 	if err != nil {
-		if os.IsNotExist(err) {
-			os.MkdirAll("./data", 0755)
-			savePlayerState()
-			return
-		}
-		log.Printf("Error reading player.json: %v", err)
-		return
-	}
-
-	if err := json.Unmarshal(data, &state); err != nil {
-		log.Printf("Error parsing player.json: %v", err)
+		log.Printf("Error fetching player state: %v", err)
+		return state
 	}
 	
+	json.Unmarshal([]byte(attrs), &state.Attributes)
 	if state.Attributes == nil {
-	    state.Attributes = make(map[string]int)
+		state.Attributes = make(map[string]int)
 	}
-}
-
-func savePlayerState() {
-	data, err := json.MarshalIndent(state, "", "  ")
-	if err != nil {
-		log.Printf("Error marshaling player state: %v", err)
-		return
-	}
-
-	if err := os.WriteFile(playerFile, data, 0644); err != nil {
-		log.Printf("Error writing player.json: %v", err)
-	}
-}
-
-func GetPlayerState() PlayerState {
-	playerLock.RLock()
-	defer playerLock.RUnlock()
 	return state
 }
 
 func UpdatePlayerXP(amount int) {
-	playerLock.Lock()
-	defer playerLock.Unlock()
+	state := GetPlayerState()
 	state.XP += amount
-	savePlayerState()
+	
+	_, err := DB.Exec("UPDATE player SET xp = ? WHERE id = 'player-1'", state.XP)
+	if err != nil {
+		log.Printf("Error updating player XP: %v", err)
+	}
 }
 
 func UpdateAttributeXP(attribute string, amount int) {
 	if attribute == "" {
 		return
 	}
-	playerLock.Lock()
-	defer playerLock.Unlock()
+	attribute = strings.ToLower(attribute)
+	
+	state := GetPlayerState()
 	if state.Attributes == nil {
 		state.Attributes = make(map[string]int)
 	}
 	state.Attributes[attribute] += amount
-	savePlayerState()
+	
+	attrs, _ := json.Marshal(state.Attributes)
+	_, err := DB.Exec("UPDATE player SET attributes = ? WHERE id = 'player-1'", string(attrs))
+	if err != nil {
+		log.Printf("Error updating player attribute XP: %v", err)
+	}
 }
 
 func ApplyDecay() {
-	playerLock.Lock()
-	defer playerLock.Unlock()
-
+	state := GetPlayerState()
 	now := time.Now().Unix()
 	if state.LastActiveAt == 0 {
-		state.LastActiveAt = now
-		savePlayerState()
+		DB.Exec("UPDATE player SET last_active_at = ? WHERE id = 'player-1'", now)
 		return
 	}
 
@@ -135,6 +94,6 @@ func ApplyDecay() {
 		}
 	}
 
-	state.LastActiveAt = now
-	savePlayerState()
+	attrs, _ := json.Marshal(state.Attributes)
+	DB.Exec("UPDATE player SET xp = ?, attributes = ?, last_active_at = ? WHERE id = 'player-1'", state.XP, string(attrs), now)
 }

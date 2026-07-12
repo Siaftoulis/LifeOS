@@ -15,7 +15,7 @@ class DiagRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _borderColor, width: 0.5),
       ),
@@ -38,8 +38,8 @@ class DiagRow extends StatelessWidget {
   };
 
   Color get _borderColor => switch (status) {
-    DiagStatus.healthy => Colors.greenAccent.withOpacity(0.15),
-    DiagStatus.connecting => Colors.orange.withOpacity(0.15),
-    DiagStatus.blocked => Colors.redAccent.withOpacity(0.15),
+    DiagStatus.healthy => Colors.greenAccent.withValues(alpha: 0.15),
+    DiagStatus.connecting => Colors.orange.withValues(alpha: 0.15),
+    DiagStatus.blocked => Colors.redAccent.withValues(alpha: 0.15),
   };
 }

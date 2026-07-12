@@ -57,7 +57,7 @@ class PreferencesDashboardView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'The App Drawer (Launcher) and Tailscale Mesh Monitor are now registered as standalone modules in the Spatial UI Registry, allowing you to configure and launch them directly on your spatial matrix grid.',
+                          'The App Drawer (Launcher) is now registered as a standalone module in the Spatial UI Registry, allowing you to configure and launch it directly on your spatial matrix grid.',
                           style: TextStyle(color: EverforestColors.grey, fontSize: 12, height: 1.5),
                         ),
                         const Spacer(),
