@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 import '../../../../theme/everforest_colors.dart';
-import '../../../database/database.dart';
-import '../../../database/chtm_dao.dart';
+import '../../../core/general_engine/engine_repository.dart';
+import '../../../core/general_engine/general_engine_client.dart';
 
 class CHTMCreateDialog extends StatefulWidget {
-  final ChtmDao dao;
   final DateTime selectedDate;
 
   const CHTMCreateDialog({
     super.key,
-    required this.dao,
     required this.selectedDate,
   });
 
@@ -21,7 +18,9 @@ class CHTMCreateDialog extends StatefulWidget {
 
 class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
   final _titleController = TextEditingController();
-  String _itemType = 'TASK'; // 'TASK', 'HABIT', 'EVENT'
+  final _sharedWithController = TextEditingController();
+  final _assignedToController = TextEditingController();
+  String _itemType = 'task'; // 'task', 'habit', 'event'
   
   // Event time properties
   TimeOfDay _startTime = const TimeOfDay(hour: 9, minute: 0);
@@ -31,6 +30,8 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
   @override
   void dispose() {
     _titleController.dispose();
+    _sharedWithController.dispose();
+    _assignedToController.dispose();
     super.dispose();
   }
 
@@ -38,7 +39,16 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    if (_itemType == 'TASK') {
+    final sharedWithRaw = _sharedWithController.text.trim();
+    final sharedWith = sharedWithRaw.isNotEmpty
+        ? sharedWithRaw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()
+        : <String>[];
+        
+    final assignedTo = _assignedToController.text.trim().isNotEmpty
+        ? _assignedToController.text.trim()
+        : null;
+
+    if (_itemType == 'task') {
       final dueDate = DateTime(
         widget.selectedDate.year,
         widget.selectedDate.month,
@@ -46,24 +56,43 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
         12, // default noon
       );
 
-      await widget.dao.insertTask(UserTasksCompanion.insert(
+      final entity = GeneralEngineEntity(
         id: const Uuid().v4(),
-        title: title,
-        status: const drift.Value('TODO'),
-        baseXp: const drift.Value(10),
-        dueDate: drift.Value(dueDate.millisecondsSinceEpoch),
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
-      ));
-    } else if (_itemType == 'HABIT') {
-      await widget.dao.insertHabit(UserHabitsCompanion.insert(
+        type: 'task',
+        creatorId: 'panospds',
+        payload: {
+          'title': title,
+          'status': 'todo',
+          'base_xp': 10,
+          'due_date': dueDate.toIso8601String(),
+        },
+        sharedWith: sharedWith,
+        assignedTo: assignedTo,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await EngineRepository.instance.saveEntity(entity);
+
+    } else if (_itemType == 'habit') {
+      final entity = GeneralEngineEntity(
         id: const Uuid().v4(),
-        name: title,
-        frequencyCron: '0 9 * * *', // Daily at 9am default
-        targetStreak: const drift.Value(21),
-        baseXp: const drift.Value(10),
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
-      ));
-    } else if (_itemType == 'EVENT') {
+        type: 'habit',
+        creatorId: 'panospds',
+        payload: {
+          'name': title,
+          'status': 'todo',
+          'frequency_cron': '0 9 * * *',
+          'target_streak': 21,
+          'base_xp': 10,
+        },
+        sharedWith: sharedWith,
+        assignedTo: assignedTo,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await EngineRepository.instance.saveEntity(entity);
+
+    } else if (_itemType == 'event') {
       final start = DateTime(
         widget.selectedDate.year,
         widget.selectedDate.month,
@@ -80,15 +109,22 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
         _endTime.minute,
       );
 
-      // Directly insert to database calendarEvents table using ChtmDao's db instance
-      await widget.dao.db.into(widget.dao.db.calendarEvents).insert(CalendarEventsCompanion.insert(
+      final entity = GeneralEngineEntity(
         id: const Uuid().v4(),
-        title: title,
-        startTime: start.millisecondsSinceEpoch,
-        endTime: end.millisecondsSinceEpoch,
-        colorCode: drift.Value(_colorCode),
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
-      ));
+        type: 'event',
+        creatorId: 'panospds',
+        payload: {
+          'title': title,
+          'start_time': start.toIso8601String(),
+          'end_time': end.toIso8601String(),
+          'color_code': _colorCode,
+        },
+        sharedWith: sharedWith,
+        assignedTo: assignedTo,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await EngineRepository.instance.saveEntity(entity);
     }
 
     if (mounted) {
@@ -120,9 +156,9 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 ),
                 style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
                 items: const [
-                  DropdownMenuItem(value: 'TASK', child: Text('Task')),
-                  DropdownMenuItem(value: 'HABIT', child: Text('Habit')),
-                  DropdownMenuItem(value: 'EVENT', child: Text('Calendar Event')),
+                  DropdownMenuItem(value: 'task', child: Text('Task')),
+                  DropdownMenuItem(value: 'habit', child: Text('Habit')),
+                  DropdownMenuItem(value: 'event', child: Text('Calendar Event')),
                 ],
                 onChanged: (val) {
                   if (val != null) {
@@ -136,13 +172,41 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 controller: _titleController,
                 style: const TextStyle(color: EverforestColors.fg),
                 decoration: InputDecoration(
-                  labelText: _itemType == 'HABIT' ? 'Habit Name' : 'Title',
+                  labelText: _itemType == 'habit' ? 'Habit Name' : 'Title',
                   labelStyle: const TextStyle(color: EverforestColors.grey),
                   enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
                   focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
                 ),
               ),
-              if (_itemType == 'EVENT') ...[
+              const SizedBox(height: 12),
+              // Shared With Field
+              TextField(
+                controller: _sharedWithController,
+                style: const TextStyle(color: EverforestColors.fg),
+                decoration: const InputDecoration(
+                  labelText: 'Share With (usernames, comma-separated)',
+                  hintText: 'e.g. alice, bob',
+                  hintStyle: TextStyle(color: EverforestColors.grey),
+                  labelStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Assigned To Field
+              TextField(
+                controller: _assignedToController,
+                style: const TextStyle(color: EverforestColors.fg),
+                decoration: const InputDecoration(
+                  labelText: 'Assign To (username)',
+                  hintText: 'e.g. alice',
+                  hintStyle: TextStyle(color: EverforestColors.grey),
+                  labelStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+                ),
+              ),
+              if (_itemType == 'event') ...[
                 const SizedBox(height: 24),
                 // Start Time
                 Row(

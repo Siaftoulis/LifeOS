@@ -20,9 +20,10 @@ class PreferencesService {
   static final ValueNotifier<List<List<String>>> layout = ValueNotifier([['home', 'configurator', 'rpg_hub']]);
   static final ValueNotifier<Map<String, String>> appCategories = ValueNotifier({});
   static final ValueNotifier<bool> appDrawerFolderView = ValueNotifier(true);
-  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
-  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('https://pds-laptop-old.husky-forel.ts.net');
+  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('http://192.168.1.47:50051');
+  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('http://192.168.1.47:50051');
   static final ValueNotifier<bool> showPerformanceOverlay = ValueNotifier(false);
+  static final ValueNotifier<bool> showConnectionStatusOverlay = ValueNotifier(false);
   static final ValueNotifier<List<String>> favoriteAssetIds = ValueNotifier([]);
 
   static Future<void> load({Directory? dir}) async {
@@ -51,9 +52,10 @@ class PreferencesService {
       if (data['layout'] != null) layout.value = sanitizeLayout((data['layout'] as List).map((r) => List<String>.from(r)).toList());
       if (data['appCategories'] != null) appCategories.value = (data['appCategories'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()));
       appDrawerFolderView.value = data['appDrawerFolderView'] ?? true;
-      cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
-      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'https://pds-laptop-old.husky-forel.ts.net';
+      cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'http://192.168.1.47:50051';
+      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'http://192.168.1.47:50051';
       showPerformanceOverlay.value = data['showPerformanceOverlay'] ?? false;
+      showConnectionStatusOverlay.value = data['showConnectionStatusOverlay'] ?? false;
       if (data['favoriteAssetIds'] != null) favoriteAssetIds.value = List<String>.from(data['favoriteAssetIds']);
     } catch (_) {}
   }
@@ -68,6 +70,7 @@ class PreferencesService {
         'userProfileJson': userProfileJson.value, 'appCategories': appCategories.value,
         'appDrawerFolderView': appDrawerFolderView.value, 'cachedBaseUrl': cachedBaseUrl.value,
         'cachedDaemonUrl': cachedDaemonUrl.value, 'showPerformanceOverlay': showPerformanceOverlay.value,
+        'showConnectionStatusOverlay': showConnectionStatusOverlay.value,
         'favoriteAssetIds': favoriteAssetIds.value,
       }));
       try {
@@ -98,4 +101,5 @@ class PreferencesService {
     appCategories.value = cur; await save();
   }
   static Future<void> setShowPerformanceOverlay(bool v) async { showPerformanceOverlay.value = v; await save(); }
+  static Future<void> setShowConnectionStatusOverlay(bool v) async { showConnectionStatusOverlay.value = v; await save(); }
 }

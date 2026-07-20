@@ -72,6 +72,8 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.lifeos.app',
+                keepBuffer: 3,
+                maxZoom: 19.0,
               ),
               if (widget.geofences.isNotEmpty)
                 CircleLayer(

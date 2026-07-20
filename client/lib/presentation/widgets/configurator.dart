@@ -206,6 +206,7 @@ class _SystemPreferencesPage extends StatelessWidget {
           PreferencesService.bgSync,
           PreferencesService.devMode,
           PreferencesService.showPerformanceOverlay,
+          PreferencesService.showConnectionStatusOverlay,
           PreferencesService.activeProfileRole,
         ]),
         builder: (context, _) {
@@ -236,6 +237,13 @@ class _SystemPreferencesPage extends StatelessWidget {
                       'Toggle real-time FPS and rendering performance graphs',
                       PreferencesService.showPerformanceOverlay.value,
                       isChild ? null : (val) => PreferencesService.setShowPerformanceOverlay(val),
+                    ),
+                    _buildDivider(),
+                    _buildToggleTile(
+                      'Connection Status Overlay',
+                      'Toggle real-time LOCAL WI-FI 🏠 vs HEADSCALE MESH 🌐 top badge',
+                      PreferencesService.showConnectionStatusOverlay.value,
+                      isChild ? null : (val) => PreferencesService.setShowConnectionStatusOverlay(val),
                     ),
                     _buildDivider(),
                     _buildActionTile(

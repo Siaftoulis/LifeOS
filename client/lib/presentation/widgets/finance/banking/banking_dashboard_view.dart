@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
-import '../../../../api_client.dart';
 import 'package:intl/intl.dart';
+import '../../../../theme/everforest_colors.dart';
+import '../../../../core/general_engine/engine_repository.dart';
+import '../../../../core/general_engine/general_engine_client.dart';
+import 'package:uuid/uuid.dart';
 
 class BankingDashboardView extends StatefulWidget {
   const BankingDashboardView({Key? key}) : super(key: key);
@@ -11,96 +13,177 @@ class BankingDashboardView extends StatefulWidget {
 }
 
 class _BankingDashboardViewState extends State<BankingDashboardView> {
-  double _balance = 0.0;
-  List<dynamic> _transactions = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    try {
-      final statusRes = await ApiClient.instance.getDaemon('/api/v1/banking/status');
-      final txsRes = await ApiClient.instance.getDaemon('/api/v1/banking/transactions');
-
-      if (mounted) {
-        setState(() {
-          _balance = (statusRes['balance'] ?? 0).toDouble();
-          _transactions = txsRes as List<dynamic>;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching banking data: $e');
-      if (mounted) {
-        setState(() { _isLoading = false; });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: EverforestColors.bg0,
-        body: Center(child: CircularProgressIndicator(color: EverforestColors.green)),
-      );
-    }
+    return ValueListenableBuilder<List<GeneralEngineEntity>>(
+      valueListenable: EngineRepository.instance.allEntities,
+      builder: (context, entities, child) {
+        final accounts = EngineRepository.instance.bankAccounts;
+        final transactions = EngineRepository.instance.bankTransactions;
 
-    return Scaffold(
-      backgroundColor: EverforestColors.bg0,
-      appBar: AppBar(
-        backgroundColor: EverforestColors.bg0,
-        elevation: 0,
-        title: const Text(
-          'Banking',
-          style: TextStyle(
-            color: EverforestColors.fg,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+        double totalBalance = 0.0;
+        for (var acc in accounts) {
+          totalBalance += (acc.payload['balance'] as num? ?? 0).toDouble();
+        }
+        if (accounts.isEmpty && transactions.isNotEmpty) {
+          for (var tx in transactions) {
+            double amt = (tx.payload['amount'] as num? ?? 0).toDouble();
+            if (tx.payload['type'] == 'income') {
+              totalBalance += amt;
+            } else {
+              totalBalance -= amt;
+            }
+          }
+        }
+
+        return Scaffold(
+          backgroundColor: EverforestColors.bg0,
+          appBar: AppBar(
+            backgroundColor: EverforestColors.bg0,
+            elevation: 0,
+            title: const Text(
+              'Banking & Finance',
+              style: TextStyle(
+                color: EverforestColors.fg,
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline, color: EverforestColors.green),
+                onPressed: () => _showAddTransactionDialog(context),
+              ),
+              const SizedBox(width: 8),
+              const CircleAvatar(
+                backgroundColor: EverforestColors.bg2,
+                child: Icon(Icons.person, color: EverforestColors.fg),
+              ),
+              const SizedBox(width: 16),
+            ],
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: EverforestColors.fg),
-            onPressed: () {},
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBalanceCard(totalBalance),
+                const SizedBox(height: 24),
+                _buildQuickActions(),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Budget Overview', 'Details'),
+                const SizedBox(height: 16),
+                _buildBudgetSplit(),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Recent Transactions', '${transactions.length} Total'),
+                const SizedBox(height: 16),
+                _buildTransactionsList(transactions),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            backgroundColor: EverforestColors.bg2,
-            child: Icon(Icons.person, color: EverforestColors.fg),
+        );
+      },
+    );
+  }
+
+  void _showAddTransactionDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final amountController = TextEditingController();
+    String category = 'Groceries';
+    String type = 'expense';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: EverforestColors.bg1,
+          title: const Text('Add Transaction', style: TextStyle(color: EverforestColors.fg)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                style: const TextStyle(color: EverforestColors.fg),
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  labelStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: EverforestColors.fg),
+                decoration: const InputDecoration(
+                  labelText: 'Amount (\$) ',
+                  labelStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  ChoiceChip(
+                    label: const Text('Expense'),
+                    selected: type == 'expense',
+                    onSelected: (val) => setDlgState(() => type = 'expense'),
+                    selectedColor: EverforestColors.red.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: const Text('Income'),
+                    selected: type == 'income',
+                    onSelected: (val) => setDlgState(() => type = 'income'),
+                    selectedColor: EverforestColors.green.withValues(alpha: 0.3),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBalanceCard(),
-            const SizedBox(height: 24),
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-            _buildSectionHeader('Budget Overview', 'Details'),
-            const SizedBox(height: 16),
-            _buildBudgetSplit(),
-            const SizedBox(height: 24),
-            _buildSectionHeader('Recent Transactions', 'View All'),
-            const SizedBox(height: 16),
-            _buildTransactionsList(),
-            const SizedBox(height: 32),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
+              onPressed: () async {
+                final title = titleController.text.trim();
+                final amt = double.tryParse(amountController.text.trim()) ?? 0.0;
+                if (title.isNotEmpty && amt > 0) {
+                  final entity = GeneralEngineEntity(
+                    id: const Uuid().v4(),
+                    type: 'bank_transaction',
+                    creatorId: 'local_user',
+                    payload: {
+                      'title': title,
+                      'amount': amt,
+                      'category': category,
+                      'type': type,
+                      'date': DateFormat('MMM dd, yyyy').format(DateTime.now()),
+                    },
+                    sharedWith: [],
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+                  await EngineRepository.instance.saveEntity(entity);
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Save', style: TextStyle(color: EverforestColors.bg0)),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildBalanceCard(double balance) {
     final currencyFormatter = NumberFormat.currency(symbol: '\$');
     return Container(
       padding: const EdgeInsets.all(24),
@@ -154,7 +237,7 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
           ),
           const SizedBox(height: 8),
           Text(
-            currencyFormatter.format(_balance),
+            currencyFormatter.format(balance),
             style: const TextStyle(
               color: EverforestColors.fg,
               fontSize: 36,
@@ -170,7 +253,7 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
                   icon: Icons.arrow_downward,
                   iconColor: EverforestColors.green,
                   label: 'Income',
-                  amount: '\$4,200.00', // Static for now, could be dynamic
+                  amount: '\$4,200.00',
                 ),
               ),
               Container(
@@ -308,9 +391,9 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Monthly Limit', style: TextStyle(color: EverforestColors.grey)),
-              Text('\$3,000', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+            children: [
+              const Text('Monthly Limit', style: TextStyle(color: EverforestColors.grey)),
+              const Text('\$3,000', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
@@ -348,30 +431,32 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
     );
   }
 
-  Widget _buildTransactionsList() {
-    if (_transactions.isEmpty) {
+  Widget _buildTransactionsList(List<GeneralEngineEntity> transactions) {
+    if (transactions.isEmpty) {
       return const Text('No recent transactions', style: TextStyle(color: EverforestColors.grey));
     }
     
     return Column(
-      children: _transactions.map((tx) {
+      children: transactions.map((txEntity) {
+        final tx = txEntity.payload;
         IconData icon = Icons.receipt_long;
         Color color = EverforestColors.grey;
-        String cat = tx['category'] ?? '';
+        String cat = tx['category'] as String? ?? 'General';
         if (cat == 'Groceries') { icon = Icons.shopping_cart_rounded; color = EverforestColors.orange; }
         else if (cat == 'Entertainment') { icon = Icons.movie_rounded; color = EverforestColors.purple; }
         else if (cat == 'Income') { icon = Icons.work_rounded; color = EverforestColors.green; }
         else if (cat == 'Utilities') { icon = Icons.flash_on_rounded; color = EverforestColors.yellow; }
         
         bool isIncome = tx['type'] == 'income';
+        double amt = (tx['amount'] as num? ?? 0).toDouble();
         
         return _buildTransactionItem(
           icon: icon,
           iconColor: color,
-          title: tx['title'] ?? 'Unknown',
+          title: tx['title'] as String? ?? 'Untitled Transaction',
           category: cat,
-          date: tx['date'] ?? '',
-          amount: '${isIncome ? '+' : '-'}\$${(tx['amount'] as num).abs().toStringAsFixed(2)}',
+          date: tx['date'] as String? ?? '',
+          amount: '${isIncome ? '+' : '-'}\$${amt.abs().toStringAsFixed(2)}',
           isIncome: isIncome,
         );
       }).toList(),

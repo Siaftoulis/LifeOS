@@ -98,40 +98,59 @@ class _GalleryMapViewState extends State<GalleryMapView> {
       }
     }
 
-    // Fetch up to 5000 items to find locations
-    final items = await _galleryService.fetchAllMedia(maxItems: 5000);
-    List<GalleryItem> mapped = [];
-    List<GalleryItem> unmapped = [];
-
-    // Filter items using the fast JSON cache or synchronously available coordinates
-    for (final item in items) {
-      if (item.latitude != null && item.longitude != null && 
-          item.latitude != 0.0 && item.longitude != 0.0) {
-        mapped.add(item);
-      } else if (locationCache.containsKey(item.id)) {
-        final loc = locationCache[item.id];
-        if (loc[0] != 0.0 && loc[1] != 0.0) {
-          item.latitude = loc[0];
-          item.longitude = loc[1];
-          mapped.add(item);
-        }
-      } else {
-        unmapped.add(item);
-      }
-    }
-
     // Instantly load the map with whatever is already cached
     if (mounted) {
       setState(() {
-        _mappedItems = List.from(mapped);
         _isLoading = false;
-        _updateMarkers();
       });
     }
 
-    // Start background processor for unmapped photos
-    if (unmapped.isNotEmpty) {
-      _processUnmappedItems(unmapped, locationCache, cacheFile);
+    // Start background processor
+    _processMapItemsInBackground(locationCache, cacheFile);
+  }
+
+  Future<void> _processMapItemsInBackground(Map<String, dynamic> locationCache, File cacheFile) async {
+    int page = 0;
+    bool hasMore = true;
+    while(hasMore) {
+      if (!mounted) break;
+      final chunk = await _galleryService.fetchMediaPage(page: page);
+      if (chunk.isEmpty || page > 50) { // Limit to ~4000 items
+        break;
+      }
+      
+      List<GalleryItem> mapped = [];
+      List<GalleryItem> unmapped = [];
+      
+      for (final item in chunk) {
+        if (item.latitude != null && item.longitude != null && 
+            item.latitude != 0.0 && item.longitude != 0.0) {
+          mapped.add(item);
+        } else if (locationCache.containsKey(item.id)) {
+          final loc = locationCache[item.id];
+          if (loc[0] != 0.0 && loc[1] != 0.0) {
+            item.latitude = loc[0];
+            item.longitude = loc[1];
+            mapped.add(item);
+          }
+        } else {
+          unmapped.add(item);
+        }
+      }
+      
+      if (mapped.isNotEmpty && mounted) {
+        setState(() {
+          _mappedItems.addAll(mapped);
+          _updateMarkers();
+        });
+      }
+      
+      if (unmapped.isNotEmpty) {
+        await _processUnmappedItems(unmapped, locationCache, cacheFile);
+      }
+      
+      page++;
+      await Future.delayed(const Duration(milliseconds: 50));
     }
   }
 

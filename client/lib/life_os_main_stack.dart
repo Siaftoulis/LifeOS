@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'presentation/widgets/home_screen/lock_screen_overlay.dart';
 import 'global_keys.dart';
 import 'spatial_engine_scaffold.dart';
+import 'database/preferences_service.dart';
+import 'api_client.dart';
+import 'theme/everforest_colors.dart';
 
 class LifeOSMainStack extends StatelessWidget {
   final bool isUnlocked;
@@ -57,6 +60,60 @@ class LifeOSMainStack extends StatelessWidget {
                   )
                 : const SizedBox.shrink(key: ValueKey('empty_lock')),
           ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: PreferencesService.showConnectionStatusOverlay,
+          builder: (context, show, _) {
+            if (!show || !isUnlocked) return const SizedBox.shrink();
+            return Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 16,
+              child: ValueListenableBuilder<String>(
+                valueListenable: ApiClient.instance.connectionStatusNotifier,
+                builder: (context, status, _) {
+                  final isMesh = status.contains('HEADSCALE');
+                  final color = isMesh ? EverforestColors.blue : EverforestColors.green;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: EverforestColors.bg1.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: color.withValues(alpha: 0.6), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: color,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          status,
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         ),
       ],
     );

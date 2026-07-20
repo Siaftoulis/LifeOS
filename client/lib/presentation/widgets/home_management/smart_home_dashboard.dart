@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;
 import '../../../theme/everforest_colors.dart';
-import '../../../database/database.dart';
-import '../../../api_client.dart';
+import '../../../core/general_engine/engine_repository.dart';
+import '../../../core/general_engine/general_engine_client.dart';
 
 class SmartHomeDashboard extends StatefulWidget {
   const SmartHomeDashboard({super.key});
@@ -12,62 +11,25 @@ class SmartHomeDashboard extends StatefulWidget {
 }
 
 class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
-  @override
-  void initState() {
-    super.initState();
-    _syncDevicesFromBackend();
-  }
+  Future<void> _toggleDevice(GeneralEngineEntity device) async {
+    final currentState = device.payload['state'] as String? ?? 'OFF';
+    final newState = currentState == 'ON' ? 'OFF' : 'ON';
+    
+    final updatedPayload = Map<String, dynamic>.from(device.payload);
+    updatedPayload['state'] = newState;
 
-  Future<void> _syncDevicesFromBackend() async {
-    try {
-      final res = await ApiClient.instance.getDaemon('/api/v1/home/devices');
-      if (res is List) {
-        final dao = AppDatabase.instance.homeManagementDao;
-        for (var item in res) {
-          final device = item as Map<String, dynamic>;
-          final id = device['device_id'] as String;
-          final existing = await dao.getDeviceById(id);
-          
-          final entry = SmartDevicesCompanion(
-            id: drift.Value(id),
-            name: drift.Value(device['name'] as String? ?? id),
-            type: drift.Value(device['type'] as String? ?? 'light'),
-            state: drift.Value(device['state'] as String? ?? 'OFF'),
-            isDirty: const drift.Value(0),
-          );
+    final updatedEntity = GeneralEngineEntity(
+      id: device.id,
+      type: device.type,
+      creatorId: device.creatorId,
+      payload: updatedPayload,
+      sharedWith: device.sharedWith,
+      assignedTo: device.assignedTo,
+      createdAt: device.createdAt,
+      updatedAt: DateTime.now(),
+    );
 
-          if (existing == null) {
-            await dao.insertDevice(entry);
-          } else {
-            await dao.updateDevice(entry);
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to sync smart home devices: $e');
-    }
-  }
-
-  Future<void> _toggleDevice(SmartDevice device) async {
-    try {
-      final res = await ApiClient.instance.postDaemon('/api/v1/home/devices/toggle', {
-        'device_id': device.id,
-      });
-      
-      if (res is Map<String, dynamic> && res['status'] == 'success') {
-        final newState = res['state'] as String;
-        final dao = AppDatabase.instance.homeManagementDao;
-        await dao.updateDevice(SmartDevicesCompanion(
-          id: drift.Value(device.id),
-          name: drift.Value(device.name),
-          type: drift.Value(device.type),
-          state: drift.Value(newState),
-          isDirty: const drift.Value(0),
-        ));
-      }
-    } catch (e) {
-      debugPrint('Failed to toggle smart device: $e');
-    }
+    await EngineRepository.instance.saveEntity(updatedEntity);
   }
 
   @override
@@ -117,13 +79,10 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
           ),
           const SizedBox(height: 24),
           Expanded(
-            child: StreamBuilder<List<SmartDevice>>(
-              stream: AppDatabase.instance.homeManagementDao.watchAllDevices(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
-                }
-                final devices = snapshot.data!;
+            child: ValueListenableBuilder<List<GeneralEngineEntity>>(
+              valueListenable: EngineRepository.instance.allEntities,
+              builder: (context, entities, child) {
+                final devices = EngineRepository.instance.smartDevices;
                 if (devices.isEmpty) {
                   return const Center(child: Text('No Smart Devices configured.', style: TextStyle(color: EverforestColors.grey)));
                 }
@@ -139,7 +98,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
                     return _buildDeviceCard(devices[index]);
                   },
                 );
-              }
+              },
             ),
           ),
         ],
@@ -147,11 +106,14 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
     );
   }
 
-  Widget _buildDeviceCard(SmartDevice device) {
-    final isOn = device.state == 'ON';
+  Widget _buildDeviceCard(GeneralEngineEntity device) {
+    final stateStr = device.payload['state'] as String? ?? 'OFF';
+    final isOn = stateStr == 'ON';
+    final type = device.payload['type'] as String? ?? 'light';
+    final name = device.payload['name'] as String? ?? device.id;
     
     IconData icon;
-    switch(device.type) {
+    switch(type) {
       case 'light': icon = isOn ? Icons.lightbulb : Icons.lightbulb_outline; break;
       case 'climate': icon = Icons.thermostat; break;
       case 'appliance': icon = Icons.kitchen; break;
@@ -196,7 +158,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                device.name,
+                name,
                 style: const TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
@@ -205,7 +167,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
               ),
               const SizedBox(height: 4),
               Text(
-                device.state,
+                stateStr,
                 style: TextStyle(
                   color: isOn ? EverforestColors.green : EverforestColors.grey,
                   fontSize: 12,

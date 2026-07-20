@@ -7,7 +7,9 @@ class RpgService {
       final data = await ApiClient.instance.getDaemon('/api/v1/player/stats');
       return PlayerStats.fromJson(data);
     } catch (e) {
-      print('Error fetching player stats: $e');
+      if (!e.toString().contains('Connection refused')) {
+        print('Error fetching player stats: $e');
+      }
       return PlayerStats.fromJson({
         'age': 25.0,
         'xp': 1250,
@@ -27,7 +29,9 @@ class RpgService {
       final data = await ApiClient.instance.getDaemon('/api/v1/illness/current');
       return IllnessState.fromJson(data);
     } catch (e) {
-      print('Error fetching current illness: $e');
+      if (!e.toString().contains('Connection refused')) {
+        print('Error fetching current illness: $e');
+      }
       return IllnessState.fromJson({
         'type': 'healthy',
         'is_active': false,

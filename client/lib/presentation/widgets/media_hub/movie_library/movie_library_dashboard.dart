@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
-import '../../../../api_client.dart';
+import '../../../../core/general_engine/engine_repository.dart';
+import '../../../../core/general_engine/general_engine_client.dart';
 
 class MovieLibraryDashboard extends StatelessWidget {
   const MovieLibraryDashboard({super.key});
-
-  Future<List<dynamic>> _fetchMovies() async {
-    try {
-      final res = await ApiClient.instance.getDaemon('/api/v1/movies');
-      return res as List<dynamic>;
-    } catch (e) {
-      debugPrint('Error fetching movies: $e');
-      return [];
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,17 +16,13 @@ class MovieLibraryDashboard extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: EverforestColors.fg),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _fetchMovies(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
-          }
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+      body: ValueListenableBuilder<List<GeneralEngineEntity>>(
+        valueListenable: EngineRepository.instance.allEntities,
+        builder: (context, entities, child) {
+          final movies = EngineRepository.instance.movies;
+          if (movies.isEmpty) {
             return const Center(child: Text('No movies found', style: TextStyle(color: EverforestColors.fg)));
           }
-
-          final movies = snapshot.data!;
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -48,7 +35,8 @@ class MovieLibraryDashboard extends StatelessWidget {
               ),
               itemCount: movies.length,
               itemBuilder: (context, index) {
-                final movie = movies[index];
+                final movieEntity = movies[index];
+                final movie = movieEntity.payload;
                 Color movieColor = EverforestColors.bg2;
                 if (movie['color'] != null) {
                   try {
@@ -102,7 +90,7 @@ class MovieLibraryDashboard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                movie['title'] ?? 'Unknown',
+                                movie['title'] as String? ?? 'Unknown Title',
                                 style: const TextStyle(
                                   color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
-import 'leaderboard_card.dart';
 import 'voucher_redeemer_panel.dart';
 import '../../../../api_client.dart';
 import '../quests/quest_pool_list.dart';

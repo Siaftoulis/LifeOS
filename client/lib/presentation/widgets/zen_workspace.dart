@@ -14,6 +14,9 @@ import '../../core/p2p_models.dart';
 import '../../theme/everforest_colors.dart';
 import '../../database/layout_sanitizer.dart';
 import '../../database/database.dart';
+import '../../core/general_engine/engine_repository.dart';
+import '../../core/general_engine/general_engine_client.dart';
+import 'package:uuid/uuid.dart';
 
 class MarkdownEditingController extends TextEditingController {
   @override
@@ -356,6 +359,37 @@ synced_at: null
     }).catchError((e) {
       debugPrint('Daemon sync failed: $e');
     });
+
+    // --- GENERAL ENGINE GAMIFICATION HOOK ---
+    final words = text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
+    final isDailyNote = relativePath.contains('Daily/') || relativePath.contains('Daily\\');
+
+    if (isDailyNote || words >= 20) {
+      final zenEntity = GeneralEngineEntity(
+        id: const Uuid().v4(),
+        type: 'zen_log',
+        creatorId: 'panospds',
+        payload: {
+          'file_path': relativePath,
+          'word_count': words,
+          'saved_at': DateTime.now().toIso8601String(),
+        },
+        sharedWith: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      EngineRepository.instance.saveEntity(zenEntity);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✨ +20 XP Earned for Zen Writing!'),
+            backgroundColor: EverforestColors.purple,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _openOrCreateDailyNote() {

@@ -30,6 +30,7 @@ import (
 	"lifeos/host-daemon/internal/vm"
 	"lifeos/host-daemon/internal/voice"
 	"lifeos/host-daemon/internal/youtube"
+	"lifeos/host-daemon/internal/engine"
 	"log"
 	"net/http"
 )
@@ -143,6 +144,7 @@ func main() {
 	illness.RegisterRoutes(mux)
 	player.RegisterRoutes(mux)
 	knowledge.RegisterRoutes(mux)
+	engine.RegisterRoutes(mux)
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)

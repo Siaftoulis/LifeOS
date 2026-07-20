@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;
 import '../../../../theme/everforest_colors.dart';
-import '../../../../database/database.dart';
-import '../../../../api_client.dart';
+import '../../../../core/general_engine/engine_repository.dart';
+import '../../../../core/general_engine/general_engine_client.dart';
 
 class YoutubeClientDashboard extends StatefulWidget {
   const YoutubeClientDashboard({super.key});
@@ -12,42 +11,6 @@ class YoutubeClientDashboard extends StatefulWidget {
 }
 
 class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
-  @override
-  void initState() {
-    super.initState();
-    _syncVideosFromBackend();
-  }
-
-  Future<void> _syncVideosFromBackend() async {
-    try {
-      final res = await ApiClient.instance.getDaemon('/api/v1/youtube/videos');
-      if (res is List) {
-        final dao = AppDatabase.instance.youtubeDao;
-        for (var item in res) {
-          final video = item as Map<String, dynamic>;
-          
-          final entry = YoutubeDownloadsCompanion(
-            id: drift.Value(video['id'] as String),
-            videoId: drift.Value(video['id'] as String),
-            title: drift.Value(video['title'] as String),
-            filePath: const drift.Value('/data/media/stub.mp4'),
-            sizeBytes: drift.Value(int.tryParse(video['size'].toString().replaceAll(RegExp(r'[^0-9]'), '')) ?? 0),
-            createdAt: drift.Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-            isDirty: const drift.Value(0),
-          );
-
-          try {
-            await dao.insertDownload(entry);
-          } catch (_) {
-            // update if needed
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to sync videos: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,13 +33,10 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: StreamBuilder<List<YoutubeDownload>>(
-          stream: AppDatabase.instance.youtubeDao.watchDownloads(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator(color: EverforestColors.red));
-            }
-            final videos = snapshot.data!;
+        child: ValueListenableBuilder<List<GeneralEngineEntity>>(
+          valueListenable: EngineRepository.instance.allEntities,
+          builder: (context, entities, child) {
+            final videos = EngineRepository.instance.youtubeVideos;
             if (videos.isEmpty) {
               return const Center(child: Text('No videos downloaded.', style: TextStyle(color: EverforestColors.grey)));
             }
@@ -89,7 +49,11 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
               ),
               itemCount: videos.length,
               itemBuilder: (context, index) {
-                final video = videos[index];
+                final videoEntity = videos[index];
+                final video = videoEntity.payload;
+                final title = video['title'] as String? ?? 'Untitled Video';
+                final sizeBytes = (video['size_bytes'] as num? ?? 0).toInt();
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -122,7 +86,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                           backgroundColor: EverforestColors.bg2,
                           radius: 20,
                           child: Text(
-                            video.title.isNotEmpty ? video.title[0] : 'Y',
+                            title.isNotEmpty ? title[0] : 'Y',
                             style: const TextStyle(
                               color: EverforestColors.fg,
                               fontWeight: FontWeight.bold,
@@ -135,7 +99,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                video.title,
+                                title,
                                 style: const TextStyle(
                                   color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,
@@ -146,7 +110,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Size: ${(video.sizeBytes / 1024 / 1024).toStringAsFixed(1)} MB',
+                                'Size: ${(sizeBytes / 1024 / 1024).toStringAsFixed(1)} MB',
                                 style: const TextStyle(
                                   color: EverforestColors.grey,
                                   fontSize: 13,

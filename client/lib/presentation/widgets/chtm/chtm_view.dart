@@ -126,7 +126,6 @@ class _CHTMViewState extends State<CHTMView> {
           ),
           const SizedBox(height: 16),
           CHTMDailyList(
-            dao: dao,
             selectedDate: _selectedDate,
           ),
           const SizedBox(height: 24),

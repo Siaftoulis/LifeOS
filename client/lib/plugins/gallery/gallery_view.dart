@@ -106,19 +106,45 @@ class _GalleryViewState extends State<GalleryView> {
     });
 
     if (hasPermission) {
-      final items = await _galleryService.fetchAllMedia(albumId: widget.albumId);
+      final initialItems = await _galleryService.fetchMediaPage(page: 0, albumId: widget.albumId);
       final cloudIds = await CloudGalleryService.fetchCloudAssetIds();
       
       setState(() {
-        _items = items;
+        _items = initialItems;
         _cloudAssetIds = cloudIds;
+        _isLoading = false;
         _applyFilters();
       });
-    }
 
-    setState(() {
-      _isLoading = false;
-    });
+      _loadRemainingMediaInBackground();
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadRemainingMediaInBackground() async {
+    int page = 1;
+    bool hasMore = true;
+    while (hasMore) {
+      if (!mounted) break;
+      final moreItems = await _galleryService.fetchMediaPage(page: page, albumId: widget.albumId);
+      if (moreItems.isEmpty) {
+        hasMore = false;
+        break;
+      }
+      
+      if (mounted) {
+        setState(() {
+          _items.addAll(moreItems);
+          _items.sort((a, b) => b.date.compareTo(a.date));
+          _applyFilters();
+        });
+      }
+      page++;
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
   }
 
   // Raw pointer state for pinch zoom

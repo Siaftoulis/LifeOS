@@ -23057,13 +23057,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
             ],
           ),
           WritePropagation(
-            on: TableUpdateQuery.onTableName('system_users',
-                limitUpdateKind: UpdateKind.delete),
-            result: [
-              TableUpdate('points_ledgers', kind: UpdateKind.delete),
-            ],
-          ),
-          WritePropagation(
             on: TableUpdateQuery.onTableName('zen_nodes',
                 limitUpdateKind: UpdateKind.delete),
             result: [
@@ -32079,25 +32072,6 @@ typedef $$SystemUsersTableUpdateCompanionBuilder = SystemUsersCompanion
   Value<int> rowid,
 });
 
-final class $$SystemUsersTableReferences
-    extends BaseReferences<_$AppDatabase, $SystemUsersTable, SystemUser> {
-  $$SystemUsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$PointsLedgersTable, List<PointsLedger>>
-      _pointsLedgersRefsTable(_$AppDatabase db) =>
-          MultiTypedResultKey.fromTable(db.pointsLedgers,
-              aliasName: 'system_users__id__points_ledgers__user_id');
-
-  $$PointsLedgersTableProcessedTableManager get pointsLedgersRefs {
-    final manager = $$PointsLedgersTableTableManager($_db, $_db.pointsLedgers)
-        .filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_pointsLedgersRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
 class $$SystemUsersTableFilterComposer
     extends Composer<_$AppDatabase, $SystemUsersTable> {
   $$SystemUsersTableFilterComposer({
@@ -32131,27 +32105,6 @@ class $$SystemUsersTableFilterComposer
 
   ColumnFilters<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> pointsLedgersRefs(
-      Expression<bool> Function($$PointsLedgersTableFilterComposer f) f) {
-    final $$PointsLedgersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.pointsLedgers,
-        getReferencedColumn: (t) => t.userId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$PointsLedgersTableFilterComposer(
-              $db: $db,
-              $table: $db.pointsLedgers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
 }
 
 class $$SystemUsersTableOrderingComposer
@@ -32223,27 +32176,6 @@ class $$SystemUsersTableAnnotationComposer
 
   GeneratedColumn<int> get isDirty =>
       $composableBuilder(column: $table.isDirty, builder: (column) => column);
-
-  Expression<T> pointsLedgersRefs<T extends Object>(
-      Expression<T> Function($$PointsLedgersTableAnnotationComposer a) f) {
-    final $$PointsLedgersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.pointsLedgers,
-        getReferencedColumn: (t) => t.userId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$PointsLedgersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.pointsLedgers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
 }
 
 class $$SystemUsersTableTableManager extends RootTableManager<
@@ -32255,9 +32187,9 @@ class $$SystemUsersTableTableManager extends RootTableManager<
     $$SystemUsersTableAnnotationComposer,
     $$SystemUsersTableCreateCompanionBuilder,
     $$SystemUsersTableUpdateCompanionBuilder,
-    (SystemUser, $$SystemUsersTableReferences),
+    (SystemUser, BaseReferences<_$AppDatabase, $SystemUsersTable, SystemUser>),
     SystemUser,
-    PrefetchHooks Function({bool pointsLedgersRefs})> {
+    PrefetchHooks Function()> {
   $$SystemUsersTableTableManager(_$AppDatabase db, $SystemUsersTable table)
       : super(TableManagerState(
           db: db,
@@ -32313,37 +32245,9 @@ class $$SystemUsersTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$SystemUsersTableReferences(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({pointsLedgersRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (pointsLedgersRefs) db.pointsLedgers
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (pointsLedgersRefs)
-                    await $_getPrefetchedData<SystemUser, $SystemUsersTable,
-                            PointsLedger>(
-                        currentTable: table,
-                        referencedTable: $$SystemUsersTableReferences
-                            ._pointsLedgersRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$SystemUsersTableReferences(db, table, p0)
-                                .pointsLedgersRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.userId == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ));
 }
 
@@ -32356,9 +32260,9 @@ typedef $$SystemUsersTableProcessedTableManager = ProcessedTableManager<
     $$SystemUsersTableAnnotationComposer,
     $$SystemUsersTableCreateCompanionBuilder,
     $$SystemUsersTableUpdateCompanionBuilder,
-    (SystemUser, $$SystemUsersTableReferences),
+    (SystemUser, BaseReferences<_$AppDatabase, $SystemUsersTable, SystemUser>),
     SystemUser,
-    PrefetchHooks Function({bool pointsLedgersRefs})>;
+    PrefetchHooks Function()>;
 typedef $$LocalNotificationsTableCreateCompanionBuilder
     = LocalNotificationsCompanion Function({
   required String id,
@@ -36380,26 +36284,6 @@ typedef $$PointsLedgersTableUpdateCompanionBuilder = PointsLedgersCompanion
   Value<int> rowid,
 });
 
-final class $$PointsLedgersTableReferences
-    extends BaseReferences<_$AppDatabase, $PointsLedgersTable, PointsLedger> {
-  $$PointsLedgersTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static $SystemUsersTable _userIdTable(_$AppDatabase db) =>
-      db.systemUsers.createAlias('points_ledgers__user_id__system_users__id');
-
-  $$SystemUsersTableProcessedTableManager get userId {
-    final $_column = $_itemColumn<String>('user_id')!;
-
-    final manager = $$SystemUsersTableTableManager($_db, $_db.systemUsers)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-}
-
 class $$PointsLedgersTableFilterComposer
     extends Composer<_$AppDatabase, $PointsLedgersTable> {
   $$PointsLedgersTableFilterComposer({
@@ -36412,6 +36296,9 @@ class $$PointsLedgersTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get event => $composableBuilder(
       column: $table.event, builder: (column) => ColumnFilters(column));
 
@@ -36423,26 +36310,6 @@ class $$PointsLedgersTableFilterComposer
 
   ColumnFilters<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnFilters(column));
-
-  $$SystemUsersTableFilterComposer get userId {
-    final $$SystemUsersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userId,
-        referencedTable: $db.systemUsers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SystemUsersTableFilterComposer(
-              $db: $db,
-              $table: $db.systemUsers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$PointsLedgersTableOrderingComposer
@@ -36457,6 +36324,9 @@ class $$PointsLedgersTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get event => $composableBuilder(
       column: $table.event, builder: (column) => ColumnOrderings(column));
 
@@ -36468,26 +36338,6 @@ class $$PointsLedgersTableOrderingComposer
 
   ColumnOrderings<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnOrderings(column));
-
-  $$SystemUsersTableOrderingComposer get userId {
-    final $$SystemUsersTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userId,
-        referencedTable: $db.systemUsers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SystemUsersTableOrderingComposer(
-              $db: $db,
-              $table: $db.systemUsers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$PointsLedgersTableAnnotationComposer
@@ -36502,6 +36352,9 @@ class $$PointsLedgersTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
   GeneratedColumn<String> get event =>
       $composableBuilder(column: $table.event, builder: (column) => column);
 
@@ -36513,26 +36366,6 @@ class $$PointsLedgersTableAnnotationComposer
 
   GeneratedColumn<int> get isDirty =>
       $composableBuilder(column: $table.isDirty, builder: (column) => column);
-
-  $$SystemUsersTableAnnotationComposer get userId {
-    final $$SystemUsersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userId,
-        referencedTable: $db.systemUsers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SystemUsersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.systemUsers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$PointsLedgersTableTableManager extends RootTableManager<
@@ -36544,9 +36377,12 @@ class $$PointsLedgersTableTableManager extends RootTableManager<
     $$PointsLedgersTableAnnotationComposer,
     $$PointsLedgersTableCreateCompanionBuilder,
     $$PointsLedgersTableUpdateCompanionBuilder,
-    (PointsLedger, $$PointsLedgersTableReferences),
+    (
+      PointsLedger,
+      BaseReferences<_$AppDatabase, $PointsLedgersTable, PointsLedger>
+    ),
     PointsLedger,
-    PrefetchHooks Function({bool userId})> {
+    PrefetchHooks Function()> {
   $$PointsLedgersTableTableManager(_$AppDatabase db, $PointsLedgersTable table)
       : super(TableManagerState(
           db: db,
@@ -36594,46 +36430,9 @@ class $$PointsLedgersTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$PointsLedgersTableReferences(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({userId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic>>(state) {
-                if (userId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.userId,
-                    referencedTable:
-                        $$PointsLedgersTableReferences._userIdTable(db),
-                    referencedColumn:
-                        $$PointsLedgersTableReferences._userIdTable(db).id,
-                  ) as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ));
 }
 
@@ -36646,9 +36445,12 @@ typedef $$PointsLedgersTableProcessedTableManager = ProcessedTableManager<
     $$PointsLedgersTableAnnotationComposer,
     $$PointsLedgersTableCreateCompanionBuilder,
     $$PointsLedgersTableUpdateCompanionBuilder,
-    (PointsLedger, $$PointsLedgersTableReferences),
+    (
+      PointsLedger,
+      BaseReferences<_$AppDatabase, $PointsLedgersTable, PointsLedger>
+    ),
     PointsLedger,
-    PrefetchHooks Function({bool userId})>;
+    PrefetchHooks Function()>;
 typedef $$VouchersTableCreateCompanionBuilder = VouchersCompanion Function({
   required String id,
   required String title,

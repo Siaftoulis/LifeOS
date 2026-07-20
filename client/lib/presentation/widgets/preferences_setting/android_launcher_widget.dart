@@ -38,7 +38,9 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading app costs: $e');
+      if (!e.toString().contains('Connection refused')) {
+        debugPrint('Error loading app costs: $e');
+      }
     }
   }
 
@@ -81,7 +83,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
           AppInfo.create({"name": "Games", "package_name": "com.games.retro"}),
         ];
       } else {
-        fetchedApps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true);
+        fetchedApps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: false);
       }
 
       if (mounted) {
@@ -106,6 +108,19 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
           _isLoading = false;
         });
         await _categorizeMissingApps();
+        
+        // Background fetch for icons
+        if (!Platform.isWindows) {
+          InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true).then((appsWithIcons) {
+            if (mounted) {
+              setState(() {
+                _apps = appsWithIcons.where((a) => a.packageName != 'com.example.lifeos_client').toList();
+              });
+            }
+          }).catchError((e) {
+            debugPrint("Error loading icons in background: $e");
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error loading apps: $e");

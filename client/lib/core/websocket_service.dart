@@ -22,7 +22,9 @@ class WebSocketService {
           }
         },
         onError: (error) {
-          debugPrint("WebSocket error: $error");
+          if (!error.toString().contains('Connection refused')) {
+            debugPrint("WebSocket error: $error");
+          }
           _reconnect();
         },
         onDone: () {
@@ -31,7 +33,9 @@ class WebSocketService {
         },
       );
     } catch (e) {
-      debugPrint("WebSocket connect error: $e");
+      if (!e.toString().contains('Connection refused')) {
+        debugPrint("WebSocket connect error: $e");
+      }
       _reconnect();
     }
   }

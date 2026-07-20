@@ -33,7 +33,9 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
         });
       }
     } catch (e) {
-      debugPrint('Error fetching knowledge base data: $e');
+      if (!e.toString().contains('Connection refused')) {
+        debugPrint('Error fetching knowledge base data: $e');
+      }
       if (mounted) {
         setState(() => _isLoading = false);
       }

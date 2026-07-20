@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/everforest_colors.dart';
-import '../database/database.dart';
 import '../presentation/widgets/home_view.dart';
 import '../presentation/widgets/configurator.dart';
 import '../presentation/widgets/void_slot.dart';
