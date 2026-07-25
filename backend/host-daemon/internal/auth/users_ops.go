@@ -62,6 +62,19 @@ func GetUsers() []User {
 	return list
 }
 
+func GetUserByUsername(username string) (*User, bool) {
+	usersLock.RLock()
+	defer usersLock.RUnlock()
+
+	user, exists := usersMap[username]
+	if !exists {
+		return nil, false
+	}
+	uCopy := user
+	uCopy.PasswordHash = ""
+	return &uCopy, true
+}
+
 func UpdateProfile(username, displayName, status, avatar string) bool {
 	usersLock.Lock()
 	defer usersLock.Unlock()

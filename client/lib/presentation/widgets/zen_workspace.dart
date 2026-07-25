@@ -9,45 +9,15 @@ import '../../core/obsidian/config_parser.dart';
 import '../../core/obsidian/vault_scanner.dart';
 import '../../core/obsidian/zen_sync_service.dart';
 import '../../core/obsidian/websocket_sync_service.dart';
-import '../../core/p2p_transfer_service.dart';
 import '../../core/p2p_models.dart';
 import '../../theme/everforest_colors.dart';
+import '../theme/zen_markdown_controller.dart';
+import '../theme/zen_theme_service.dart';
 import '../../database/layout_sanitizer.dart';
 import '../../database/database.dart';
 import '../../core/general_engine/engine_repository.dart';
 import '../../core/general_engine/general_engine_client.dart';
 import 'package:uuid/uuid.dart';
-
-class MarkdownEditingController extends TextEditingController {
-  @override
-  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
-    List<TextSpan> spans = [];
-    final text = this.text;
-    
-    final RegExp syntaxExp = RegExp(r'(\*\*.*?\*\*)|(# .*)');
-    int lastMatchEnd = 0;
-    
-    for (final match in syntaxExp.allMatches(text)) {
-      if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start), style: style));
-      }
-      spans.add(TextSpan(
-        text: match.group(0), 
-        style: style?.copyWith(
-          color: EverforestColors.green,
-          fontWeight: FontWeight.bold,
-        ),
-      ));
-      lastMatchEnd = match.end;
-    }
-    
-    if (lastMatchEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastMatchEnd), style: style));
-    }
-    
-    return TextSpan(children: spans, style: style);
-  }
-}
 
 class FileNode {
   final String name;
@@ -70,7 +40,7 @@ class ZenWorkspace extends StatefulWidget {
 }
 
 class _ZenWorkspaceState extends State<ZenWorkspace> {
-  final MarkdownEditingController _noteCtr = MarkdownEditingController();
+  late final ZenMarkdownEditingController _noteCtr;
   Timer? _debounce;
   ObsidianConfig? _config;
   VaultScanner? _vaultScanner;
@@ -96,6 +66,9 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   @override
   void initState() {
     super.initState();
+    _noteCtr = ZenMarkdownEditingController(
+      onTaskToggleAtOffset: _handleLiveEditTaskToggleAtOffset,
+    );
     _noteCtr.addListener(_onNoteCursorChanged);
     _initWorkspace();
 
@@ -110,11 +83,44 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         _isRemoteUpdate = true;
         final currentSelection = _noteCtr.selection;
         _noteCtr.text = textContent;
-        // Try to maintain local cursor position safely
         if (currentSelection.baseOffset >= 0 && currentSelection.baseOffset <= textContent.length) {
           _noteCtr.selection = currentSelection;
         }
         _isRemoteUpdate = false;
+      }
+    });
+  }
+
+  void _handleLiveEditTaskToggleAtOffset(int matchOffset, bool currentChecked) {
+    Future.microtask(() {
+      if (!mounted) return;
+      final text = _noteCtr.text;
+      final taskRegex = RegExp(r'^[ \t]*(?:[\*\-\+]\s+)?\[([ xX])\]', multiLine: true);
+
+      Match? closestMatch;
+      int minDiff = 999999;
+
+      for (final match in taskRegex.allMatches(text)) {
+        final diff = (match.start - matchOffset).abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestMatch = match;
+        }
+      }
+
+      if (closestMatch != null && minDiff < 60) {
+        final flagStart = closestMatch.start + closestMatch.group(0)!.lastIndexOf('[') + 1;
+        final newFlag = currentChecked ? ' ' : 'x';
+
+        final newText = text.substring(0, flagStart) + newFlag + text.substring(flagStart + 1);
+        final currentSelection = _noteCtr.selection;
+        setState(() {
+          _noteCtr.value = TextEditingValue(
+            text: newText,
+            selection: currentSelection,
+          );
+        });
+        _saveCurrentNote();
       }
     });
   }
@@ -379,16 +385,6 @@ synced_at: null
         updatedAt: DateTime.now(),
       );
       EngineRepository.instance.saveEntity(zenEntity);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✨ +20 XP Earned for Zen Writing!'),
-            backgroundColor: EverforestColors.purple,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
     }
   }
 
@@ -1640,12 +1636,18 @@ synced_at: null
                               maxLines: null,
                               expands: true,
                               textAlignVertical: TextAlignVertical.top,
-                              style: const TextStyle(color: EverforestColors.fg, fontFamily: 'JetBrainsMono', fontSize: 16, height: 1.6),
+                              strutStyle: const StrutStyle(forceStrutHeight: false),
+                              style: TextStyle(
+                                color: ZenThemeService.instance.current.fg,
+                                fontFamily: ZenThemeService.instance.fontFamily == 'System Default' ? null : ZenThemeService.instance.fontFamily,
+                                fontSize: ZenThemeService.instance.fontSize,
+                                height: 1.6,
+                              ),
                               decoration: InputDecoration(
                                 hintText: _activeFilePath != null ? 'Start typing...' : 'No open file. Select or create a note.', 
                                 hintStyle: const TextStyle(color: EverforestColors.grey), 
                                 border: InputBorder.none,
-                                contentPadding: const EdgeInsets.only(top: 12),
+                                contentPadding: const EdgeInsets.fromLTRB(0, 28, 0, 18),
                               ),
                               onChanged: (text) {
                                 if (_config?.showLineNumber == true) {

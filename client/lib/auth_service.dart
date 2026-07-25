@@ -75,11 +75,26 @@ class AuthService {
     return false;
   }
 
+  Future<bool> validateSession() async {
+    if (_token == null || _token!.isEmpty) return false;
+    try {
+      final res = await ApiClient.instance.getDaemon('/api/v1/auth/me');
+      if (res['authenticated'] == true && res['user'] != null) {
+        currentUser.value = UserProfile.fromJson(res['user']);
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Session validation failed: $e');
+    }
+    return false;
+  }
+
   void restoreSession(String token, String userJson) {
     _token = token;
     if (userJson.isNotEmpty) {
       try {
         currentUser.value = UserProfile.fromJson(jsonDecode(userJson));
+        validateSession();
       } catch (e) {
         debugPrint('Error restoring user session: $e');
       }

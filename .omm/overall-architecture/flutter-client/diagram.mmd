@@ -1,0 +1,15 @@
+flowchart TD
+  node_main["main.dart<br/>Client Entry"]
+  node_bootstrap["app_bootstrap.dart<br/>Initialization"]
+  node_shell["life_os_main_stack.dart<br/>Spatial UI Shell"]
+  node_registry["feature_registry.dart<br/>Plugin Registry"]
+  node_router["app_module_router.dart<br/>Module Navigation"]
+  node_db[("database.dart<br/>Drift SQLite")]
+  node_sync["custom_sync_manager.dart<br/>Delta Sync Manager"]
+
+  node_main --> node_bootstrap
+  node_bootstrap --> node_shell
+  node_bootstrap --> node_registry
+  node_registry --> node_router
+  node_shell --> node_db
+  node_db --> node_sync

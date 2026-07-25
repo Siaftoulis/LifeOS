@@ -7,6 +7,7 @@ import (
 	"lifeos/host-daemon/internal/banking"
 	"lifeos/host-daemon/internal/books"
 	"lifeos/host-daemon/internal/calendar"
+	"lifeos/host-daemon/internal/chtm"
 	"lifeos/host-daemon/internal/cloud"
 	"lifeos/host-daemon/internal/darkweb"
 	"lifeos/host-daemon/internal/devsim"
@@ -136,6 +137,7 @@ func main() {
 	music.RegisterRoutes(mux)
 	gallery.RegisterRoutes(mux)
 	backup.RegisterRoutes(mux)
+	chtm.RegisterRoutes(mux)
 	points.RegisterRoutes(mux)
 	infinity.RegisterRoutes(mux)
 	vm.RegisterRoutes(mux)

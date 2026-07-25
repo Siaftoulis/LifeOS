@@ -11,6 +11,8 @@ import (
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/auth/login", HandleLogin)
+	mux.HandleFunc("/api/v1/auth/register", HandleRegister)
+	mux.HandleFunc("/api/v1/auth/me", middleware.RequireAuth(HandleMe))
 	mux.HandleFunc("/api/v1/auth/lock", HandleLock)
 	mux.HandleFunc("/api/v1/auth/users", middleware.RequireAuth(HandleUsers))
 	mux.HandleFunc("/api/v1/auth/profile", middleware.RequireAuth(HandleProfile))
@@ -128,4 +130,59 @@ func HandleLock(w http.ResponseWriter, r *http.Request) {
 func HandleNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(GetNotifications())
+}
+
+func HandleMe(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	username, ok := r.Context().Value(middleware.UserContextKey).(string)
+	if !ok || username == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	user, exists := GetUserByUsername(username)
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"authenticated": true,
+		"user":          user,
+	})
+}
+
+func HandleRegister(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Role == "" {
+		req.Role = "USER"
+	}
+
+	newUser, err := CreateUser(req.Username, req.Password, req.Role)
+	if err != nil {
+		http.Error(w, "User already exists or invalid data", http.StatusConflict)
+		return
+	}
+
+	newUser.PasswordHash = ""
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"user":    newUser,
+	})
 }

@@ -1,0 +1,88 @@
+flowchart TD
+
+subgraph group_client["Flutter Client"]
+  node_client_main["Client entry point<br/>Flutter bootstrap<br/>[main.dart]"]
+  node_client_bootstrap["App bootstrap<br/>initialization<br/>[app_bootstrap.dart]"]
+  node_client_shell["Main workspace shell<br/>Flutter UI"]
+  node_feature_registry["Feature registry<br/>plugin registry"]
+  node_module_router["Module router<br/>navigation"]
+  node_local_db[("Local system of record<br/>Drift / SQLite<br/>[database.dart]")]
+  node_client_sync["Client sync manager<br/>delta sync"]
+  node_device_services{{"Device services<br/>platform boundary"}}
+end
+
+subgraph group_host["Trusted Host Daemon"]
+  node_daemon_main["Host daemon entry point<br/>Go service<br/>[main.go]"]
+  node_tailnet{{"Private mesh network<br/>Tailscale tsnet<br/>[tailnet.go]"}}
+  node_auth_api["Auth API<br/>HTTP router<br/>[router.go]"]
+  node_jwt_middleware["Bearer authorization<br/>JWT middleware<br/>[jwt.go]"]
+  node_domain_router["Domain router<br/>module router<br/>[router.go]"]
+  node_location_realtime["Location and live sharing<br/>real-time router<br/>[router.go]"]
+  node_location_websockets["Location WebSockets<br/>streaming<br/>[websocket.go]"]
+  node_automations["Geofence automations<br/>[automations.go]"]
+  node_host_operations{{"Privileged host operations<br/>system router<br/>[router.go]"}}
+  node_vault_watcher["Vault watcher<br/>markdown integration<br/>[watcher.go]"]
+  node_lww_conflicts["LWW conflict resolution<br/>sync policy<br/>[lww.go]"]
+  node_proxy{{"Optional edge proxy<br/>Caddy deployment"}}
+end
+
+subgraph group_sync["Optional Sync Service"]
+  node_sync_server["Sync server entry point<br/>Go service<br/>[main.go]"]
+  node_sync_hub[("Append-log sync hub<br/>delta persistence<br/>[sync_hub.go]")]
+end
+
+node_client_main -->|"starts"| node_client_bootstrap
+node_client_bootstrap -->|"renders"| node_client_shell
+node_client_bootstrap -->|"composes"| node_feature_registry
+node_feature_registry -->|"registers modules"| node_module_router
+node_client_shell -->|"reads and writes"| node_local_db
+node_client_shell -->|"uses"| node_device_services
+node_local_db -->|"produces deltas"| node_client_sync
+node_client_sync -->|"syncs over"| node_tailnet
+node_tailnet -->|"reaches"| node_daemon_main
+node_daemon_main -->|"protects routes with"| node_jwt_middleware
+node_auth_api -->|"issues and validates access"| node_jwt_middleware
+node_jwt_middleware -->|"authorizes"| node_domain_router
+node_domain_router -->|"routes location"| node_location_realtime
+node_location_realtime -->|"triggers on geofences"| node_automations
+node_location_realtime -->|"broadcasts updates"| node_location_websockets
+node_location_websockets -->|"live streams"| node_client_shell
+node_domain_router -->|"routes privileged actions"| node_host_operations
+node_domain_router -->|"integrates vault activity"| node_vault_watcher
+node_client_sync -.->|"optional sync target"| node_sync_server
+node_sync_server -->|"persists through"| node_sync_hub
+node_client_sync -.->|"reconciles conflicts"| node_lww_conflicts
+node_proxy -.->|"optional proxy to"| node_daemon_main
+
+click node_client_main "https://github.com/siaftoulis/lifeos/blob/main/client/lib/main.dart"
+click node_client_bootstrap "https://github.com/siaftoulis/lifeos/blob/main/client/lib/app_bootstrap.dart"
+click node_client_shell "https://github.com/siaftoulis/lifeos/blob/main/client/lib/life_os_main_stack.dart"
+click node_feature_registry "https://github.com/siaftoulis/lifeos/blob/main/client/lib/core/feature_registry.dart"
+click node_module_router "https://github.com/siaftoulis/lifeos/blob/main/client/lib/app_module_router.dart"
+click node_local_db "https://github.com/siaftoulis/lifeos/blob/main/client/lib/database/database.dart"
+click node_client_sync "https://github.com/siaftoulis/lifeos/blob/main/client/lib/database/custom_sync_manager.dart"
+click node_daemon_main "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/main.go"
+click node_tailnet "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/tailnet.go"
+click node_auth_api "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/auth/router.go"
+click node_jwt_middleware "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/auth/middleware/jwt.go"
+click node_domain_router "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/engine/router.go"
+click node_location_realtime "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/location/router.go"
+click node_location_websockets "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/location/websocket.go"
+click node_automations "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/location/automations.go"
+click node_host_operations "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/system/router.go"
+click node_vault_watcher "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/markdown/watcher.go"
+click node_sync_server "https://github.com/siaftoulis/lifeos/blob/main/server/main.go"
+click node_sync_hub "https://github.com/siaftoulis/lifeos/blob/main/server/sync_hub.go"
+click node_lww_conflicts "https://github.com/siaftoulis/lifeos/blob/main/backend/host-daemon/internal/sync/lww.go"
+click node_proxy "https://github.com/siaftoulis/lifeos/blob/main/backend/proxy/Caddyfile"
+
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+class node_client_main,node_client_bootstrap,node_client_shell,node_feature_registry,node_module_router,node_local_db,node_client_sync,node_device_services toneBlue
+class node_daemon_main,node_tailnet,node_auth_api,node_jwt_middleware,node_domain_router,node_location_realtime,node_location_websockets,node_automations,node_host_operations,node_vault_watcher,node_lww_conflicts,node_proxy toneAmber
+class node_sync_server,node_sync_hub toneMint

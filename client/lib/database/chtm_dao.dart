@@ -21,4 +21,45 @@ class ChtmDao extends DatabaseAccessor<AppDatabase> with _$ChtmDaoMixin {
 
   Future<int> insertHabit(UserHabitsCompanion entry) => into(userHabits).insert(entry);
   Future<int> insertHabitLog(HabitLogsCompanion entry) => into(habitLogs).insert(entry);
+
+  Future<int> calculateStreak(String habitId) async {
+    final logs = await (select(habitLogs)
+      ..where((t) => t.habitId.equals(habitId))
+      ..orderBy([(t) => OrderingTerm.desc(t.checkinDate)]))
+        .get();
+
+    if (logs.isEmpty) return 0;
+
+    int streak = 0;
+    final now = DateTime.now();
+    DateTime checkDate = DateTime(now.year, now.month, now.day);
+
+    Set<String> checkinDays = {};
+    for (var log in logs) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(log.checkinDate);
+      final dayStr = '${dt.year}-${dt.month}-${dt.day}';
+      checkinDays.add(dayStr);
+    }
+
+    while (true) {
+      final dayStr = '${checkDate.year}-${checkDate.month}-${checkDate.day}';
+      if (checkinDays.contains(dayStr)) {
+        streak++;
+        checkDate = checkDate.subtract(const Duration(days: 1));
+      } else {
+        // If today hasn't been checked in yet, check yesterday to continue streak
+        if (streak == 0) {
+          checkDate = checkDate.subtract(const Duration(days: 1));
+          final yesterdayStr = '${checkDate.year}-${checkDate.month}-${checkDate.day}';
+          if (checkinDays.contains(yesterdayStr)) {
+            streak++;
+            checkDate = checkDate.subtract(const Duration(days: 1));
+            continue;
+          }
+        }
+        break;
+      }
+    }
+    return streak;
+  }
 }

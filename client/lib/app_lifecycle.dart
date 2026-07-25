@@ -4,10 +4,10 @@ import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
 import 'update_manager.dart';
 import 'api_client.dart';
-import 'theme.dart';
 import 'global_keys.dart';
 import 'p2p_dialog_handler.dart';
 import 'notification_poll_service.dart';
+import 'presentation/theme/zen_theme_service.dart';
 import 'life_os_main_stack.dart';
 
 class LifeOSMainApp extends StatefulWidget {
@@ -59,7 +59,10 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: PreferencesService.showPerformanceOverlay,
+      listenable: Listenable.merge([
+        PreferencesService.showPerformanceOverlay,
+        ZenThemeService.instance,
+      ]),
       builder: (context, _) {
         return MaterialApp(
           navigatorKey: rootNavigatorKey,
@@ -69,7 +72,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           ),
           title: 'LifeOS',
-          theme: OLEDTheme.build(),
+          theme: ZenThemeService.instance.toThemeData(),
           showPerformanceOverlay: PreferencesService.showPerformanceOverlay.value,
           home: Builder(builder: (ctx) {
             WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));

@@ -2,6 +2,9 @@ import 'package:drift/drift.dart';
 import 'database.dart';
 import 'tables.dart';
 
+import 'package:flutter/foundation.dart';
+import '../api_client.dart';
+
 part 'points_dao.g.dart';
 
 @DriftAccessor(tables: [SystemUsers, PointRules, PointsLedgers, Vouchers])
@@ -38,7 +41,40 @@ class PointsDao extends DatabaseAccessor<AppDatabase> with _$PointsDaoMixin {
           timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           isDirty: const Value(1),
         ));
+
+        // Async sync to daemon
+        try {
+          ApiClient.instance.postDaemon('/api/v1/points/ledger', {
+            'user_id': user.id,
+            'event': event,
+            'points': points,
+          });
+        } catch (e) {
+          debugPrint('Daemon points sync deferred: $e');
+        }
       }
     });
+  }
+
+  Future<bool> redeemVoucher(Voucher voucher) async {
+    final users = await watchAllUsers().first;
+    if (users.isEmpty) return false;
+    final user = users.first;
+
+    if (user.currentPoints < voucher.costPoints) return false;
+
+    await awardPoints(-voucher.costPoints, 'Redeemed Voucher: ${voucher.title}');
+    await (update(vouchers)..where((v) => v.id.equals(voucher.id))).write(
+      VouchersCompanion(isRedeemed: const Value(1)),
+    );
+
+    try {
+      await ApiClient.instance.postDaemon('/api/v1/points/vouchers/redeem', {
+        'voucher_id': voucher.id,
+        'user_id': user.id,
+      });
+    } catch (_) {}
+
+    return true;
   }
 }

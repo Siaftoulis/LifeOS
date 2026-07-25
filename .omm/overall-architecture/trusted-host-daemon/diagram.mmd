@@ -1,0 +1,23 @@
+flowchart TD
+  node_daemon["main.go<br/>Daemon Entry"]
+  node_tsnet{{"tailnet.go<br/>Tailscale tsnet"}}
+  node_auth["internal/auth/router.go<br/>Auth API"]
+  node_jwt["internal/auth/middleware/jwt.go<br/>JWT Middleware"]
+  node_engine["internal/engine/router.go<br/>Domain Router"]
+  node_location["internal/location/router.go<br/>Location Router"]
+  node_ws["internal/location/websocket.go<br/>WebSocket Stream"]
+  node_auto["internal/location/automations.go<br/>Geofence Automations"]
+  node_sys{{"internal/system/router.go<br/>Privileged Host Ops"}}
+  node_watcher["internal/markdown/watcher.go<br/>Vault Watcher"]
+  node_lww["internal/sync/lww.go<br/>LWW Policy Engine"]
+
+  node_daemon --> node_tsnet
+  node_tsnet --> node_jwt
+  node_auth --> node_jwt
+  node_jwt --> node_engine
+  node_engine --> node_location
+  node_location --> node_ws
+  node_location --> node_auto
+  node_engine --> node_sys
+  node_engine --> node_watcher
+  node_engine --> node_lww

@@ -39,6 +39,8 @@ dependencies:
   path: any
   intl: any
   uuid: any
+  flutter_markdown_plus: ^1.0.12
+  markdown_editor_live: ^0.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

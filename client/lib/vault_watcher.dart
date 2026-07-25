@@ -3,6 +3,7 @@ import 'dart:async';
 import 'database/database.dart';
 import 'database/dao.dart';
 import 'core/obsidian/frontmatter_service.dart';
+import 'api_client.dart';
 
 class VaultWatcher {
   final String vaultPath;
@@ -25,6 +26,9 @@ class VaultWatcher {
       final content = await file.readAsString();
       final fm = FrontmatterService.parseFrontmatter(content);
       
+      final relPath = file.path.replaceAll(vaultPath, '').replaceAll('\\', '/');
+      await syncNoteToDaemon(relPath, content);
+
       if (fm.isEmpty) return;
       
       if (fm.containsKey('id')) {
@@ -41,6 +45,19 @@ class VaultWatcher {
       }
     } catch (e) {
       print('Watcher Error: $e');
+    }
+  }
+
+  Future<bool> syncNoteToDaemon(String relativePath, String content) async {
+    try {
+      final res = await ApiClient.instance.postDaemon('/api/markdown/sync', {
+        'file_path': relativePath,
+        'content': content,
+      });
+      return res['status'] == 'ok';
+    } catch (e) {
+      print('Daemon Markdown Sync error: $e');
+      return false;
     }
   }
 }
