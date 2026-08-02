@@ -43,7 +43,6 @@ dependencies:
   flutter_markdown_plus: ^1.0.12
   markdown_editor_live: ^0.6.0
   appflowy_editor: ^1.4.0
-  y_crdt: ^0.2.0
 
 
 

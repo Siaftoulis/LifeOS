@@ -73,14 +73,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.7"
-  build_cli_annotations:
-    dependency: transitive
-    description:
-      name: build_cli_annotations
-      sha256: e563c2e01de8974566a1998410d3f6f03521788160a02503b0b1f1a46c7b3d95
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.1"
   build_config:
     dependency: transitive
     description:
@@ -105,14 +97,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.15.1"
-  build_rust_binaries:
-    dependency: transitive
-    description:
-      name: build_rust_binaries
-      sha256: "49134c1e60ba888b95b70464a672765549453ebbab5902f3a2e88a4489672206"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.0"
   built_collection:
     dependency: transitive
     description:
@@ -403,14 +387,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.35"
-  flutter_rust_bridge:
-    dependency: transitive
-    description:
-      name: flutter_rust_bridge
-      sha256: e87d6b9ee934dcd24a128ccb2bd91905d2d5fe5c06245d6a8f5477d4907a437a
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.12.0"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -477,14 +453,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.0"
   geoclue:
     dependency: transitive
     description:
@@ -1570,22 +1538,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "15.2.0"
-  wasm_run:
-    dependency: transitive
-    description:
-      name: wasm_run
-      sha256: a3e17ebfa17ca002265cbc57e2acb71411154fe81dce09b97d809410c92a0537
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0+2"
-  wasm_wit_component:
-    dependency: transitive
-    description:
-      name: wasm_wit_component
-      sha256: "956eb1a72ff65bf15887093287ef9c39d6a87724584d863bdeeac567bd004586"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   watcher:
     dependency: transitive
     description:
@@ -1658,14 +1610,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.6.1"
-  y_crdt:
-    dependency: "direct main"
-    description:
-      name: y_crdt
-      sha256: "8c87be33ad21739a5b0e40b82485d62ed334bb645df012d846a7ca6ed68c695f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   yaml:
     dependency: "direct main"
     description:
