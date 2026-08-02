@@ -215,6 +215,26 @@ class ZenSyncService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> saveNote(String notePath, String content) async {
+    final relPath = _getRelativePath(notePath);
+    try {
+      final db = AppDatabase.instance;
+      final node = await (db.select(db.zenNodes)..where((t) => t.path.equals(relPath))).getSingleOrNull();
+
+      if (node != null) {
+        await updateDocumentContent(node.id, content);
+        return;
+      }
+    } catch (_) {}
+
+    final fullPath = notePath.startsWith(_vaultPath) ? notePath : '$_vaultPath/$relPath';
+    final file = File(fullPath);
+    if (!await file.parent.exists()) {
+      await file.parent.create(recursive: true);
+    }
+    await file.writeAsString(content);
+  }
+
   Future<void> deleteNode(String relativePath, {bool broadcast = true}) async {
     final db = AppDatabase.instance;
     final fullPath = '$_vaultPath/$relativePath';

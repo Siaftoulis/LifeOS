@@ -1,9 +1,12 @@
 package main
 
+// ponytail: stateless relay — binary passthrough for room-based Yjs CRDT & awareness payloads
+
 import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -11,19 +14,26 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins for now
+		return true
 	},
 }
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub    *Hub
+	conn   *websocket.Conn
+	send   chan []byte
+	userID string
+}
+
+type RoomMessage struct {
+	sender *Client
+	data   []byte
+	room   string
 }
 
 type Hub struct {
 	clients    map[*Client]bool
-	broadcast  chan []byte
+	broadcast  chan RoomMessage
 	register   chan *Client
 	unregister chan *Client
 	sync.RWMutex
@@ -31,7 +41,7 @@ type Hub struct {
 
 func newHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan RoomMessage),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
@@ -52,11 +62,21 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 			h.Unlock()
-		case message := <-h.broadcast:
+		case msg := <-h.broadcast:
 			h.RLock()
 			for client := range h.clients {
+				// Don't echo back to sender
+				if client == msg.sender {
+					continue
+				}
+
+				// Check ACL permission if a room is specified
+				if msg.room != "" && !hasPermission(client.userID, msg.room, "read") {
+					continue
+				}
+
 				select {
-				case client.send <- message:
+				case client.send <- msg.data:
 				default:
 					close(client.send)
 					delete(h.clients, client)
@@ -80,17 +100,25 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		
-		// Optionally save to DB here before broadcasting
-		db.Exec("INSERT INTO sync_deltas (client_ts, payload) VALUES (?, ?)", 0, string(message))
 
-		// Check for anti-cheat/telemetry payload here
-		var env SyncEnvelope
-		if err := json.Unmarshal(message, &env); err == nil && env.Type == "telemetry" {
-			// Do anti-cheat validations
-			log.Printf("Telemetry received: %v", env)
-		} else {
-			c.hub.broadcast <- message
+		var payload map[string]interface{}
+		room := ""
+		if err := json.Unmarshal(message, &payload); err == nil {
+			if r, ok := payload["room"].(string); ok {
+				room = r
+			}
+		}
+
+		// Enforce write permission for posting to room
+		if room != "" && !hasPermission(c.userID, room, "write") {
+			log.Printf("Permission denied for user %s on room %s", c.userID, room)
+			continue
+		}
+
+		c.hub.broadcast <- RoomMessage{
+			sender: c,
+			data:   message,
+			room:   room,
 		}
 	}
 }
@@ -119,7 +147,24 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+
+	userID := "anonymous"
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		token := strings.TrimPrefix(authHeader, "Bearer ")
+		if token != "" {
+			userID = token
+		}
+	} else if tokenParam := r.URL.Query().Get("token"); tokenParam != "" {
+		userID = tokenParam
+	}
+
+	client := &Client{
+		hub:    hub,
+		conn:   conn,
+		send:   make(chan []byte, 256),
+		userID: userID,
+	}
 	client.hub.register <- client
 
 	go client.writePump()

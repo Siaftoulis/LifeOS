@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../api_client.dart';
+import '../../database/preferences_service.dart';
 import '../p2p_models.dart'; // Reusing RemoteCursor
 import 'zen_sync_service.dart';
 
@@ -20,29 +21,63 @@ class WebsocketSyncService {
   final _textDeltaController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get onTextDelta => _textDeltaController.stream;
 
+  final _rawMessageController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get onRawMessage => _rawMessageController.stream;
+
   bool _isConnected = false;
+  bool _reconnecting = false;
+
+  void sendRaw(String message) {
+    if (!_isConnected || _channel == null) return;
+    try {
+      _channel!.sink.add(message);
+    } catch (e) {
+      debugPrint('WebsocketSyncService sendRaw dropped: $e');
+    }
+  }
 
   void connect() {
     if (_isConnected) return;
     
     try {
-      final baseUrl = ApiClient.instance.baseUrl;
-      if (baseUrl.isEmpty) return;
-      
-      final wsUrl = baseUrl.replaceFirst('http', 'ws').replaceFirst('https', 'wss') + '/sync';
-      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-      _channel!.ready.then((_) {
-        debugPrint("WebsocketSyncService connection ready");
-      }).catchError((err) {
-        debugPrint("WebsocketSyncService channel.ready error: $err");
-      });
-      _isConnected = true;
-      debugPrint("WebsocketSyncService connected to $wsUrl");
+      _subscription?.cancel();
+      _channel?.sink.close();
+      _channel = null;
 
-      _subscription = _channel?.stream.listen(
+      final daemonUrl = ApiClient.instance.daemonUrl;
+      if (daemonUrl.isEmpty) return;
+      
+      // The websocket endpoint lives on the sync hub (:8080), not the daemon (:50051).
+      final hubUrl = daemonUrl.endsWith(':50051')
+          ? '${daemonUrl.substring(0, daemonUrl.length - ':50051'.length)}:8080'
+          : daemonUrl;
+
+      // ponytail: base64 JSON wrapper for binary Yjs updates, hub stays stateless
+      final token = PreferencesService.authToken.value;
+      final endpoint = token.isNotEmpty ? '/ws?token=$token' : '/ws';
+      final wsUrl = hubUrl.replaceFirst('http', 'ws').replaceFirst('https', 'wss') + endpoint;
+      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      final channel = _channel;
+      // ponytail: _isConnected flips only when ready resolves; sending on a failed
+      // channel throws and would kill editor keystrokes through the root listener.
+      channel!.ready.then((_) {
+        if (!identical(channel, _channel)) return;
+        _isConnected = true;
+        debugPrint("WebsocketSyncService connection ready: $wsUrl");
+      }).catchError((err) {
+        if (!identical(channel, _channel)) return;
+        _isConnected = false;
+        debugPrint("WebsocketSyncService channel.ready error: $err");
+        _reconnect();
+      });
+
+      _subscription = channel.stream.listen(
         (data) {
           try {
             final payload = jsonDecode(data);
+            if (payload is Map<String, dynamic>) {
+              _rawMessageController.add(payload);
+            }
             final type = payload['type'];
             
             if (type == 'cursor_sync') {
@@ -83,11 +118,13 @@ class WebsocketSyncService {
           }
         },
         onDone: () {
+          if (!identical(channel, _channel)) return;
           _isConnected = false;
           debugPrint("WebsocketSyncService disconnected");
           _reconnect();
         },
         onError: (err) {
+          if (!identical(channel, _channel)) return;
           _isConnected = false;
           debugPrint("WebsocketSyncService error: $err");
           _reconnect();
@@ -101,7 +138,10 @@ class WebsocketSyncService {
   }
 
   void _reconnect() {
+    if (_reconnecting) return;
+    _reconnecting = true;
     Future.delayed(const Duration(seconds: 5), () {
+      _reconnecting = false;
       if (!_isConnected) connect();
     });
   }
@@ -128,33 +168,28 @@ class WebsocketSyncService {
   }
 
   void broadcastCursor(String userId, double x, double y, String filePath) {
-    if (!_isConnected || _channel == null) return;
-    final msg = jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'cursor_sync',
       'userId': userId,
       'x': x,
       'y': y,
       'filePath': filePath,
-    });
-    _channel!.sink.add(msg);
+    }));
   }
 
   void broadcastTextDelta(String userId, String filePath, String textContent, int offset) {
-    if (!_isConnected || _channel == null) return;
-    final msg = jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'text_delta',
       'userId': userId,
       'filePath': filePath,
       'textContent': textContent,
       'offset': offset,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
-    });
-    _channel!.sink.add(msg);
+    }));
   }
 
   void broadcastCreateNode(String userId, String parentPath, String name, bool isDirectory) {
-    if (!_isConnected || _channel == null) return;
-    _channel!.sink.add(jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'create_node',
       'userId': userId,
       'parentPath': parentPath,
@@ -164,8 +199,7 @@ class WebsocketSyncService {
   }
 
   void broadcastDeleteNode(String userId, String relativePath) {
-    if (!_isConnected || _channel == null) return;
-    _channel!.sink.add(jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'delete_node',
       'userId': userId,
       'relativePath': relativePath,
@@ -173,8 +207,7 @@ class WebsocketSyncService {
   }
 
   void broadcastRenameNode(String userId, String oldRelativePath, String newName) {
-    if (!_isConnected || _channel == null) return;
-    _channel!.sink.add(jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'rename_node',
       'userId': userId,
       'oldRelativePath': oldRelativePath,
@@ -183,13 +216,21 @@ class WebsocketSyncService {
   }
 
   void broadcastMoveNode(String userId, String oldRelativePath, String targetParentRelativePath) {
-    if (!_isConnected || _channel == null) return;
-    _channel!.sink.add(jsonEncode({
+    _safeSend(jsonEncode({
       'type': 'move_node',
       'userId': userId,
       'oldRelativePath': oldRelativePath,
       'targetParentRelativePath': targetParentRelativePath,
     }));
+  }
+
+  void _safeSend(String message) {
+    if (!_isConnected || _channel == null) return;
+    try {
+      _channel!.sink.add(message);
+    } catch (e) {
+      debugPrint('WebsocketSyncService message dropped: $e');
+    }
   }
 
   void disconnect() {

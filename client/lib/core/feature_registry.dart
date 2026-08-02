@@ -34,7 +34,7 @@ class FeatureRegistry {
     'rpg_hub': () => const RpgHubDashboard(),
     'app_drawer': () => const AndroidLauncherWidget(),
     'void': () => const VoidSlot(),
-    'obsidian_zen': () => const ZenWorkspace(),
+    'obsidian_zen': () => ZenWorkspace(),
     'knowledge_base': () => const KnowledgeBaseDashboard(),
     'flashcards': () => const FlashcardsDashboard(),
     'books': () => const BookLibraryDashboard(),

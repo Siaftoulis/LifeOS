@@ -17,7 +17,8 @@ dependencies:
   http: ^1.2.0
   url_launcher: ^6.3.2
   installed_apps: ^2.1.1
-  geolocator: ^14.0.3
+  geolocator: any
+
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   flutter_displaymode: ^0.7.0
@@ -29,7 +30,8 @@ dependencies:
   photo_manager_image_provider: ^2.2.0
   extended_image: ^10.0.1
   image_cropper: ^12.2.1
-  share_plus: ^13.2.0
+  share_plus: any
+
   video_player: ^2.11.1
   flutter_map_marker_cluster: ^8.2.2
   flutter_secure_storage: ^10.3.1
@@ -38,9 +40,20 @@ dependencies:
   archive: any
   path: any
   intl: any
-  uuid: any
   flutter_markdown_plus: ^1.0.12
   markdown_editor_live: ^0.6.0
+  appflowy_editor: ^1.4.0
+  y_crdt: ^0.2.0
+
+
+
+
+
+
+dependency_overrides:
+  intl: 0.20.2
+  file_picker: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

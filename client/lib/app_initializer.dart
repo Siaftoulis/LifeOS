@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:drift/native.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
-import 'auth_service.dart';
 import 'api_client.dart';
 import 'feature_registry.dart';
 import 'core/local_discovery_service.dart';
@@ -26,15 +25,8 @@ class AppInitializer {
     final prefsStart = s.elapsedMilliseconds;
     await PreferencesService.load(dir: dbFolder);
     debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
-    
-    if (PreferencesService.rememberMe.value && PreferencesService.authToken.value.isNotEmpty) {
-      final authStart = s.elapsedMilliseconds;
-      AuthService.instance.restoreSession(
-        PreferencesService.authToken.value,
-        PreferencesService.userProfileJson.value,
-      );
-      debugPrint('LifeOSInit: restoreSession took ${s.elapsedMilliseconds - authStart}ms');
-    }
+    // ponytail: no auto-login from cached profile — the app always starts on the
+    // lock screen and requires credentials, like the desktop login flow before.
 
     final dbInitStart = s.elapsedMilliseconds;
     final dbFile = File('${dbFolder.path}/lifeos.sqlite');
@@ -59,14 +51,19 @@ class AppInitializer {
         final resolved = await Future.wait([
           ApiClient.discoverBaseUrl(),
           ApiClient.discoverDaemonUrl(),
-        ]).timeout(const Duration(seconds: 4));
-        
+        ]);
         final base = resolved[0];
         final daemon = resolved[1];
+
+        if (base != null && base != PreferencesService.cachedBaseUrl.value) {
+          PreferencesService.cachedBaseUrl.value = base;
+        }
+        if (daemon != null && daemon != PreferencesService.cachedDaemonUrl.value) {
+          PreferencesService.cachedDaemonUrl.value = daemon;
+        }
         ApiClient.instance.updateUrls(base, daemon);
-        await PreferencesService.setCachedUrls(base, daemon);
       } catch (e) {
-        debugPrint('Background URL discovery failed: $e');
+        debugPrint('LifeOSInit: Background discovery failed: $e');
       }
     });
   }

@@ -26,20 +26,21 @@ class KnowledgeHubDashboard extends StatelessWidget {
               Tab(text: 'Book Library'),
               Tab(text: 'Flashcards'),
               Tab(text: 'Project Infinity'),
-              Tab(text: 'Obsidian Zen'),
+              Tab(text: 'Zen Editor'),
+
             ],
             labelColor: EverforestColors.green,
             unselectedLabelColor: EverforestColors.grey,
             indicatorColor: EverforestColors.green,
           ),
         ),
-        body: const TabBarView(
-          physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        body: TabBarView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           children: [
-            KnowledgeBaseDashboard(),
-            BookLibraryDashboard(),
-            FlashcardsDashboard(),
-            ProjectInfinityDashboard(),
+            const KnowledgeBaseDashboard(),
+            const BookLibraryDashboard(),
+            const FlashcardsDashboard(),
+            const ProjectInfinityDashboard(),
             ZenWorkspace(),
           ],
         ),

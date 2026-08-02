@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter/rendering.dart';
 import 'app_bootstrap.dart';
 import 'desktop_widget_manager.dart';
 
@@ -10,6 +11,7 @@ import 'desktop_widget_manager.dart';
 Future<void> main([List<String> args = const []]) async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    debugPaintSizeEnabled = false;
     
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       await windowManager.ensureInitialized();

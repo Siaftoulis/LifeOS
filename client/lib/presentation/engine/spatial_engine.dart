@@ -90,10 +90,6 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     _animCtrl.addListener(() {
       _dragOffset.value = _anim.value;
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
   }
 
   @override
@@ -269,16 +265,29 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     final context = primaryFocus.context;
     if (context == null) return false;
     
-    if (context.widget.runtimeType.toString().contains('Text') ||
-        context.widget.runtimeType.toString().contains('Input') ||
-        context.widget.runtimeType.toString().contains('Editable')) {
+    final currentType = context.widget.runtimeType.toString();
+    if (context.widget is EditableText ||
+        currentType.contains('EditableText') ||
+        currentType.contains('TextField') ||
+        currentType.contains('TextFormField') ||
+        currentType.contains('AppFlowy') ||
+        currentType.contains('Editor') ||
+        currentType.contains('RichText') ||
+        currentType.contains('Selectable')) {
       return true;
     }
     
     bool isEditable = false;
     context.visitAncestorElements((element) {
       final type = element.widget.runtimeType.toString();
-      if (type.contains('EditableText') || type.contains('TextField') || type.contains('TextFormField')) {
+      if (element.widget is EditableText || 
+          type.contains('EditableText') || 
+          type.contains('TextField') || 
+          type.contains('TextFormField') ||
+          type.contains('AppFlowy') ||
+          type.contains('Editor') ||
+          type.contains('RichText') ||
+          type.contains('Zen')) {
         isEditable = true;
         return false;
       }
@@ -295,10 +304,9 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
       resizeToAvoidBottomInset: false,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final bool gesturesEnabled = true; // Always enabled now
-              
-              final double trueWidth = constraints.maxWidth;
-              final double trueHeight = constraints.maxHeight + mq.viewInsets.bottom;
+          final double trueWidth = constraints.maxWidth;
+          final double trueHeight = constraints.maxHeight + mq.viewInsets.bottom;
+
 
               if (trueWidth == 0 || trueHeight == 0) {
                 return const SizedBox.shrink();
@@ -332,29 +340,31 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                 cachedChildren.add(rowChildren);
               }
 
-              final colW = _w / 3;
-              final rowH = _h / 3;
-
               return Focus(
                 focusNode: _focusNode,
-                autofocus: true,
+
+                skipTraversal: true,
                 onKeyEvent: (FocusNode node, KeyEvent event) {
                   if (_isUserTyping()) return KeyEventResult.ignored;
 
                   if (event is KeyDownEvent) {
                     final key = event.logicalKey;
-                    if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
-                      nav(-1, 0);
-                      return KeyEventResult.handled;
-                    } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
-                      nav(1, 0);
-                      return KeyEventResult.handled;
-                    } else if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
-                      nav(0, -1);
-                      return KeyEventResult.handled;
-                    } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
-                      nav(0, 1);
-                      return KeyEventResult.handled;
+                    final isModifierPressed = HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isAltPressed;
+
+                    if (isModifierPressed) {
+                      if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
+                        nav(-1, 0);
+                        return KeyEventResult.handled;
+                      } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
+                        nav(1, 0);
+                        return KeyEventResult.handled;
+                      } else if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+                        nav(0, -1);
+                        return KeyEventResult.handled;
+                      } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+                        nav(0, 1);
+                        return KeyEventResult.handled;
+                      }
                     }
                   }
                   return KeyEventResult.ignored;
@@ -385,12 +395,33 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                     child: Stack(
                     children: [
                       GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          _focusNode.requestFocus();
-                        },
-                        onPanDown: (_) {
-                          _focusNode.requestFocus();
+                        behavior: HitTestBehavior.translucent,
+                        onTapUp: (details) {
+                          final hitTestResult = HitTestResult();
+                          WidgetsBinding.instance.hitTestInView(
+                            hitTestResult,
+                            details.globalPosition,
+                            View.of(context).viewId,
+                          );
+                          bool tappedEditable = false;
+                          for (final entry in hitTestResult.path) {
+                            final target = entry.target;
+                            final typeStr = target.runtimeType.toString();
+                            if (typeStr.contains('Editable') ||
+                                typeStr.contains('AppFlowy') ||
+                                typeStr.contains('TextField') ||
+                                typeStr.contains('RichText') ||
+                                typeStr.contains('AppFlowyRichText') ||
+                                typeStr.contains('RenderParagraph') ||
+                                typeStr.contains('RenderEditable') ||
+                                typeStr.contains('Zen')) {
+                              tappedEditable = true;
+                              break;
+                            }
+                          }
+                          if (!tappedEditable) {
+                            _focusNode.requestFocus();
+                          }
                         },
                         onPanUpdate: _handlePanUpdate,
                         onPanEnd: _handlePanEnd,

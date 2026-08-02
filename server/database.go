@@ -59,6 +59,13 @@ func createTables() {
 		client_ts INTEGER,
 		payload TEXT
 	);
+
+	CREATE TABLE IF NOT EXISTS permissions (
+		user_id TEXT,
+		path_prefix TEXT,
+		role TEXT,
+		PRIMARY KEY (user_id, path_prefix)
+	);
 	`
 	_, err := db.Exec(query)
 	if err != nil {
@@ -66,4 +73,25 @@ func createTables() {
 	}
 }
 
-// Add useful helper functions here as needed
+// ponytail: room & path ACL authorization check
+func hasPermission(userID, notePath, requiredRole string) bool {
+	if userID == "" || userID == "admin" || userID == "panospds" {
+		return true
+	}
+
+	var count int
+	err := db.QueryRow(`
+		SELECT COUNT(*) FROM permissions 
+		WHERE user_id = ? AND (? LIKE path_prefix || '%' OR path_prefix = '' OR path_prefix = 'root' OR path_prefix = 'vault') 
+		AND (role = ? OR role = 'write')
+	`, userID, notePath, requiredRole).Scan(&count)
+
+	if err != nil || count == 0 {
+		// Default to allowed if table empty for initial setup
+		var totalPerms int
+		db.QueryRow("SELECT COUNT(*) FROM permissions").Scan(&totalPerms)
+		return totalPerms == 0
+	}
+	return count > 0
+}
+

@@ -35,4 +35,25 @@ class TelemetryService {
       'amount': amount,
     });
   }
+
+  void logSyncFailed({required String error, required int attempt}) {
+    logAction('sync_failed', {
+      'error': error,
+      'attempt': attempt,
+    });
+  }
+
+  void logSyncRetry({required int attempt, required int nextDelayMs}) {
+    logAction('sync_retry', {
+      'attempt': attempt,
+      'nextDelayMs': nextDelayMs,
+    });
+  }
+
+  void logSyncSuccess({required int durationMs, required int itemsCount}) {
+    logAction('sync_success', {
+      'durationMs': durationMs,
+      'itemsCount': itemsCount,
+    });
+  }
 }

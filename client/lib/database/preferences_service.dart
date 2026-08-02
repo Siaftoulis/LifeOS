@@ -20,13 +20,16 @@ class PreferencesService {
   static final ValueNotifier<List<List<String>>> layout = ValueNotifier([['home', 'configurator', 'rpg_hub']]);
   static final ValueNotifier<Map<String, String>> appCategories = ValueNotifier({});
   static final ValueNotifier<bool> appDrawerFolderView = ValueNotifier(true);
-  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('http://192.168.1.47:50051');
-  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('http://192.168.1.47:50051');
+  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier('http://localhost:50051');
+  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier('http://localhost:50051');
   static final ValueNotifier<bool> showPerformanceOverlay = ValueNotifier(false);
   static final ValueNotifier<bool> showConnectionStatusOverlay = ValueNotifier(false);
   static final ValueNotifier<List<String>> favoriteAssetIds = ValueNotifier([]);
 
+  static Directory? _prefsDir;
+
   static Future<void> load({Directory? dir}) async {
+    _prefsDir = dir;
     try {
       final f = await getPrefsFile(dir);
       if (!await f.exists()) {
@@ -52,8 +55,8 @@ class PreferencesService {
       if (data['layout'] != null) layout.value = sanitizeLayout((data['layout'] as List).map((r) => List<String>.from(r)).toList());
       if (data['appCategories'] != null) appCategories.value = (data['appCategories'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()));
       appDrawerFolderView.value = data['appDrawerFolderView'] ?? true;
-      cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'http://192.168.1.47:50051';
-      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'http://192.168.1.47:50051';
+      cachedBaseUrl.value = data['cachedBaseUrl'] ?? 'http://localhost:50051';
+      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? 'http://localhost:50051';
       showPerformanceOverlay.value = data['showPerformanceOverlay'] ?? false;
       showConnectionStatusOverlay.value = data['showConnectionStatusOverlay'] ?? false;
       if (data['favoriteAssetIds'] != null) favoriteAssetIds.value = List<String>.from(data['favoriteAssetIds']);
@@ -62,7 +65,7 @@ class PreferencesService {
 
   static Future<void> save() async {
     try {
-      final f = await getPrefsFile(null);
+      final f = await getPrefsFile(_prefsDir);
       await f.writeAsString(jsonEncode({
         'navProfile': navProfile.value, 'bgSync': bgSync.value, 'spatialGestures': spatialGestures.value,
         'devMode': devMode.value, 'activeProfileId': activeProfileId.value, 'activeProfileRole': activeProfileRole.value,

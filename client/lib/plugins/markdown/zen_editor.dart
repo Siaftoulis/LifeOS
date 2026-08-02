@@ -38,9 +38,6 @@ class _ZenState extends State<ZenEditor> with SingleTickerProviderStateMixin {
         _currentOffset = _offsetAnimation.value;
       });
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _keyboardFocusNode.requestFocus();
-    });
   }
 
   @override
@@ -116,6 +113,43 @@ class _ZenState extends State<ZenEditor> with SingleTickerProviderStateMixin {
     });
   }
 
+  bool _isUserTyping() {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus == null) return false;
+    final context = primaryFocus.context;
+    if (context == null) return false;
+    
+    final currentType = context.widget.runtimeType.toString();
+    if (context.widget is EditableText ||
+        currentType.contains('EditableText') ||
+        currentType.contains('TextField') ||
+        currentType.contains('TextFormField') ||
+        currentType.contains('AppFlowy') ||
+        currentType.contains('Editor') ||
+        currentType.contains('RichText') ||
+        currentType.contains('Selectable')) {
+      return true;
+    }
+    
+    bool isEditable = false;
+    context.visitAncestorElements((element) {
+      final type = element.widget.runtimeType.toString();
+      if (element.widget is EditableText || 
+          type.contains('EditableText') || 
+          type.contains('TextField') || 
+          type.contains('TextFormField') ||
+          type.contains('AppFlowy') ||
+          type.contains('Editor') ||
+          type.contains('RichText') ||
+          type.contains('Zen')) {
+        isEditable = true;
+        return false;
+      }
+      return true;
+    });
+    return isEditable;
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -136,25 +170,37 @@ class _ZenState extends State<ZenEditor> with SingleTickerProviderStateMixin {
           // 1. Spatial Grid Canvas
           Focus(
             focusNode: _keyboardFocusNode,
-            autofocus: true,
+            skipTraversal: true,
+
             onKeyEvent: (node, event) {
+              if (_isUserTyping()) return KeyEventResult.ignored;
+
               if (event is KeyDownEvent && !_searchFocusNode.hasFocus) {
-                _navigateByKey(event.logicalKey, sw, sh);
-                return KeyEventResult.handled;
+                final key = event.logicalKey;
+                if (key == LogicalKeyboardKey.arrowLeft ||
+                    key == LogicalKeyboardKey.arrowRight ||
+                    key == LogicalKeyboardKey.arrowUp ||
+                    key == LogicalKeyboardKey.arrowDown) {
+                  _navigateByKey(key, sw, sh);
+                  return KeyEventResult.handled;
+                }
               }
               return KeyEventResult.ignored;
             },
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+              behavior: HitTestBehavior.translucent,
               onPanStart: (details) {
+                if (_isUserTyping()) return;
                 _animController.stop();
               },
               onPanUpdate: (details) {
+                if (_isUserTyping()) return;
                 setState(() {
                   _currentOffset += details.delta;
                 });
               },
               onPanEnd: (details) {
+                if (_isUserTyping()) return;
                 final targetOfCurrent = Offset(-gridX * sw, -gridY * sh);
                 final displacement = _currentOffset - targetOfCurrent;
                 _snapToNearest(displacement, sw, sh);

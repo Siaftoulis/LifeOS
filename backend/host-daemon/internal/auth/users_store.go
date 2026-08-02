@@ -1,74 +1,64 @@
 package auth
 
 import (
-	"encoding/json"
+	"database/sql"
 	"log"
 	"os"
 	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	_ "modernc.org/sqlite"
 )
 
 var (
-	usersLock sync.RWMutex
-	usersMap  map[string]User
-	usersFile = "./data/users.json"
+	dbLock sync.RWMutex
+	db     *sql.DB
 )
 
 func init() {
-	usersMap = make(map[string]User)
-	loadUsers()
-}
+	if err := os.MkdirAll("./data", 0755); err != nil {
+		log.Printf("Error creating data directory: %v", err)
+	}
 
-func loadUsers() {
-	usersLock.Lock()
-	defer usersLock.Unlock()
-
-	data, err := os.ReadFile(usersFile)
+	var err error
+	db, err = sql.Open("sqlite", "./data/lifeos.db")
 	if err != nil {
-		if os.IsNotExist(err) {
-			os.MkdirAll("./data", 0755)
-			seedAdmin()
-			return
-		}
-		log.Printf("Error reading users.json: %v", err)
-		return
+		log.Fatalf("Error opening SQLite database: %v", err)
 	}
 
-	var usersList []User
-	if err := json.Unmarshal(data, &usersList); err != nil {
-		log.Printf("Error parsing users.json: %v", err)
-		return
-	}
-
-	for _, u := range usersList {
-		usersMap[u.Username] = u
-	}
-
-	if len(usersMap) == 0 {
-		seedAdmin()
-	}
+	initTables()
+	seedAdminIfNeeded()
 }
 
-func saveUsers() {
-	var usersList []User
-	for _, u := range usersMap {
-		usersList = append(usersList, u)
-	}
-
-	data, err := json.MarshalIndent(usersList, "", "  ")
+func initTables() {
+	query := `
+	CREATE TABLE IF NOT EXISTS users (
+		id TEXT PRIMARY KEY,
+		username TEXT UNIQUE,
+		password_hash TEXT,
+		role TEXT,
+		avatar_asset TEXT,
+		display_name TEXT,
+		status TEXT,
+		created_at INTEGER
+	);`
+	_, err := db.Exec(query)
 	if err != nil {
-		log.Printf("Error marshaling users: %v", err)
-		return
-	}
-
-	if err := os.WriteFile(usersFile, data, 0644); err != nil {
-		log.Printf("Error writing users.json: %v", err)
+		log.Fatalf("Error creating users table in SQLite: %v", err)
 	}
 }
 
-func seedAdmin() {
+func seedAdminIfNeeded() {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	if err != nil || count > 0 {
+		return
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte("1897"), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Error generating admin seed password hash: %v", err)
@@ -84,6 +74,12 @@ func seedAdmin() {
 		Status:       "System Administrator",
 		CreatedAt:    time.Now().Unix(),
 	}
-	usersMap[admin.Username] = admin
-	saveUsers()
+
+	_, err = db.Exec(`
+		INSERT INTO users (id, username, password_hash, role, avatar_asset, display_name, status, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	`, admin.ID, admin.Username, admin.PasswordHash, admin.Role, admin.AvatarAsset, admin.DisplayName, admin.Status, admin.CreatedAt)
+	if err != nil {
+		log.Printf("Error seeding admin in SQLite: %v", err)
+	}
 }

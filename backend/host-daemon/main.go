@@ -34,6 +34,7 @@ import (
 	"lifeos/host-daemon/internal/engine"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -154,8 +155,12 @@ func main() {
 	// Start the Custom DDNS Updater routine
 	go startCustomDDNSUpdater()
 
-	if err := InitTailnet("lifeos-host", 50051, mux); err != nil {
-		log.Printf("Tailnet init error: %v", err)
+	// ponytail: LIFEOS_LOCAL_ONLY=1 skips the embedded Tailscale listener
+	// (needs control server login); serve plain HTTP on :50051 instead.
+	if os.Getenv("LIFEOS_LOCAL_ONLY") != "1" {
+		if err := InitTailnet("lifeos-host", 50051, mux); err != nil {
+			log.Printf("Tailnet init error: %v", err)
+		}
 	}
 
 	if err := http.ListenAndServe(port, mux); err != nil {

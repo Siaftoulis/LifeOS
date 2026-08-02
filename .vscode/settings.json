@@ -4,5 +4,6 @@
     "client/android"
   ],
   "gradle.useGradleWrapper": true,
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "cmake.sourceDirectory": "C:/Users/PDS_Dev/1_Production/Projects/LifeOS/client/windows"
 }
