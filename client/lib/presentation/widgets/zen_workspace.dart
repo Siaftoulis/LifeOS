@@ -94,6 +94,130 @@ final formatDoubleEqualsToHighlight = CharacterShortcutEvent(
   },
 );
 
+final customMoveCursorUpCommand = CommandShortcutEvent(
+  key: 'custom move cursor upward',
+  command: 'arrow up',
+  macOSCommand: 'arrow up',
+  handler: (editorState) {
+    final selection = editorState.selection;
+    if (selection == null) {
+      return KeyEventResult.ignored;
+    }
+
+    final rects = editorState.selectionRects();
+    final currentPosition = selection.end;
+    final currentNode = editorState.getNodeAtPath(currentPosition.path);
+
+    Position? upPosition;
+
+    final pos1 = currentPosition.moveVertical(editorState, upwards: true);
+    if (pos1 != null && pos1 != currentPosition) {
+      upPosition = pos1;
+    }
+
+    if (upPosition == null && rects.isNotEmpty) {
+      final rect = rects.reduce((c, n) => c.top <= n.top ? c : n);
+      final testOffsets = [
+        rect.topLeft.translate(0, -rect.height * 1.5),
+        rect.topLeft.translate(0, -rect.height * 2.0),
+        rect.topLeft.translate(0, -rect.height * 2.5 - 10),
+        rect.topLeft.translate(0, -32.0),
+        rect.topLeft.translate(0, -50.0),
+      ];
+
+      for (final testOffset in testOffsets) {
+        final candidate = editorState.service.selectionService.getPositionInOffset(testOffset);
+        if (candidate != null && candidate != currentPosition) {
+          upPosition = candidate;
+          break;
+        }
+      }
+    }
+
+    if (upPosition == null && currentNode != null) {
+      final prevNode = currentNode.previous;
+      if (prevNode != null) {
+        upPosition = prevNode.selectable?.end();
+      } else if (currentNode.parent != null) {
+        final parentPrev = currentNode.parent?.previous;
+        upPosition = parentPrev?.selectable?.end();
+      }
+    }
+
+    if (upPosition != null) {
+      editorState.updateSelectionWithReason(
+        Selection.collapsed(upPosition),
+        reason: SelectionUpdateReason.uiEvent,
+      );
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  },
+);
+
+final customMoveCursorDownCommand = CommandShortcutEvent(
+  key: 'custom move cursor downward',
+  command: 'arrow down',
+  macOSCommand: 'arrow down',
+  handler: (editorState) {
+    final selection = editorState.selection;
+    if (selection == null) {
+      return KeyEventResult.ignored;
+    }
+
+    final rects = editorState.selectionRects();
+    final currentPosition = selection.end;
+    final currentNode = editorState.getNodeAtPath(currentPosition.path);
+
+    Position? downPosition;
+
+    final pos1 = currentPosition.moveVertical(editorState, upwards: false);
+    if (pos1 != null && pos1 != currentPosition) {
+      downPosition = pos1;
+    }
+
+    if (downPosition == null && rects.isNotEmpty) {
+      final rect = rects.reduce((c, n) => c.bottom >= n.bottom ? c : n);
+      final testOffsets = [
+        rect.bottomLeft.translate(0, rect.height * 1.5),
+        rect.bottomLeft.translate(0, rect.height * 2.0),
+        rect.bottomLeft.translate(0, rect.height * 2.5 + 10),
+        rect.bottomLeft.translate(0, 32.0),
+        rect.bottomLeft.translate(0, 50.0),
+      ];
+
+      for (final testOffset in testOffsets) {
+        final candidate = editorState.service.selectionService.getPositionInOffset(testOffset);
+        if (candidate != null && candidate != currentPosition) {
+          downPosition = candidate;
+          break;
+        }
+      }
+    }
+
+    if (downPosition == null && currentNode != null) {
+      final nextNode = currentNode.next;
+      if (nextNode != null) {
+        downPosition = nextNode.selectable?.start();
+      } else if (currentNode.parent != null) {
+        final parentNext = currentNode.parent?.next;
+        downPosition = parentNext?.selectable?.start();
+      }
+    }
+
+    if (downPosition != null) {
+      editorState.updateSelectionWithReason(
+        Selection.collapsed(downPosition),
+        reason: SelectionUpdateReason.uiEvent,
+      );
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  },
+);
+
 final customPasteCommand = CommandShortcutEvent(
   key: 'paste markdown or rich content',
   command: 'ctrl+v',
@@ -663,6 +787,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                               ...standardCharacterShortcutEvents,
                             ],
                             commandShortcutEvents: [
+                              customMoveCursorUpCommand,
+                              customMoveCursorDownCommand,
                               customPasteCommand,
                               ...standardCommandShortcutEvents,
                             ],
