@@ -1,6 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
+import '../../../theme/everforest_colors.dart';
+
+class ZenLinkState {
+  static String workspacePath = 'vault';
+}
+
+const zenLinkModules = <String, String>{
+  'maps': 'Maps',
+  'photos': 'Photos',
+  'books': 'Books',
+  'movies': 'Movies',
+};
 
 final wikiLinkShortcutEvent = CharacterShortcutEvent(
   key: 'wiki_link_autocomplete',
@@ -19,55 +31,102 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
     if (offset > 0 && text.length >= offset && text.substring(offset - 1, offset) == '[') {
       final context = node.context;
       if (context != null && context.mounted) {
-        final vaultDir = Directory('vault');
+        final vaultDir = Directory(ZenLinkState.workspacePath);
         List<String> noteNames = [];
         if (vaultDir.existsSync()) {
           noteNames = vaultDir
               .listSync(recursive: true)
               .whereType<File>()
-              .where((f) => f.path.endsWith('.md'))
-              .map((f) => f.path.split(RegExp(r'[/\\]')).last.replaceAll('.md', ''))
-              .toList();
-        }
-
-        if (noteNames.isEmpty) {
-          noteNames = ['Daily Note', 'Tasks & Projects', 'Ideas', 'Evergreen Notes'];
+              .where((f) => f.path.endsWith('.md') || f.path.endsWith('.json'))
+              .where((f) => !f.path.contains('${Platform.pathSeparator}.dart_tool'))
+              .where((f) => !f.path.contains('${Platform.pathSeparator}workspaces${Platform.pathSeparator}'))
+              .map((f) => f.path.split(RegExp(r'[/\\]')).last.replaceAll('.md', '').replaceAll('.json', ''))
+              .toList()
+            ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
         }
 
         final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
         if (renderBox != null) {
           final pos = renderBox.localToGlobal(Offset.zero);
-          showMenu(
+          showMenu<String>(
             context: context,
-            position: RelativeRect.fromLTRB(pos.dx, pos.dy + 24, pos.dx + 240, pos.dy + 300),
-            color: const Color(0xFF263238),
-            items: noteNames.map((name) {
-              return PopupMenuItem(
-                onTap: () async {
-                  final transaction = editorState.transaction;
-                  transaction.insertText(
-                    node,
-                    selection.start.offset,
-                    '[$name]]',
-                  );
-                  await editorState.apply(transaction);
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.link, size: 16, color: Color(0xFFA7C080)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
+            position: RelativeRect.fromLTRB(pos.dx, pos.dy + 24, pos.dx + 260, pos.dy + 380),
+            color: const Color(0xFF242B2E),
+            items: [
+              for (final name in noteNames)
+                PopupMenuItem<String>(
+                  height: 34,
+                  value: 'page:$name',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.description_outlined, size: 15, color: EverforestColors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              );
-            }).toList(),
-          );
+              if (noteNames.isEmpty)
+                const PopupMenuItem<String>(
+                  enabled: false,
+                  height: 34,
+                  child: Text(
+                    'No pages in this workspace',
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 13),
+                  ),
+                ),
+              const PopupMenuDivider(),
+              for (final entry in zenLinkModules.entries)
+                PopupMenuItem<String>(
+                  height: 34,
+                  value: '${entry.key}:',
+                  child: Row(
+                    children: [
+                      Icon(
+                        entry.key == 'maps'
+                            ? Icons.map_outlined
+                            : entry.key == 'photos'
+                                ? Icons.photo_library_outlined
+                                : entry.key == 'books'
+                                    ? Icons.menu_book_outlined
+                                    : Icons.movie_outlined,
+                        size: 15,
+                        color: EverforestColors.green,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${entry.value} (module)',
+                          style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ).then((value) async {
+            if (value == null) return;
+            final currentSelection = editorState.selection;
+            if (currentSelection == null || !currentSelection.isCollapsed) return;
+            // Both '[' are already in the document when this runs (the shortcut
+            // fires before the character is inserted); only append the tail.
+            final insert = value.endsWith(':')
+                ? '${value.substring(0, value.length - 1)}]]'
+                : '${value.substring(5)}]]';
+            final transaction = editorState.transaction;
+            transaction.insertText(
+              node,
+              currentSelection.start.offset,
+              insert,
+            );
+            await editorState.apply(transaction);
+          });
         }
       }
     }

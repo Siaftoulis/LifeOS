@@ -79,4 +79,39 @@ class ZenMarkdownBridge {
       return '';
     }
   }
+
+  /// Serializes a set of blocks (e.g. a copy selection) to markdown that
+  /// [createEditorState]/[customPasteCommand] can parse back losslessly.
+  static String exportMarkdownForNodes(List<Node> nodes) {
+    // Deep-copy: Node(children: ...) unlinks nodes from their current parent.
+    final copies = nodes.map((n) => Node.fromJson(n.toJson())).toList();
+    final document = Document(
+      root: Node(
+        type: PageBlockKeys.type,
+        children: copies,
+      ),
+    );
+    var markdown = documentToMarkdown(
+      document,
+      customParsers: const [_DividerNodeParser()],
+    );
+    // The encoder parsers emit inconsistent trailing newlines; normalize so a
+    // divider always sits between blank lines, like the file convention.
+    markdown = markdown
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trimRight();
+    // The package encoder emits "1. " + node text, and the parser keeps a
+    // leading space after "1." — collapsing to a single space round-trips.
+    return markdown.replaceAll(RegExp(r'^1\.\s+', multiLine: true), '1. ');
+  }
+}
+
+class _DividerNodeParser extends NodeParser {
+  const _DividerNodeParser();
+
+  @override
+  String get id => DividerBlockKeys.type;
+
+  @override
+  String transform(Node node, DocumentMarkdownEncoder? encoder) => '\n---\n\n';
 }

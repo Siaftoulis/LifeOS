@@ -25,6 +25,9 @@ class PreferencesService {
   static final ValueNotifier<bool> showPerformanceOverlay = ValueNotifier(false);
   static final ValueNotifier<bool> showConnectionStatusOverlay = ValueNotifier(false);
   static final ValueNotifier<List<String>> favoriteAssetIds = ValueNotifier([]);
+  static final ValueNotifier<List<String>> zenExpanded = ValueNotifier([]);
+  static final ValueNotifier<List<String>> zenFavorites = ValueNotifier([]);
+  static final ValueNotifier<String> zenWorkspace = ValueNotifier('');
 
   static Directory? _prefsDir;
 
@@ -60,6 +63,9 @@ class PreferencesService {
       showPerformanceOverlay.value = data['showPerformanceOverlay'] ?? false;
       showConnectionStatusOverlay.value = data['showConnectionStatusOverlay'] ?? false;
       if (data['favoriteAssetIds'] != null) favoriteAssetIds.value = List<String>.from(data['favoriteAssetIds']);
+      if (data['zenExpanded'] != null) zenExpanded.value = List<String>.from(data['zenExpanded']);
+      if (data['zenFavorites'] != null) zenFavorites.value = List<String>.from(data['zenFavorites']);
+      zenWorkspace.value = data['zenWorkspace'] ?? '';
     } catch (_) {}
   }
 
@@ -75,6 +81,9 @@ class PreferencesService {
         'cachedDaemonUrl': cachedDaemonUrl.value, 'showPerformanceOverlay': showPerformanceOverlay.value,
         'showConnectionStatusOverlay': showConnectionStatusOverlay.value,
         'favoriteAssetIds': favoriteAssetIds.value,
+        'zenExpanded': zenExpanded.value,
+        'zenFavorites': zenFavorites.value,
+        'zenWorkspace': zenWorkspace.value,
       }));
       try {
         await _secureStorage.write(key: 'authToken', value: authToken.value).timeout(const Duration(seconds: 2));
@@ -105,4 +114,11 @@ class PreferencesService {
   }
   static Future<void> setShowPerformanceOverlay(bool v) async { showPerformanceOverlay.value = v; await save(); }
   static Future<void> setShowConnectionStatusOverlay(bool v) async { showConnectionStatusOverlay.value = v; await save(); }
+  static Future<void> setZenExpanded(List<String> v) async { zenExpanded.value = v; await save(); }
+  static Future<void> toggleZenFavorite(String path) async {
+    final list = List<String>.from(zenFavorites.value);
+    if (list.contains(path)) list.remove(path); else list.add(path);
+    zenFavorites.value = list; await save();
+  }
+  static Future<void> setZenWorkspace(String v) async { zenWorkspace.value = v; await save(); }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
+import '../../../../theme/everforest_colors.dart';
 import '../block_component/callout_block_component/callout_block_component.dart';
 import '../block_component/code_block_component/code_block_component.dart';
 import '../block_component/toggle_block_component/toggle_block_component.dart';
@@ -143,6 +144,29 @@ final heading6MenuItem = SelectionMenuItem(
   },
 );
 
+final paragraphMenuItem = SelectionMenuItem(
+  name: 'Paragraph',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.notes,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : style.selectionMenuItemIconColor,
+  ),
+  keywords: ['paragraph', 'text', 'plain', 'p'],
+  handler: (editorState, menuService, style) {
+    final selection = editorState.selection;
+    if (selection == null) return;
+    final node = editorState.getNodeAtPath(selection.start.path);
+    if (node == null) return;
+    final transaction = editorState.transaction;
+    transaction.insertNode(
+      selection.start.path,
+      paragraphNode(delta: node.delta ?? Delta()),
+    );
+    transaction.deleteNode(node);
+    editorState.apply(transaction);
+  },
+);
+
 final bulletedListMenuItem = SelectionMenuItem(
   name: 'Bulleted list',
   icon: (editorState, isSelected, style) => Icon(
@@ -263,7 +287,7 @@ final calloutMenuItem = SelectionMenuItem(
   icon: (editorState, isSelected, style) => Icon(
     Icons.info_outline,
     size: 16,
-    color: isSelected ? style.selectionMenuItemSelectedIconColor : const Color(0xFF7E57C2),
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.purple,
   ),
   keywords: ['callout', 'note', 'info'],
   handler: (editorState, menuService, style) {
@@ -286,7 +310,7 @@ final codeBlockMenuItem = SelectionMenuItem(
   icon: (editorState, isSelected, style) => Icon(
     Icons.code,
     size: 16,
-    color: isSelected ? style.selectionMenuItemSelectedIconColor : const Color(0xFFA7C080),
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
   ),
   keywords: ['code', 'codeblock', 'snippet'],
   handler: (editorState, menuService, style) {
@@ -309,7 +333,7 @@ final toggleListMenuItem = SelectionMenuItem(
   icon: (editorState, isSelected, style) => Icon(
     Icons.arrow_right,
     size: 16,
-    color: isSelected ? style.selectionMenuItemSelectedIconColor : const Color(0xFFDB9D63),
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.orange,
   ),
   keywords: ['toggle', 'toggle list', 'collapsible'],
   handler: (editorState, menuService, style) {
@@ -327,38 +351,12 @@ final toggleListMenuItem = SelectionMenuItem(
   },
 );
 
-final tableMenuItem = SelectionMenuItem(
-  name: 'Table',
-  icon: (editorState, isSelected, style) => Icon(
-    Icons.table_chart,
-    size: 16,
-    color: isSelected ? style.selectionMenuItemSelectedIconColor : const Color(0xFF83C5BE),
-  ),
-  keywords: ['table', 'grid', 'rows', 'columns'],
-  handler: (editorState, menuService, style) {
-    final selection = editorState.selection;
-    if (selection == null) return;
-    final node = editorState.getNodeAtPath(selection.start.path);
-    if (node == null) return;
-    final transaction = editorState.transaction;
-    transaction.insertNode(
-      selection.start.path,
-      Node(
-        type: 'table',
-        attributes: {'rows': 2, 'cols': 2},
-      ),
-    );
-    transaction.deleteNode(node);
-    editorState.apply(transaction);
-  },
-);
-
 final imageMenuItem = SelectionMenuItem(
   name: 'Image',
   icon: (editorState, isSelected, style) => Icon(
     Icons.image,
     size: 16,
-    color: isSelected ? style.selectionMenuItemSelectedIconColor : const Color(0xFFE29578),
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.orange,
   ),
   keywords: ['image', 'photo', 'picture', 'img'],
   handler: (editorState, menuService, style) {
@@ -377,6 +375,7 @@ final imageMenuItem = SelectionMenuItem(
 );
 
 final zenSelectionMenuItems = [
+  paragraphMenuItem,
   heading1MenuItem,
   heading2MenuItem,
   heading3MenuItem,
@@ -395,6 +394,58 @@ final zenSelectionMenuItems = [
   imageMenuItem,
 ];
 
+class _ZenMobileMenuItem {
+  const _ZenMobileMenuItem({
+    required this.name,
+    required this.icon,
+    required this.children,
+  });
+
+  final String name;
+  final IconData icon;
+  final List<SelectionMenuItem> children;
+}
+
+final _zenMobileMenuCategories = <_ZenMobileMenuItem>[
+  _ZenMobileMenuItem(
+    name: 'Text Style',
+    icon: Icons.format_size,
+    children: [paragraphMenuItem, heading1MenuItem, heading2MenuItem, heading3MenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'List',
+    icon: Icons.format_list_bulleted,
+    children: [todoListMenuItem, bulletedListMenuItem, numberedListMenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'Toggle',
+    icon: Icons.arrow_drop_down_circle_outlined,
+    children: [toggleListMenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'File & Media',
+    icon: Icons.image,
+    children: [imageMenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'Visuals',
+    icon: Icons.auto_awesome,
+    children: [calloutMenuItem, dividerMenuItem, quoteMenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'Table',
+    icon: Icons.table_chart_outlined,
+    children: [tableMenuItem],
+  ),
+  _ZenMobileMenuItem(
+    name: 'Advanced',
+    icon: Icons.code,
+    children: [codeBlockMenuItem],
+  ),
+];
+
+final _zenMobileFlatItems = [for (final c in _zenMobileMenuCategories) ...c.children];
+
 final customAppFlowySlashCommand = CharacterShortcutEvent(
   key: 'show_slash_menu',
   character: '/',
@@ -409,75 +460,138 @@ final customAppFlowySlashCommand = CharacterShortcutEvent(
 
     await editorState.insertTextAtPosition('/', position: selection.start);
 
-    _ZenSelectionMenuOverlay.show(
-      context: context,
-      editorState: editorState,
-      items: zenSelectionMenuItems,
-    );
+    if (PlatformExtension.isMobile) {
+      _ZenMobileSelectionMenuOverlay.show(
+        context: context,
+        editorState: editorState,
+      );
+    } else {
+      _ZenSelectionMenuOverlay.show(
+        context: context,
+        editorState: editorState,
+        items: zenSelectionMenuItems,
+      );
+    }
 
     return true;
   },
 );
 
-class _ZenSelectionMenuOverlay {
-  static OverlayEntry? _entry;
+OverlayEntry? _zenMenuOverlayEntry;
 
+void _dismissZenMenuOverlay() {
+  _zenMenuOverlayEntry?.remove();
+  _zenMenuOverlayEntry = null;
+}
+
+void _showZenMenuOverlay({
+  required BuildContext context,
+  required EditorState editorState,
+  required Widget child,
+}) {
+  _dismissZenMenuOverlay();
+
+  final selectionService = editorState.service.selectionService;
+  final selectionRects = selectionService.selectionRects;
+  if (selectionRects.isEmpty) return;
+
+  final rect = selectionRects.first;
+  final editorBox = editorState.renderBox;
+  if (editorBox == null) return;
+
+  final editorOffset = editorBox.localToGlobal(Offset.zero);
+  final top = rect.bottom - editorOffset.dy + 8;
+  final left = rect.left - editorOffset.dx;
+
+  editorState.service.keyboardService?.disable(showCursor: true);
+  editorState.service.scrollService?.disable();
+
+  _zenMenuOverlayEntry = OverlayEntry(
+    builder: (overlayContext) {
+      return Stack(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTapDown: (_) => _dismissZenMenuOverlay(),
+            child: const SizedBox.expand(),
+          ),
+          Positioned(
+            top: top,
+            left: left.clamp(16.0, (editorBox.size.width - 250.0).clamp(16.0, 10000.0)),
+            child: Material(
+              color: Colors.transparent,
+              child: child,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  Overlay.of(context).insert(_zenMenuOverlayEntry!);
+}
+
+void _deleteSlashAndKeyword(EditorState editorState) {
+  final selection = editorState.selection;
+  if (selection == null || !selection.isCollapsed) return;
+
+  final node = editorState.getNodeAtPath(selection.start.path);
+  final delta = node?.delta;
+  if (node == null || delta == null) return;
+
+  final text = delta.toPlainText();
+  final offset = selection.start.offset;
+  final slashIndex = text.substring(0, offset).lastIndexOf('/');
+  if (slashIndex != -1) {
+    final transaction = editorState.transaction
+      ..deleteText(node, slashIndex, offset - slashIndex);
+    editorState.apply(transaction);
+  }
+}
+
+void _executeSelectionMenuItem(EditorState editorState, SelectionMenuItem item, BuildContext context) {
+  _deleteSlashAndKeyword(editorState);
+  // The package wrapper would delete the slash again (deleteSlash=true) and
+  // crash on the now-empty node (deleteText with index -1). We handle it above.
+  item.deleteSlash = false;
+
+  editorState.service.keyboardService?.enable();
+  editorState.service.scrollService?.enable();
+
+  item.handler(editorState, _DummySelectionMenuService(), context);
+}
+
+class _ZenSelectionMenuOverlay {
   static void show({
     required BuildContext context,
     required EditorState editorState,
     required List<SelectionMenuItem> items,
   }) {
-    dismiss();
-
-    final selectionService = editorState.service.selectionService;
-    final selectionRects = selectionService.selectionRects;
-    if (selectionRects.isEmpty) return;
-
-    final rect = selectionRects.first;
-    final editorBox = editorState.renderBox;
-    if (editorBox == null) return;
-
-    final editorOffset = editorBox.localToGlobal(Offset.zero);
-    final top = rect.bottom - editorOffset.dy + 8;
-    final left = rect.left - editorOffset.dx;
-
-    editorState.service.keyboardService?.disable(showCursor: true);
-    editorState.service.scrollService?.disable();
-
-    _entry = OverlayEntry(
-      builder: (overlayContext) {
-        return Stack(
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapDown: (_) => dismiss(),
-              child: const SizedBox.expand(),
-            ),
-            Positioned(
-              top: top,
-              left: left.clamp(16.0, (editorBox.size.width - 250.0).clamp(16.0, 10000.0)),
-              child: Material(
-                color: Colors.transparent,
-                child: _ZenSelectionMenuWidget(
-                  editorState: editorState,
-                  items: items,
-                  onClose: () => dismiss(),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    _showZenMenuOverlay(
+      context: context,
+      editorState: editorState,
+      child: _ZenSelectionMenuWidget(
+        editorState: editorState,
+        items: items,
+        onClose: _dismissZenMenuOverlay,
+      ),
     );
-
-    Overlay.of(context).insert(_entry!);
   }
+}
 
-  static void dismiss() {
-    if (_entry != null) {
-      _entry?.remove();
-      _entry = null;
-    }
+class _ZenMobileSelectionMenuOverlay {
+  static void show({
+    required BuildContext context,
+    required EditorState editorState,
+  }) {
+    _showZenMenuOverlay(
+      context: context,
+      editorState: editorState,
+      child: _ZenMobileSelectionMenuWidget(
+        editorState: editorState,
+        onClose: _dismissZenMenuOverlay,
+      ),
+    );
   }
 }
 
@@ -553,32 +667,8 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
   }
 
   void _executeItem(SelectionMenuItem item) {
-    _deleteSlashAndKeyword();
-
-    widget.editorState.service.keyboardService?.enable();
-    widget.editorState.service.scrollService?.enable();
-
-    final dummyService = _DummySelectionMenuService();
-    item.handler(widget.editorState, dummyService, context);
+    _executeSelectionMenuItem(widget.editorState, item, context);
     widget.onClose();
-  }
-
-  void _deleteSlashAndKeyword() {
-    final selection = widget.editorState.selection;
-    if (selection == null || !selection.isCollapsed) return;
-
-    final node = widget.editorState.getNodeAtPath(selection.start.path);
-    final delta = node?.delta;
-    if (node == null || delta == null) return;
-
-    final text = delta.toPlainText();
-    final offset = selection.start.offset;
-    final slashIndex = text.substring(0, offset).lastIndexOf('/');
-    if (slashIndex != -1) {
-      final transaction = widget.editorState.transaction
-        ..deleteText(node, slashIndex, offset - slashIndex);
-      widget.editorState.apply(transaction);
-    }
   }
 
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
@@ -620,7 +710,7 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
     }
 
     if (key == LogicalKeyboardKey.escape) {
-      _deleteSlashAndKeyword();
+      _deleteSlashAndKeyword(widget.editorState);
       widget.onClose();
       return KeyEventResult.handled;
     }
@@ -631,7 +721,7 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
         _deleteLastCharFromEditor();
         _updateFilter();
       } else {
-        _deleteSlashAndKeyword();
+        _deleteSlashAndKeyword(widget.editorState);
         widget.onClose();
       }
       return KeyEventResult.handled;
@@ -672,11 +762,11 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const darkBg = Color(0xFF272E33);
-    const borderColor = Color(0xFF343F44);
-    const textFg = Color(0xFFD3C6AA);
-    const selectBg = Color(0xFF343F44);
-    const selectFg = Color(0xFFDBBC7F);
+    const darkBg = EverforestColors.bg0;
+    const borderColor = EverforestColors.bg1;
+    const textFg = EverforestColors.fg;
+    const selectBg = EverforestColors.bg1;
+    const selectFg = EverforestColors.green;
     const menuStyle = SelectionMenuStyle(
       selectionMenuBackgroundColor: darkBg,
       selectionMenuItemTextColor: textFg,
@@ -709,7 +799,7 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
                 padding: EdgeInsets.all(12),
                 child: Text(
                   'No matching blocks',
-                  style: TextStyle(color: Color(0xFF859289), fontSize: 13),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
               )
@@ -755,6 +845,194 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
                 },
               ),
       ),
+    );
+  }
+}
+
+class _ZenMobileSelectionMenuWidget extends StatefulWidget {
+  const _ZenMobileSelectionMenuWidget({
+    required this.editorState,
+    required this.onClose,
+  });
+
+  final EditorState editorState;
+  final VoidCallback onClose;
+
+  @override
+  State<_ZenMobileSelectionMenuWidget> createState() => _ZenMobileSelectionMenuWidgetState();
+}
+
+class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWidget> {
+  static const _bg = EverforestColors.bg0;
+  static const _border = EverforestColors.bg1;
+  static const _fg = EverforestColors.fg;
+  static const _grey = EverforestColors.grey;
+  static const _menuStyle = SelectionMenuStyle(
+    selectionMenuBackgroundColor: _bg,
+    selectionMenuItemTextColor: _fg,
+    selectionMenuItemIconColor: _fg,
+    selectionMenuItemSelectedTextColor: _fg,
+    selectionMenuItemSelectedIconColor: _fg,
+    selectionMenuItemSelectedColor: _bg,
+  );
+
+  String _keyword = '';
+  bool _showCategories = true;
+  List<SelectionMenuItem>? _children;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.editorState.selectionNotifier.addListener(_onSelectionChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.editorState.selectionNotifier.removeListener(_onSelectionChanged);
+    widget.editorState.service.keyboardService?.enable();
+    widget.editorState.service.scrollService?.enable();
+    super.dispose();
+  }
+
+  void _onSelectionChanged() {
+    final selection = widget.editorState.selection;
+    if (selection == null || !selection.isCollapsed) return;
+    final node = widget.editorState.getNodeAtPath(selection.start.path);
+    if (node == null) return;
+    final text = node.delta?.toPlainText() ?? '';
+    final caret = selection.start.offset;
+    final prefix = caret <= text.length ? text.substring(0, caret) : text;
+    final slashIndex = prefix.lastIndexOf('/');
+    if (slashIndex == -1) {
+      widget.onClose();
+      return;
+    }
+    final keyword = prefix.substring(slashIndex + 1);
+    if (keyword == _keyword) return;
+    setState(() {
+      _keyword = keyword;
+      _showCategories = keyword.isEmpty;
+      _children = null;
+    });
+  }
+
+  void _openCategory(_ZenMobileMenuItem category) {
+    setState(() {
+      _showCategories = false;
+      _children = category.children;
+    });
+  }
+
+  void _executeItem(SelectionMenuItem item) {
+    _executeSelectionMenuItem(widget.editorState, item, context);
+    widget.onClose();
+  }
+
+  List<SelectionMenuItem> _searchItems(String keyword) {
+    final query = keyword.toLowerCase().trim();
+    if (query.isEmpty) return _zenMobileFlatItems;
+    return _zenMobileFlatItems.where((item) {
+      final nameMatch = item.name.toLowerCase().contains(query);
+      final keywordMatch = item.keywords.any((k) => k.toLowerCase().contains(query));
+      return nameMatch || keywordMatch;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 240,
+      constraints: const BoxConstraints(maxHeight: 208),
+      decoration: BoxDecoration(
+        color: _bg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _border, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: _showCategories ? _buildCategories() : _buildChildren(),
+    );
+  }
+
+  Widget _buildCategories() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      padding: const EdgeInsets.all(4),
+      childAspectRatio: 2.4,
+      children: [for (final c in _zenMobileMenuCategories) _buildCategoryTile(c)],
+    );
+  }
+
+  Widget _buildCategoryTile(_ZenMobileMenuItem category) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(6),
+      onTap: () => _openCategory(category),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: [
+            Icon(category.icon, size: 20, color: _fg),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                category.name,
+                style: const TextStyle(color: _fg, fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.chevron_right, size: 16, color: _grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChildren() {
+    final items = _searchItems(_keyword);
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Text(
+          'No matching blocks',
+          style: TextStyle(color: _grey, fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: items.length,
+      itemExtent: 48,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return InkWell(
+          onTap: () => _executeItem(item),
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                item.icon(widget.editorState, false, _menuStyle),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: const TextStyle(color: _fg, fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -43,6 +43,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.12
   markdown_editor_live: ^0.6.0
   appflowy_editor: ^1.4.0
+  file_picker: ^11.0.0
 
 
 
@@ -51,7 +52,7 @@ dependencies:
 
 dependency_overrides:
   intl: 0.20.2
-  file_picker: ^8.0.0
+  file_picker: ^11.0.0
 
 dev_dependencies:
   flutter_test:

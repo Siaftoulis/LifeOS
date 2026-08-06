@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/shortcuts/command/copy_paste_extension.dart';
@@ -11,21 +12,15 @@ import '../../appflowy/src/editor/block_component/toggle_block_component/toggle_
 import '../../appflowy/src/editor/selection_menu/selection_menu_service.dart';
 import '../../appflowy/src/editor/wiki_link_shortcut.dart';
 import '../../theme/everforest_colors.dart';
+import '../../database/preferences_service.dart';
 import '../theme/zen_markdown_bridge.dart';
+import '../widgets/maps_live_tracking/maps_dashboard_widget.dart';
+import '../widgets/media_hub/movie_library/movie_library_dashboard.dart';
+import '../widgets/book_library/book_library_dashboard.dart';
+import '../../plugins/gallery/gallery_home_view.dart';
+import 'zen_sidebar.dart';
 
-class FileNode {
-  final String name;
-  final String path;
-  final bool isDirectory;
-  final List<FileNode> children;
-
-  FileNode({
-    required this.name,
-    required this.path,
-    required this.isDirectory,
-    required this.children,
-  });
-}
+final _wikiLinkRegExp = RegExp(r'\[\[([^\[\]\n]+)\]\]');
 
 final formatDoubleEqualsToHighlight = CharacterShortcutEvent(
   key: 'format double equals to gold highlight',
@@ -218,6 +213,53 @@ final customMoveCursorDownCommand = CommandShortcutEvent(
   },
 );
 
+final customCopyCommand = CommandShortcutEvent(
+  key: 'copy as markdown',
+  command: 'ctrl+c',
+  macOSCommand: 'cmd+c',
+  handler: (editorState) {
+    final selection = editorState.selection;
+    if (selection == null || selection.isCollapsed) {
+      return KeyEventResult.ignored;
+    }
+    // Top-level blocks only; the table keeps its cells. Cells flattened by
+    // getNodesInSelection would be serialized twice.
+    final originalNodes = editorState
+        .getNodesInSelection(selection)
+        .where((n) => n.parent?.type == PageBlockKeys.type)
+        .toList();
+    if (originalNodes.isEmpty) {
+      return KeyEventResult.ignored;
+    }
+
+    () async {
+      // Slice partial first/last blocks to the selection bounds.
+      final single = originalNodes.length == 1;
+      final first = originalNodes.first;
+      final last = originalNodes.last;
+      final nodes = originalNodes.toList();
+      if (first.delta != null && selection.startIndex > 0) {
+        final plain = first.delta!
+            .slice(selection.startIndex,
+                single ? selection.endIndex : first.delta!.length)
+            .toPlainText();
+        nodes[0] = paragraphNode(text: plain);
+      }
+      if (!single && last.delta != null && selection.endIndex < last.delta!.length) {
+        final plain = last.delta!
+            .slice(0, selection.endIndex)
+            .toPlainText();
+        nodes[nodes.length - 1] = paragraphNode(text: plain);
+      }
+
+      await AppFlowyClipboard.setData(
+        text: ZenMarkdownBridge.exportMarkdownForNodes(nodes),
+      );
+    }();
+    return KeyEventResult.handled;
+  },
+);
+
 final customPasteCommand = CommandShortcutEvent(
   key: 'paste markdown or rich content',
   command: 'ctrl+v',
@@ -285,6 +327,13 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   List<FileNode> _fileTree = [];
 
   final String _vaultPath = 'vault';
+  String _activeWorkspace = '';
+
+  String get _workspacePath => _activeWorkspace.isEmpty
+      ? _vaultPath
+      : '$_vaultPath/workspaces/$_activeWorkspace';
+
+  final GlobalKey _workspaceMenuKey = GlobalKey();
 
   @override
   void initState() {
@@ -306,13 +355,18 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
+    _activeWorkspace = PreferencesService.zenWorkspace.value;
+    if (_activeWorkspace.isNotEmpty) {
+      Directory('$_vaultPath/workspaces/$_activeWorkspace').createSync(recursive: true);
+    }
+    ZenLinkState.workspacePath = _workspacePath;
     _refreshFileTree();
     _loadInitialDocument();
   }
 
   void _refreshFileTree() {
     setState(() {
-      _fileTree = _scanDir(Directory(_vaultPath));
+      _fileTree = _scanDir(Directory(_workspacePath));
     });
   }
 
@@ -334,6 +388,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             : entity.uri.pathSegments.last;
 
         if (name.startsWith('.')) continue;
+        if (name == 'workspaces' && _activeWorkspace.isEmpty) continue;
 
         if (entity is Directory) {
           nodes.add(FileNode(
@@ -379,7 +434,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
   void _createNewDocument(String title, {String? parentFolderPath}) {
     final sanitizedTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    final parentDir = parentFolderPath ?? _vaultPath;
+    final parentDir = parentFolderPath ?? _workspacePath;
     final baseFilePath = '$parentDir/$sanitizedTitle.json';
 
     String targetPath = baseFilePath;
@@ -430,8 +485,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           decoration: const InputDecoration(
             hintText: 'Document Name',
             hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.yellow)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.yellow, width: 2)),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
           ),
         ),
         actions: [
@@ -440,7 +495,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.yellow),
+            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
           ),
@@ -467,8 +522,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           decoration: const InputDecoration(
             hintText: 'Folder Name',
             hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.yellow)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.yellow, width: 2)),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
           ),
         ),
         actions: [
@@ -477,7 +532,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.yellow),
+            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
           ),
@@ -487,7 +542,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
     if (folderName != null && folderName.isNotEmpty) {
       final sanitized = folderName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      final parentDir = parentFolderPath ?? _vaultPath;
+      final parentDir = parentFolderPath ?? _workspacePath;
       final newDirPath = '$parentDir/$sanitized';
       final dir = Directory(newDirPath);
       if (!dir.existsSync()) {
@@ -495,6 +550,211 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       }
       _refreshFileTree();
     }
+  }
+
+  List<String> _listWorkspaces() {
+    final workspacesDir = Directory('$_vaultPath/workspaces');
+    final List<String> names = [''];
+    if (workspacesDir.existsSync()) {
+      for (final e in workspacesDir.listSync()) {
+        if (e is Directory && !e.path.split(RegExp(r'[/\\]')).last.startsWith('.')) {
+          names.add(e.path.split(RegExp(r'[/\\]')).last);
+        }
+      }
+    }
+    names.sort();
+    return names;
+  }
+
+  Future<void> _showWorkspaceMenu() async {
+    final renderBox = _workspaceMenuKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final workspaceNames = _listWorkspaces();
+
+    final result = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        renderBox.localToGlobal(Offset.zero) & renderBox.size,
+        overlay != null ? Offset.zero & overlay.size : Offset.zero & MediaQuery.of(context).size,
+      ),
+      color: const Color(0xFF242B2E),
+      items: [
+        for (final name in workspaceNames)
+          PopupMenuItem<String>(
+            value: name,
+            height: 36,
+            child: Row(
+              children: [
+                Icon(
+                  _activeWorkspace == name ? Icons.check : Icons.dashboard_outlined,
+                  size: 16,
+                  color: _activeWorkspace == name ? EverforestColors.green : EverforestColors.grey,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  name.isEmpty ? 'Zen' : name,
+                  style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        const PopupMenuDivider(),
+        const PopupMenuItem<String>(
+          value: '__new__',
+          height: 36,
+          child: Row(
+            children: [
+              Icon(Icons.add, size: 16, color: EverforestColors.green),
+              SizedBox(width: 8),
+              Text('New Workspace', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (result == null || result == _activeWorkspace) return;
+    if (result == '__new__') {
+      final name = await _showCreateWorkspaceDialog();
+      if (name != null) _switchWorkspace(name);
+    } else {
+      _switchWorkspace(result);
+    }
+  }
+
+  Future<String?> _showCreateWorkspaceDialog() async {
+    final controller = TextEditingController(text: 'New Workspace');
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF242B2E),
+        title: const Text('Create New Workspace', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: const TextStyle(color: EverforestColors.fg),
+          decoration: const InputDecoration(
+            hintText: 'Workspace Name',
+            hintStyle: TextStyle(color: EverforestColors.grey),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (name == null || name.isEmpty) return null;
+    return name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+  }
+
+  void _switchWorkspace(String name) {
+    Directory(name.isEmpty ? _vaultPath : '$_vaultPath/workspaces/$name')
+        .createSync(recursive: true);
+    _activeWorkspace = name;
+    PreferencesService.setZenWorkspace(name);
+    ZenLinkState.workspacePath = _workspacePath;
+
+    _debounce?.cancel();
+    _editorState?.dispose();
+    _editorState = null;
+    _editorScrollController?.dispose();
+    _editorScrollController = null;
+    _openFilePaths.clear();
+    _activeFilePath = null;
+
+    _refreshFileTree();
+    _loadInitialDocument();
+  }
+
+  void _handleZenLink(String target) {
+    final colon = target.indexOf(':');
+    if (colon < 0) {
+      if (zenLinkModules.containsKey(target)) {
+        _openModule(target);
+      } else {
+        _openLinkedPage(target);
+      }
+      return;
+    }
+    final type = target.substring(0, colon);
+    final name = target.substring(colon + 1);
+    if (type == 'page') {
+      _openLinkedPage(name);
+    } else if (zenLinkModules.containsKey(type)) {
+      _openModule(type);
+    } else {
+      _showLinkError('Unknown link type "$type"');
+    }
+  }
+
+  void _openLinkedPage(String name) {
+    FileNode? found;
+    void search(List<FileNode> nodes) {
+      for (final n in nodes) {
+        if (found != null) return;
+        if (!n.isDirectory && n.name.toLowerCase() == name.toLowerCase()) {
+          found = n;
+          return;
+        }
+        search(n.children);
+      }
+    }
+
+    search(_fileTree);
+    if (found != null) {
+      _openFile(found!.path);
+    } else {
+      _showLinkError('Page "$name" not found');
+    }
+  }
+
+  void _openModule(String type) {
+    final module = switch (type) {
+      'maps' => _moduleShell('Maps', const MapsDashboardWidget()),
+      'photos' => _moduleShell('Photos', const GalleryHomeView()),
+      'books' => const BookLibraryDashboard(),
+      'movies' => const MovieLibraryDashboard(),
+      _ => null,
+    };
+    if (module == null) {
+      _showLinkError('Unknown module "$type"');
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => module));
+  }
+
+  // Maps/photos have no AppBar of their own; without one there is no way back.
+  Widget _moduleShell(String title, Widget child) {
+    return Scaffold(
+      backgroundColor: EverforestColors.bg0,
+      appBar: AppBar(
+        backgroundColor: EverforestColors.bg1,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        title: Text(title, style: const TextStyle(color: EverforestColors.fg)),
+      ),
+      body: child,
+    );
+  }
+
+  void _showLinkError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message, style: const TextStyle(color: EverforestColors.fg)),
+      backgroundColor: const Color(0xFF2E383C),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   void _openFile(String filePath) {
@@ -630,23 +890,28 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Expanded(
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit_note, color: EverforestColors.yellow, size: 20),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Zen Editor',
-                                  style: TextStyle(
-                                    color: EverforestColors.fg,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                        Expanded(
+                          child: InkWell(
+                            key: _workspaceMenuKey,
+                            onTap: _showWorkspaceMenu,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit_note, color: EverforestColors.green, size: 20),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _activeWorkspace.isEmpty ? 'Zen' : _activeWorkspace,
+                                    style: const TextStyle(
+                                      color: EverforestColors.fg,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
+                                const Icon(Icons.arrow_drop_down, color: EverforestColors.grey, size: 18),
+                              ],
+                            ),
                           ),
                         ),
                         Row(
@@ -675,9 +940,19 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
                   const Divider(height: 1, color: Color(0xFF2E383C)),
                   Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      children: _fileTree.map((node) => _buildFileNodeItem(node)).toList(),
+                    child: ZenSidebar(
+                      tree: _fileTree,
+                      activePath: _activeFilePath,
+                      onOpen: _openFile,
+                      onCreateFile: (parent) => _showCreateFileDialog(
+                          parentFolderPath: parent.isEmpty ? null : parent),
+                      onCreateFolder: (parent) => _showCreateFolderDialog(
+                          parentFolderPath: parent.isEmpty ? null : parent),
+                      onRename: _renameFile,
+                      onDuplicate: _duplicateFile,
+                      onDelete: _deleteFile,
+                      onMove: _moveFile,
+                      onChanged: () => setState(() {}),
                     ),
                   ),
                 ],
@@ -721,14 +996,14 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                   border: Border(
                                     right: const BorderSide(color: Color(0xFF2E383C), width: 1),
                                     top: isActive
-                                        ? const BorderSide(color: EverforestColors.yellow, width: 2)
+                                        ? const BorderSide(color: EverforestColors.green, width: 2)
                                         : BorderSide.none,
                                   ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.article_outlined, size: 14, color: EverforestColors.yellow),
+                                    const Icon(Icons.article_outlined, size: 14, color: EverforestColors.green),
                                     const SizedBox(width: 6),
                                     Text(
                                       fileName,
@@ -790,6 +1065,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                               customMoveCursorUpCommand,
                               customMoveCursorDownCommand,
                               customPasteCommand,
+                              customCopyCommand,
                               ...standardCommandShortcutEvents,
                             ],
                             blockComponentBuilders: {
@@ -801,11 +1077,11 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                 textStyleBuilder: (level) {
                                   const sizes = [28.0, 24.0, 20.0, 18.0, 16.0, 14.0];
                                   const colors = [
-                                    EverforestColors.yellow,
                                     EverforestColors.green,
                                     EverforestColors.blue,
                                     EverforestColors.purple,
                                     EverforestColors.orange,
+                                    EverforestColors.fg,
                                     EverforestColors.fg,
                                   ];
                                   return TextStyle(
@@ -820,7 +1096,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                             },
                             editorStyle: EditorStyle.desktop(
                               padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
-                              cursorColor: EverforestColors.yellow,
+                              cursorColor: EverforestColors.green,
                               selectionColor: EverforestColors.bg2,
                               textStyleConfiguration: const TextStyleConfiguration(
                                 text: TextStyle(
@@ -830,7 +1106,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                   leadingDistribution: TextLeadingDistribution.even,
                                 ),
                                 bold: TextStyle(
-                                  color: EverforestColors.yellow,
+                                  color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,
                                   height: 1.25,
                                   leadingDistribution: TextLeadingDistribution.even,
@@ -864,13 +1140,13 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                       attributes['bg_color'];
                                   if (bgColor != null) {
                                     final style = span.style?.copyWith(
-                                      backgroundColor: const Color(0x40DBBC7F),
-                                      color: EverforestColors.yellow,
+                                      backgroundColor: const Color(0x40A7C080),
+                                      color: EverforestColors.green,
                                       height: 1.1,
                                       leadingDistribution: TextLeadingDistribution.even,
                                     ) ?? const TextStyle(
-                                      backgroundColor: Color(0x40DBBC7F),
-                                      color: EverforestColors.yellow,
+                                      backgroundColor: Color(0x40A7C080),
+                                      color: EverforestColors.green,
                                       height: 1.1,
                                       leadingDistribution: TextLeadingDistribution.even,
                                     );
@@ -880,6 +1156,31 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                       style: style,
                                       recognizer: span.recognizer,
                                     );
+                                  }
+                                }
+                                final delta = node.delta;
+                                if (delta != null && text.text.isNotEmpty) {
+                                  final start = index;
+                                  final end = index + text.text.length;
+                                  final plain = delta.toPlainText();
+                                  for (final match in _wikiLinkRegExp.allMatches(plain)) {
+                                    if (start < match.end && end > match.start) {
+                                      final target = match.group(1) ?? '';
+                                      final style = (span.style ?? const TextStyle()).copyWith(
+                                        color: EverforestColors.blue,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: EverforestColors.blue,
+                                      );
+                                      span = TextSpan(
+                                        text: span.text,
+                                        children: span.children,
+                                        style: style,
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () => _handleZenLink(target),
+                                        mouseCursor: SystemMouseCursors.click,
+                                      );
+                                      break;
+                                    }
                                   }
                                 }
                                 return span;
@@ -896,58 +1197,140 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     );
   }
 
-  Widget _buildFileNodeItem(FileNode node) {
-    if (node.isDirectory) {
-      return Material(
-        color: Colors.transparent,
-        child: ExpansionTile(
-          title: Text(node.name, style: const TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.w600)),
-          leading: const Icon(Icons.folder_outlined, color: EverforestColors.yellow, size: 16),
-          childrenPadding: const EdgeInsets.only(left: 12),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.note_add_outlined, size: 14, color: EverforestColors.grey),
-                tooltip: 'New note in folder',
-                onPressed: () => _showCreateFileDialog(parentFolderPath: node.path),
-              ),
-              const SizedBox(width: 6),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.create_new_folder_outlined, size: 14, color: EverforestColors.grey),
-                tooltip: 'New subfolder',
-                onPressed: () => _showCreateFolderDialog(parentFolderPath: node.path),
-              ),
-            ],
-          ),
-          children: node.children.map((c) => _buildFileNodeItem(c)).toList(),
-        ),
-      );
-    }
+  String _basename(String path) => path.split(RegExp(r'[/\\]')).last;
 
-
-    final isSelected = node.path == _activeFilePath;
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        dense: true,
-        selected: isSelected,
-        selectedTileColor: const Color(0xFF2A3236),
-        leading: const Icon(Icons.description_outlined, color: EverforestColors.grey, size: 16),
-        title: Text(
-          node.name,
-          style: TextStyle(
-            color: isSelected ? EverforestColors.yellow : EverforestColors.fg,
-            fontSize: 13,
-          ),
-        ),
-        onTap: () => _openFile(node.path),
-      ),
-    );
+  String _extension(String path) {
+    final n = _basename(path);
+    final i = n.lastIndexOf('.');
+    return i <= 0 ? '' : n.substring(i);
   }
 
+  String _basenameNoExt(String path) {
+    final n = _basename(path);
+    final i = n.lastIndexOf('.');
+    return i <= 0 ? n : n.substring(0, i);
+  }
+
+  void _copyDirSync(Directory src, Directory dst) {
+    dst.createSync(recursive: true);
+    for (final entity in src.listSync()) {
+      final name = _basename(entity.path);
+      if (entity is Directory) {
+        _copyDirSync(entity, Directory('${dst.path}/$name'));
+      } else if (entity is File) {
+        entity.copySync('${dst.path}/$name');
+      }
+    }
+  }
+
+  void _renameFile(String path, String newName) {
+    final sanitized = newName.trim().replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    if (sanitized.isEmpty) return;
+    final isDir = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
+    final parent = File(path).parent.path;
+    final ext = isDir ? '' : _extension(path);
+    final newPath = '$parent/$sanitized$ext';
+    if (newPath == path) return;
+    if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) return;
+    try {
+      if (isDir) {
+        Directory(path).renameSync(newPath);
+      } else {
+        File(path).renameSync(newPath);
+      }
+      _remapOpenPath(path, newPath);
+    } catch (e) {
+      debugPrint('Rename failed: $e');
+    }
+    _refreshFileTree();
+  }
+
+  void _duplicateFile(String path) {
+    final isDir = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
+    final base = _basenameNoExt(path);
+    final ext = isDir ? '' : _extension(path);
+    final parent = File(path).parent.path;
+    String target = '$parent/$base (copy)$ext';
+    var i = 1;
+    while (FileSystemEntity.typeSync(target) != FileSystemEntityType.notFound) {
+      target = '$parent/$base (copy $i)$ext';
+      i++;
+    }
+    try {
+      if (isDir) {
+        _copyDirSync(Directory(path), Directory(target));
+      } else {
+        File(path).copySync(target);
+      }
+    } catch (e) {
+      debugPrint('Duplicate failed: $e');
+    }
+    _refreshFileTree();
+  }
+
+  void _deleteFile(String path) {
+    try {
+      if (FileSystemEntity.typeSync(path) == FileSystemEntityType.directory) {
+        Directory(path).deleteSync(recursive: true);
+      } else {
+        File(path).deleteSync();
+      }
+    } catch (e) {
+      debugPrint('Delete failed: $e');
+    }
+    final norm = path.replaceAll('\\', '/');
+    _openFilePaths.removeWhere((p) {
+      final n = p.replaceAll('\\', '/');
+      return n == norm || n.startsWith('$norm/');
+    });
+    final activeNorm = _activeFilePath?.replaceAll('\\', '/');
+    final stillOpen = activeNorm != null &&
+        _openFilePaths.any((p) => p.replaceAll('\\', '/') == activeNorm);
+    if (activeNorm != null && !stillOpen) {
+      if (_openFilePaths.isNotEmpty) {
+        _openFile(_openFilePaths.first);
+      } else {
+        _activeFilePath = null;
+        _editorState = null;
+      }
+    }
+    _refreshFileTree();
+  }
+
+  void _moveFile(String path, String targetParentPath) {
+    final target = targetParentPath.isEmpty ? _workspacePath : targetParentPath;
+    if (path == target) return;
+    final normPath = path.replaceAll('\\', '/');
+    final normTarget = target.replaceAll('\\', '/');
+    if (normTarget.startsWith('$normPath/')) return;
+    final name = _basename(path);
+    final newPath = '$target/$name';
+    if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) return;
+    try {
+      if (FileSystemEntity.typeSync(path) == FileSystemEntityType.directory) {
+        Directory(path).renameSync(newPath);
+      } else {
+        File(path).renameSync(newPath);
+      }
+      _remapOpenPath(path, newPath);
+    } catch (e) {
+      debugPrint('Move failed: $e');
+    }
+    _refreshFileTree();
+  }
+
+  void _remapOpenPath(String oldPath, String newPath) {
+    final oldNorm = oldPath.replaceAll('\\', '/');
+    final newNorm = newPath.replaceAll('\\', '/');
+    for (var i = 0; i < _openFilePaths.length; i++) {
+      final p = _openFilePaths[i].replaceAll('\\', '/');
+      if (p == oldNorm || p.startsWith('$oldNorm/')) {
+        _openFilePaths[i] = '$newNorm${p.substring(oldNorm.length)}';
+      }
+    }
+    final a = _activeFilePath?.replaceAll('\\', '/');
+    if (a != null && (a == oldNorm || a.startsWith('$oldNorm/'))) {
+      _activeFilePath = '$newNorm${a.substring(oldNorm.length)}';
+    }
+  }
 }

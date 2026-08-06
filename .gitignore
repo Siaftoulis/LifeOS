@@ -49,3 +49,11 @@ compile_commands.json
 opencode.json
 ys.txt
 
+
+# scratch and recovery debris
+recovered.*
+temp_transcript.txt
+test_api.dart
+test_note.md
+collab_note.md
+build_log.txt
