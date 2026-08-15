@@ -15,6 +15,19 @@
 
 ---
 
+## 🌐 Web Access (Family Portal)
+
+Access LifeOS from **any browser** (PC, tablet, phone — no installation needed):
+
+- **Public URL (permanent):** `https://lifeos-host.husky-forel.ts.net`
+  *(Tailscale Funnel — HTTPS, valid certificate, served by the host daemon itself)*
+- **Login:** with your own LifeOS account (username/password), or **Google / GitHub** (invite-only — the admin must create your account first).
+- All traffic is HTTPS; the API requires authentication for everything except login.
+
+*If the daemon runs on a network that blocks Tailscale's control server, ask the admin — a temporary fallback URL may be provided.*
+
+---
+
 # For Users
 
 ## What is LifeOS?
