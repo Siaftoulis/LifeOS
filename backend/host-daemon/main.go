@@ -3,6 +3,7 @@ package main
 import (
 	"lifeos/host-daemon/internal/accounting"
 	"lifeos/host-daemon/internal/auth"
+	"lifeos/host-daemon/internal/auth/middleware"
 	"lifeos/host-daemon/internal/backup"
 	"lifeos/host-daemon/internal/banking"
 	"lifeos/host-daemon/internal/books"
@@ -20,9 +21,11 @@ import (
 	"lifeos/host-daemon/internal/knowledge"
 	"lifeos/host-daemon/internal/location"
 	"lifeos/host-daemon/internal/markdown"
+	"lifeos/host-daemon/internal/notes"
 	"lifeos/host-daemon/internal/media"
 	"lifeos/host-daemon/internal/movies"
 	"lifeos/host-daemon/internal/music"
+	"lifeos/host-daemon/internal/oauth"
 	"lifeos/host-daemon/internal/player"
 	"lifeos/host-daemon/internal/points"
 	"lifeos/host-daemon/internal/sandbox"
@@ -31,7 +34,9 @@ import (
 	"lifeos/host-daemon/internal/vm"
 	"lifeos/host-daemon/internal/voice"
 	"lifeos/host-daemon/internal/youtube"
+	"lifeos/host-daemon/internal/zen"
 	"lifeos/host-daemon/internal/engine"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -117,8 +122,13 @@ func main() {
 		log.Printf("DevSim DB init error: %v", err)
 	}
 
+	if err := zen.InitDB("./data"); err != nil {
+		log.Printf("Zen DB init error: %v", err)
+	}
+
 	sync.RegisterRoutes(mux)
 	markdown.RegisterRoutes(mux, "./data/markdown")
+	notes.RegisterRoutes(mux, "./vault")
 	media.RegisterRoutes(mux, "./data/media")
 	location.RegisterRoutes(mux)
 	system.RegisterRoutes(mux)
@@ -148,6 +158,56 @@ func main() {
 	player.RegisterRoutes(mux)
 	knowledge.RegisterRoutes(mux)
 	engine.RegisterRoutes(mux)
+	zen.RegisterRoutes(mux)
+
+	// OAuth SSO (GitHub/Google) for family members; 503 if not configured
+	mux.HandleFunc("/api/v1/auth/oauth/providers", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(oauth.EnabledProviders())
+	})
+	for _, p := range []string{"github", "google"} {
+		mux.HandleFunc("/api/v1/auth/oauth/"+p+"/start", oauth.HandleStart(p))
+		mux.HandleFunc("/api/v1/auth/oauth/"+p+"/callback", oauth.HandleCallback(p))
+	}
+
+	// Web portal: family browser access (login + modules) served at /
+	mux.Handle("/", http.FileServer(http.Dir("./web")))
+
+	// ponytail: global auth gate. Every /api/ route requires a valid JWT except
+	// login, register (public by design), the OAuth entry points and the collab
+	// websocket (browsers can't set WS headers; HandleCollab validates the
+	// ?token= query param itself).
+	handler := middleware.WithAuthGate([]string{
+		"/api/v1/auth/login",
+		"/api/v1/auth/register",
+		"/api/v1/auth/oauth/providers",
+		"/api/v1/auth/oauth/github/start",
+		"/api/v1/auth/oauth/github/callback",
+		"/api/v1/auth/oauth/google/start",
+		"/api/v1/auth/oauth/google/callback",
+		"/api/markdown/collab",
+	}, mux)
+
+	// ponytail: Funnel upstream — public traffic arrives here via Tailscale
+	// Funnel (RemoteAddr looks like a tailnet peer), so password auth and
+	// self-registration are explicitly denied on this path. The web portal
+	// uses OAuth exclusively.
+	publicOnly := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/auth/register" {
+			http.Error(w, "Registration is invite-only (admin creates accounts)", http.StatusForbidden)
+			return
+		}
+		if r.URL.Path == "/api/v1/auth/login" {
+			http.Error(w, "Password login is disabled from the public internet (use OAuth)", http.StatusForbidden)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
+	go func() {
+		if err := http.ListenAndServe("127.0.0.1:50052", publicOnly); err != nil {
+			log.Printf("Funnel upstream listener error: %v", err)
+		}
+	}()
 
 	port := ":50051"
 	log.Printf("LifeOS Host Daemon starting background loop on port %s", port)
@@ -158,12 +218,12 @@ func main() {
 	// ponytail: LIFEOS_LOCAL_ONLY=1 skips the embedded Tailscale listener
 	// (needs control server login); serve plain HTTP on :50051 instead.
 	if os.Getenv("LIFEOS_LOCAL_ONLY") != "1" {
-		if err := InitTailnet("lifeos-host", 50051, mux); err != nil {
+		if err := InitTailnet("lifeos-host", 50051, handler); err != nil {
 			log.Printf("Tailnet init error: %v", err)
 		}
 	}
 
-	if err := http.ListenAndServe(port, mux); err != nil {
+	if err := http.ListenAndServe(port, handler); err != nil {
 		log.Fatalf("Host Daemon execution failed: %v", err)
 	}
 }

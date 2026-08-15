@@ -44,7 +44,19 @@ func createTables() error {
 		xp_reward INTEGER NOT NULL,
 		status TEXT NOT NULL,
 		assigned_users TEXT DEFAULT '',
-		progress INTEGER DEFAULT 0
+		progress INTEGER DEFAULT 0,
+		accepted_by TEXT DEFAULT '',
+		due_date TEXT DEFAULT '',
+		created_by TEXT DEFAULT '',
+		created_at INTEGER DEFAULT 0
+	);
+
+	CREATE TABLE IF NOT EXISTS quest_logs (
+		id TEXT PRIMARY KEY,
+		quest_id TEXT NOT NULL,
+		action TEXT NOT NULL,
+		user_id TEXT NOT NULL,
+		timestamp INTEGER NOT NULL
 	);
 	`
 	
@@ -56,6 +68,10 @@ func createTables() error {
 	// Gracefully add columns if table already exists without them
 	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN assigned_users TEXT DEFAULT ''")
 	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN progress INTEGER DEFAULT 0")
+	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN accepted_by TEXT DEFAULT ''")
+	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN due_date TEXT DEFAULT ''")
+	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN created_by TEXT DEFAULT ''")
+	_, _ = DB.Exec("ALTER TABLE quests ADD COLUMN created_at INTEGER DEFAULT 0")
 
 	// Seed player
 	var count int

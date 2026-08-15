@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/radar/geofences", HandleGeofences)
+	mux.HandleFunc("/api/v1/radar/geofences/{id}", HandleGeofenceByID)
 	mux.HandleFunc("/api/v1/radar/report", HandleReportLocation)
 	mux.HandleFunc("/api/v1/radar/live", HandleLiveRadar)
 	mux.HandleFunc("/api/v1/radar/routing", HandleRouting)
@@ -16,7 +18,20 @@ func RegisterRoutes(mux *http.ServeMux) {
 func HandleGeofences(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(GetGeofences())
+		fences := GetGeofences()
+		if q := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q"))); q != "" {
+			filtered := []Geofence{}
+			for _, f := range fences {
+				if strings.Contains(strings.ToLower(f.Name), q) {
+					filtered = append(filtered, f)
+				}
+			}
+			fences = filtered
+		}
+		if fences == nil {
+			fences = []Geofence{}
+		}
+		json.NewEncoder(w).Encode(fences)
 		return
 	}
 
@@ -31,6 +46,23 @@ func HandleGeofences(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
+// HandleGeofenceByID serves a single pin by id (embed card render).
+func HandleGeofenceByID(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	id := r.PathValue("id")
+	for _, f := range GetGeofences() {
+		if f.ID == id {
+			json.NewEncoder(w).Encode(f)
+			return
+		}
+	}
+	http.Error(w, "Pin not found", http.StatusNotFound)
 }
 
 func HandleRouting(w http.ResponseWriter, r *http.Request) {

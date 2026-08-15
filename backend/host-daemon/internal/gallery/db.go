@@ -22,7 +22,10 @@ func InitDB(dataDir string) error {
 
 	DB = db
 
-	return createTables()
+	if err := createTables(); err != nil {
+		return err
+	}
+	return migrate()
 }
 
 func createTables() error {
@@ -44,5 +47,28 @@ func createTables() error {
 		return fmt.Errorf("failed to create assets table: %v", err)
 	}
 
+	return nil
+}
+
+// migrate adds smart-picker columns to existing databases. ALTER TABLE fails
+// silently if a column already exists.
+func migrate() error {
+	cols := []struct{ name, typ string }{
+		{"hash", "TEXT DEFAULT ''"},
+		{"width", "INTEGER DEFAULT 0"},
+		{"height", "INTEGER DEFAULT 0"},
+		{"source", "TEXT DEFAULT ''"},
+		{"title", "TEXT DEFAULT ''"},
+		{"tags", "TEXT DEFAULT '[]'"},
+		{"colors", "TEXT DEFAULT '[]'"},
+		{"lat", "REAL DEFAULT 0"},
+		{"lng", "REAL DEFAULT 0"},
+		{"place", "TEXT DEFAULT ''"},
+	}
+	for _, c := range cols {
+		if _, err := DB.Exec(fmt.Sprintf("ALTER TABLE assets ADD COLUMN %s %s", c.name, c.typ)); err != nil {
+			log.Printf("gallery migrate: column %s: %v", c.name, err)
+		}
+	}
 	return nil
 }

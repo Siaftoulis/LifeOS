@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -16,6 +17,8 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/rpg/quests/complete", handleQuestComplete)
 	mux.HandleFunc("/api/v1/rpg/quests/add", handleAddQuest)
 	mux.HandleFunc("/api/v1/rpg/quests/activate", handleActivateQuest)
+	mux.HandleFunc("/api/v1/rpg/quests/accept", handleAcceptQuest)
+	mux.HandleFunc("/api/v1/rpg/quests/cancel", handleCancelQuest)
 	mux.HandleFunc("/api/v1/rpg/quests/delete", handleDeleteQuest)
 	mux.HandleFunc("/api/v1/rpg/quests/update", handleUpdateQuest)
 	mux.HandleFunc("/api/v1/rpg/quests/add-main", handleAddMainQuest)
@@ -29,6 +32,9 @@ type Quest struct {
 	Status        string `json:"status"`
 	AssignedUsers string `json:"assigned_users"`
 	Progress      int    `json:"progress"`
+	AcceptedBy    string `json:"accepted_by"`
+	DueDate       string `json:"due_date"`
+	CreatedBy     string `json:"created_by"`
 }
 
 func handleGetQuests(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +45,7 @@ func handleGetQuests(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := DB.Query("SELECT id, title, description, xp_reward, status, assigned_users, progress FROM quests")
+	rows, err := DB.Query("SELECT id, title, description, xp_reward, status, assigned_users, progress, accepted_by, due_date, created_by FROM quests")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,7 +55,7 @@ func handleGetQuests(w http.ResponseWriter, r *http.Request) {
 	var quests []Quest
 	for rows.Next() {
 		var q Quest
-		if err := rows.Scan(&q.ID, &q.Title, &q.Description, &q.XpReward, &q.Status, &q.AssignedUsers, &q.Progress); err == nil {
+		if err := rows.Scan(&q.ID, &q.Title, &q.Description, &q.XpReward, &q.Status, &q.AssignedUsers, &q.Progress, &q.AcceptedBy, &q.DueDate, &q.CreatedBy); err == nil {
 			quests = append(quests, q)
 		}
 	}
@@ -142,44 +148,66 @@ func handleQuestComplete(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		QuestID string `json:"quest_id"`
 	}
-
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 
-	// Update quest status to DONE in database
-	_, err := DB.Exec("UPDATE quests SET status = 'DONE' WHERE id = ?", payload.QuestID)
+	var xpReward int
+	var assignedUsers, acceptedBy, status, title string
+	err := DB.QueryRow("SELECT xp_reward, assigned_users, accepted_by, status, title FROM quests WHERE id = ?", payload.QuestID).
+		Scan(&xpReward, &assignedUsers, &acceptedBy, &status, &title)
+	if err != nil {
+		http.Error(w, "Quest not found", http.StatusNotFound)
+		return
+	}
+	if status == "DONE" {
+		http.Error(w, "Quest already completed", http.StatusConflict)
+		return
+	}
+	if acceptedBy == "" {
+		http.Error(w, "Quest must be accepted before completing", http.StatusBadRequest)
+		return
+	}
+
+	user := currentUsername(r)
+	if user != acceptedBy && !isAdmin(r) {
+		http.Error(w, "Only the member who accepted this quest can complete it", http.StatusForbidden)
+		return
+	}
+
+	// Update quest status to DONE
+	_, err = DB.Exec("UPDATE quests SET status = 'DONE', progress = 100 WHERE id = ?", payload.QuestID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Fetch quest reward details to award XP and points
-	var xpReward int
-	var assignedUsers string
-	err = DB.QueryRow("SELECT xp_reward, assigned_users FROM quests WHERE id = ?", payload.QuestID).Scan(&xpReward, &assignedUsers)
-	if err == nil {
-		// Award XP
-		UpdatePlayerXP(xpReward)
-		// Award points
-		if assignedUsers == "" {
-			points.AddPointsWithEvent("panospds", xpReward, fmt.Sprintf("Completed Quest: %s", payload.QuestID))
-		} else {
-			parts := strings.Split(assignedUsers, ",")
-			for _, p := range parts {
-				kv := strings.Split(p, ":")
-				if len(kv) == 2 {
-					u := kv[0]
-					pts, _ := strconv.Atoi(kv[1])
-					points.AddPointsWithEvent(u, pts, fmt.Sprintf("Completed Quest: %s (split)", payload.QuestID))
-				}
+	// Award XP (family player)
+	UpdatePlayerXP(xpReward)
+
+	// Award points: per-user splits if configured, otherwise to the acceptor
+	if assignedUsers == "" {
+		points.AddPointsWithEvent(acceptedBy, xpReward, fmt.Sprintf("Completed Quest: %s", title))
+	} else {
+		parts := strings.Split(assignedUsers, ",")
+		for _, p := range parts {
+			kv := strings.Split(p, ":")
+			if len(kv) == 2 {
+				u := kv[0]
+				pts, _ := strconv.Atoi(kv[1])
+				points.AddPointsWithEvent(u, pts, fmt.Sprintf("Completed Quest: %s (split)", title))
 			}
 		}
 	}
+	logQuestAction(payload.QuestID, "COMPLETED", user)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"xp":      xpReward,
+		"awarded": acceptedBy,
+	})
 }
 
 func handleAddQuest(w http.ResponseWriter, r *http.Request) {
@@ -193,6 +221,7 @@ func handleAddQuest(w http.ResponseWriter, r *http.Request) {
 		Description   string `json:"description"`
 		XpReward      int    `json:"xp_reward"`
 		AssignedUsers string `json:"assigned_users"`
+		DueDate       string `json:"due_date"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -200,8 +229,9 @@ func handleAddQuest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := fmt.Sprintf("q-%d", len(payload.Title)+payload.XpReward+1000) // Simple ID generation
-	_, err := DB.Exec("INSERT INTO quests (id, title, description, xp_reward, status, assigned_users, progress) VALUES (?, ?, ?, ?, 'POOL', ?, 0)", id, payload.Title, payload.Description, payload.XpReward, payload.AssignedUsers)
+	id := fmt.Sprintf("q-%d", time.Now().UnixNano())
+	_, err := DB.Exec("INSERT INTO quests (id, title, description, xp_reward, status, assigned_users, progress, due_date, created_by, created_at) VALUES (?, ?, ?, ?, 'POOL', ?, 0, ?, ?, ?)",
+		id, payload.Title, payload.Description, payload.XpReward, payload.AssignedUsers, payload.DueDate, currentUsername(r), time.Now().Unix())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

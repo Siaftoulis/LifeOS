@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"lifeos/host-daemon/internal/auth/middleware"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -21,7 +23,6 @@ func RegisterRoutes(mux *http.ServeMux) {
 		}
 
 		if r.Method == http.MethodPost {
-			// Real Child Lock Interceptor
 			settings, err := loadSettings()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -36,7 +37,9 @@ func RegisterRoutes(mux *http.ServeMux) {
 				}
 			}
 
-			userRole := r.Header.Get("X-User-Role")
+			// Real Child Lock Interceptor: role comes from the verified JWT,
+			// never from a client-settable header.
+			userRole, _ := r.Context().Value(middleware.RoleContextKey).(string)
 			if childLockEnabled && userRole == "CHILD" {
 				http.Error(w, "Unauthorized: System is locked via Child Lock", http.StatusForbidden)
 				return

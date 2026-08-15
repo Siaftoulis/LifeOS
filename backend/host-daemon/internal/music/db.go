@@ -31,7 +31,8 @@ func createTables() error {
 		id TEXT PRIMARY KEY,
 		title TEXT NOT NULL,
 		artist TEXT NOT NULL,
-		album TEXT NOT NULL
+		album TEXT NOT NULL,
+		file_path TEXT NOT NULL DEFAULT ''
 	);
 	
 	CREATE TABLE IF NOT EXISTS photos (
@@ -47,6 +48,15 @@ func createTables() error {
 		return fmt.Errorf("failed to create media tables: %v", err)
 	}
 
+	// Migration: file_path column on DBs created before it existed (the
+	// stream handler already queries it).
+	var hasPath int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('music_tracks') WHERE name='file_path'").Scan(&hasPath); err == nil && hasPath == 0 {
+		if _, err := DB.Exec("ALTER TABLE music_tracks ADD COLUMN file_path TEXT NOT NULL DEFAULT ''"); err != nil {
+			return fmt.Errorf("failed to migrate music_tracks table: %v", err)
+		}
+	}
+
 	// Seed data
 	var count int
 	err = DB.QueryRow("SELECT COUNT(*) FROM music_tracks").Scan(&count)
@@ -59,19 +69,20 @@ func createTables() error {
 
 func seedMedia() {
 	tracks := []struct {
-		ID     string
-		Title  string
-		Artist string
-		Album  string
+		ID       string
+		Title    string
+		Artist   string
+		Album    string
+		FilePath string
 	}{
-		{"t1", "Nightcall", "Kavinsky", "OutRun"},
-		{"t2", "Resonance", "HOME", "Odyssey"},
-		{"t3", "Blinding Lights", "The Weeknd", "After Hours"},
+		{"t1", "Nightcall", "Kavinsky", "OutRun", "storage/media/nightcall.mp3"},
+		{"t2", "Resonance", "HOME", "Odyssey", "storage/media/resonance.mp3"},
+		{"t3", "Blinding Lights", "The Weeknd", "After Hours", "storage/media/blinding_lights.mp3"},
 	}
 
 	for _, t := range tracks {
-		_, err := DB.Exec("INSERT INTO music_tracks (id, title, artist, album) VALUES (?, ?, ?, ?)",
-			t.ID, t.Title, t.Artist, t.Album)
+		_, err := DB.Exec("INSERT INTO music_tracks (id, title, artist, album, file_path) VALUES (?, ?, ?, ?, ?)",
+			t.ID, t.Title, t.Artist, t.Album, t.FilePath)
 		if err != nil {
 			log.Printf("Failed to seed music track: %v", err)
 		}

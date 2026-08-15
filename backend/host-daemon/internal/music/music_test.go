@@ -1,0 +1,58 @@
+package music
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func newTestRouter(t *testing.T) *http.ServeMux {
+	t.Helper()
+	if err := InitDB(t.TempDir()); err != nil {
+		t.Fatalf("InitDB: %v", err)
+	}
+	t.Cleanup(func() { DB.Close() })
+	mux := http.NewServeMux()
+	RegisterRoutes(mux)
+	return mux
+}
+
+func TestTrackListSearchSingle(t *testing.T) {
+	mux := newTestRouter(t)
+
+	req := httptest.NewRequest("GET", "/api/v1/music/tracks?q=kavinsky", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("search: got %d, want 200", rec.Code)
+	}
+	var list []Track
+	if err := json.Unmarshal(rec.Body.Bytes(), &list); err != nil {
+		t.Fatalf("list decode: %v", err)
+	}
+	if len(list) != 1 || list[0].ID != "t1" {
+		t.Fatalf("search: got %+v, want only t1", list)
+	}
+
+	req = httptest.NewRequest("GET", "/api/v1/music/tracks/t2", nil)
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("get: got %d, want 200", rec.Code)
+	}
+	var track Track
+	if err := json.Unmarshal(rec.Body.Bytes(), &track); err != nil {
+		t.Fatalf("get decode: %v", err)
+	}
+	if track.Artist != "HOME" || track.FilePath == "" {
+		t.Fatalf("get: got %+v, want HOME with file_path", track)
+	}
+
+	req = httptest.NewRequest("GET", "/api/v1/music/tracks/missing", nil)
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("get missing: got %d, want 404", rec.Code)
+	}
+}

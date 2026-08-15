@@ -7,6 +7,7 @@ type Book struct {
 	CurrentPage int    `json:"current_page"`
 	TotalPages  int    `json:"total_pages"`
 	FilePath    string `json:"file_path"`
+	Status      string `json:"status"`
 }
 
 type ReadingProgress struct {

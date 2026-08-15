@@ -124,3 +124,29 @@ func UpdateProfile(username, displayName, status, avatar string) bool {
 	rows, err := res.RowsAffected()
 	return err == nil && rows > 0
 }
+
+func ChangePassword(username, oldPassword, newPassword string) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	var hash string
+	if err := db.QueryRow(`SELECT password_hash FROM users WHERE username = ?`, username).Scan(&hash); err != nil {
+		return os.ErrNotExist
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(oldPassword)); err != nil {
+		return os.ErrPermission
+	}
+
+	if len(newPassword) < 4 {
+		return os.ErrInvalid
+	}
+
+	newHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`UPDATE users SET password_hash = ? WHERE username = ?`, string(newHash), username)
+	return err
+}

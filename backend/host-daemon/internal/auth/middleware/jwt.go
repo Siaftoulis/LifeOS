@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,52 +15,89 @@ import (
 
 var JwtSecret = []byte(getJwtSecret())
 
+// getJwtSecret: JWT_SECRET env → persisted random key in data/jwt_secret → random per-run.
+// No hardcoded default: a known fallback secret would let anyone forge tokens.
 func getJwtSecret() string {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		return "default_insecure_secret_change_me"
+	if secret := os.Getenv("JWT_SECRET"); secret != "" {
+		return secret
 	}
-	return secret
+
+	path := filepath.Join(".", "data", "jwt_secret")
+	if data, err := os.ReadFile(path); err == nil && len(data) >= 32 {
+		return string(data)
+	}
+
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err == nil {
+		secret := hex.EncodeToString(raw)
+		os.MkdirAll(filepath.Dir(path), 0755)
+		os.WriteFile(path, []byte(secret), 0600)
+		return secret
+	}
+
+	// Last resort: random per-run (tokens die on restart, better than a known secret)
+	raw = make([]byte, 32)
+	rand.Read(raw)
+	return hex.EncodeToString(raw)
 }
 
 type contextKey string
 
-const UserContextKey = contextKey("username")
+const (
+	UserContextKey = contextKey("username")
+	RoleContextKey = contextKey("role")
+)
 
 func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
-			return
-		}
-
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
-			return
-		}
-
-		tokenString := parts[1]
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-			}
-			return JwtSecret, nil
-		})
-
-		if err != nil || !token.Valid {
+		claims, ok := ValidateToken(r.Header.Get("Authorization"))
+		if !ok {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
+		ctx := context.WithValue(r.Context(), UserContextKey, claims.Username)
+		ctx = context.WithValue(ctx, RoleContextKey, claims.Role)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			username, _ := claims["username"].(string)
-			ctx := context.WithValue(r.Context(), UserContextKey, username)
-			next.ServeHTTP(w, r.WithContext(ctx))
+type Claims struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+func ValidateToken(authHeader string) (*Claims, bool) {
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return nil, false
+	}
+
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(parts[1], claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return JwtSecret, nil
+	})
+	if err != nil || !token.Valid || claims.Username == "" {
+		return nil, false
+	}
+	return claims, true
+}
+
+// WithAuthGate: global authentication for every /api/ route, except an explicit
+// public allowlist. The whole daemon is unusable without a valid session.
+func WithAuthGate(public []string, next http.Handler) http.Handler {
+	publicSet := make(map[string]bool, len(public))
+	for _, p := range public {
+		publicSet[p] = true
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api/") && !publicSet[r.URL.Path] {
+			RequireAuth(next.ServeHTTP)(w, r)
 			return
 		}
-
-		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-	}
+		next.ServeHTTP(w, r)
+	})
 }

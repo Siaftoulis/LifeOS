@@ -33,7 +33,8 @@ func createTables() error {
 		author TEXT NOT NULL,
 		current_page INTEGER NOT NULL,
 		total_pages INTEGER NOT NULL,
-		file_path TEXT NOT NULL
+		file_path TEXT NOT NULL,
+		status TEXT NOT NULL DEFAULT 'NOT_STARTED'
 	);
 	
 	CREATE TABLE IF NOT EXISTS reading_progress (
@@ -54,6 +55,14 @@ func createTables() error {
 	_, err := DB.Exec(query)
 	if err != nil {
 		return fmt.Errorf("failed to create books tables: %v", err)
+	}
+
+	// Migration: status column on DBs created before it existed.
+	var hasStatus int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('books') WHERE name='status'").Scan(&hasStatus); err == nil && hasStatus == 0 {
+		if _, err := DB.Exec("ALTER TABLE books ADD COLUMN status TEXT NOT NULL DEFAULT 'NOT_STARTED'"); err != nil {
+			return fmt.Errorf("failed to migrate books table: %v", err)
+		}
 	}
 
 	// Seed data if empty

@@ -3,7 +3,10 @@ package markdown
 import (
 	"log"
 	"net/http"
+	"strings"
 	"sync"
+
+	"lifeos/host-daemon/internal/auth/middleware"
 
 	"github.com/gorilla/websocket"
 )
@@ -76,6 +79,21 @@ func HandleCollab(w http.ResponseWriter, r *http.Request) {
 	docID := r.URL.Query().Get("doc_id")
 	if docID == "" {
 		http.Error(w, "Missing doc_id", http.StatusBadRequest)
+		return
+	}
+
+	// Collab websockets carry the JWT as query param (browser WebSocket can't
+	// set headers); the auth gate skips this path, so we validate here.
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		token = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	}
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+	if _, ok := middleware.ValidateToken("Bearer " + token); !ok {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 

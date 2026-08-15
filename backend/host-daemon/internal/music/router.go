@@ -3,25 +3,36 @@ package music
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/music/tracks", HandleGetTracks)
+	mux.HandleFunc("/api/v1/music/tracks/{id}", HandleGetTrack)
 	mux.HandleFunc("/api/v1/music/stream", HandleGetStream)
 	mux.HandleFunc("/api/v1/music/lyrics", HandleGetLyrics)
 }
 
 type Track struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
-	Album  string `json:"album"`
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Artist   string `json:"artist"`
+	Album    string `json:"album"`
+	FilePath string `json:"file_path"`
 }
 
 func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := DB.Query("SELECT id, title, artist, album FROM music_tracks")
+	query := "SELECT id, title, artist, album, file_path FROM music_tracks"
+	var args []any
+	if q := strings.TrimSpace(r.URL.Query().Get("q")); q != "" {
+		query += " WHERE title LIKE ? OR artist LIKE ? OR album LIKE ?"
+		args = append(args, "%"+q+"%", "%"+q+"%", "%"+q+"%")
+	}
+	query += " ORDER BY title"
+
+	rows, err := DB.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -31,7 +42,7 @@ func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	var tracks []Track
 	for rows.Next() {
 		var t Track
-		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album); err == nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath); err == nil {
 			tracks = append(tracks, t)
 		}
 	}
@@ -41,6 +52,20 @@ func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(tracks)
+}
+
+// HandleGetTrack serves a single track by id (embed card render).
+func HandleGetTrack(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := r.PathValue("id")
+
+	var t Track
+	if err := DB.QueryRow("SELECT id, title, artist, album, file_path FROM music_tracks WHERE id = ?", id).
+		Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath); err != nil {
+		http.Error(w, "Track not found", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(w).Encode(t)
 }
 
 func HandleGetStream(w http.ResponseWriter, r *http.Request) {
