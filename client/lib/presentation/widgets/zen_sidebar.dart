@@ -1,27 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../core/obsidian/zen_file_system.dart';
 import '../../database/preferences_service.dart';
 import '../../theme/everforest_colors.dart';
 
 // ponytail: AppFlowy page-tree port (view_item.dart + draggable_view_item.dart
 // behavior, plain Flutter state instead of bloc/Rust). Emoji page icons and
 // move-to popover skipped; drag-drop covers moving.
-
-class FileNode {
-  final String name;
-  final String path;
-  final bool isDirectory;
-  final List<FileNode> children;
-
-  FileNode({
-    required this.name,
-    required this.path,
-    required this.isDirectory,
-    required this.children,
-  });
-}
 
 const double kZenViewHeight = 32.0;
 const double kZenLevelPadding = 16.0;
@@ -392,8 +378,10 @@ class _ZenTreeItemState extends State<_ZenTreeItem> {
   }
 
   String? _parentOf(String path) {
-    final p = File(path).parent.path;
-    return p == path ? null : p;
+    final parts = path.split(RegExp(r'[/\\]'));
+    if (parts.length <= 1) return null;
+    final parent = parts.sublist(0, parts.length - 1).join('/');
+    return parent.isEmpty ? null : parent;
   }
 
   bool _accept(String dragPath, _DropPosition pos) {

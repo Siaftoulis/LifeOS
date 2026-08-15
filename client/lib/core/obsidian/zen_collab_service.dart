@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:flutter/foundation.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import '../../presentation/theme/zen_markdown_bridge.dart';
 import 'zen_sync_service.dart';
 import 'native_yrs_bindings.dart';
+import 'doc_handle.dart';
 
 // ponytail: base64 JSON wrapper for binary Yjs updates, hub stays stateless; client CRDT state convergence model
 // ponytail: remote transactions still record to undo history (global per-doc); acceptable for family scale, exclude via transaction API if it becomes an issue.
@@ -59,7 +59,7 @@ class ZenCollabService {
   final MessageSender sendMessage;
   final bool enableFlush;
 
-  Pointer<Void>? _nativeDoc;
+  DocHandle? _nativeDoc;
   final List<Map<String, dynamic>> _blocksState = [];
 
   EditorState? _editorState;
@@ -110,6 +110,23 @@ class ZenCollabService {
     _listenToEditorChanges();
     sendSyncStep1();
     return _editorState!;
+  }
+
+  /// Attaches to an EditorState the host already owns (ZenWorkspace). Seeds the
+  /// CRDT from the current document and starts broadcasting changes.
+  void attachToEditorState(EditorState editorState) {
+    _editorState = editorState;
+    try {
+      if (_blocksState.isEmpty) {
+        _seedBlocksFromDocument(editorState.document);
+      } else {
+        _applyDeltaBlocksToEditorState();
+      }
+    } catch (e) {
+      debugPrint('ZenCollabService attach seed error (local-only): $e');
+    }
+    _listenToEditorChanges();
+    sendSyncStep1();
   }
 
   void sendSyncStep1() {

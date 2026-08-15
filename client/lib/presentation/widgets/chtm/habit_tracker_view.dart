@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../database/chtm_dao.dart';
 import '../../../database/points_dao.dart';

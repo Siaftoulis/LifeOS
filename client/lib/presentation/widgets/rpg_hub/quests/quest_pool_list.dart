@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
 import '../../../../api_client.dart';
+import '../../../../auth_service.dart';
 
 class QuestPoolList extends StatefulWidget {
   final VoidCallback? onQuestActivated;
@@ -14,6 +15,8 @@ class QuestPoolList extends StatefulWidget {
 class _QuestPoolListState extends State<QuestPoolList> {
   List<dynamic> _quests = [];
   bool _isLoading = true;
+
+  String get _username => AuthService.instance.currentUser.value?.username ?? 'panospds';
 
   @override
   void initState() {
@@ -39,6 +42,65 @@ class _QuestPoolListState extends State<QuestPoolList> {
     }
   }
 
+  void _onQuestChanged() {
+    _fetchPoolQuests();
+    if (widget.onQuestActivated != null) {
+      widget.onQuestActivated!();
+    }
+  }
+
+  Future<void> _claimQuest(dynamic quest) async {
+    try {
+      setState(() => _isLoading = true);
+      await ApiClient.instance.postDaemon('/api/v1/rpg/quests/accept', {'quest_id': quest['id']});
+      _onQuestChanged();
+    } catch (e) {
+      debugPrint('Failed to claim quest: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _cancelClaim(dynamic quest) async {
+    final reward = quest['xp_reward'] ?? 0;
+    final penalty = ((reward + 1) ~/ 2);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: EverforestColors.bg1,
+        title: const Text('Cancel Quest?', style: TextStyle(color: EverforestColors.fg)),
+        content: Text(
+          'You claimed "${quest['title']}". Cancelling costs a penalty of $penalty stars. Continue?',
+          style: const TextStyle(color: EverforestColors.fg),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Keep Quest', style: TextStyle(color: EverforestColors.grey)),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          TextButton(
+            child: const Text('Cancel Quest', style: TextStyle(color: EverforestColors.red)),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        setState(() => _isLoading = true);
+        await ApiClient.instance.postDaemon('/api/v1/rpg/quests/cancel', {'quest_id': quest['id']});
+        _onQuestChanged();
+      } catch (e) {
+        debugPrint('Failed to cancel quest: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -59,36 +121,21 @@ class _QuestPoolListState extends State<QuestPoolList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('QUEST POOL', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
+        const Text('FAMILY BOUNTY POOL', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 24),
-        ..._quests.map((q) {
-          return _buildPoolItem(
-            q,
-            () async {
-              try {
-                setState(() => _isLoading = true);
-                await ApiClient.instance.postDaemon('/api/v1/rpg/quests/activate', {'quest_id': q['id']});
-                await _fetchPoolQuests();
-                if (widget.onQuestActivated != null) {
-                  widget.onQuestActivated!();
-                }
-              } catch (e) {
-                debugPrint('Failed to activate quest: $e');
-                if (mounted) {
-                  setState(() => _isLoading = false);
-                }
-              }
-            }
-          );
-        }),
+        ..._quests.map((q) => _buildPoolItem(q)),
       ],
     );
   }
 
-  Widget _buildPoolItem(dynamic quest, VoidCallback onActivate) {
+  Widget _buildPoolItem(dynamic quest) {
     final title = quest['title'] ?? 'Unknown';
     final reward = quest['xp_reward'] ?? 0;
     final assignedUsers = quest['assigned_users'] ?? '';
+    final acceptedBy = quest['accepted_by'] ?? '';
+    final dueDate = quest['due_date'] ?? '';
+    final createdBy = quest['created_by'] ?? '';
+    final claimedByMe = acceptedBy == _username;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
@@ -117,9 +164,18 @@ class _QuestPoolListState extends State<QuestPoolList> {
                     const Icon(Icons.star, color: EverforestColors.yellow, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      '$reward',
+                      '$reward XP',
                       style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
+                    if (dueDate.isNotEmpty) ...[
+                      const SizedBox(width: 12),
+                      const Icon(Icons.event, color: EverforestColors.grey, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        dueDate,
+                        style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                      ),
+                    ],
                     if (assignedUsers.isNotEmpty) ...[
                       const SizedBox(width: 12),
                       const Icon(Icons.people, color: EverforestColors.grey, size: 14),
@@ -134,9 +190,34 @@ class _QuestPoolListState extends State<QuestPoolList> {
                     ],
                   ],
                 ),
+                if (createdBy.isNotEmpty || acceptedBy.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    acceptedBy.isNotEmpty
+                        ? 'Claimed by $acceptedBy${createdBy.isNotEmpty ? ' · posted by $createdBy' : ''}'
+                        : 'Posted by $createdBy',
+                    style: TextStyle(
+                      color: acceptedBy.isNotEmpty ? EverforestColors.green : EverforestColors.grey,
+                      fontSize: 12,
+                      fontWeight: acceptedBy.isNotEmpty ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          if (acceptedBy.isEmpty)
+            IconButton(
+              icon: const Icon(Icons.flag, color: EverforestColors.green),
+              onPressed: () => _claimQuest(quest),
+              tooltip: 'Claim Quest',
+            )
+          else if (claimedByMe)
+            IconButton(
+              icon: const Icon(Icons.close, color: EverforestColors.red),
+              onPressed: () => _cancelClaim(quest),
+              tooltip: 'Cancel Claim (penalty)',
+            ),
           if (widget.isAdmin) ...[
             InkWell(
               borderRadius: BorderRadius.circular(4),
@@ -157,11 +238,6 @@ class _QuestPoolListState extends State<QuestPoolList> {
             ),
             const SizedBox(width: 8),
           ],
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: EverforestColors.green),
-            onPressed: onActivate,
-            tooltip: 'Add to Today',
-          )
         ],
       ),
     );

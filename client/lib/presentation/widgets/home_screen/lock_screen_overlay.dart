@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import 'clock_widget.dart';
 import 'notifications_feed.dart';
 import '../../../auth_service.dart';
+import '../../../api_client.dart';
+import '../../../oauth_browser.dart';
 
 class LockScreenOverlay extends StatefulWidget {
   final VoidCallback onUnlocked;
@@ -13,19 +17,21 @@ class LockScreenOverlay extends StatefulWidget {
   State<LockScreenOverlay> createState() => _LockScreenOverlayState();
 }
 
-class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTickerProviderStateMixin {
+class _LockScreenOverlayState extends State<LockScreenOverlay>
+    with SingleTickerProviderStateMixin {
   bool _showLoginForm = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
-  
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = false;
   String _errorMsg = '';
-  
+
   bool _isDesktop = false;
+  List<String> _oauthProviders = [];
 
   @override
   void initState() {
@@ -36,6 +42,15 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
       _isDesktop = false;
     }
 
+    _loadOAuthProviders();
+
+    // ponytail: web-only — daemon dropped the JWT in localStorage after OAuth redirect
+    if (kIsWeb) {
+      AuthService.instance.tryOAuthToken().then((ok) {
+        if (ok && mounted) widget.onUnlocked();
+      });
+    }
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -43,7 +58,19 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeOutCubic));
+  }
+
+  Future<void> _loadOAuthProviders() async {
+    try {
+      final res =
+          await ApiClient.instance.getDaemon('/api/v1/auth/oauth/providers');
+      final providers = oauthProvidersFromJson(jsonEncode(res));
+      if (mounted && providers.isNotEmpty) {
+        setState(() => _oauthProviders = providers);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -81,7 +108,8 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
     });
 
     try {
-      final success = await AuthService.instance.login(user, pass, rememberMe: _rememberMe);
+      final success =
+          await AuthService.instance.login(user, pass, rememberMe: _rememberMe);
 
       if (!mounted) return;
 
@@ -152,134 +180,208 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
 
   Widget _buildLoginFormContent() {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Icon(Icons.shield, size: 64, color: EverforestColors.green),
-            const SizedBox(height: 32),
-            const Text(
-              'SYSTEM LOGIN',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: EverforestColors.green,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 4,
-              ),
-            ),
-            const SizedBox(height: 48),
-            TextField(
-              controller: _usernameController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: InputDecoration(
-                labelText: 'Username',
-                labelStyle: const TextStyle(color: EverforestColors.green),
-                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
-                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
-                prefixIcon: const Icon(Icons.person, color: EverforestColors.green),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: const TextStyle(color: EverforestColors.green),
-                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
-                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
-                prefixIcon: const Icon(Icons.lock, color: EverforestColors.green),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: EverforestColors.green,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                ),
-              ),
-              onSubmitted: (_) => _handleLogin(),
-            ),
-            const SizedBox(height: 16),
-            Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 48.0, vertical: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: Checkbox(
-                    value: _rememberMe,
-                    activeColor: EverforestColors.green,
-                    checkColor: EverforestColors.bg0,
-                    side: const BorderSide(color: EverforestColors.bg2),
-                    onChanged: (val) {
-                      setState(() {
-                        _rememberMe = val ?? false;
-                      });
-                    },
+                const Icon(Icons.shield,
+                    size: 64, color: EverforestColors.green),
+                const SizedBox(height: 32),
+                const Text(
+                  'SYSTEM LOGIN',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: EverforestColors.green,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 4,
                   ),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _rememberMe = !_rememberMe;
-                    });
-                  },
-                  child: Text(
-                    'Remember Me',
-                    style: TextStyle(
-                      color: EverforestColors.fg.withValues(alpha: 0.8),
-                      fontSize: 14,
+                const SizedBox(height: 48),
+                if (!kIsWeb) ...[
+                  TextField(
+                    controller: _usernameController,
+                    style: const TextStyle(color: EverforestColors.fg),
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      labelStyle:
+                          const TextStyle(color: EverforestColors.green),
+                      enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: EverforestColors.bg2)),
+                      focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: EverforestColors.green, width: 2)),
+                      prefixIcon: const Icon(Icons.person,
+                          color: EverforestColors.green),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    style: const TextStyle(color: EverforestColors.fg),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle:
+                          const TextStyle(color: EverforestColors.green),
+                      enabledBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: EverforestColors.bg2)),
+                      focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: EverforestColors.green, width: 2)),
+                      prefixIcon:
+                          const Icon(Icons.lock, color: EverforestColors.green),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: EverforestColors.green,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    onSubmitted: (_) => _handleLogin(),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: Checkbox(
+                          value: _rememberMe,
+                          activeColor: EverforestColors.green,
+                          checkColor: EverforestColors.bg0,
+                          side: const BorderSide(color: EverforestColors.bg2),
+                          onChanged: (val) {
+                            setState(() {
+                              _rememberMe = val ?? false;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _rememberMe = !_rememberMe;
+                          });
+                        },
+                        child: Text(
+                          'Remember Me',
+                          style: TextStyle(
+                            color: EverforestColors.fg.withValues(alpha: 0.8),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  if (_errorMsg.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        _errorMsg,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: EverforestColors.red,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: EverforestColors.green,
+                      foregroundColor: EverforestColors.bg0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: _isLoading ? null : _handleLogin,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                color: EverforestColors.bg0, strokeWidth: 2))
+                        : const Text('AUTHENTICATE',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  ),
+                ],
+                if (_oauthProviders.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  if (_oauthProviders.contains('google')) ...[
+                    _OAuthButton(
+                      icon: Icons.g_mobiledata,
+                      label: 'Σύνδεση με Google',
+                      onPressed: _isLoading
+                          ? null
+                          : () => AuthService.instance.startOAuth('google'),
+                    ),
+                  ],
+                  if (_oauthProviders.contains('google') &&
+                      _oauthProviders.contains('github')) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      '— or —',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: EverforestColors.fg,
+                          fontSize: 13,
+                          letterSpacing: 1.5),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_oauthProviders.contains('github')) ...[
+                    _OAuthButton(
+                      icon: Icons.code,
+                      label: 'Σύνδεση με GitHub',
+                      onPressed: _isLoading
+                          ? null
+                          : () => AuthService.instance.startOAuth('github'),
+                    ),
+                  ],
+                ],
+                if (kIsWeb && _oauthProviders.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 24),
+                    child: Text(
+                      'Η σύνδεση από τον browser γίνεται μόνο με Google ή GitHub. Επικοινώνησε με τον διαχειριστή.',
+                      textAlign: TextAlign.center,
+                      style:
+                          TextStyle(color: EverforestColors.fg, fontSize: 13),
+                    ),
+                  ),
+                if (!_isDesktop) ...[
+                  const SizedBox(height: 32),
+                  TextButton(
+                    onPressed: () => _toggleLoginForm(false),
+                    child: Text(
+                      'CANCEL',
+                      style: TextStyle(
+                        color: EverforestColors.red.withValues(alpha: 0.8),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                ]
               ],
             ),
-            const SizedBox(height: 24),
-            if (_errorMsg.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  _errorMsg,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: EverforestColors.red, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: EverforestColors.green,
-                foregroundColor: EverforestColors.bg0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onPressed: _isLoading ? null : _handleLogin,
-              child: _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2))
-                : const Text('AUTHENTICATE', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2)),
-            ),
-            if (!_isDesktop) ...[
-              const SizedBox(height: 32),
-              TextButton(
-                onPressed: () => _toggleLoginForm(false),
-                child: Text(
-                  'CANCEL',
-                  style: TextStyle(
-                    color: EverforestColors.red.withValues(alpha: 0.8),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-            ]
-          ],
+          ),
         ),
       ),
     );
@@ -327,7 +429,8 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: true, // Leave false; handled at spatial wrapper level
+        resizeToAvoidBottomInset:
+            true, // Leave false; handled at spatial wrapper level
         backgroundColor: EverforestColors.bg0,
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -346,7 +449,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
                         RepaintBoundary(
                           child: _buildMainScreen(),
                         ),
-                        
+
                         // 2. FORM I PUTS LAYER
                         Positioned.fill(
                           child: AnimatedBuilder(
@@ -360,7 +463,8 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
                             child: SlideTransition(
                               position: _slideAnimation,
                               child: Container(
-                                color: EverforestColors.bg0.withValues(alpha: 0.95),
+                                color: EverforestColors.bg0
+                                    .withValues(alpha: 0.95),
                                 child: SafeArea(
                                   child: Center(
                                     child: _buildLoginFormContent(),
@@ -378,6 +482,32 @@ class _LockScreenOverlayState extends State<LockScreenOverlay> with SingleTicker
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _OAuthButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _OAuthButton({required this.icon, required this.label, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: EverforestColors.fg,
+          side: const BorderSide(color: EverforestColors.bg2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: onPressed,
+        icon: Icon(icon, color: EverforestColors.green),
+        label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }

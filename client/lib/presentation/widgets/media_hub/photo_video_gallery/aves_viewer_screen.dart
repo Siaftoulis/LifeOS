@@ -182,8 +182,8 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                               if (currentItem.isLocal) {
                                 // Upload
                                 final resolved = await _resolveFullMetadata(currentItem);
-                                final success = await CloudGalleryService.uploadAsset(resolved);
-                                if (success && mounted) {
+                                final result = await CloudGalleryService.uploadAsset(resolved);
+                                if (result.success && mounted) {
                                   setState(() {
                                     widget.items[_currentIndex] = GalleryItem(
                                       id: currentItem.id,
@@ -210,7 +210,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                                 }
                               } else {
                                 // Download
-                                final success = await CloudGalleryService.downloadAssetToDevice(currentItem.id, currentItem.type);
+        final success = await CloudGalleryService.downloadAssetToDevice(currentItem.id, currentItem.type);
                                 if (success && mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Downloaded successfully')));
                                 } else if (mounted) {
@@ -452,6 +452,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
       return VideoPlayerWidget(
         item: item,
         isImmersive: _isImmersive,
+        isActive: index == _currentIndex,
         onTap: _toggleImmersive,
       );
     }

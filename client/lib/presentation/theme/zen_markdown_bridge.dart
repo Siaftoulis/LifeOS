@@ -1,5 +1,6 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
 import '../../core/obsidian/frontmatter_service.dart';
+import '../../plugins/markdown/zen_embed_block.dart';
 
 class ZenMarkdownBridge {
   static ({String? frontmatter, EditorState editorState}) createEditorState(String fullContent) {
@@ -10,24 +11,73 @@ class ZenMarkdownBridge {
     body = body.replaceAll(RegExp(r'^####+\s+', multiLine: true), '### ');
 
     try {
-      final document = markdownToDocument(body);
+      var document = markdownToDocument(body);
+      document = applyEmbedBlocks(document);
+      document = applyImageEmbeds(document);
       processHighlights(document.root);
       if (document.root.children.isEmpty) {
         document.root.children.add(paragraphNode());
       }
       return (frontmatter: extracted.frontmatter, editorState: EditorState(document: document));
     } catch (e) {
-      final document = Document.blank(withInitialText: false);
+      var document = Document.blank(withInitialText: false);
       final lines = body.split('\n');
       for (final line in lines) {
         document.root.children.add(paragraphNode(text: line));
       }
+      document = applyEmbedBlocks(document);
+      document = applyImageEmbeds(document);
       processHighlights(document.root);
       if (document.root.children.isEmpty) {
         document.root.children.add(paragraphNode());
       }
       return (frontmatter: extracted.frontmatter, editorState: EditorState(document: document));
     }
+  }
+
+  /// Converts standalone `[[module]]` / `![[module]]` lines into zen_embed
+  /// render windows. `![[module|300]]` sets height, `![[module|ref]]` embeds a
+  /// single entity. Plain wiki links stay text links.
+  static Document applyEmbedBlocks(Document document) {
+    final children = <Node>[];
+    for (final child in document.root.children) {
+      if (child.type == ParagraphBlockKeys.type && child.delta != null) {
+        final match =
+            zenEmbedLineRegExp.firstMatch(child.delta!.toPlainText().trim());
+        if (match != null) {
+          final tail = match.group(2);
+          final isHeight = tail != null && double.tryParse(tail) != null;
+          children.add(
+            zenEmbedNode(
+              module: match.group(1)!,
+              ref: tail != null && !isHeight ? tail : null,
+              height: isHeight ? double.tryParse(tail) : null,
+            ),
+          );
+          continue;
+        }
+      }
+      children.add(child);
+    }
+    return Document(root: Node(type: PageBlockKeys.type, children: children));
+  }
+
+  /// Converts standalone `![](url)` / `![[url]]` paragraphs (that the decoder
+  /// left as text — it only handles png/jpg/jpeg) into image blocks that load
+  /// straight from the (server) url: no upload, the url is the source.
+  static Document applyImageEmbeds(Document document) {
+    final children = <Node>[];
+    for (final child in document.root.children) {
+      if (child.type == ParagraphBlockKeys.type && child.delta != null) {
+        final url = zenImageUrlOf(child.delta!.toPlainText());
+        if (url != null) {
+          children.add(imageNode(url: url));
+          continue;
+        }
+      }
+      children.add(child);
+    }
+    return Document(root: Node(type: PageBlockKeys.type, children: children));
   }
 
   static void processHighlights(Node root) {
@@ -73,7 +123,10 @@ class ZenMarkdownBridge {
 
   static String exportMarkdown(EditorState editorState, String? frontmatterHeader) {
     try {
-      final body = documentToMarkdown(editorState.document);
+      final body = documentToMarkdown(
+        editorState.document,
+        customParsers: const [ZenEmbedNodeParser(), ZenImageNodeParser()],
+      );
       return FrontmatterService.combineFrontmatterAndBody(frontmatterHeader, body);
     } catch (e) {
       return '';
@@ -93,7 +146,7 @@ class ZenMarkdownBridge {
     );
     var markdown = documentToMarkdown(
       document,
-      customParsers: const [_DividerNodeParser()],
+      customParsers: const [_DividerNodeParser(), ZenEmbedNodeParser(), ZenImageNodeParser()],
     );
     // The encoder parsers emit inconsistent trailing newlines; normalize so a
     // divider always sits between blank lines, like the file convention.
@@ -115,3 +168,71 @@ class _DividerNodeParser extends NodeParser {
   @override
   String transform(Node node, DocumentMarkdownEncoder? encoder) => '\n---\n\n';
 }
+
+/// Matches a standalone `![](url)` or `![[url]]` line where the url points at
+/// an image (http(s) or a known image extension).
+final RegExp zenImageLineRegExp = RegExp(
+  r'^!\[(?:\[[^\]]*\]|[^\]]*)\]\((\S+)\)$|^!\[\[(\S+)\]\]$',
+);
+
+/// Extracts the image url if [line] is a standalone image link, else null.
+String? zenImageUrlOf(String line) {
+  final match = zenImageLineRegExp.firstMatch(line.trim());
+  final url = match?.group(1) ?? match?.group(2);
+  if (url == null || url.isEmpty) return null;
+  final lower = url.toLowerCase();
+  final beforeQuery = lower.split('?')[0];
+  final query = lower.contains('?') ? lower.split('?')[1] : '';
+  const imageExts = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif', '.bmp'];
+  final hasImageExt = (String s) => imageExts.any((ext) => s.endsWith(ext));
+  if (lower.startsWith('http') || lower.startsWith('/')) {
+    return hasImageExt(beforeQuery) || hasImageExt(query) ? url : null;
+  }
+  return hasImageExt(lower) ? url : null;
+}
+
+/// Encoder: image blocks round-trip back to `![](url)`. The bundled
+/// ImageNodeParser reads `image_src` which image blocks never set, so without
+/// this every image would export as `![](null)`.
+class ZenImageNodeParser extends NodeParser {
+  const ZenImageNodeParser();
+
+  @override
+  String get id => ImageBlockKeys.type;
+
+  @override
+  String transform(Node node, DocumentMarkdownEncoder? encoder) {
+    final url = node.attributes[ImageBlockKeys.url] as String? ?? '';
+    return '![]($url)';
+  }
+}
+
+/// Live transform: typing `![](url)` and closing with `)` turns the line into
+/// an image block on the spot, so the note shows the (server) image as you
+/// write — same feel as the `[[...]]` embed shortcut.
+final zenImageShortcutEvent = CharacterShortcutEvent(
+  key: 'zen_image_from_url',
+  character: ')',
+  handler: (editorState) async {
+    final selection = editorState.selection;
+    if (selection == null || !selection.isCollapsed) return false;
+    final node = editorState.getNodeAtPath(selection.start.path);
+    if (node == null || node.delta == null) return false;
+    final text = node.delta!.toPlainText();
+    final offset = selection.start.offset;
+    if (text.substring(offset).trim().isNotEmpty) return false;
+    // The ')' is about to be typed; the whole line must BE the image syntax.
+    final url = zenImageUrlOf(text.substring(0, offset) + ')');
+    if (url == null) return false;
+    final transaction = editorState.transaction
+      ..deleteNode(node)
+      ..insertNode(node.path, imageNode(url: url))
+      // Non-text blocks swallow the cursor and break typing/navigation, so
+      // every image leaves a fresh empty paragraph behind.
+      ..insertNode(node.path.next, paragraphNode())
+      ..afterSelection =
+          Selection.collapsed(Position(path: node.path.next, offset: 0));
+    await editorState.apply(transaction);
+    return true;
+  },
+);

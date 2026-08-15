@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 import 'core/local_discovery_service.dart';
+import 'sync_queue_file.dart';
 
+// ponytail: package:http works on io + web (BrowserClient auto-selected), so
+// one code path instead of a transport split. On web the app is served by the
+// daemon itself → same-origin requests.
 class ApiClient {
   String baseUrl;
   String daemonUrl;
-  final HttpClient _http = HttpClient()..connectionTimeout = const Duration(seconds: 2);
+  final http.Client _http = http.Client();
   final List<Map<String, dynamic>> _syncQueue = [];
   final ValueNotifier<int> queueLengthNotifier = ValueNotifier<int>(0);
   final ValueNotifier<String> connectionStatusNotifier = ValueNotifier<String>('LOCAL WI-FI 🏠');
@@ -43,28 +47,39 @@ class ApiClient {
     debugPrint('ApiClient: Updated URLs base=$base daemon=$daemon');
   }
 
-  File _getLogFile() => File('${Directory.systemTemp.path}/sync_queue.json');
+  // ponytail: queue persists to a temp file on io only; on web it lives in memory
+  Future<void> _persistQueue() async {
+    if (kIsWeb) return;
+    try {
+      final f = syncQueueFile();
+      await f.writeAsString(jsonEncode(_syncQueue));
+    } catch (_) {}
+  }
+
   void _updateQueueState() { queueLengthNotifier.value = _syncQueue.length; }
 
   Future<void> initQueue() async {
     try {
-      final f = _getLogFile();
-      if (await f.exists()) {
-        final raw = await f.readAsString();
-        final decoded = jsonDecode(raw) as List;
-        _syncQueue.addAll(decoded.cast<Map<String, dynamic>>());
-        _updateQueueState();
-        debugPrint('Local-First Engine: Restored ${_syncQueue.length} queued mutations from disk.');
+      if (!kIsWeb) {
+        final f = syncQueueFile();
+        if (await f.exists()) {
+          final raw = await f.readAsString();
+          final decoded = jsonDecode(raw) as List;
+          _syncQueue.addAll(decoded.cast<Map<String, dynamic>>());
+          _updateQueueState();
+          debugPrint('Local-First Engine: Restored ${_syncQueue.length} queued mutations from disk.');
+        }
       }
     } catch (_) { debugPrint('Local-First Engine: No persisted queue found.'); }
     Timer.periodic(const Duration(seconds: 15), (_) => _flushQueue());
   }
 
-  Future<void> _persistQueue() async {
-    try { await _getLogFile().writeAsString(jsonEncode(_syncQueue)); } catch (_) {}
-  }
+  static Future<String> discoverBaseUrl() => _discover('/api/sync');
 
-  static Future<String> discoverBaseUrl() async {
+  static Future<String> discoverDaemonUrl() => _discover('/api/v1/auth/lock');
+
+  static Future<String> _discover(String probePath) async {
+    if (kIsWeb) return Uri.base.origin; // same-origin: the daemon serves the app
     final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value.map((p) => 'http://${p.address}:50051').toList();
     final urls = [
       ...dynamicUrls,
@@ -78,45 +93,27 @@ class ApiClient {
     ];
     final comp = Completer<String>(); int fails = 0;
     for (final url in urls) {
-      HttpClient().postUrl(Uri.parse('$url/api/sync')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
+      http.post(Uri.parse('$url$probePath'), headers: {'Content-Type': 'application/json'}, body: '{}')
+        .timeout(const Duration(milliseconds: 400))
         .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
         .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://localhost:50051') : null);
     }
     return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://localhost:50051');
   }
 
-  static Future<String> discoverDaemonUrl() async {
-    final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value.map((p) => 'http://${p.address}:50051').toList();
-    final urls = [
-      ...dynamicUrls,
-      'http://localhost:50051',
-      'http://192.168.1.47:50051',
-      'http://100.64.0.1:50051',      // Headscale Mesh Default GW
-      'http://100.115.84.43:50051',   // Headscale Node Candidate
-      'http://lifeos-daemon:50051',   // Tailnet MagicDNS Hostname
-      'http://192.168.1.43:50051',
-      'http://10.0.2.2:50051'
-    ];
-    final comp = Completer<String>(); int fails = 0;
-    for (final url in urls) {
-      HttpClient().postUrl(Uri.parse('$url/api/v1/auth/lock')).then((req) { req.headers.contentType = ContentType.json; req.write('{}'); return req.close(); })
-        .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
-        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://localhost:50051') : null);
+  Map<String, String> get _headers {
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    final token = AuthService.instance.token;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
     }
-    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://localhost:50051');
+    return headers;
   }
 
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
     try {
-      final req = await _http.postUrl(Uri.parse('$baseUrl$endpoint'));
-      req.headers.contentType = ContentType.json;
-      final token = AuthService.instance.token;
-      if (token != null && token.isNotEmpty) {
-        req.headers.set('Authorization', 'Bearer $token');
-      }
-      req.add(utf8.encode(jsonEncode(body)));
-      final res = await req.close().timeout(const Duration(seconds: 2));
-      if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+      final res = await _http.post(Uri.parse('$baseUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 2));
+      if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
       throw Exception();
     } catch (_) {
       _syncQueue.add({'endpoint': endpoint, 'payload': body, 'timestamp': DateTime.now().toIso8601String()});
@@ -128,39 +125,20 @@ class ApiClient {
   }
 
   Future<dynamic> postDaemon(String endpoint, Map<String, dynamic> body) async {
-    final req = await _http.postUrl(Uri.parse('$daemonUrl$endpoint'));
-    req.headers.contentType = ContentType.json;
-    final token = AuthService.instance.token;
-    if (token != null && token.isNotEmpty) {
-      req.headers.set('Authorization', 'Bearer $token');
-    }
-    req.add(utf8.encode(jsonEncode(body)));
-    final res = await req.close().timeout(const Duration(seconds: 5));
-    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    final res = await _http.post(Uri.parse('$daemonUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(res.body);
     throw Exception();
   }
 
   Future<dynamic> putDaemon(String endpoint, Map<String, dynamic> body) async {
-    final req = await _http.putUrl(Uri.parse('$daemonUrl$endpoint'));
-    req.headers.contentType = ContentType.json;
-    final token = AuthService.instance.token;
-    if (token != null && token.isNotEmpty) {
-      req.headers.set('Authorization', 'Bearer $token');
-    }
-    req.add(utf8.encode(jsonEncode(body)));
-    final res = await req.close().timeout(const Duration(seconds: 5));
-    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    final res = await _http.put(Uri.parse('$daemonUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(res.body);
     throw Exception();
   }
 
   Future<dynamic> getDaemon(String endpoint) async {
-    final req = await _http.getUrl(Uri.parse('$daemonUrl$endpoint'));
-    final token = AuthService.instance.token;
-    if (token != null && token.isNotEmpty) {
-      req.headers.set('Authorization', 'Bearer $token');
-    }
-    final res = await req.close().timeout(const Duration(seconds: 5));
-    if (res.statusCode == 200) return jsonDecode(await res.transform(utf8.decoder).join());
+    final res = await _http.get(Uri.parse('$daemonUrl$endpoint'), headers: _headers).timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(res.body);
     throw Exception();
   }
 
@@ -169,14 +147,8 @@ class ApiClient {
     final copy = List<Map<String, dynamic>>.from(_syncQueue); _syncQueue.clear(); _updateQueueState();
     for (final item in copy) {
       try {
-        final req = await _http.postUrl(Uri.parse('$baseUrl${item['endpoint']}'));
-        req.headers.contentType = ContentType.json;
-        final token = AuthService.instance.token;
-        if (token != null && token.isNotEmpty) {
-          req.headers.set('Authorization', 'Bearer $token');
-        }
-        req.add(utf8.encode(jsonEncode(item['payload'])));
-        if ((await req.close().timeout(const Duration(seconds: 2))).statusCode != 200) throw Exception();
+        final res = await _http.post(Uri.parse('$baseUrl${item['endpoint']}'), headers: _headers, body: jsonEncode(item['payload'])).timeout(const Duration(seconds: 2));
+        if (res.statusCode != 200) throw Exception();
       } catch (_) { _syncQueue.add(item); }
     }
     _updateQueueState();

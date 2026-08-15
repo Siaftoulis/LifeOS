@@ -1,8 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/shortcuts/command/copy_paste_extension.dart';
 
@@ -11,14 +13,20 @@ import '../../appflowy/src/editor/block_component/code_block_component/code_bloc
 import '../../appflowy/src/editor/block_component/toggle_block_component/toggle_block_component.dart';
 import '../../appflowy/src/editor/selection_menu/selection_menu_service.dart';
 import '../../appflowy/src/editor/wiki_link_shortcut.dart';
+import '../../auth_service.dart';
+import '../../api_client.dart';
+import '../../core/obsidian/zen_collab_service.dart';
+import '../../core/obsidian/zen_collab_transport.dart';
+import '../../core/obsidian/zen_file_system.dart';
+import '../../core/obsidian/zen_sync_service.dart';
+import '../../core/zen_cloud_service.dart';
 import '../../theme/everforest_colors.dart';
 import '../../database/preferences_service.dart';
 import '../theme/zen_markdown_bridge.dart';
-import '../widgets/maps_live_tracking/maps_dashboard_widget.dart';
-import '../widgets/media_hub/movie_library/movie_library_dashboard.dart';
-import '../widgets/book_library/book_library_dashboard.dart';
-import '../../plugins/gallery/gallery_home_view.dart';
+import '../../plugins/markdown/markdown_storage.dart';
+import '../../plugins/markdown/zen_embed_block.dart';
 import 'zen_sidebar.dart';
+import 'zen_toolbar_items.dart';
 
 final _wikiLinkRegExp = RegExp(r'\[\[([^\[\]\n]+)\]\]');
 
@@ -89,6 +97,26 @@ final formatDoubleEqualsToHighlight = CharacterShortcutEvent(
   },
 );
 
+/// Jumps over non-text blocks (images/embeds) that have no selectable text,
+/// so arrow navigation never stops on them.
+Position? _skipNonText(
+  EditorState editorState,
+  Position position, {
+  required bool upwards,
+}) {
+  var node = editorState.getNodeAtPath(position.path);
+  while (node != null && node.delta == null) {
+    node = upwards ? node.previous : node.next;
+  }
+  if (node == null || node.delta == null) {
+    return null;
+  }
+  final text = node.delta!.toPlainText();
+  return upwards
+      ? Position(path: node.path, offset: text.length)
+      : Position(path: node.path, offset: 0);
+}
+
 final customMoveCursorUpCommand = CommandShortcutEvent(
   key: 'custom move cursor upward',
   command: 'arrow up',
@@ -107,7 +135,7 @@ final customMoveCursorUpCommand = CommandShortcutEvent(
 
     final pos1 = currentPosition.moveVertical(editorState, upwards: true);
     if (pos1 != null && pos1 != currentPosition) {
-      upPosition = pos1;
+      upPosition = _skipNonText(editorState, pos1, upwards: true);
     }
 
     if (upPosition == null && rects.isNotEmpty) {
@@ -169,7 +197,7 @@ final customMoveCursorDownCommand = CommandShortcutEvent(
 
     final pos1 = currentPosition.moveVertical(editorState, upwards: false);
     if (pos1 != null && pos1 != currentPosition) {
-      downPosition = pos1;
+      downPosition = _skipNonText(editorState, pos1, upwards: false);
     }
 
     if (downPosition == null && rects.isNotEmpty) {
@@ -276,7 +304,9 @@ final customPasteCommand = CommandShortcutEvent(
 
       if (text != null && text.isNotEmpty) {
         try {
-          final doc = markdownToDocument(text);
+          var doc = markdownToDocument(text);
+          doc = ZenMarkdownBridge.applyEmbedBlocks(doc);
+          doc = ZenMarkdownBridge.applyImageEmbeds(doc);
           ZenMarkdownBridge.processHighlights(doc.root);
           final nodes = doc.root.children.toList();
 
@@ -285,6 +315,12 @@ final customPasteCommand = CommandShortcutEvent(
           }
           while (nodes.isNotEmpty && nodes.last.delta?.isEmpty == true) {
             nodes.removeLast();
+          }
+          // Non-text blocks (images/embeds) swallow the cursor and break
+          // typing and arrow navigation, so they always get an empty
+          // paragraph to land on.
+          if (nodes.isNotEmpty && nodes.last.delta == null) {
+            nodes.add(paragraphNode());
           }
 
           if (nodes.isNotEmpty) {
@@ -326,8 +362,44 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   String? _activeFilePath;
   List<FileNode> _fileTree = [];
 
-  final String _vaultPath = 'vault';
+  // Live collab per active file
+  ZenCollabService? _collab;
+  StreamSubscription? _collabSub;
+  Timer? _cursorThrottle;
+  final ValueNotifier<Map<String, RemotePresence>> _remotePresences =
+      ValueNotifier({});
+
+  String _vaultPath = 'vault';
   String _activeWorkspace = '';
+
+  /// The vault lives on the real OS only where it must: web keeps it as a
+  /// logical root on the server, desktop keeps the legacy relative 'vault/'
+  /// folder, mobile uses the app documents dir (relative paths are read-only
+  /// on Android/iOS and would silently fail).
+  Future<String> _resolveVaultPath() async {
+    if (kIsWeb) return 'vault';
+    if (!Platform.isAndroid && !Platform.isIOS) return 'vault';
+    try {
+      return await MarkdownStorage.getRootPath();
+    } catch (e) {
+      debugPrint('ZenWorkspace: docs dir unavailable ($e), falling back to relative vault');
+      return 'vault';
+    }
+  }
+
+  static const _userColors = [
+    '#E78284', '#8CAAEE', '#A6D189', '#E5C890', '#81C8BE', '#F4B8E4',
+    '#EE99A0', '#B5BFE2',
+  ];
+
+  String get _collabRoom {
+    if (_activeFilePath == null) return '';
+    // Room = path relative to the vault root (same on every device), not the
+    // absolute path, or desktop/mobile/web would each join a different room.
+    final vault = _vaultPath.replaceAll('\\', '/');
+    final p = _activeFilePath!.replaceAll('\\', '/');
+    return p.startsWith('$vault/') ? p.substring(vault.length + 1) : p;
+  }
 
   String get _workspacePath => _activeWorkspace.isEmpty
       ? _vaultPath
@@ -344,72 +416,67 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _cursorThrottle?.cancel();
+    _disposeCollab();
     _editorState?.dispose();
     _editorScrollController?.dispose();
     _editorFocusNode.dispose();
+    _remotePresences.dispose();
     super.dispose();
   }
 
   Future<void> _initWorkspace() async {
-    final dir = Directory(_vaultPath);
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
+    final fs = ZenFileSystem.instance;
+    _vaultPath = await _resolveVaultPath();
+    // Web: the cache must mirror the server BEFORE any local mutation, or a
+    // create/rename would be applied over stale state and lose data.
+    if (kIsWeb) await fs.ensureLoaded();
+    fs.createDirectory(_vaultPath);
     _activeWorkspace = PreferencesService.zenWorkspace.value;
     if (_activeWorkspace.isNotEmpty) {
-      Directory('$_vaultPath/workspaces/$_activeWorkspace').createSync(recursive: true);
+      fs.createDirectory('$_vaultPath/workspaces/$_activeWorkspace');
     }
     ZenLinkState.workspacePath = _workspacePath;
+    // ponytail: sync/cloud engines are dart:io-only (drift + file watchers);
+    // web keeps 100% server persistence via the server-backed ZenFileSystem.
+    if (!kIsWeb) {
+      await ZenSyncService.instance.initialize(_vaultPath);
+      ZenCloudService.instance.start();
+    }
     _refreshFileTree();
     _loadInitialDocument();
   }
 
   void _refreshFileTree() {
     setState(() {
-      _fileTree = _scanDir(Directory(_workspacePath));
+      _fileTree = _visibleTree(ZenFileSystem.instance.scanDirectory(_workspacePath));
     });
   }
 
-  List<FileNode> _scanDir(Directory dir) {
-    final List<FileNode> nodes = [];
-    try {
-      final entities = dir.listSync();
-      entities.sort((a, b) {
-        final aIsDir = a is Directory;
-        final bIsDir = b is Directory;
-        if (aIsDir && !bIsDir) return -1;
-        if (!aIsDir && bIsDir) return 1;
-        return a.path.toLowerCase().compareTo(b.path.toLowerCase());
-      });
-
-      for (final entity in entities) {
-        final name = entity.uri.pathSegments.last.isEmpty
-            ? entity.uri.pathSegments[entity.uri.pathSegments.length - 2]
-            : entity.uri.pathSegments.last;
-
-        if (name.startsWith('.')) continue;
-        if (name == 'workspaces' && _activeWorkspace.isEmpty) continue;
-
-        if (entity is Directory) {
-          nodes.add(FileNode(
-            name: name,
-            path: entity.path,
-            isDirectory: true,
-            children: _scanDir(entity),
-          ));
-        } else if (entity is File && (name.endsWith('.md') || name.endsWith('.json'))) {
-          nodes.add(FileNode(
-            name: name.replaceAll('.md', '').replaceAll('.json', ''),
-            path: entity.path,
-            isDirectory: false,
-            children: [],
-          ));
-        }
+  /// Filters raw scans down to what the sidebar shows: .md/.json files with
+  /// the extension stripped, dotfolders hidden, and the 'workspaces' folder
+  /// hidden when browsing the bare vault root.
+  List<FileNode> _visibleTree(List<FileNode> nodes) {
+    final out = <FileNode>[];
+    for (final n in nodes) {
+      if (n.isDirectory) {
+        if (n.name == 'workspaces' && _activeWorkspace.isEmpty) continue;
+        out.add(FileNode(
+          name: n.name,
+          path: n.path,
+          isDirectory: true,
+          children: _visibleTree(n.children),
+        ));
+      } else if (n.name.endsWith('.md') || n.name.endsWith('.json')) {
+        out.add(FileNode(
+          name: n.name.replaceAll('.md', '').replaceAll('.json', ''),
+          path: n.path,
+          isDirectory: false,
+          children: [],
+        ));
       }
-    } catch (e) {
-      debugPrint('Error scanning directory ${dir.path}: $e');
     }
-    return nodes;
+    return out;
   }
 
   void _loadInitialDocument() {
@@ -433,13 +500,14 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   }
 
   void _createNewDocument(String title, {String? parentFolderPath}) {
+    final fs = ZenFileSystem.instance;
     final sanitizedTitle = title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     final parentDir = parentFolderPath ?? _workspacePath;
     final baseFilePath = '$parentDir/$sanitizedTitle.json';
 
     String targetPath = baseFilePath;
     int counter = 1;
-    while (File(targetPath).existsSync()) {
+    while (fs.exists(targetPath)) {
       targetPath = '$parentDir/${sanitizedTitle}_$counter.json';
       counter++;
     }
@@ -465,28 +533,33 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       ),
     );
 
-    final file = File(targetPath);
-    file.writeAsStringSync(jsonEncode(initialDocument.toJson()));
+    fs.writeFile(targetPath, jsonEncode(initialDocument.toJson()));
+    if (!kIsWeb) ZenSyncService.instance.upsertNodeFromDisk(targetPath);
     _refreshFileTree();
     _openFile(targetPath);
   }
 
-  Future<void> _showCreateFileDialog({String? parentFolderPath}) async {
-    final controller = TextEditingController(text: 'Untitled Document');
-    final fileName = await showDialog<String>(
+  Future<String?> _promptTextDialog({
+    required String title,
+    required String hint,
+    required String initial,
+    required String actionLabel,
+  }) async {
+    final controller = TextEditingController(text: initial);
+    final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF242B2E),
-        title: const Text('Create New Document', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        title: Text(title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: const TextStyle(color: EverforestColors.fg),
-          decoration: const InputDecoration(
-            hintText: 'Document Name',
-            hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: EverforestColors.grey),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
           ),
         ),
         actions: [
@@ -497,80 +570,48 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
+            child: Text(actionLabel, style: const TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
+    return (result == null || result.isEmpty) ? null : result;
+  }
 
-    if (fileName != null && fileName.isNotEmpty) {
+  Future<void> _showCreateFileDialog({String? parentFolderPath}) async {
+    final fileName = await _promptTextDialog(
+      title: 'Create New Document',
+      hint: 'Document Name',
+      initial: 'Untitled Document',
+      actionLabel: 'Create',
+    );
+
+    if (fileName != null) {
       _createNewDocument(fileName, parentFolderPath: parentFolderPath);
     }
   }
 
   Future<void> _showCreateFolderDialog({String? parentFolderPath}) async {
-    final controller = TextEditingController(text: 'New Folder');
-    final folderName = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF242B2E),
-        title: const Text('Create New Folder', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: const TextStyle(color: EverforestColors.fg),
-          decoration: const InputDecoration(
-            hintText: 'Folder Name',
-            hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+    final folderName = await _promptTextDialog(
+      title: 'Create New Folder',
+      hint: 'Folder Name',
+      initial: 'New Folder',
+      actionLabel: 'Create',
     );
 
-    if (folderName != null && folderName.isNotEmpty) {
+    if (folderName != null) {
       final sanitized = folderName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final parentDir = parentFolderPath ?? _workspacePath;
-      final newDirPath = '$parentDir/$sanitized';
-      final dir = Directory(newDirPath);
-      if (!dir.existsSync()) {
-        dir.createSync(recursive: true);
-      }
+      ZenFileSystem.instance.createDirectory('$parentDir/$sanitized');
       _refreshFileTree();
     }
-  }
-
-  List<String> _listWorkspaces() {
-    final workspacesDir = Directory('$_vaultPath/workspaces');
-    final List<String> names = [''];
-    if (workspacesDir.existsSync()) {
-      for (final e in workspacesDir.listSync()) {
-        if (e is Directory && !e.path.split(RegExp(r'[/\\]')).last.startsWith('.')) {
-          names.add(e.path.split(RegExp(r'[/\\]')).last);
-        }
-      }
-    }
-    names.sort();
-    return names;
   }
 
   Future<void> _showWorkspaceMenu() async {
     final renderBox = _workspaceMenuKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-    final workspaceNames = _listWorkspaces();
+    final workspaceNames = ['', ...ZenFileSystem.instance.listWorkspaces(_vaultPath)];
 
     final result = await showMenu<String>(
       context: context,
@@ -611,6 +652,30 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             ],
           ),
         ),
+        if (_activeWorkspace.isNotEmpty) ...[
+          const PopupMenuItem<String>(
+            value: '__rename__',
+            height: 36,
+            child: Row(
+              children: [
+                Icon(Icons.edit_outlined, size: 16, color: EverforestColors.grey),
+                SizedBox(width: 8),
+                Text('Rename Workspace', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+              ],
+            ),
+          ),
+          const PopupMenuItem<String>(
+            value: '__delete__',
+            height: 36,
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 16, color: EverforestColors.red),
+                SizedBox(width: 8),
+                Text('Delete Workspace', style: TextStyle(color: EverforestColors.red, fontSize: 13)),
+              ],
+            ),
+          ),
+        ],
       ],
     );
 
@@ -618,55 +683,92 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     if (result == '__new__') {
       final name = await _showCreateWorkspaceDialog();
       if (name != null) _switchWorkspace(name);
+    } else if (result == '__rename__') {
+      await _showRenameWorkspaceDialog();
+    } else if (result == '__delete__') {
+      await _deleteActiveWorkspace();
     } else {
       _switchWorkspace(result);
     }
   }
 
   Future<String?> _showCreateWorkspaceDialog() async {
-    final controller = TextEditingController(text: 'New Workspace');
-    final name = await showDialog<String>(
+    final name = await _promptTextDialog(
+      title: 'Create New Workspace',
+      hint: 'Workspace Name',
+      initial: 'New Workspace',
+      actionLabel: 'Create',
+    );
+    if (name == null) return null;
+    return name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+  }
+
+  Future<void> _showRenameWorkspaceDialog() async {
+    final name = await _promptTextDialog(
+      title: 'Rename Workspace',
+      hint: 'Workspace Name',
+      initial: _activeWorkspace,
+      actionLabel: 'Rename',
+    );
+    final sanitized = name?.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    if (sanitized == null || sanitized.isEmpty || sanitized == _activeWorkspace) return;
+
+    final fs = ZenFileSystem.instance;
+    final newPath = '$_vaultPath/workspaces/$sanitized';
+    if (fs.exists(newPath)) return;
+    try {
+      fs.rename('$_vaultPath/workspaces/$_activeWorkspace', newPath);
+    } catch (e) {
+      debugPrint('Workspace rename failed: $e');
+      return;
+    }
+    _activeWorkspace = sanitized;
+    PreferencesService.setZenWorkspace(sanitized);
+    ZenLinkState.workspacePath = _workspacePath;
+    _refreshFileTree();
+  }
+
+  Future<void> _deleteActiveWorkspace() async {
+    final name = _activeWorkspace;
+    if (name.isEmpty) return;
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF242B2E),
-        title: const Text('Create New Workspace', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: const TextStyle(color: EverforestColors.fg),
-          decoration: const InputDecoration(
-            hintText: 'Workspace Name',
-            hintStyle: TextStyle(color: EverforestColors.grey),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
-          ),
+        title: Text('Delete workspace "$name"?',
+            style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        content: const Text(
+          'All pages inside it will be permanently deleted. This cannot be undone.',
+          style: TextStyle(color: EverforestColors.grey, fontSize: 13),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Create', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete', style: TextStyle(color: EverforestColors.red)),
           ),
         ],
       ),
     );
+    if (confirmed != true) return;
 
-    if (name == null || name.isEmpty) return null;
-    return name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    _switchWorkspace('');
+    ZenFileSystem.instance.deleteWorkspace(_vaultPath, name);
+    _refreshFileTree();
   }
 
   void _switchWorkspace(String name) {
-    Directory(name.isEmpty ? _vaultPath : '$_vaultPath/workspaces/$name')
-        .createSync(recursive: true);
+    ZenFileSystem.instance
+        .createDirectory(name.isEmpty ? _vaultPath : '$_vaultPath/workspaces/$name');
     _activeWorkspace = name;
     PreferencesService.setZenWorkspace(name);
     ZenLinkState.workspacePath = _workspacePath;
 
     _debounce?.cancel();
+    _disposeCollab();
     _editorState?.dispose();
     _editorState = null;
     _editorScrollController?.dispose();
@@ -681,7 +783,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   void _handleZenLink(String target) {
     final colon = target.indexOf(':');
     if (colon < 0) {
-      if (zenLinkModules.containsKey(target)) {
+      if (zenEmbedSpecs.containsKey(target)) {
         _openModule(target);
       } else {
         _openLinkedPage(target);
@@ -692,7 +794,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     final name = target.substring(colon + 1);
     if (type == 'page') {
       _openLinkedPage(name);
-    } else if (zenLinkModules.containsKey(type)) {
+    } else if (zenEmbedSpecs.containsKey(type)) {
       _openModule(type);
     } else {
       _showLinkError('Unknown link type "$type"');
@@ -721,32 +823,12 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   }
 
   void _openModule(String type) {
-    final module = switch (type) {
-      'maps' => _moduleShell('Maps', const MapsDashboardWidget()),
-      'photos' => _moduleShell('Photos', const GalleryHomeView()),
-      'books' => const BookLibraryDashboard(),
-      'movies' => const MovieLibraryDashboard(),
-      _ => null,
-    };
-    if (module == null) {
+    final spec = zenEmbedSpecs[type];
+    if (spec == null) {
       _showLinkError('Unknown module "$type"');
       return;
     }
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => module));
-  }
-
-  // Maps/photos have no AppBar of their own; without one there is no way back.
-  Widget _moduleShell(String title, Widget child) {
-    return Scaffold(
-      backgroundColor: EverforestColors.bg0,
-      appBar: AppBar(
-        backgroundColor: EverforestColors.bg1,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
-        title: Text(title, style: const TextStyle(color: EverforestColors.fg)),
-      ),
-      body: child,
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => spec.full()));
   }
 
   void _showLinkError(String message) {
@@ -764,9 +846,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     _activeFilePath = filePath;
 
     try {
-      final file = File(filePath);
-      if (file.existsSync()) {
-        final content = file.readAsStringSync();
+      final content = ZenFileSystem.instance.readFile(filePath);
+      if (content != null) {
         try {
           if (content.trim().startsWith('{')) {
             final jsonMap = jsonDecode(content);
@@ -799,6 +880,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       });
 
       setState(() {});
+      _setupCollab();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _editorState != null) {
           _editorFocusNode.requestFocus();
@@ -819,6 +901,65 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     }
   }
 
+
+  void _disposeCollab() {
+    _cursorThrottle?.cancel();
+    _cursorThrottle = null;
+    _collabSub?.cancel();
+    _collabSub = null;
+    _collab?.dispose();
+    _collab = null;
+    ZenCollabTransport.instance.disconnect();
+    _remotePresences.value = {};
+  }
+
+  /// Starts live collab for the currently open document: attaches the Yjs
+  /// CRDT to the active editor state, joins the doc room on the Go daemon and
+  /// relays remote presence (cursors) + crdt updates into the editor.
+  void _setupCollab() {
+    final state = _editorState;
+    final room = _collabRoom;
+    if (state == null || room.isEmpty) return;
+
+    final user = AuthService.instance.currentUser.value;
+    final userId = user?.username ??
+        (kIsWeb ? 'web_user' : 'user_${Platform.localHostname}');
+    final userName = user?.displayName.isNotEmpty == true
+        ? user!.displayName
+        : userId;
+    final colorIndex = userId.hashCode.abs() % _userColors.length;
+
+    _disposeCollab();
+    final transport = ZenCollabTransport.instance;
+    _collab = ZenCollabService(
+      notePath: room,
+      userId: userId,
+      userName: userName,
+      userColorHex: _userColors[colorIndex],
+      sendMessage: transport.send,
+      enableFlush: false, // workspace saves to disk itself
+    )..attachToEditorState(state);
+
+    _collabSub = transport.onMessage.listen((msg) {
+      _collab?.handleRemoteMessage(msg);
+    });
+
+    transport.connect(room);
+
+    // Local selection â†’ broadcast own cursor position (throttled).
+    state.selectionNotifier.addListener(_onSelectionChanged);
+  }
+
+  void _onSelectionChanged() {
+    final state = _editorState;
+    final collab = _collab;
+    if (state == null || collab == null) return;
+    _cursorThrottle?.cancel();
+    _cursorThrottle = Timer(const Duration(milliseconds: 120), () {
+      if (!mounted || _collab == null) return;
+      _collab!.broadcastCursorSelection(state.selection);
+    });
+  }
 
   void _sanitizeDocumentNodes(Node node) {
     if (node.type == ParagraphBlockKeys.type ||
@@ -846,7 +987,8 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     _debounce = Timer(const Duration(milliseconds: 500), () {
       try {
         final jsonMap = _editorState!.document.toJson();
-        File(_activeFilePath!).writeAsStringSync(jsonEncode(jsonMap));
+        ZenFileSystem.instance.writeFile(_activeFilePath!, jsonEncode(jsonMap));
+        if (!kIsWeb) ZenSyncService.instance.upsertNodeFromDisk(_activeFilePath!);
       } catch (e) {
         debugPrint('Error saving AppFlowy document: $e');
       }
@@ -869,333 +1011,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     _refreshFileTree();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1E2326),
-      body: Row(
-        children: [
-          // Sidebar Document Tree
-          if (_leftSidebarOpen)
-            Container(
-              width: 240,
-              decoration: const BoxDecoration(
-                color: Color(0xFF242B2E),
-                border: Border(right: BorderSide(color: Color(0xFF2E383C), width: 1)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            key: _workspaceMenuKey,
-                            onTap: _showWorkspaceMenu,
-                            child: Row(
-                              children: [
-                                const Icon(Icons.edit_note, color: EverforestColors.green, size: 20),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    _activeWorkspace.isEmpty ? 'Zen' : _activeWorkspace,
-                                    style: const TextStyle(
-                                      color: EverforestColors.fg,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_drop_down, color: EverforestColors.grey, size: 18),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              icon: const Icon(Icons.note_add_outlined, color: EverforestColors.fg, size: 18),
-                              tooltip: 'New Note',
-                              onPressed: () => _showCreateFileDialog(),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              icon: const Icon(Icons.create_new_folder_outlined, color: EverforestColors.fg, size: 18),
-                              tooltip: 'New Folder',
-                              onPressed: () => _showCreateFolderDialog(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1, color: Color(0xFF2E383C)),
-                  Expanded(
-                    child: ZenSidebar(
-                      tree: _fileTree,
-                      activePath: _activeFilePath,
-                      onOpen: _openFile,
-                      onCreateFile: (parent) => _showCreateFileDialog(
-                          parentFolderPath: parent.isEmpty ? null : parent),
-                      onCreateFolder: (parent) => _showCreateFolderDialog(
-                          parentFolderPath: parent.isEmpty ? null : parent),
-                      onRename: _renameFile,
-                      onDuplicate: _duplicateFile,
-                      onDelete: _deleteFile,
-                      onMove: _moveFile,
-                      onChanged: () => setState(() {}),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Main Editor Area
-          Expanded(
-            child: Column(
-              children: [
-                // Top Tab Bar
-                Container(
-                  height: 40,
-                  color: const Color(0xFF272E33),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          _leftSidebarOpen ? Icons.chevron_left : Icons.chevron_right,
-                          color: EverforestColors.fg,
-                          size: 18,
-                        ),
-                        onPressed: () => setState(() => _leftSidebarOpen = !_leftSidebarOpen),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _openFilePaths.length,
-                          itemBuilder: (context, index) {
-                            final path = _openFilePaths[index];
-                            final fileName = path.split(RegExp(r'[/\\]')).last.replaceAll('.json', '').replaceAll('.md', '');
-                            final isActive = path == _activeFilePath;
-
-                            return GestureDetector(
-                              onTap: () => _openFile(path),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: isActive ? const Color(0xFF1E2326) : Colors.transparent,
-                                  border: Border(
-                                    right: const BorderSide(color: Color(0xFF2E383C), width: 1),
-                                    top: isActive
-                                        ? const BorderSide(color: EverforestColors.green, width: 2)
-                                        : BorderSide.none,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.article_outlined, size: 14, color: EverforestColors.green),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      fileName,
-                                      style: TextStyle(
-                                        color: isActive ? EverforestColors.fg : EverforestColors.grey,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    InkWell(
-                                      onTap: () => _closeTab(index),
-                                      child: const Icon(Icons.close, size: 12, color: EverforestColors.grey),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // AppFlowy Editor Engine Container
-                Expanded(
-                  child: _editorState == null
-                      ? const Center(
-                          child: Text(
-                            'No document open. Create or select a document to start.',
-                            style: TextStyle(color: EverforestColors.grey),
-                          ),
-                        )
-                      : FloatingToolbar(
-                          items: [
-                            paragraphItem,
-                            ...headingItems,
-                            ...markdownFormatItems,
-                            quoteItem,
-                            bulletedListItem,
-                            numberedListItem,
-                            linkItem,
-                          ],
-                          textDirection: TextDirection.ltr,
-                          editorState: _editorState!,
-                          editorScrollController: _editorScrollController!,
-                          child: AppFlowyEditor(
-                            editorState: _editorState!,
-                            editorScrollController: _editorScrollController!,
-                            focusNode: _editorFocusNode,
-                            autoFocus: true,
-                            characterShortcutEvents: [
-                              customAppFlowySlashCommand,
-                              wikiLinkShortcutEvent,
-                              formatDoubleEqualsToHighlight,
-                              ...standardCharacterShortcutEvents,
-                            ],
-                            commandShortcutEvents: [
-                              customMoveCursorUpCommand,
-                              customMoveCursorDownCommand,
-                              customPasteCommand,
-                              customCopyCommand,
-                              ...standardCommandShortcutEvents,
-                            ],
-                            blockComponentBuilders: {
-                              ...standardBlockComponentBuilderMap,
-                              CalloutBlockKeys.type: CalloutBlockComponentBuilder(),
-                              CodeBlockKeys.type: CodeBlockComponentBuilder(),
-                              ToggleBlockKeys.type: ToggleBlockComponentBuilder(),
-                              HeadingBlockKeys.type: HeadingBlockComponentBuilder(
-                                textStyleBuilder: (level) {
-                                  const sizes = [28.0, 24.0, 20.0, 18.0, 16.0, 14.0];
-                                  const colors = [
-                                    EverforestColors.green,
-                                    EverforestColors.blue,
-                                    EverforestColors.purple,
-                                    EverforestColors.orange,
-                                    EverforestColors.fg,
-                                    EverforestColors.fg,
-                                  ];
-                                  return TextStyle(
-                                    color: colors.elementAtOrNull(level - 1) ?? EverforestColors.fg,
-                                    fontSize: sizes.elementAtOrNull(level - 1) ?? 16.0,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.25,
-                                    leadingDistribution: TextLeadingDistribution.even,
-                                  );
-                                },
-                              ),
-                            },
-                            editorStyle: EditorStyle.desktop(
-                              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 24),
-                              cursorColor: EverforestColors.green,
-                              selectionColor: EverforestColors.bg2,
-                              textStyleConfiguration: const TextStyleConfiguration(
-                                text: TextStyle(
-                                  color: EverforestColors.fg,
-                                  fontSize: 16,
-                                  height: 1.25,
-                                  leadingDistribution: TextLeadingDistribution.even,
-                                ),
-                                bold: TextStyle(
-                                  color: EverforestColors.fg,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.25,
-                                  leadingDistribution: TextLeadingDistribution.even,
-                                ),
-                                italic: TextStyle(
-                                  color: EverforestColors.green,
-                                  fontStyle: FontStyle.italic,
-                                  height: 1.25,
-                                  leadingDistribution: TextLeadingDistribution.even,
-                                ),
-                                strikethrough: TextStyle(
-                                  color: EverforestColors.grey,
-                                  decoration: TextDecoration.lineThrough,
-                                  height: 1.25,
-                                  leadingDistribution: TextLeadingDistribution.even,
-                                ),
-                                code: TextStyle(
-                                  color: EverforestColors.orange,
-                                  fontFamily: 'JetBrainsMono',
-                                  backgroundColor: Color(0x332E383C),
-                                  height: 1.25,
-                                  leadingDistribution: TextLeadingDistribution.even,
-                                ),
-                              ),
-                              textSpanDecorator: (context, node, index, text, textSpan) {
-                                final attributes = text.attributes;
-                                var span = defaultTextSpanDecoratorForAttribute(context, node, index, text, textSpan);
-                                if (attributes != null) {
-                                  final bgColor = attributes[AppFlowyRichTextKeys.highlightColor] ??
-                                      attributes['highlight'] ??
-                                      attributes['bg_color'];
-                                  if (bgColor != null) {
-                                    final style = span.style?.copyWith(
-                                      backgroundColor: const Color(0x40A7C080),
-                                      color: EverforestColors.green,
-                                      height: 1.1,
-                                      leadingDistribution: TextLeadingDistribution.even,
-                                    ) ?? const TextStyle(
-                                      backgroundColor: Color(0x40A7C080),
-                                      color: EverforestColors.green,
-                                      height: 1.1,
-                                      leadingDistribution: TextLeadingDistribution.even,
-                                    );
-                                    span = TextSpan(
-                                      text: span.text,
-                                      children: span.children,
-                                      style: style,
-                                      recognizer: span.recognizer,
-                                    );
-                                  }
-                                }
-                                final delta = node.delta;
-                                if (delta != null && text.text.isNotEmpty) {
-                                  final start = index;
-                                  final end = index + text.text.length;
-                                  final plain = delta.toPlainText();
-                                  for (final match in _wikiLinkRegExp.allMatches(plain)) {
-                                    if (start < match.end && end > match.start) {
-                                      final target = match.group(1) ?? '';
-                                      final style = (span.style ?? const TextStyle()).copyWith(
-                                        color: EverforestColors.blue,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: EverforestColors.blue,
-                                      );
-                                      span = TextSpan(
-                                        text: span.text,
-                                        children: span.children,
-                                        style: style,
-                                        recognizer: TapGestureRecognizer()
-                                          ..onTap = () => _handleZenLink(target),
-                                        mouseCursor: SystemMouseCursors.click,
-                                      );
-                                      break;
-                                    }
-                                  }
-                                }
-                                return span;
-                              },
-                            ),
-                          ),
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String _basename(String path) => path.split(RegExp(r'[/\\]')).last;
 
@@ -1211,57 +1027,588 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     return i <= 0 ? n : n.substring(0, i);
   }
 
-  void _copyDirSync(Directory src, Directory dst) {
-    dst.createSync(recursive: true);
-    for (final entity in src.listSync()) {
-      final name = _basename(entity.path);
-      if (entity is Directory) {
-        _copyDirSync(entity, Directory('${dst.path}/$name'));
-      } else if (entity is File) {
-        entity.copySync('${dst.path}/$name');
-      }
-    }
+  Widget _buildSidebarContent() {
+    return Container(
+      width: 240,
+      decoration: const BoxDecoration(
+        color: Color(0xFF242B2E),
+        border: Border(right: BorderSide(color: Color(0xFF2E383C), width: 1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: InkWell(
+                    key: _workspaceMenuKey,
+                    onTap: _showWorkspaceMenu,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_note, color: EverforestColors.green, size: 20),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _activeWorkspace.isEmpty ? 'Zen' : _activeWorkspace,
+                            style: const TextStyle(
+                              color: EverforestColors.fg,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down, color: EverforestColors.grey, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.note_add_outlined, color: EverforestColors.fg, size: 18),
+                      tooltip: 'New Note',
+                      onPressed: () => _showCreateFileDialog(),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.create_new_folder_outlined, color: EverforestColors.fg, size: 18),
+                      tooltip: 'New Folder',
+                      onPressed: () => _showCreateFolderDialog(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1, color: Color(0xFF2E383C)),
+          Expanded(
+            child: ZenSidebar(
+              tree: _fileTree,
+              activePath: _activeFilePath,
+              onOpen: (path) {
+                _openFile(path);
+                if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+                  Navigator.of(context).pop();
+                }
+              },
+              onCreateFile: (parent) => _showCreateFileDialog(
+                  parentFolderPath: parent.isEmpty ? null : parent),
+              onCreateFolder: (parent) => _showCreateFolderDialog(
+                  parentFolderPath: parent.isEmpty ? null : parent),
+              onRename: _renameFile,
+              onDuplicate: _duplicateFile,
+              onDelete: _deleteFile,
+              onMove: _moveFile,
+              onChanged: () => setState(() {}),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showVaultSearchDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => _VaultSearchDialog(
+        vaultPath: _vaultPath,
+        onOpen: (path) {
+          Navigator.of(context).pop();
+          _openFile(path);
+        },
+      ),
+    );
+  }
+
+  void _showExtractMarkdown() {
+    final editorState = _editorState;
+    if (editorState == null) return;
+    final md = ZenMarkdownBridge.exportMarkdown(editorState, null);
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF242B2E),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.code, color: EverforestColors.green, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              'Markdown preview',
+              style: const TextStyle(color: EverforestColors.fg, fontSize: 15),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 560,
+          height: 360,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              md,
+              style: const TextStyle(
+                color: EverforestColors.fg,
+                fontFamily: 'JetBrains Mono',
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close', style: TextStyle(color: EverforestColors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: md));
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Markdown copied to clipboard')),
+              );
+            },
+            child: const Text('Copy', style: TextStyle(color: Color(0xFF1E2326), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScaleControls(double scale) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove, size: 14, color: EverforestColors.grey),
+            tooltip: 'Zoom Out',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            onPressed: scale > 0.75
+                ? () => PreferencesService.setZenScale(scale - 0.1)
+                : null,
+          ),
+          InkWell(
+            onTap: () => PreferencesService.setZenScale(1.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                '${(scale * 100).round()}%',
+                style: const TextStyle(
+                  color: EverforestColors.grey,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add, size: 14, color: EverforestColors.grey),
+            tooltip: 'Zoom In',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+            onPressed: scale < 1.75
+                ? () => PreferencesService.setZenScale(scale + 0.1)
+                : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        final isMobile = screenWidth < 600;
+        final isTablet = screenWidth >= 600 && screenWidth < 1024;
+
+        return ValueListenableBuilder<double>(
+          valueListenable: PreferencesService.zenScale,
+          builder: (context, scale, _) {
+            final double horizPadding = isMobile
+                ? 12.0 * scale
+                : (isTablet ? 24.0 * scale : 48.0 * scale);
+            final double vertPadding = 24.0 * scale;
+
+            return Scaffold(
+              key: _scaffoldKey,
+              backgroundColor: const Color(0xFF1E2326),
+              drawer: isMobile ? Drawer(child: _buildSidebarContent()) : null,
+              body: Row(
+                children: [
+                  // Sidebar Document Tree
+                  if (!isMobile && _leftSidebarOpen) _buildSidebarContent(),
+
+                  // Main Editor Area
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // Top Tab Bar
+                        Container(
+                          height: 40,
+                          color: const Color(0xFF272E33),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  isMobile
+                                      ? Icons.menu
+                                      : (_leftSidebarOpen ? Icons.chevron_left : Icons.chevron_right),
+                                  color: EverforestColors.fg,
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  if (isMobile) {
+                                    _scaffoldKey.currentState?.openDrawer();
+                                  } else {
+                                    setState(() => _leftSidebarOpen = !_leftSidebarOpen);
+                                  }
+                                },
+                              ),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _openFilePaths.length,
+                                  itemBuilder: (context, index) {
+                                    final path = _openFilePaths[index];
+                                    final fileName = path.split(RegExp(r'[/\\]')).last.replaceAll('.json', '').replaceAll('.md', '');
+                                    final isActive = path == _activeFilePath;
+
+                                    return GestureDetector(
+                                      onTap: () => _openFile(path),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: isActive ? const Color(0xFF1E2326) : Colors.transparent,
+                                          border: Border(
+                                            right: const BorderSide(color: Color(0xFF2E383C), width: 1),
+                                            top: isActive
+                                                ? const BorderSide(color: EverforestColors.green, width: 2)
+                                                : BorderSide.none,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.article_outlined, size: 14, color: EverforestColors.green),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              fileName,
+                                              style: TextStyle(
+                                                color: isActive ? EverforestColors.fg : EverforestColors.grey,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            InkWell(
+                                              onTap: () => _closeTab(index),
+                                              child: const Icon(Icons.close, size: 12, color: EverforestColors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.search, color: EverforestColors.green, size: 16),
+                                tooltip: 'Search vault',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                                onPressed: _showVaultSearchDialog,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.code, color: EverforestColors.green, size: 16),
+                                tooltip: 'Extract to Markdown',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                                onPressed: _editorState == null
+                                    ? null
+                                    : () => _showExtractMarkdown(),
+                              ),
+                              _buildScaleControls(scale),
+                            ],
+                          ),
+                        ),
+
+                        // AppFlowy Editor Engine Container
+                        Expanded(
+                          child: _editorState == null
+                              ? const Center(
+                                  child: Text(
+                                    'No document open. Create or select a document to start.',
+                                    style: TextStyle(color: EverforestColors.grey),
+                                  ),
+                                )
+                              : FloatingToolbar(
+                                  items: [
+                                    zenCommentItem,
+                                    paragraphItem,
+                                    ...headingItems,
+                                    formatItemById('editor.bold'),
+                                    formatItemById('editor.underline'),
+                                    formatItemById('editor.italic'),
+                                    buildTextColorItem(),
+                                    buildHighlightColorItem(),
+                                    formatItemById('editor.code'),
+                                    bulletedListItem,
+                                    zenTodoListItem,
+                                    numberedListItem,
+                                    zenToggleItem,
+                                    zenCalloutItem,
+                                    quoteItem,
+                                    linkItem,
+                                    ...alignmentItems,
+                                    zenFontItem,
+                                    formatItemById('editor.strikethrough'),
+                                    zenEquationItem,
+                                  ],
+                                  textDirection: TextDirection.ltr,
+                                  editorState: _editorState!,
+                                  editorScrollController: _editorScrollController!,
+                                  child: Stack(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.topCenter,
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxWidth: isMobile ? double.infinity : (850.0 * scale),
+                                          ),
+                                          child: AppFlowyEditor(
+                                            editorState: _editorState!,
+                                            editorScrollController: _editorScrollController!,
+                                            focusNode: _editorFocusNode,
+                                            autoFocus: true,
+                                            characterShortcutEvents: [
+                                              customAppFlowySlashCommand,
+                                              wikiLinkShortcutEvent,
+                                              zenImageShortcutEvent,
+                                              formatDoubleEqualsToHighlight,
+                                              ...standardCharacterShortcutEvents,
+                                            ],
+                                            commandShortcutEvents: [
+                                              customMoveCursorUpCommand,
+                                              customMoveCursorDownCommand,
+                                              customPasteCommand,
+                                              customCopyCommand,
+                                              ...standardCommandShortcutEvents,
+                                            ],
+                                            blockComponentBuilders: {
+                                              ...standardBlockComponentBuilderMap,
+                                              ParagraphBlockKeys.type: ParagraphBlockComponentBuilder(
+                                                configuration: standardBlockComponentConfiguration.copyWith(
+                                                  padding: (_) =>
+                                                      const EdgeInsets.symmetric(vertical: 1.0),
+                                                ),
+                                              ),
+                                              CalloutBlockKeys.type: CalloutBlockComponentBuilder(),
+                                              CodeBlockKeys.type: CodeBlockComponentBuilder(),
+                                              ToggleBlockKeys.type: ToggleBlockComponentBuilder(),
+                                              ZenEmbedKeys.type: ZenEmbedBlockComponentBuilder(),
+                                              HeadingBlockKeys.type: HeadingBlockComponentBuilder(
+                                                textStyleBuilder: (level) {
+                                                  const baseSizes = [28.0, 24.0, 20.0, 18.0, 16.0, 14.0];
+                                                  const colors = [
+                                                    EverforestColors.green,
+                                                    EverforestColors.blue,
+                                                    EverforestColors.purple,
+                                                    EverforestColors.orange,
+                                                    EverforestColors.fg,
+                                                    EverforestColors.fg,
+                                                  ];
+                                                  final base = baseSizes.elementAtOrNull(level - 1) ?? 16.0;
+                                                  return TextStyle(
+                                                    color: colors.elementAtOrNull(level - 1) ?? EverforestColors.fg,
+                                                    fontSize: (base * scale).clamp(12.0, 48.0),
+                                                    fontWeight: FontWeight.bold,
+                                                    height: 1.25,
+                                                    leadingDistribution: TextLeadingDistribution.even,
+                                                  );
+                                                },
+                                              ),
+                                            },
+                                            editorStyle: (isMobile ? EditorStyle.mobile : EditorStyle.desktop)(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: horizPadding.clamp(8.0, 64.0),
+                                                vertical: vertPadding.clamp(12.0, 48.0),
+                                              ),
+                                              cursorColor: EverforestColors.green,
+                                              selectionColor: EverforestColors.bg2,
+                                              textStyleConfiguration: TextStyleConfiguration(
+                                                text: TextStyle(
+                                                  color: EverforestColors.fg,
+                                                  fontSize: (16.0 * scale).clamp(11.0, 32.0),
+                                                  height: 1.25,
+                                                  leadingDistribution: TextLeadingDistribution.even,
+                                                ),
+                                                bold: TextStyle(
+                                                  color: EverforestColors.fg,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: (16.0 * scale).clamp(11.0, 32.0),
+                                                  height: 1.25,
+                                                  leadingDistribution: TextLeadingDistribution.even,
+                                                ),
+                                                italic: TextStyle(
+                                                  color: EverforestColors.green,
+                                                  fontStyle: FontStyle.italic,
+                                                  fontSize: (16.0 * scale).clamp(11.0, 32.0),
+                                                  height: 1.25,
+                                                  leadingDistribution: TextLeadingDistribution.even,
+                                                ),
+                                                strikethrough: TextStyle(
+                                                  color: EverforestColors.grey,
+                                                  decoration: TextDecoration.lineThrough,
+                                                  fontSize: (16.0 * scale).clamp(11.0, 32.0),
+                                                  height: 1.25,
+                                                  leadingDistribution: TextLeadingDistribution.even,
+                                                ),
+                                                code: TextStyle(
+                                                  color: EverforestColors.orange,
+                                                  fontFamily: 'JetBrainsMono',
+                                                  backgroundColor: const Color(0x332E383C),
+                                                  fontSize: (14.0 * scale).clamp(10.0, 28.0),
+                                                  height: 1.25,
+                                                  leadingDistribution: TextLeadingDistribution.even,
+                                                ),
+                                              ),
+                                              textSpanDecorator: (context, node, index, text, textSpan) {
+                                                final attributes = text.attributes;
+                                                var span = defaultTextSpanDecoratorForAttribute(context, node, index, text, textSpan);
+                                                if (attributes != null) {
+                                                  final bgColor = attributes[AppFlowyRichTextKeys.highlightColor] ??
+                                                      attributes['highlight'] ??
+                                                      attributes['bg_color'];
+                                                  if (bgColor != null) {
+                                                    final style = span.style?.copyWith(
+                                                      backgroundColor: const Color(0x40A7C080),
+                                                      color: EverforestColors.green,
+                                                      height: 1.1,
+                                                      leadingDistribution: TextLeadingDistribution.even,
+                                                    ) ?? const TextStyle(
+                                                      backgroundColor: Color(0x40A7C080),
+                                                      color: EverforestColors.green,
+                                                      height: 1.1,
+                                                      leadingDistribution: TextLeadingDistribution.even,
+                                                    );
+                                                    span = TextSpan(
+                                                      text: span.text,
+                                                      children: span.children,
+                                                      style: style,
+                                                      recognizer: span.recognizer,
+                                                    );
+                                                  }
+                                                }
+                                                final delta = node.delta;
+                                                if (delta != null && text.text.isNotEmpty) {
+                                                  final start = index;
+                                                  final end = index + text.text.length;
+                                                  final plain = delta.toPlainText();
+                                                  for (final match in _wikiLinkRegExp.allMatches(plain)) {
+                                                    if (start < match.end && end > match.start) {
+                                                      final target = match.group(1) ?? '';
+                                                      final style = (span.style ?? const TextStyle()).copyWith(
+                                                        color: EverforestColors.blue,
+                                                        decoration: TextDecoration.underline,
+                                                        decorationColor: EverforestColors.blue,
+                                                      );
+                                                      span = TextSpan(
+                                                        text: span.text,
+                                                        children: span.children,
+                                                        style: style,
+                                                        recognizer: TapGestureRecognizer()
+                                                          ..onTap = () => _handleZenLink(target),
+                                                        mouseCursor: SystemMouseCursors.click,
+                                                      );
+                                                      break;
+                                                    }
+                                                  }
+                                                }
+                                                return span;
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      RemoteCursorOverlay(
+                                        editorState: _editorState!,
+                                        scrollController: _editorScrollController!,
+                                        presences: _remotePresences,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _parent(String path) {
+    final parts = path.split(RegExp(r'[/\\]'));
+    return parts.sublist(0, parts.length - 1).join('/');
   }
 
   void _renameFile(String path, String newName) {
+    final fs = ZenFileSystem.instance;
     final sanitized = newName.trim().replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
     if (sanitized.isEmpty) return;
-    final isDir = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
-    final parent = File(path).parent.path;
+    final isDir = fs.isDirectory(path);
+    final parent = _parent(path);
     final ext = isDir ? '' : _extension(path);
     final newPath = '$parent/$sanitized$ext';
     if (newPath == path) return;
-    if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) return;
+    if (fs.exists(newPath)) return;
     try {
-      if (isDir) {
-        Directory(path).renameSync(newPath);
-      } else {
-        File(path).renameSync(newPath);
-      }
+      fs.rename(path, newPath);
       _remapOpenPath(path, newPath);
     } catch (e) {
       debugPrint('Rename failed: $e');
+    }
+    if (!kIsWeb) {
+      ZenSyncService.instance.deleteByFullPath(path);
+      if (!isDir) ZenSyncService.instance.upsertNodeFromDisk(newPath);
     }
     _refreshFileTree();
   }
 
   void _duplicateFile(String path) {
-    final isDir = FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
+    final fs = ZenFileSystem.instance;
+    final isDir = fs.isDirectory(path);
     final base = _basenameNoExt(path);
     final ext = isDir ? '' : _extension(path);
-    final parent = File(path).parent.path;
+    final parent = _parent(path);
     String target = '$parent/$base (copy)$ext';
     var i = 1;
-    while (FileSystemEntity.typeSync(target) != FileSystemEntityType.notFound) {
+    while (fs.exists(target)) {
       target = '$parent/$base (copy $i)$ext';
       i++;
     }
     try {
-      if (isDir) {
-        _copyDirSync(Directory(path), Directory(target));
-      } else {
-        File(path).copySync(target);
-      }
+      fs.copy(path, target);
+      if (!isDir && !kIsWeb) ZenSyncService.instance.upsertNodeFromDisk(target);
     } catch (e) {
       debugPrint('Duplicate failed: $e');
     }
@@ -1270,14 +1617,11 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
   void _deleteFile(String path) {
     try {
-      if (FileSystemEntity.typeSync(path) == FileSystemEntityType.directory) {
-        Directory(path).deleteSync(recursive: true);
-      } else {
-        File(path).deleteSync();
-      }
+      ZenFileSystem.instance.delete(path);
     } catch (e) {
       debugPrint('Delete failed: $e');
     }
+    if (!kIsWeb) ZenSyncService.instance.deleteByFullPath(path);
     final norm = path.replaceAll('\\', '/');
     _openFilePaths.removeWhere((p) {
       final n = p.replaceAll('\\', '/');
@@ -1290,6 +1634,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       if (_openFilePaths.isNotEmpty) {
         _openFile(_openFilePaths.first);
       } else {
+        _disposeCollab();
         _activeFilePath = null;
         _editorState = null;
       }
@@ -1298,6 +1643,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   }
 
   void _moveFile(String path, String targetParentPath) {
+    final fs = ZenFileSystem.instance;
     final target = targetParentPath.isEmpty ? _workspacePath : targetParentPath;
     if (path == target) return;
     final normPath = path.replaceAll('\\', '/');
@@ -1305,16 +1651,17 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     if (normTarget.startsWith('$normPath/')) return;
     final name = _basename(path);
     final newPath = '$target/$name';
-    if (FileSystemEntity.typeSync(newPath) != FileSystemEntityType.notFound) return;
+    if (fs.exists(newPath)) return;
     try {
-      if (FileSystemEntity.typeSync(path) == FileSystemEntityType.directory) {
-        Directory(path).renameSync(newPath);
-      } else {
-        File(path).renameSync(newPath);
-      }
+      fs.rename(path, newPath);
       _remapOpenPath(path, newPath);
     } catch (e) {
       debugPrint('Move failed: $e');
+    }
+    final isDir = fs.isDirectory(newPath);
+    if (!kIsWeb) {
+      ZenSyncService.instance.deleteByFullPath(path);
+      if (!isDir) ZenSyncService.instance.upsertNodeFromDisk(newPath);
     }
     _refreshFileTree();
   }
@@ -1332,5 +1679,254 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
     if (a != null && (a == oldNorm || a.startsWith('$oldNorm/'))) {
       _activeFilePath = '$newNorm${a.substring(oldNorm.length)}';
     }
+  }
+}
+
+/// Renders remote collaborators' cursors as an overlay on top of the editor.
+/// Repaints on presence updates, document changes and scroll.
+class RemoteCursorOverlay extends StatefulWidget {
+  const RemoteCursorOverlay({
+    super.key,
+    required this.editorState,
+    required this.scrollController,
+    required this.presences,
+  });
+
+  final EditorState editorState;
+  final EditorScrollController scrollController;
+  final ValueListenable<Map<String, RemotePresence>> presences;
+
+  @override
+  State<RemoteCursorOverlay> createState() => _RemoteCursorOverlayState();
+}
+
+class _RemoteCursorOverlayState extends State<RemoteCursorOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    widget.presences.addListener(_repaint);
+    widget.editorState.document.root.addListener(_repaint);
+    widget.scrollController.offsetNotifier.addListener(_repaint);
+  }
+
+  @override
+  void dispose() {
+    widget.presences.removeListener(_repaint);
+    widget.editorState.document.root.removeListener(_repaint);
+    widget.scrollController.offsetNotifier.removeListener(_repaint);
+    super.dispose();
+  }
+
+  void _repaint() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final widgets = <Widget>[];
+    widget.presences.value.forEach((id, p) {
+      // ponytail: stale presence (10s silence) is dropped; re-rendered when it
+      // refreshes. Upgrade to server-side offline detection if rooms grow.
+      if (now.difference(p.lastSeen) > const Duration(seconds: 10)) return;
+      final path = p.blockPath;
+      if (path == null) return;
+      final node = widget.editorState.getNodeAtPath(path);
+      final selectable = node?.selectable;
+      if (selectable == null) return;
+      final position = Position(path: path, offset: p.selectionOffset);
+      final local = selectable.getCursorRectInPosition(position);
+      final rect = local == null
+          ? null
+          : selectable.transformRectToGlobal(local);
+      if (rect == null) return;
+      final topLeft = box.globalToLocal(rect.topLeft);
+      widgets.add(Positioned(
+        left: topLeft.dx,
+        top: topLeft.dy,
+        child: IgnorePointer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 2,
+                height: rect.height,
+                color: Color(int.parse('FF${p.colorHex.replaceFirst('#', '')}', radix: 16)),
+              ),
+              Container(
+                margin: const EdgeInsets.only(top: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Color(int.parse('FF${p.colorHex.replaceFirst('#', '')}', radix: 16)),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  p.userName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ));
+    });
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: widgets,
+    );
+  }
+}
+
+/// Full-text vault search backed by `GET /api/v1/notes?q=`.
+class _VaultSearchDialog extends StatefulWidget {
+  const _VaultSearchDialog({required this.vaultPath, required this.onOpen});
+
+  final String vaultPath;
+  final ValueChanged<String> onOpen;
+
+  @override
+  State<_VaultSearchDialog> createState() => _VaultSearchDialogState();
+}
+
+class _VaultSearchDialogState extends State<_VaultSearchDialog> {
+  final _controller = TextEditingController();
+  Timer? _debounce;
+  List<dynamic> _results = [];
+  bool _loading = false;
+  int _querySeq = 0;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String _) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), _search);
+  }
+
+  Future<void> _search() async {
+    final query = _controller.text.trim();
+    if (query.isEmpty) {
+      setState(() {
+        _results = [];
+        _loading = false;
+      });
+      return;
+    }
+    final seq = ++_querySeq;
+    setState(() => _loading = true);
+    try {
+      final res = await ApiClient.instance
+          .getDaemon('/api/v1/notes?q=${Uri.encodeQueryComponent(query)}');
+      if (!mounted || seq != _querySeq) return;
+      setState(() {
+        _results = res is List ? res : [];
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted || seq != _querySeq) return;
+      setState(() {
+        _results = [];
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: EverforestColors.bg1,
+      title: const Text(
+        'Search vault',
+        style: TextStyle(color: EverforestColors.fg, fontSize: 16),
+      ),
+      content: SizedBox(
+        width: 560,
+        height: 420,
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              onChanged: _onChanged,
+              style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+              decoration: const InputDecoration(
+                hintText: 'Search notes content…',
+                hintStyle: TextStyle(color: EverforestColors.grey),
+                prefixIcon:
+                    Icon(Icons.search, color: EverforestColors.grey, size: 18),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: EverforestColors.bg2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                          color: EverforestColors.green))
+                  : _results.isEmpty
+                      ? Center(
+                          child: Text(
+                            _controller.text.trim().isEmpty
+                                ? 'Type to search note content'
+                                : 'No notes found',
+                            style: const TextStyle(
+                                color: EverforestColors.grey),
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _results.length,
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 1, color: EverforestColors.bg2),
+                          itemBuilder: (context, i) {
+                            final r = _results[i] as Map;
+                            final path =
+                                (r['path'] as String? ?? '') 
+                                    .replaceAll('.md', '');
+                            return ListTile(
+                              dense: true,
+                              title: Text(
+                                r['title'] as String? ?? path,
+                                style: const TextStyle(
+                                    color: EverforestColors.fg, fontSize: 13),
+                              ),
+                              subtitle: Text(
+                                path,
+                                style: const TextStyle(
+                                    color: EverforestColors.grey, fontSize: 11),
+                              ),
+                              isThreeLine: false,
+                              onTap: () {
+                                final rel = r['path'] as String? ?? '';
+                                widget.onOpen(
+                                    '${widget.vaultPath}/${rel.replaceAll('/', '\\')}');
+                              },
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close', style: TextStyle(color: EverforestColors.grey)),
+        ),
+      ],
+    );
   }
 }

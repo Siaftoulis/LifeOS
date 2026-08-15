@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../theme/everforest_colors.dart';
 import '../../../core/general_engine/engine_repository.dart';
 import '../../../core/general_engine/general_engine_client.dart';
+import '../rpg_hub/quests/quest_daily_list.dart';
 // import 'chtm_create_dialog.dart';
 
 class CHTMDailyList extends StatelessWidget {
@@ -58,7 +59,9 @@ class CHTMDailyList extends StatelessWidget {
         // Add Habits
         for (final habit in habits) {
           final isCompleted = habit.payload['status'] == 'completed';
-          final sharedInfo = habit.sharedWith.isNotEmpty ? ' • Shared (${habit.sharedWith.join(', ')})' : '';
+          final compMode = habit.payload['completion_mode'] ?? 'ANY';
+          final modeStr = habit.sharedWith.isNotEmpty ? (compMode == 'ALL' ? ' [All must check]' : ' [Any checks]') : '';
+          final sharedInfo = habit.sharedWith.isNotEmpty ? ' • Shared (${habit.sharedWith.join(', ')})$modeStr' : '';
           final assignedInfo = habit.assignedTo != null ? ' • Assigned to: ${habit.assignedTo}' : '';
           
           checklistItems.add(DailyItem(
@@ -90,13 +93,16 @@ class CHTMDailyList extends StatelessWidget {
         // Add Tasks
         for (final task in dailyTasks) {
           final isDone = task.payload['status'] == 'completed';
-          final sharedInfo = task.sharedWith.isNotEmpty ? ' • Shared (${task.sharedWith.join(', ')})' : '';
+          final compMode = task.payload['completion_mode'] ?? 'ANY';
+          final modeStr = task.sharedWith.isNotEmpty ? (compMode == 'ALL' ? ' [All must check]' : ' [Any checks]') : '';
+          final sharedInfo = task.sharedWith.isNotEmpty ? ' • Shared (${task.sharedWith.join(', ')})$modeStr' : '';
           final assignedInfo = task.assignedTo != null ? ' • Assigned to: ${task.assignedTo}' : '';
+          final isScheduled = task.payload['is_scheduled'] == true ? ' • ⚡ Scheduled' : '';
 
           checklistItems.add(DailyItem(
             id: task.id,
             title: task.payload['title'] ?? 'Unknown Task',
-            subtitle: 'Engine Task$sharedInfo$assignedInfo',
+            subtitle: 'Engine Task$sharedInfo$assignedInfo$isScheduled',
             isCompleted: isDone,
             color: EverforestColors.blue,
             icon: Icons.assignment_turned_in,
@@ -291,6 +297,17 @@ class CHTMDailyList extends StatelessWidget {
                   ),
                 );
               }),
+            const SizedBox(height: 24),
+
+            // --- FAMILY QUESTS FOR THIS DAY ---
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Text(
+                'QUESTS',
+                style: TextStyle(color: EverforestColors.grey, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+            ),
+            QuestDailyList(date: selectedDate),
             const SizedBox(height: 24),
           ],
         );

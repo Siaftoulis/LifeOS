@@ -19,6 +19,31 @@ class GeocodingService {
   factory GeocodingService() => _instance;
   GeocodingService._internal();
 
+  /// Reverse geocodes a coordinate into a short place name ("Athens, Greece")
+  /// using Photon. Returns empty string when nothing is found.
+  Future<String> reverse(LatLng coordinate) async {
+    try {
+      final response = await http.get(Uri.parse(
+        'https://photon.komoot.io/reverse?lat=${coordinate.latitude}&lon=${coordinate.longitude}&limit=1',
+      ));
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        final features = data['features'] as List?;
+        if (features != null && features.isNotEmpty) {
+          final props = features.first['properties'] ?? {};
+          final name = props['name']?.toString() ?? '';
+          final city = props['city']?.toString() ?? '';
+          final country = props['country']?.toString() ?? '';
+          final parts = [name, city, country].where((p) => p.isNotEmpty).toList();
+          if (parts.isNotEmpty) return parts.join(', ');
+        }
+      }
+    } catch (e) {
+      print('Reverse geocoding error: $e');
+    }
+    return '';
+  }
+
   /// Searches for places using Photon autocomplete API.
   Future<List<GeocodingSearchResult>> search(String query, {LatLng? biasLocation}) async {
     if (query.trim().isEmpty) return [];

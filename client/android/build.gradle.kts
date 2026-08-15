@@ -26,6 +26,9 @@ subprojects {
             if (androidExt != null && androidExt.namespace == null) {
                 androidExt.namespace = "com.example.${project.name.replace("-", "_")}"
             }
+            // ponytail: force modern compileSdk on stale plugins (rich_clipboard
+            // pins SDK 30, whose aapt can't resolve android:attr/lStar)
+            androidExt?.compileSdkVersion(36)
         }
     }
     project.tasks.configureEach {

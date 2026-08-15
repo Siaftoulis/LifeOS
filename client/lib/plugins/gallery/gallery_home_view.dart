@@ -5,6 +5,7 @@ import 'album_list_view.dart';
 
 import 'gallery_map_view.dart';
 import 'cloud_view.dart';
+import 'smart_picker_view.dart';
 
 class GalleryHomeView extends StatefulWidget {
   const GalleryHomeView({super.key});
@@ -21,6 +22,7 @@ class _GalleryHomeViewState extends State<GalleryHomeView> {
     AlbumListView(),
     GalleryMapView(),
     CloudView(),
+    SmartPickerView(),
   ];
 
   @override
@@ -58,6 +60,10 @@ class _GalleryHomeViewState extends State<GalleryHomeView> {
           BottomNavigationBarItem(
             icon: Icon(Icons.cloud),
             label: 'Cloud',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_awesome),
+            label: 'Smart',
           ),
         ],
       ),

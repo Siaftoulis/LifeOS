@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
 import 'voucher_redeemer_panel.dart';
+import 'points_ledger_panel.dart';
 import '../../../../api_client.dart';
 import '../quests/quest_pool_list.dart';
 import '../quests/quest_daily_list.dart';
@@ -101,6 +102,14 @@ class PointStarDashboard extends StatelessWidget {
                             _FamilyGoalWidget(isAdmin: isAdmin),
                             const SizedBox(height: 24),
                             Expanded(child: _FamilyQuestsSection(isAdmin: isAdmin)),
+                            const SizedBox(height: 24),
+                            SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxHeight: 420),
+                                child: const PointsLedgerPanel(),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -116,6 +125,14 @@ class PointStarDashboard extends StatelessWidget {
                         _FamilyGoalWidget(isAdmin: isAdmin),
                         const SizedBox(height: 24),
                         SizedBox(height: 600, child: _FamilyQuestsSection(isAdmin: isAdmin)),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 420,
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: const PointsLedgerPanel(),
+                          ),
+                        ),
                       ],
                     ),
                   ),

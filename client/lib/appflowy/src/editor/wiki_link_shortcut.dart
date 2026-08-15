@@ -2,17 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import '../../../theme/everforest_colors.dart';
+import '../../../plugins/markdown/zen_embed_block.dart';
 
 class ZenLinkState {
   static String workspacePath = 'vault';
 }
-
-const zenLinkModules = <String, String>{
-  'maps': 'Maps',
-  'photos': 'Photos',
-  'books': 'Books',
-  'movies': 'Movies',
-};
 
 final wikiLinkShortcutEvent = CharacterShortcutEvent(
   key: 'wiki_link_autocomplete',
@@ -81,27 +75,21 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
                   ),
                 ),
               const PopupMenuDivider(),
-              for (final entry in zenLinkModules.entries)
+              for (final spec in zenEmbedSpecs.values)
                 PopupMenuItem<String>(
                   height: 34,
-                  value: '${entry.key}:',
+                  value: '${spec.id}:',
                   child: Row(
                     children: [
                       Icon(
-                        entry.key == 'maps'
-                            ? Icons.map_outlined
-                            : entry.key == 'photos'
-                                ? Icons.photo_library_outlined
-                                : entry.key == 'books'
-                                    ? Icons.menu_book_outlined
-                                    : Icons.movie_outlined,
+                        spec.icon,
                         size: 15,
                         color: EverforestColors.green,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '${entry.value} (module)',
+                          '${spec.label} (module)',
                           style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -116,9 +104,11 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
             if (currentSelection == null || !currentSelection.isCollapsed) return;
             // Both '[' are already in the document when this runs (the shortcut
             // fires before the character is inserted); only append the tail.
-            final insert = value.endsWith(':')
-                ? '${value.substring(0, value.length - 1)}]]'
-                : '${value.substring(5)}]]';
+            if (value.endsWith(':')) {
+              await _insertZenEmbed(editorState, node, currentSelection, value.substring(0, value.length - 1));
+              return;
+            }
+            final insert = '${value.substring(5)}]]';
             final transaction = editorState.transaction;
             transaction.insertText(
               node,
@@ -133,3 +123,36 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
     return false;
   },
 );
+
+/// Replaces the typed `[[` with an inline render window for the module.
+Future<void> _insertZenEmbed(
+  EditorState editorState,
+  Node node,
+  Selection selection,
+  String module,
+) async {
+  final text = node.delta?.toPlainText() ?? '';
+  final offset = selection.start.offset;
+
+  var caret = offset;
+  while (caret > 0 && text[caret - 1] == '[') {
+    caret--;
+  }
+  final openBrackets = offset - caret;
+  final hasText = text.substring(0, caret).isNotEmpty;
+
+  final transaction = editorState.transaction;
+  if (hasText) {
+    transaction
+      ..deleteText(node, caret, openBrackets)
+      ..insertNode(node.path.next, zenEmbedNode(module: module))
+      ..afterSelection = Selection.collapsed(Position(path: node.path, offset: caret));
+  } else {
+    transaction
+      ..deleteNode(node)
+      ..insertNode(node.path, paragraphNode())
+      ..insertNode(node.path.next, zenEmbedNode(module: module))
+      ..afterSelection = Selection.collapsed(Position(path: node.path, offset: 0));
+  }
+  await editorState.apply(transaction);
+}

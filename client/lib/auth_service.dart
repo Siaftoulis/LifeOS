@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 import 'database/preferences_service.dart';
+import 'oauth_browser.dart';
 
 class UserProfile {
   final String id;
@@ -114,6 +115,25 @@ class AuthService {
     return false;
   }
 
+  // OAuth (web): daemon redirects back with the JWT in localStorage
+  void startOAuth(String provider) {
+    oauthStart(provider, ApiClient.instance.daemonUrl);
+  }
+
+  Future<bool> tryOAuthToken() async {
+    final token = oauthReadToken();
+    if (token == null || token.isEmpty) return false;
+    _token = token;
+    final ok = await validateSession();
+    if (!ok) {
+      _token = null;
+    } else {
+      // ponytail: web session lives in memory only — refresh = logout
+      oauthClearToken();
+    }
+    return ok;
+  }
+
   void restoreSession(String token, String userJson) {
     _token = token;
     if (userJson.isNotEmpty) {
@@ -129,6 +149,7 @@ class AuthService {
   void logout() {
     _token = null;
     currentUser.value = null;
+    oauthClearToken();
     PreferencesService.setRememberMe(false);
     PreferencesService.setAuthToken('');
     PreferencesService.setUserProfileJson('');

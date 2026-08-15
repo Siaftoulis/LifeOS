@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
+import '../../../core/general_engine/engine_repository.dart';
 
 class CHTMFullCalendar extends StatefulWidget {
   final Stream<List<CalendarEvent>> eventsStream;
@@ -26,6 +27,7 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
   late DateTime _currentMonth;
   late DateTime _selectedDate;
   late int _currentYear;
+  late DateTime _threeDayAnchor;
   String _calendarView = 'MONTH'; // 'YEAR', 'MONTH', 'WEEK', 'THREE_DAY', 'DAY'
 
   @override
@@ -34,12 +36,15 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
     _currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
     _selectedDate = widget.initialDate;
     _currentYear = widget.initialDate.year;
+    _threeDayAnchor = DateTime.now();
   }
 
   void _previousPeriod() {
     setState(() {
       if (_calendarView == 'YEAR') {
         _currentYear--;
+      } else if (_calendarView == 'THREE_DAY') {
+        _threeDayAnchor = _threeDayAnchor.subtract(const Duration(days: 3));
       } else {
         _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
       }
@@ -50,6 +55,8 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
     setState(() {
       if (_calendarView == 'YEAR') {
         _currentYear++;
+      } else if (_calendarView == 'THREE_DAY') {
+        _threeDayAnchor = _threeDayAnchor.add(const Duration(days: 3));
       } else {
         _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
       }
@@ -104,84 +111,109 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
   @override
   Widget build(BuildContext context) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final monthStr = '${months[_currentMonth.month - 1]} ${_currentMonth.year}';
+    final headerMonth = _calendarView == 'THREE_DAY' ? _threeDayAnchor : _currentMonth;
+    final monthStr = '${months[headerMonth.month - 1]} ${headerMonth.year}';
     final headerStr = _calendarView == 'YEAR' ? '$_currentYear' : monthStr;
 
-    return StreamBuilder<List<CalendarEvent>>(
-      stream: widget.eventsStream,
-      builder: (context, eventSnapshot) {
-        return StreamBuilder<List<UserTask>>(
-          stream: widget.tasksStream,
-          builder: (context, taskSnapshot) {
-            return StreamBuilder<List<HabitLog>>(
-              stream: widget.habitLogsStream,
-              builder: (context, logSnapshot) {
-                final events = eventSnapshot.data ?? [];
-                final tasks = taskSnapshot.data ?? [];
-                final logs = logSnapshot.data ?? [];
+    return ValueListenableBuilder(
+      valueListenable: EngineRepository.instance.allEntities,
+      builder: (context, entities, child) {
+        return StreamBuilder<List<CalendarEvent>>(
+          stream: widget.eventsStream,
+          builder: (context, eventSnapshot) {
+            return StreamBuilder<List<UserTask>>(
+              stream: widget.tasksStream,
+              builder: (context, taskSnapshot) {
+                return StreamBuilder<List<HabitLog>>(
+                  stream: widget.habitLogsStream,
+                  builder: (context, logSnapshot) {
+                    final events = List<CalendarEvent>.from(eventSnapshot.data ?? []);
+                    final tasks = taskSnapshot.data ?? [];
+                    final logs = logSnapshot.data ?? [];
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: EverforestColors.bg1.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: EverforestColors.bg2),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // View Selection Controls
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Convert GeneralEngine entities (events) to CalendarEvent objects
+                    final engineEvents = EngineRepository.instance.events;
+                    for (var ee in engineEvents) {
+                      final start = DateTime.tryParse(ee.payload['start_time'] ?? '');
+                      final end = DateTime.tryParse(ee.payload['end_time'] ?? '');
+                      if (start != null && end != null) {
+                        events.add(CalendarEvent(
+                          id: ee.id,
+                          title: ee.payload['title'] ?? 'No Title',
+                          startTime: start.millisecondsSinceEpoch,
+                          endTime: end.millisecondsSinceEpoch,
+                          colorCode: ee.payload['color_code'] ?? '#89B4FA',
+                          isShared: ee.sharedWith.isNotEmpty ? 1 : 0,
+                          updatedAt: ee.updatedAt.millisecondsSinceEpoch,
+                          isDirty: 0,
+                        ));
+                      }
+                    }
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: EverforestColors.bg1.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: EverforestColors.bg2),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
+                          // View Selection Controls
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              if (_calendarView != 'YEAR')
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.arrow_upward, color: EverforestColors.green, size: 20),
-                                    onPressed: _zoomOut,
+                              Row(
+                                children: [
+                                  if (_calendarView != 'YEAR')
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: IconButton(
+                                        icon: const Icon(Icons.arrow_upward, color: EverforestColors.green, size: 20),
+                                        onPressed: _zoomOut,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        tooltip: 'Zoom Out',
+                                      ),
+                                    ),
+                                  Text(
+                                    headerStr,
+                                    style: const TextStyle(
+                                      color: EverforestColors.fg,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_left, color: EverforestColors.fg, size: 20),
+                                    onPressed: _previousPeriod,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
-                                    tooltip: 'Zoom Out',
                                   ),
-                                ),
-                              Text(
-                                headerStr,
-                                style: const TextStyle(
-                                  color: EverforestColors.fg,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
+                                  const SizedBox(width: 16),
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_right, color: EverforestColors.fg, size: 20),
+                                    onPressed: _nextPeriod,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.chevron_left, color: EverforestColors.fg, size: 20),
-                                onPressed: _previousPeriod,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 16),
-                              IconButton(
-                                icon: const Icon(Icons.chevron_right, color: EverforestColors.fg, size: 20),
-                                onPressed: _nextPeriod,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
+                              // Premium view toggles dropdown/selector
+                              _buildViewSelector(),
                             ],
                           ),
-                          // Premium view toggles dropdown/selector
-                          _buildViewSelector(),
+                          const SizedBox(height: 16),
+                          // Animated switch of views
+                          _buildCurrentView(events, tasks, logs),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Animated switch of views
-                      _buildCurrentView(events, tasks, logs),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             );
@@ -439,13 +471,24 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
     );
   }
 
+  String _dayRelationLabel(DateTime date) {
+    final today = DateTime.now();
+    final diff = DateTime(date.year, date.month, date.day)
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
+    if (diff == 0) return 'Today';
+    if (diff == -1) return 'Yesterday';
+    if (diff == 1) return 'Tomorrow';
+    return '${date.day}/${date.month}';
+  }
+
   Widget _buildWeeklyTimetable(List<CalendarEvent> events, int columnsCount) {
     DateTime startOfWeek;
     if (columnsCount == 7) {
       final int weekday = _selectedDate.weekday;
       startOfWeek = _selectedDate.subtract(Duration(days: weekday - 1));
     } else if (columnsCount == 3) {
-      startOfWeek = _selectedDate.subtract(const Duration(days: 1));
+      startOfWeek = _threeDayAnchor.subtract(const Duration(days: 1));
     } else {
       startOfWeek = _selectedDate;
     }
@@ -471,6 +514,9 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
         const int endHour = 24;
         const int totalHours = endHour - startHour;
 
+        // Assign each event a non-overlapping lane (side-by-side columns for overlaps)
+        final (laneOf, laneCountPerDay) = computeEventLanes(events, startOfWeek, columnsCount);
+
         return Column(
           children: [
             // Days of the week header with dates
@@ -480,13 +526,16 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                 ...List.generate(columnsCount, (index) {
                   final date = startOfWeek.add(Duration(days: index));
                   final isToday = date.day == DateTime.now().day && date.month == DateTime.now().month;
+                  final String dayLabel = columnsCount == 7
+                      ? days[date.weekday - 1]
+                      : (columnsCount == 3 ? _dayRelationLabel(date) : '${date.day}/${date.month}');
                   return Expanded(
                     child: GestureDetector(
                       onTap: () => _selectDate(date),
                       child: Column(
                         children: [
                           Text(
-                            columnsCount == 7 ? days[date.weekday - 1] : '${date.day}/${date.month}',
+                            dayLabel,
                             style: const TextStyle(color: EverforestColors.grey, fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
@@ -554,7 +603,7 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                         );
                       }),
                     ),
-                    // Positioned Calendar Events
+                    // Assign each event a non-overlapping lane (side-by-side columns for overlaps)
                     ...periodEvents.map((e) {
                       final start = DateTime.fromMillisecondsSinceEpoch(e.startTime);
                       final end = DateTime.fromMillisecondsSinceEpoch(e.endTime);
@@ -565,7 +614,10 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                       final int dayIndex = start.difference(startOfWeek).inDays;
                       if (dayIndex < 0 || dayIndex >= columnsCount) return const SizedBox.shrink();
 
-                      final double left = hourColWidth + (dayIndex * dayColWidth);
+                      final int lane = laneOf[e.id] ?? 0;
+                      final double laneWidth = dayColWidth / (laneCountPerDay[dayIndex] ?? 1);
+
+                      final double left = hourColWidth + (dayIndex * dayColWidth) + lane * laneWidth;
                       final double top = (start.hour - startHour) * rowHeight + (start.minute / 60) * rowHeight;
                       final double durationHours = end.difference(start).inMinutes / 60;
                       final double height = durationHours * rowHeight;
@@ -574,7 +626,7 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                       return Positioned(
                         left: left + 2,
                         top: top + 2,
-                        width: dayColWidth - 4,
+                        width: laneWidth - 4,
                         height: height - 4,
                         child: GestureDetector(
                           onTap: () => _selectDate(start),
@@ -608,4 +660,42 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
       },
     );
   }
+}
+
+/// Greedy interval-partitioning: assigns each event a lane index (0-based)
+/// so overlapping events sit side-by-side, and returns the lane count per day.
+/// Events outside [startOfWeek, startOfWeek + columnsCount) are ignored.
+(Map<String, int> laneOf, Map<int, int> laneCountPerDay) computeEventLanes(
+  List<CalendarEvent> events,
+  DateTime startOfWeek,
+  int columnsCount,
+) {
+  final laneOf = <String, int>{};
+  final laneCountPerDay = <int, int>{};
+  final byDay = <int, List<CalendarEvent>>{};
+
+  for (final e in events) {
+    final dayIndex =
+        DateTime.fromMillisecondsSinceEpoch(e.startTime).difference(startOfWeek).inDays;
+    if (dayIndex < 0 || dayIndex >= columnsCount) continue;
+    byDay.putIfAbsent(dayIndex, () => []).add(e);
+  }
+
+  byDay.forEach((dayIndex, dayEvents) {
+    dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
+    final laneEnds = <int>[];
+    for (final e in dayEvents) {
+      int lane = laneEnds.indexWhere((end) => end <= e.startTime);
+      if (lane == -1) {
+        lane = laneEnds.length;
+        laneEnds.add(e.endTime);
+      } else {
+        laneEnds[lane] = e.endTime;
+      }
+      laneOf[e.id] = lane;
+    }
+    laneCountPerDay[dayIndex] = laneEnds.length;
+  });
+
+  return (laneOf, laneCountPerDay);
 }

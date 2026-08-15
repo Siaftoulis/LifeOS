@@ -17,6 +17,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
   final _assignedUsersController = TextEditingController();
   double _xpReward = 50;
   bool _isLoading = false;
+  DateTime _dueDate = DateTime.now();
 
   Future<void> _submit() async {
     if (_titleController.text.trim().isEmpty) return;
@@ -28,6 +29,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
         'description': _descController.text.trim(),
         'xp_reward': _xpReward.toInt(),
         'assigned_users': _assignedUsersController.text.trim(),
+        'due_date': _dueDate.toIso8601String().substring(0, 10),
       });
       if (mounted) {
         widget.onQuestAdded();
@@ -114,6 +116,34 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
                   child: Text('${_xpReward.toInt()} XP', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Due Date', style: TextStyle(color: EverforestColors.fg)),
+                TextButton(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _dueDate,
+                      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) setState(() => _dueDate = picked);
+                  },
+                  child: Text(
+                    '${_dueDate.day}/${_dueDate.month}/${_dueDate.year}',
+                    style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Family bounty: anyone can claim it from the quest board. '
+              'Cancelling after claiming costs half the reward in stars.',
+              style: TextStyle(color: EverforestColors.grey, fontSize: 12),
             ),
           ],
         ),

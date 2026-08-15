@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 
 class CHTMMemoView extends StatefulWidget {

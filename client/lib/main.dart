@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/rendering.dart';
 import 'app_bootstrap.dart';
+import 'core/offline_map_service.dart';
 import 'desktop_widget_manager.dart';
 
 @pragma('vm:entry-point')
@@ -13,7 +15,7 @@ Future<void> main([List<String> args = const []]) async {
     WidgetsFlutterBinding.ensureInitialized();
     debugPaintSizeEnabled = false;
     
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       await windowManager.ensureInitialized();
       WindowOptions windowOptions = const WindowOptions(
         size: Size(1280, 720),
@@ -29,15 +31,23 @@ Future<void> main([List<String> args = const []]) async {
       });
     }
 
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       unawaited(FlutterDisplayMode.setHighRefreshRate().catchError((e) {
         debugPrint('Failed to set high refresh rate: $e');
       }));
     }
 
-    if (args.contains('multi_window')) {
+    if (!kIsWeb && args.contains('multi_window')) {
       DesktopWidgetManager.runWidgetOverlay(args);
       return;
+    }
+
+    try {
+      if (!kIsWeb) {
+        await OfflineMapService.init();
+      }
+    } catch (e) {
+      debugPrint('Failed to init offline map cache: $e');
     }
 
     runApp(const BootstrapApp());

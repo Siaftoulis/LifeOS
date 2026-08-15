@@ -14,6 +14,7 @@ import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_scr
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
+import '../../core/offline_map_service.dart';
 
 class GalleryMapView extends StatefulWidget {
   const GalleryMapView({super.key});
@@ -30,12 +31,62 @@ class _GalleryMapViewState extends State<GalleryMapView> {
   List<Marker> _mapMarkers = [];
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionStreamSub;
+  bool _isDownloading = false;
+  int _downloadDone = 0;
+  int _downloadTotal = 0;
 
   @override
   void initState() {
     super.initState();
     _loadMappedMedia();
     _getCurrentLocation();
+  }
+
+  Future<void> _downloadRegionForOffline() async {
+    if (_isDownloading) return;
+    setState(() {
+      _isDownloading = true;
+      _downloadDone = 0;
+      _downloadTotal = 0;
+    });
+
+    final points = [
+      if (_currentLocation != null) _currentLocation!,
+      ..._mappedItems
+          .where((i) => i.latitude != null && i.longitude != null)
+          .map((i) => LatLng(i.latitude!, i.longitude!)),
+    ];
+
+    try {
+      final downloaded = await OfflineMapService.prefetchRegion(
+        points,
+        minZoom: 9,
+        maxZoom: 17,
+        onProgress: (done, total) {
+          if (mounted) {
+            setState(() {
+              _downloadDone = done;
+              _downloadTotal = total;
+            });
+          }
+        },
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(downloaded > 0
+              ? 'Offline map saved: $downloaded tiles (works without internet)'
+              : 'Map area already saved for offline'),
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Offline download failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -275,9 +326,34 @@ class _GalleryMapViewState extends State<GalleryMapView> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         title: const Text('Photo Map', style: TextStyle(color: EverforestColors.fg)),
+        actions: [
+          if (_isDownloading)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Center(
+                child: Text(
+                  '$_downloadDone/$_downloadTotal',
+                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.download_for_offline_outlined, color: EverforestColors.fg),
+              tooltip: 'Save map area for offline use',
+              onPressed: _downloadRegionForOffline,
+            ),
+        ],
       ),
       body: Stack(
         children: [
+          if (_isDownloading)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(color: EverforestColors.green),
+            ),
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(

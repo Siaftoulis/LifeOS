@@ -7,12 +7,14 @@ import 'gallery_item.dart';
 class VideoPlayerWidget extends StatefulWidget {
   final GalleryItem item;
   final bool isImmersive;
+  final bool isActive;
   final VoidCallback onTap;
 
   const VideoPlayerWidget({
     super.key, 
     required this.item,
     required this.isImmersive,
+    required this.isActive,
     required this.onTap,
   });
 
@@ -23,11 +25,22 @@ class VideoPlayerWidget extends StatefulWidget {
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   VideoPlayerController? _controller;
   bool _isPlaying = false;
+  bool _loadFailed = false;
 
   @override
   void initState() {
     super.initState();
     _initPlayer();
+  }
+
+  @override
+  void didUpdateWidget(covariant VideoPlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Pause when the page is swiped away so audio doesn't keep playing
+    // in the background.
+    if (widget.isActive != oldWidget.isActive && !widget.isActive) {
+      _controller?.pause();
+    }
   }
 
   Future<void> _initPlayer() async {
@@ -40,18 +53,25 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
     if (file != null && await file.exists()) {
       _controller = VideoPlayerController.file(file);
-      await _controller!.initialize();
+      try {
+        await _controller!.initialize();
+      } catch (_) {
+        if (mounted) setState(() => _loadFailed = true);
+        return;
+      }
+      if (!mounted) return;
       setState(() {});
-      
+
+      // Only rebuild when play state flips; the progress bar rebuilds itself
+      // via AnimatedBuilder so we avoid rebuilding the whole page every frame.
       _controller!.addListener(() {
-        if (_controller!.value.isPlaying != _isPlaying) {
-          setState(() {
-            _isPlaying = _controller!.value.isPlaying;
-          });
+        final playing = _controller!.value.isPlaying;
+        if (playing != _isPlaying && mounted) {
+          setState(() => _isPlaying = playing);
         }
-        // Force rebuild for progress bar
-        setState(() {});
       });
+    } else if (mounted) {
+      setState(() => _loadFailed = true);
     }
   }
 
@@ -103,13 +123,25 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loadFailed) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.broken_image_outlined, color: EverforestColors.grey, size: 48),
+            SizedBox(height: 8),
+            Text(
+              'Video unavailable',
+              style: TextStyle(color: EverforestColors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (_controller == null || !_controller!.value.isInitialized) {
       return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
-
-    final pos = _controller!.value.position.inMilliseconds.toDouble();
-    final dur = _controller!.value.duration.inMilliseconds.toDouble();
-    final progress = dur > 0 ? pos / dur : 0.0;
 
     final showControls = !widget.isImmersive || !_isPlaying;
     // When immersive is false, the bottom actions bar is visible (~80px tall), so we shift the progress bar up.
@@ -150,16 +182,24 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               bottom: bottomPadding,
               left: 0,
               right: 0,
-              child: Container(
-                height: 4,
-                color: Colors.black26,
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: progress.clamp(0.0, 1.0),
-                  child: Container(
-                    color: EverforestColors.green,
-                  ),
-                ),
+              child: AnimatedBuilder(
+                animation: _controller!,
+                builder: (context, _) {
+                  final pos = _controller!.value.position.inMilliseconds.toDouble();
+                  final dur = _controller!.value.duration.inMilliseconds.toDouble();
+                  final progress = dur > 0 ? pos / dur : 0.0;
+                  return Container(
+                    height: 4,
+                    color: Colors.black26,
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: progress.clamp(0.0, 1.0),
+                      child: Container(
+                        color: EverforestColors.green,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
         ],

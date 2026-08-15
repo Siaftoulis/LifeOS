@@ -56,8 +56,8 @@ class GallerySyncEngine {
             }
         }
         
-        final success = await CloudGalleryService.uploadAsset(resolvedItem);
-        if (success) {
+        final result = await CloudGalleryService.uploadAsset(resolvedItem);
+        if (result.success) {
           syncedCount.value++;
         }
       }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import '../../../../theme/everforest_colors.dart';
+import '../../../../plugins/markdown/zen_embed_block.dart';
+import '../../../../presentation/theme/zen_markdown_bridge.dart';
+import '../entity_embed_picker.dart';
 import '../block_component/callout_block_component/callout_block_component.dart';
 import '../block_component/code_block_component/code_block_component.dart';
 import '../block_component/toggle_block_component/toggle_block_component.dart';
@@ -374,6 +377,260 @@ final imageMenuItem = SelectionMenuItem(
   },
 );
 
+String _movieSubtitle(Map<String, dynamic> m) {
+  final rating = m['rating'] is num ? (m['rating'] as num).toDouble() : 0.0;
+  return '${m['director'] ?? ''} • ${m['year'] ?? ''}'
+      '${rating > 0 ? '  ★ ${rating.toStringAsFixed(1)}' : ''}'
+      '  [${m['status'] ?? ''}]';
+}
+
+String _bookSubtitle(Map<String, dynamic> b) {
+  return '${b['author'] ?? ''} • '
+      '${b['current_page'] ?? 0}/${b['total_pages'] ?? 0} p.'
+      '  [${b['status'] ?? ''}]';
+}
+
+String _trackSubtitle(Map<String, dynamic> t) {
+  return '${t['artist'] ?? ''} • ${t['album'] ?? ''}';
+}
+
+String _noteSubtitle(Map<String, dynamic> n) {
+  return n['path'] as String? ?? '';
+}
+
+String _photoSubtitle(Map<String, dynamic> p) {
+  return '${p['title'] ?? p['filename'] ?? ''} • ${p['source'] ?? ''}';
+}
+
+String _pinSubtitle(Map<String, dynamic> p) {
+  final lat = p['lat'] is num ? (p['lat'] as num).toStringAsFixed(4) : '';
+  final lon = p['lon'] is num ? (p['lon'] as num).toStringAsFixed(4) : '';
+  return '${p['type'] ?? ''} • $lat, $lon';
+}
+
+Future<void> _insertEntityEmbed(
+  EditorState editorState,
+  BuildContext context,
+  String module,
+  Widget dialog,
+) async {
+  final id = await showDialog<String>(context: context, builder: (_) => dialog);
+  if (id == null || id.isEmpty) return;
+  final selection = editorState.selection;
+  if (selection == null) return;
+  final node = editorState.getNodeAtPath(selection.start.path);
+  if (node == null) return;
+  final transaction = editorState.transaction
+    ..insertNode(selection.start.path, zenEmbedNode(module: module, ref: id))
+    ..deleteNode(node);
+  editorState.apply(transaction);
+}
+
+final movieEmbedMenuItem = SelectionMenuItem(
+  name: 'Movie',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.movie_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['movie', 'film', 'embed', 'watch'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'movies',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/movies',
+      title: 'Embed a movie',
+      icon: Icons.movie_outlined,
+      statuses: const ['WATCHED', 'AVAILABLE'],
+      subtitleOf: _movieSubtitle,
+    ),
+  ),
+);
+
+final bookEmbedMenuItem = SelectionMenuItem(
+  name: 'Book',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.menu_book_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['book', 'read', 'embed'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'books',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/books',
+      title: 'Embed a book',
+      icon: Icons.menu_book_outlined,
+      subtitleOf: _bookSubtitle,
+    ),
+  ),
+);
+
+final musicEmbedMenuItem = SelectionMenuItem(
+  name: 'Music',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.music_note_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['music', 'track', 'song', 'embed'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'music',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/music/tracks',
+      title: 'Embed a track',
+      icon: Icons.music_note_outlined,
+      subtitleOf: _trackSubtitle,
+    ),
+  ),
+);
+
+final noteEmbedMenuItem = SelectionMenuItem(
+  name: 'Note',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.description_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['note', 'vault', 'markdown', 'embed'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'notes',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/notes',
+      title: 'Embed a note',
+      icon: Icons.description_outlined,
+      subtitleOf: _noteSubtitle,
+    ),
+  ),
+);
+
+final photoEmbedMenuItem = SelectionMenuItem(
+  name: 'Photo',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.photo_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['photo', 'image', 'gallery', 'embed'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'photos',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/gallery/assets',
+      title: 'Embed a photo',
+      icon: Icons.photo_outlined,
+      subtitleOf: _photoSubtitle,
+    ),
+  ),
+);
+
+final pinEmbedMenuItem = SelectionMenuItem(
+  name: 'Map',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.map_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.green,
+  ),
+  keywords: ['map', 'pin', 'place', 'location', 'geofence', 'embed'],
+  handler: (editorState, menuService, context) => _insertEntityEmbed(
+    editorState,
+    context,
+    'maps',
+    EntityEmbedPickerDialog(
+      endpoint: '/api/v1/radar/geofences',
+      title: 'Embed a location',
+      icon: Icons.map_outlined,
+      subtitleOf: _pinSubtitle,
+    ),
+  ),
+);
+
+final templateMenuItem = SelectionMenuItem(
+  name: 'Template',
+  icon: (editorState, isSelected, style) => Icon(
+    Icons.description_outlined,
+    size: 16,
+    color: isSelected ? style.selectionMenuItemSelectedIconColor : EverforestColors.purple,
+  ),
+  keywords: ['template', 'preset', 'daily', 'journal', 'meeting', 'review'],
+  handler: (editorState, menuService, context) => _insertTemplate(editorState, context),
+);
+
+const noteTemplates = <String, String>{
+  'Daily Journal': '# Daily Journal\n\n## Wins\n\n## Tasks\n\n## Notes\n\n',
+  'Meeting Notes':
+      '# Meeting Notes\n\n**Date:**\n\n## Agenda\n\n- \n\n## Decisions\n\n## Action Items\n\n- [ ] \n\n',
+  'Book Review':
+      '# Book Review\n\n**Book:**\n\n## Summary\n\n## Favorite Quotes\n\n## Rating\n\n',
+  'Weekly Review':
+      '# Weekly Review\n\n## Went well\n\n## To improve\n\n## Next week\n\n- [ ] \n\n',
+};
+
+Future<void> _insertTemplate(EditorState editorState, BuildContext context) async {
+  final selection = editorState.selection;
+  if (selection == null) return;
+  final name = await showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: EverforestColors.bg1,
+      title: const Text(
+        'Insert template',
+        style: TextStyle(color: EverforestColors.fg, fontSize: 16),
+      ),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: noteTemplates.keys
+              .map((n) => ListTile(
+                    dense: true,
+                    title: Text(
+                      n,
+                      style: const TextStyle(
+                          color: EverforestColors.fg, fontSize: 14),
+                    ),
+                    onTap: () => Navigator.of(context).pop(n),
+                  ))
+              .toList(),
+        ),
+      ),
+    ),
+  );
+  if (name == null) return;
+  var doc = markdownToDocument(noteTemplates[name]!);
+  doc = ZenMarkdownBridge.applyEmbedBlocks(doc);
+  var nodes = doc.root.children.toList();
+  while (nodes.isNotEmpty && nodes.first.delta?.isEmpty == true) {
+    nodes.removeAt(0);
+  }
+  while (nodes.isNotEmpty && nodes.last.delta?.isEmpty == true) {
+    nodes.removeLast();
+  }
+  if (nodes.isEmpty) return;
+  final node = editorState.getNodeAtPath(selection.start.path);
+  if (node == null) return;
+  final transaction = editorState.transaction;
+  // Deep-copy unlinks nodes from the parsed doc's root before re-inserting.
+  nodes = nodes.map((n) => Node.fromJson(n.toJson())).toList();
+  var at = [...selection.start.path];
+  at[at.length - 1]++;
+  for (final n in nodes) {
+    transaction.insertNode(at, n);
+    at = [...at];
+    at[at.length - 1]++;
+  }
+  if (node.delta?.isEmpty ?? false) transaction.deleteNode(node);
+  editorState.apply(transaction);
+}
+
 final zenSelectionMenuItems = [
   paragraphMenuItem,
   heading1MenuItem,
@@ -392,6 +649,13 @@ final zenSelectionMenuItems = [
   toggleListMenuItem,
   tableMenuItem,
   imageMenuItem,
+  movieEmbedMenuItem,
+  bookEmbedMenuItem,
+  musicEmbedMenuItem,
+  noteEmbedMenuItem,
+  photoEmbedMenuItem,
+  pinEmbedMenuItem,
+  templateMenuItem,
 ];
 
 class _ZenMobileMenuItem {
@@ -425,7 +689,7 @@ final _zenMobileMenuCategories = <_ZenMobileMenuItem>[
   _ZenMobileMenuItem(
     name: 'File & Media',
     icon: Icons.image,
-    children: [imageMenuItem],
+    children: [imageMenuItem, movieEmbedMenuItem, bookEmbedMenuItem, musicEmbedMenuItem, noteEmbedMenuItem, photoEmbedMenuItem, pinEmbedMenuItem],
   ),
   _ZenMobileMenuItem(
     name: 'Visuals',
@@ -495,19 +759,18 @@ void _showZenMenuOverlay({
   final selectionRects = selectionService.selectionRects;
   if (selectionRects.isEmpty) return;
 
+  // selectionRects are in GLOBAL coordinates and the overlay is the
+  // full-screen root overlay, so the rects can be used as-is.
   final rect = selectionRects.first;
-  final editorBox = editorState.renderBox;
-  if (editorBox == null) return;
-
-  final editorOffset = editorBox.localToGlobal(Offset.zero);
-  final top = rect.bottom - editorOffset.dy + 8;
-  final left = rect.left - editorOffset.dx;
+  final top = rect.bottom + 8;
+  final left = rect.left;
 
   editorState.service.keyboardService?.disable(showCursor: true);
   editorState.service.scrollService?.disable();
 
   _zenMenuOverlayEntry = OverlayEntry(
     builder: (overlayContext) {
+      final screenWidth = MediaQuery.sizeOf(overlayContext).width;
       return Stack(
         children: [
           GestureDetector(
@@ -517,7 +780,7 @@ void _showZenMenuOverlay({
           ),
           Positioned(
             top: top,
-            left: left.clamp(16.0, (editorBox.size.width - 250.0).clamp(16.0, 10000.0)),
+            left: left.clamp(16.0, (screenWidth - 250.0).clamp(16.0, 10000.0)),
             child: Material(
               color: Colors.transparent,
               child: child,

@@ -8,6 +8,7 @@ import 'global_keys.dart';
 import 'p2p_dialog_handler.dart';
 import 'notification_poll_service.dart';
 import 'life_os_main_stack.dart';
+import 'web_session_guard.dart';
 
 class LifeOSMainApp extends StatefulWidget {
   const LifeOSMainApp({super.key});
@@ -19,6 +20,7 @@ class LifeOSMainApp extends StatefulWidget {
 class _LifeOSMainAppState extends State<LifeOSMainApp> {
   bool _isUnlocked = false;
   final _pollService = NotificationPollService();
+  final _sessionGuard = WebSessionGuard(onExpire: () => AuthService.instance.logout());
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
     AuthService.instance.currentUser.removeListener(_handleAuthChange);
     _pollService.stop();
     P2PTransferService.instance.onReceiveRequest = null;
+    _sessionGuard.detach();
     super.dispose();
   }
 
@@ -52,6 +55,12 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
       setState(() {
         _isUnlocked = authenticated;
       });
+      // ponytail: web-only — idle watchdog runs only while unlocked
+      if (authenticated) {
+        _sessionGuard.attach();
+      } else {
+        _sessionGuard.detach();
+      }
     }
   }
 
@@ -82,6 +91,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
                   layout: layout,
                   onUnlock: () {
                     FocusManager.instance.primaryFocus?.unfocus();
+                    _sessionGuard.attach();
                     setState(() => _isUnlocked = true);
                   },
                 );

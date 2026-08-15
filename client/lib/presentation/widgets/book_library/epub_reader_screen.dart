@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' show Value;
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
+import '../../../api_client.dart';
 import 'epub_viewer_pane.dart';
 
 class EPUBReaderScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
       _currentPage,
       DateTime.now().millisecondsSinceEpoch,
     );
+    _pushProgress();
 
     if (_sessionPagesRead >= 10) {
       _sessionPagesRead -= 10;
@@ -45,6 +47,17 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
         );
       }
     }
+  }
+
+  // ponytail: fire-and-forget mirror to the daemon; offline = silent no-op.
+  Future<void> _pushProgress() async {
+    try {
+      await ApiClient.instance.postDaemon('/api/v1/books/progress', {
+        'book_id': widget.book.id,
+        'page': _currentPage,
+        'seconds': 0,
+      });
+    } catch (_) {}
   }
 
   void _nextPage() {
@@ -79,6 +92,15 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
       createdAt: DateTime.now().millisecondsSinceEpoch,
       isDirty: const Value(1),
     ));
+    try {
+      await ApiClient.instance.postDaemon('/api/v1/books/highlight', {
+        'id': highlightId,
+        'book_id': widget.book.id,
+        'text_content': _selectedText,
+        'note_content': 'User highlight',
+        'page_number': _currentPage,
+      });
+    } catch (_) {}
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Highlight saved!'), backgroundColor: EverforestColors.purple),

@@ -5,11 +5,22 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifeos_client/appflowy/src/editor/selection_menu/selection_menu_service.dart';
+import 'package:lifeos_client/core/zen_cloud_service.dart';
 import 'package:lifeos_client/database/preferences_service.dart';
 import 'package:lifeos_client/presentation/widgets/zen_workspace.dart';
 
 const _wsName = 'zz_test_ws';
 late Directory _wsDir;
+
+/// ZenWorkspace init now awaits real async IO (vault scan, DB, watchers);
+/// in the testWidgets FakeAsync zone those futures never complete, so let
+/// them run in the real zone between pumps.
+Future<void> _settleWorkspace(WidgetTester tester) async {
+  for (var i = 0; i < 20; i++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+  }
+  await tester.pumpAndSettle();
+}
 
 void _writeNote(String name, String body) {
   final doc = Document(
@@ -42,6 +53,7 @@ void main() {
   });
 
   tearDown(() {
+    ZenCloudService.instance.stop();
     PreferencesService.zenWorkspace.value = '';
     if (_wsDir.existsSync()) {
       _wsDir.deleteSync(recursive: true);
@@ -53,7 +65,7 @@ void main() {
     _writeNote('Target', '');
 
     await tester.pumpWidget(const MaterialApp(home: ZenWorkspace()));
-    await tester.pumpAndSettle();
+    await _settleWorkspace(tester);
 
     final link = find.textContaining('[[Target]]', findRichText: true);
     expect(link, findsOneWidget);
@@ -62,13 +74,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Target Page', findRichText: true), findsOneWidget);
+    ZenCloudService.instance.stop();
   });
 
   testWidgets('clicking a link to a missing page shows a snackbar', (tester) async {
     _writeNote('Lone', '[[NoSuchPage]]');
 
     await tester.pumpWidget(const MaterialApp(home: ZenWorkspace()));
-    await tester.pumpAndSettle();
+    await _settleWorkspace(tester);
 
     await tester.tap(find.textContaining('[[NoSuchPage]]', findRichText: true));
     await tester.pump();
@@ -77,6 +90,7 @@ void main() {
 
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
+    ZenCloudService.instance.stop();
   });
 
   testWidgets('table menu item inserts a valid 2x2 table', (tester) async {

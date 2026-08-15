@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:drift/native.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
+import 'database/db_executor.dart';
+import 'platform_dirs.dart';
 import 'api_client.dart';
 import 'feature_registry.dart';
 import 'core/local_discovery_service.dart';
@@ -12,30 +12,34 @@ import 'core/p2p_transfer_service.dart';
 
 class AppInitializer {
   static Future<void> initialize(Stopwatch s) async {
-    Future.microtask(() async {
-      final discoveryStart = s.elapsedMilliseconds;
-      LocalDiscoveryService.instance.start();
-      await P2PTransferService.instance.startServer();
-      debugPrint('LifeOSInit: P2P & mDNS started at ${s.elapsedMilliseconds}ms (took ${s.elapsedMilliseconds - discoveryStart}ms)');
-    });
+    if (!kIsWeb) {
+      Future.microtask(() async {
+        final discoveryStart = s.elapsedMilliseconds;
+        LocalDiscoveryService.instance.start();
+        await P2PTransferService.instance.startServer();
+        debugPrint('LifeOSInit: P2P & mDNS started at ${s.elapsedMilliseconds}ms (took ${s.elapsedMilliseconds - discoveryStart}ms)');
+      });
+    }
 
-    final dbFolder = await getApplicationDocumentsDirectory();
-    debugPrint('LifeOSInit: getApplicationDocumentsDirectory resolved at ${s.elapsedMilliseconds}ms');
+    // ponytail: web is served by the daemon itself → same-origin cloud URLs
+    final resolved = kIsWeb
+        ? [Uri.base.origin, Uri.base.origin]
+        : await Future.wait([ApiClient.discoverBaseUrl(), ApiClient.discoverDaemonUrl()]);
+    final base = resolved[0];
+    final daemon = resolved[1];
+    debugPrint('LifeOSInit: base=$base daemon=$daemon');
 
     final prefsStart = s.elapsedMilliseconds;
-    await PreferencesService.load(dir: dbFolder);
-    debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
-    // ponytail: no auto-login from cached profile — the app always starts on the
-    // lock screen and requires credentials, like the desktop login flow before.
+    final dir = kIsWeb ? null : await prefsDir();
+    await PreferencesService.load(dir: dir);    debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
+    PreferencesService.cachedBaseUrl.value = base;
+    PreferencesService.cachedDaemonUrl.value = daemon;
 
     final dbInitStart = s.elapsedMilliseconds;
-    final dbFile = File('${dbFolder.path}/lifeos.sqlite');
-    final db = AppDatabase(NativeDatabase(dbFile));
+    final db = AppDatabase(await openDbExecutor());
     debugPrint('LifeOSInit: AppDatabase creation took ${s.elapsedMilliseconds - dbInitStart}ms');
 
     final registryStart = s.elapsedMilliseconds;
-    final base = PreferencesService.cachedBaseUrl.value;
-    final daemon = PreferencesService.cachedDaemonUrl.value;
     final api = ApiClient(baseUrl: base, daemonUrl: daemon);
     FeatureRegistry.buildRegistry(db, api);
     debugPrint('LifeOSInit: FeatureRegistry.buildRegistry took ${s.elapsedMilliseconds - registryStart}ms');
@@ -46,6 +50,7 @@ class AppInitializer {
   }
 
   static void _startBackgroundDiscovery() {
+    if (kIsWeb) return;
     Future.microtask(() async {
       try {
         final resolved = await Future.wait([

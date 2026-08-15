@@ -5,6 +5,9 @@ import '../../../database/chtm_dao.dart';
 import 'chtm_full_calendar.dart';
 import 'chtm_daily_list.dart';
 import 'habit_tracker_view.dart';
+import 'chtm_stats_view.dart';
+import 'chtm_create_dialog.dart';
+import 'chtm_auto_scheduler.dart';
 
 class CHTMView extends StatefulWidget {
   const CHTMView({super.key});
@@ -37,7 +40,9 @@ class _CHTMViewState extends State<CHTMView> {
               child: _buildTabs(),
             ),
             Expanded(
-              child: _currentTab == 0 ? _buildCalendarTab(dao) : const HabitTrackerView(),
+              child: _currentTab == 0
+                  ? _buildCalendarTab(dao)
+                  : (_currentTab == 1 ? const HabitTrackerView() : const CHTMStatsView()),
             ),
           ],
         ),
@@ -56,6 +61,7 @@ class _CHTMViewState extends State<CHTMView> {
         children: [
           Expanded(child: _buildTabButton(0, 'Calendar', Icons.calendar_month)),
           Expanded(child: _buildTabButton(1, 'Habits', Icons.track_changes)),
+          Expanded(child: _buildTabButton(2, 'Analytics', Icons.bar_chart)),
         ],
       ),
     );
@@ -173,16 +179,32 @@ class _CHTMViewState extends State<CHTMView> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.mic, color: EverforestColors.blue, size: 20),
-                onPressed: () {},
-                tooltip: 'Voice Note',
+                icon: const Icon(Icons.bolt, color: EverforestColors.yellow, size: 20),
+                onPressed: () async {
+                  final count = await CHTMAutoScheduler.autoScheduleTasks(_selectedDate);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('⚡ Auto-Scheduled $count tasks into free timetable slots!'),
+                        backgroundColor: EverforestColors.bg2,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                tooltip: 'Auto Schedule Tasks',
                 constraints: const BoxConstraints(),
               ),
               Container(width: 1, height: 20, color: EverforestColors.bg2),
               IconButton(
                 icon: const Icon(Icons.add_task, color: EverforestColors.green, size: 20),
-                onPressed: () {},
-                tooltip: 'Add Task',
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => CHTMCreateDialog(selectedDate: _selectedDate),
+                  );
+                },
+                tooltip: 'Add Task / Habit / Event',
                 constraints: const BoxConstraints(),
               ),
             ],

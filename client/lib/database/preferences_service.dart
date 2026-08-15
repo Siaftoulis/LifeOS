@@ -28,6 +28,7 @@ class PreferencesService {
   static final ValueNotifier<List<String>> zenExpanded = ValueNotifier([]);
   static final ValueNotifier<List<String>> zenFavorites = ValueNotifier([]);
   static final ValueNotifier<String> zenWorkspace = ValueNotifier('');
+  static final ValueNotifier<double> zenScale = ValueNotifier(1.0);
 
   static Directory? _prefsDir;
 
@@ -66,6 +67,7 @@ class PreferencesService {
       if (data['zenExpanded'] != null) zenExpanded.value = List<String>.from(data['zenExpanded']);
       if (data['zenFavorites'] != null) zenFavorites.value = List<String>.from(data['zenFavorites']);
       zenWorkspace.value = data['zenWorkspace'] ?? '';
+      zenScale.value = (data['zenScale'] as num?)?.toDouble() ?? 1.0;
     } catch (_) {}
   }
 
@@ -84,6 +86,7 @@ class PreferencesService {
         'zenExpanded': zenExpanded.value,
         'zenFavorites': zenFavorites.value,
         'zenWorkspace': zenWorkspace.value,
+        'zenScale': zenScale.value,
       }));
       try {
         await _secureStorage.write(key: 'authToken', value: authToken.value).timeout(const Duration(seconds: 2));
@@ -121,4 +124,5 @@ class PreferencesService {
     zenFavorites.value = list; await save();
   }
   static Future<void> setZenWorkspace(String v) async { zenWorkspace.value = v; await save(); }
+  static Future<void> setZenScale(double v) async { zenScale.value = v.clamp(0.75, 1.75); await save(); }
 }

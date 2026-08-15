@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 import '../../database/database.dart';
-import '../p2p_transfer_service.dart';
+import '../zen_cloud_service.dart';
 import 'websocket_sync_service.dart';
 
 class ZenSyncService extends ChangeNotifier {
@@ -12,10 +12,17 @@ class ZenSyncService extends ChangeNotifier {
   ZenSyncService._internal();
 
   String _vaultPath = '';
+  bool _initialized = false;
   StreamSubscription<FileSystemEvent>? _watchSubscription;
+  Timer? _pollTimer;
+  Set<String> _knownPaths = {};
   final _uuid = const Uuid();
 
+  String get vaultPath => _vaultPath;
+
   Future<void> initialize(String vaultPath) async {
+    if (_initialized) return; // scan + watch once, service is app-wide
+    _initialized = true;
     _vaultPath = vaultPath;
     final dir = Directory(_vaultPath);
     if (!await dir.exists()) {
@@ -24,11 +31,64 @@ class ZenSyncService extends ChangeNotifier {
     
     // 1. Scan filesystem and populate/update DB
     await _scanDirectory(dir);
+    _knownPaths = _snapshotPaths();
     
-    // 2. Watch for external filesystem changes
-    _watchSubscription = dir.watch(recursive: true).listen((event) {
-      _handleFileEvent(event);
-    });
+    // 2. Watch for external filesystem changes (recursive watch is not
+    // supported on all platforms — Android throws — so fall back to polling).
+    try {
+      _watchSubscription = dir.watch(recursive: true).listen((event) {
+        _handleFileEvent(event);
+      });
+    } catch (e) {
+      debugPrint('ZenSync: recursive watch unavailable ($e) — polling instead');
+      _startPolling();
+    }
+  }
+
+  Set<String> _snapshotPaths() {
+    final out = <String>{};
+    try {
+      for (final entity in Directory(_vaultPath).listSync(recursive: true)) {
+        final rel = _getRelativePath(entity.path);
+        if (rel.isNotEmpty && !rel.startsWith('.')) out.add(rel);
+      }
+    } catch (_) {}
+    return out;
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pollScan());
+  }
+
+  Future<void> _pollScan() async {
+    final dir = Directory(_vaultPath);
+    if (!await dir.exists()) return;
+    try {
+      final seen = <String>{};
+      for (final entity in dir.listSync(recursive: true)) {
+        final rel = _getRelativePath(entity.path);
+        if (rel.isEmpty || rel.startsWith('.')) continue;
+        seen.add(rel);
+        if (entity is Directory) {
+          await _processDirectory(entity);
+        } else if (entity is File && entity.path.endsWith('.md')) {
+          await _processFile(entity);
+        }
+      }
+      if (_knownPaths.isNotEmpty) {
+        for (final rel in _knownPaths) {
+          if (seen.contains(rel)) continue;
+          // Deleted outside the app (or by another device after pull).
+          ZenCloudService.instance.registerDelete(rel);
+          final db = AppDatabase.instance;
+          await (db.delete(db.zenNodes)..where((t) => t.path.equals(rel))).go();
+        }
+      }
+      _knownPaths = seen;
+    } catch (e) {
+      debugPrint('ZenSync: poll scan failed: $e');
+    }
   }
 
   Future<void> _scanDirectory(Directory dir) async {
@@ -74,6 +134,7 @@ class ZenSyncService extends ChangeNotifier {
         isDirectory: const drift.Value(1),
         createdAt: drift.Value(DateTime.now().millisecondsSinceEpoch),
         updatedAt: drift.Value(DateTime.now().millisecondsSinceEpoch),
+        isDirty: const drift.Value(1),
       ));
     }
   }
@@ -94,6 +155,7 @@ class ZenSyncService extends ChangeNotifier {
         isDirectory: const drift.Value(0),
         createdAt: drift.Value(stat.modified.millisecondsSinceEpoch),
         updatedAt: drift.Value(stat.modified.millisecondsSinceEpoch),
+        isDirty: const drift.Value(1),
       ));
       
       final content = await file.readAsString();
@@ -102,6 +164,7 @@ class ZenSyncService extends ChangeNotifier {
         nodeId: drift.Value(nodeId),
         textContent: drift.Value(content),
         updatedAt: drift.Value(stat.modified.millisecondsSinceEpoch),
+        isDirty: const drift.Value(1),
       ));
     } else {
       // Check if file is newer than db
@@ -109,12 +172,16 @@ class ZenSyncService extends ChangeNotifier {
         final content = await file.readAsString();
         final doc = await (db.select(db.zenDocuments)..where((t) => t.nodeId.equals(node.id))).getSingleOrNull();
         
-        await db.update(db.zenNodes).replace(node.copyWith(updatedAt: stat.modified.millisecondsSinceEpoch));
+        await db.update(db.zenNodes).replace(node.copyWith(
+          updatedAt: stat.modified.millisecondsSinceEpoch,
+          isDirty: 1,
+        ));
         
         if (doc != null) {
           await db.update(db.zenDocuments).replace(doc.copyWith(
             textContent: content,
             updatedAt: stat.modified.millisecondsSinceEpoch,
+            isDirty: 1,
           ));
         } else {
           await db.into(db.zenDocuments).insert(ZenDocumentsCompanion(
@@ -122,6 +189,7 @@ class ZenSyncService extends ChangeNotifier {
             nodeId: drift.Value(node.id),
             textContent: drift.Value(content),
             updatedAt: drift.Value(stat.modified.millisecondsSinceEpoch),
+            isDirty: const drift.Value(1),
           ));
         }
       }
@@ -141,12 +209,88 @@ class ZenSyncService extends ChangeNotifier {
     } else if (event is FileSystemDeleteEvent) {
        final relPath = _getRelativePath(event.path);
        final db = AppDatabase.instance;
+       ZenCloudService.instance.registerDelete(relPath);
        await (db.delete(db.zenNodes)..where((t) => t.path.equals(relPath))).go();
        notifyListeners();
     }
   }
 
   // --- API FOR UI --- //
+
+  /// Upserts node+document from an existing file on disk (any extension).
+  /// Used by ZenWorkspace which writes files directly; marks the row dirty so
+  /// ZenCloudService picks it up on the next sync.
+  Future<void> upsertNodeFromDisk(String fullPath) async {
+    final file = File(fullPath);
+    if (!await file.exists()) return;
+    final db = AppDatabase.instance;
+    final relPath = _getRelativePath(fullPath);
+    final stat = await file.stat();
+    final mtime = stat.modified.millisecondsSinceEpoch;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final ts = mtime > 0 ? mtime : now;
+
+    var node = await (db.select(db.zenNodes)..where((t) => t.path.equals(relPath))).getSingleOrNull();
+    String nodeId;
+    if (node == null) {
+      nodeId = _uuid.v4();
+      await db.into(db.zenNodes).insert(ZenNodesCompanion(
+        id: drift.Value(nodeId),
+        name: drift.Value(file.uri.pathSegments.last),
+        path: drift.Value(relPath),
+        isDirectory: const drift.Value(0),
+        createdAt: drift.Value(ts),
+        updatedAt: drift.Value(ts),
+        isDirty: const drift.Value(1),
+      ));
+    } else {
+      nodeId = node.id;
+      await db.update(db.zenNodes).replace(node.copyWith(updatedAt: ts, isDirty: 1));
+    }
+
+    final content = await file.readAsString();
+    final doc = await (db.select(db.zenDocuments)..where((t) => t.nodeId.equals(nodeId))).getSingleOrNull();
+    if (doc != null) {
+      await db.update(db.zenDocuments).replace(doc.copyWith(
+        textContent: content,
+        updatedAt: ts,
+        isDirty: 1,
+      ));
+    } else {
+      await db.into(db.zenDocuments).insert(ZenDocumentsCompanion(
+        id: drift.Value(_uuid.v4()),
+        nodeId: drift.Value(nodeId),
+        textContent: drift.Value(content),
+        updatedAt: drift.Value(ts),
+        isDirty: const drift.Value(1),
+      ));
+    }
+    notifyListeners();
+  }
+
+  /// Deletes DB rows for a full disk path (used by ZenWorkspace which already
+  /// removed the file). Registers the path for cloud deletion. If the path was
+  /// a directory, re-upserts its surviving subtree so renamed/moved children
+  /// get fresh paths instead of stale ones.
+  Future<void> deleteByFullPath(String fullPath) async {
+    final relPath = _getRelativePath(fullPath);
+    final db = AppDatabase.instance;
+    ZenCloudService.instance.registerDelete(relPath);
+    final nodesToDelete = await (db.select(db.zenNodes)..where((t) => t.path.equals(relPath) | t.path.like('$relPath/%'))).get();
+    for (final node in nodesToDelete) {
+      await (db.delete(db.zenNodes)..where((t) => t.id.equals(node.id))).go();
+      await (db.delete(db.zenDocuments)..where((t) => t.nodeId.equals(node.id))).go();
+    }
+    final dir = Directory(fullPath);
+    if (dir.existsSync()) {
+      for (final entity in dir.listSync(recursive: true)) {
+        if (entity is File) {
+          await upsertNodeFromDisk(entity.path);
+        }
+      }
+    }
+    notifyListeners();
+  }
 
   Future<void> createNode(String parentPath, String name, bool isDirectory, {bool broadcast = true}) async {
     final db = AppDatabase.instance;
@@ -167,6 +311,7 @@ class ZenSyncService extends ChangeNotifier {
       isDirectory: drift.Value(isDirectory ? 1 : 0),
       createdAt: drift.Value(now),
       updatedAt: drift.Value(now),
+      isDirty: const drift.Value(1),
     ));
 
     if (isDirectory) {
@@ -182,6 +327,7 @@ class ZenSyncService extends ChangeNotifier {
         nodeId: drift.Value(nodeId),
         textContent: const drift.Value(''),
         updatedAt: drift.Value(now),
+        isDirty: const drift.Value(1),
       ));
     }
     
@@ -201,12 +347,13 @@ class ZenSyncService extends ChangeNotifier {
       await db.update(db.zenDocuments).replace(doc.copyWith(
         textContent: content,
         updatedAt: now,
+        isDirty: 1,
       ));
     }
 
     final node = await (db.select(db.zenNodes)..where((t) => t.id.equals(nodeId))).getSingleOrNull();
     if (node != null) {
-      await db.update(db.zenNodes).replace(node.copyWith(updatedAt: now));
+      await db.update(db.zenNodes).replace(node.copyWith(updatedAt: now, isDirty: 1));
       
       final fullPath = '$_vaultPath/${node.path}';
       final file = File(fullPath);
@@ -247,6 +394,7 @@ class ZenSyncService extends ChangeNotifier {
     }
 
     // 2. Delete from DB
+    ZenCloudService.instance.registerDelete(relativePath);
     final nodesToDelete = await (db.select(db.zenNodes)..where((t) => t.path.equals(relativePath) | t.path.like('$relativePath/%'))).get();
     for (final node in nodesToDelete) {
       await (db.delete(db.zenNodes)..where((t) => t.id.equals(node.id))).go();
@@ -288,6 +436,7 @@ class ZenSyncService extends ChangeNotifier {
         name: newName,
         path: newRelativePath,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
+        isDirty: 1,
       ));
 
       if (node.isDirectory == 1) {
@@ -297,10 +446,12 @@ class ZenSyncService extends ChangeNotifier {
           await db.update(db.zenNodes).replace(child.copyWith(
             path: newChildPath,
             updatedAt: DateTime.now().millisecondsSinceEpoch,
+            isDirty: 1,
           ));
         }
       }
     }
+    ZenCloudService.instance.registerDelete(oldRelativePath);
     
     if (broadcast) {
       WebsocketSyncService.instance.broadcastRenameNode('User_${Platform.localHostname}', oldRelativePath, newName);
@@ -343,6 +494,7 @@ class ZenSyncService extends ChangeNotifier {
       await db.update(db.zenNodes).replace(node.copyWith(
         path: newRelativePath,
         updatedAt: DateTime.now().millisecondsSinceEpoch,
+        isDirty: 1,
       ));
 
       if (node.isDirectory == 1) {
@@ -352,10 +504,12 @@ class ZenSyncService extends ChangeNotifier {
           await db.update(db.zenNodes).replace(child.copyWith(
             path: newChildPath,
             updatedAt: DateTime.now().millisecondsSinceEpoch,
+            isDirty: 1,
           ));
         }
       }
     }
+    ZenCloudService.instance.registerDelete(oldRelativePath);
 
     if (broadcast) {
       WebsocketSyncService.instance.broadcastMoveNode('User_${Platform.localHostname}', oldRelativePath, targetParentRelativePath);
@@ -367,6 +521,7 @@ class ZenSyncService extends ChangeNotifier {
   @override
   void dispose() {
     _watchSubscription?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 }

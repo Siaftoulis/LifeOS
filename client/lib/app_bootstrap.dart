@@ -24,7 +24,12 @@ class _BootstrapAppState extends State<BootstrapApp> {
     final s = Stopwatch()..start();
     debugPrint('LifeOSInit: _initializeApp started');
     try {
-      await AppInitializer.initialize(s);
+      // ponytail: min 1s keeps the branded launch screen visible even when
+      // init finishes faster (phone ~0.6s); max() semantics via Future.wait
+      await Future.wait([
+        AppInitializer.initialize(s),
+        Future.delayed(const Duration(seconds: 1)),
+      ]);
       if (mounted) {
         setState(() {
           _initialized = true;
@@ -58,6 +63,8 @@ class _BootstrapAppState extends State<BootstrapApp> {
     }
 
     if (!_initialized) {
+      // ponytail: branded launch screen (Instagram-style) — logo + tagline,
+      // solid bg matches the native splash so it reads as one screen
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
