@@ -1,32 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="LifeOS - Spatial Living Operating System">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="lifeos_client">
+  <meta name="apple-mobile-web-app-title" content="LifeOS">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <!-- Strict No-Cache Directives -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
@@ -35,23 +23,44 @@
 
   <title>LifeOS</title>
   <link rel="manifest" href="manifest.json">
+
   <script>
-    // Invalidate stale service worker registrations to force loading latest release
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var i = 0; i < registrations.length; i++) {
-          registrations[i].unregister();
-        }
-      });
-      if (caches) {
-        caches.keys().then(function(names) {
-          for (var name of names) caches.delete(name);
+    // Unregister all stale Service Workers and purge CacheStorage
+    (function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          var found = false;
+          for (var i = 0; i < registrations.length; i++) {
+            registrations[i].unregister();
+            found = true;
+          }
+          if (found && !sessionStorage.getItem('sw_purged_v34')) {
+            sessionStorage.setItem('sw_purged_v34', '1');
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                for (var key of keys) caches.delete(key);
+                window.location.reload(true);
+              });
+            } else {
+              window.location.reload(true);
+            }
+          }
         });
       }
-    }
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          for (var key of keys) caches.delete(key);
+        });
+      }
+    })();
   </script>
 </head>
-<body>
-  <script src="flutter_bootstrap.js?v=32" async></script>
+<body style="background-color: #272e33; margin: 0; padding: 0; overflow: hidden;">
+  <script>
+    // Dynamically inject flutter_bootstrap.js with cache-buster timestamp
+    var script = document.createElement('script');
+    script.src = "flutter_bootstrap.js?t=" + new Date().getTime();
+    document.body.appendChild(script);
+  </script>
 </body>
 </html>
