@@ -18,6 +18,17 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+    afterEvaluate {
+        project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            val javaTarget = (project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension)?.compileOptions?.targetCompatibility?.toString()
+            val jvmT = when {
+                javaTarget?.contains("17") == true -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+                javaTarget?.contains("11") == true -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+                else -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+            }
+            compilerOptions.jvmTarget.set(jvmT)
+        }
+    }
 }
 subprojects {
     afterEvaluate {
