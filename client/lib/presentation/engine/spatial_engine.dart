@@ -390,9 +390,17 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                       return KeyEventResult.handled;
                     }
 
-                    final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+                    final isCtrlOrAlt = HardwareKeyboard.instance.isControlPressed ||
+                        HardwareKeyboard.instance.isAltPressed;
 
-                    if (isCtrlPressed) {
+                    final primaryFocus = FocusManager.instance.primaryFocus;
+                    final isEditableFocused = primaryFocus != null &&
+                        primaryFocus != _focusNode &&
+                        (primaryFocus.context?.widget is EditableText ||
+                         primaryFocus.debugLabel?.contains('Editable') == true ||
+                         primaryFocus.debugLabel?.contains('TextField') == true);
+
+                    if (isCtrlOrAlt || !isEditableFocused) {
                       if (key == LogicalKeyboardKey.arrowLeft) {
                         nav(-1, 0);
                         return KeyEventResult.handled;
@@ -468,20 +476,73 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                       ),
 
 
-                      // Το Spatial HUD 
+                      // Το Spatial HUD με διακριτικά κουμπιά πλοήγησης & συντεταγμένες
                       Positioned(
-                        bottom: 16, left: 0, right: 0,
-                        child: IgnorePointer(
-                          child: Center(
-                            child: Text(
-                              '[ $x , $y ]',
-                              style: const TextStyle(
-                                color: EverforestColors.grey,
-                                fontSize: 12,
-                                letterSpacing: 2,
-                                fontFamily: 'JetBrainsMono',
-                                fontWeight: FontWeight.bold,
-                              ),
+                        bottom: 12, left: 0, right: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: EverforestColors.bg0.withOpacity(0.75),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: EverforestColors.bg2.withOpacity(0.5)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (x > 0)
+                                  InkWell(
+                                    onTap: () => nav(-1, 0),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Icon(Icons.chevron_left_rounded, size: 16, color: EverforestColors.grey),
+                                    ),
+                                  ),
+                                if (y > 0)
+                                  InkWell(
+                                    onTap: () => nav(0, -1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Icon(Icons.keyboard_arrow_up_rounded, size: 16, color: EverforestColors.grey),
+                                    ),
+                                  ),
+                                GestureDetector(
+                                  onTap: _goHome,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    child: Text(
+                                      '[ $x , $y ]',
+                                      style: const TextStyle(
+                                        color: EverforestColors.grey,
+                                        fontSize: 11,
+                                        letterSpacing: 1.5,
+                                        fontFamily: 'JetBrainsMono',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (y < widget.layout.length - 1)
+                                  InkWell(
+                                    onTap: () => nav(0, 1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: EverforestColors.grey),
+                                    ),
+                                  ),
+                                if (x < (widget.layout.isNotEmpty ? widget.layout[0].length - 1 : 0))
+                                  InkWell(
+                                    onTap: () => nav(1, 0),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      child: Icon(Icons.chevron_right_rounded, size: 16, color: EverforestColors.grey),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),

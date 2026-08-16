@@ -338,22 +338,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
     try {
       String playUrl = item.url;
-      if (item.url.contains('ytstream') ||
-          item.url.contains('/api/v1/music/ytstream/') ||
+      if (item.url.contains('/api/v1/music/ytstream/') ||
+          item.url.contains('ytstream') ||
           (!item.url.startsWith('file:') &&
               !item.url.startsWith('http://') &&
               !item.url.startsWith('https://'))) {
-        try {
-          final res = await ApiClient.instance
-              .getDaemonSlow('/api/v1/music/resolve?id=${item.id}');
-          if (res is Map &&
-              res['url'] != null &&
-              (res['url'] as String).isNotEmpty) {
-            playUrl = res['url'] as String;
-          }
-        } catch (resolveErr) {
-          debugPrint('Resolve stream URL fallback: $resolveErr');
-        }
+        playUrl = '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${item.id}';
       }
 
       debugPrint('Music player playing url: $playUrl');

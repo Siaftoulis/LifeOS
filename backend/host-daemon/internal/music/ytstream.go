@@ -119,8 +119,17 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	go maybeCacheInBackground(id, cacheFilePath)
 }
 
-// HandleYTStream serves the stream directly from local SSD disk cache or redirects to CDN.
+// HandleYTStream serves the stream directly from local SSD disk cache or proxies from CDN.
 func HandleYTStream(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	id := strings.TrimSpace(r.URL.Query().Get("id"))
 	if id == "" {
 		http.Error(w, "Missing video id", http.StatusBadRequest)
@@ -134,6 +143,7 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	// 1. If already saved to disk cache, serve directly with byte range seeking
 	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
 		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Content-Type", "audio/mp4")
 		http.ServeFile(w, r, cacheFilePath)
 		return
 	}
@@ -143,53 +153,99 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	cached, exists := urlCache[id]
 	urlCacheMu.RUnlock()
 
+	var streamURL string
 	if exists && time.Now().Before(cached.expiresAt) {
-		http.Redirect(w, r, cached.url, http.StatusFound)
-		go maybeCacheInBackground(id, cacheFilePath)
-		return
+		streamURL = cached.url
+	} else {
+		// 3. Resolve direct YouTube audio stream URL via yt-dlp -g
+		log.Printf("music ytstream: resolving direct audio URL for %s...", id)
+		cmd := exec.Command("yt-dlp",
+			"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
+			"--no-warnings",
+			"--no-check-certificates",
+			"-f", "bestaudio/18/ba/b/best",
+			"-g",
+			"https://www.youtube.com/watch?v="+id,
+		)
+
+		out, err := cmd.Output()
+		if err != nil {
+			log.Printf("music ytstream: failed to resolve stream for %s: %v", id, err)
+			http.Error(w, "Failed to resolve stream URL", http.StatusBadGateway)
+			return
+		}
+
+		raw := strings.TrimSpace(string(out))
+		lines := strings.Split(raw, "\n")
+		if len(lines) == 0 || lines[0] == "" {
+			http.Error(w, "Empty stream URL resolved", http.StatusBadGateway)
+			return
+		}
+
+		streamURL = strings.TrimSpace(lines[0])
+
+		urlCacheMu.Lock()
+		urlCache[id] = streamCacheEntry{
+			url:       streamURL,
+			expiresAt: time.Now().Add(3 * time.Hour),
+		}
+		urlCacheMu.Unlock()
 	}
-
-	// 3. Resolve direct YouTube audio stream URL via yt-dlp -g
-	log.Printf("music ytstream: resolving direct audio URL for %s...", id)
-	cmd := exec.Command("yt-dlp",
-		"--js-runtimes", "node:C:\\Program Files\\nodejs\\node.exe,node,bun",
-		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
-		"--no-warnings",
-		"--no-check-certificates",
-		"-f", "bestaudio/18/ba/b/best",
-		"-g",
-		"https://www.youtube.com/watch?v="+id,
-	)
-
-	out, err := cmd.Output()
-	if err != nil {
-		log.Printf("music ytstream: failed to resolve stream for %s: %v", id, err)
-		http.Error(w, "Failed to resolve stream URL", http.StatusBadGateway)
-		return
-	}
-
-	raw := strings.TrimSpace(string(out))
-	lines := strings.Split(raw, "\n")
-	if len(lines) == 0 || lines[0] == "" {
-		http.Error(w, "Empty stream URL resolved", http.StatusBadGateway)
-		return
-	}
-
-	streamURL := strings.TrimSpace(lines[0])
-
-	// Cache URL for 3 hours
-	urlCacheMu.Lock()
-	urlCache[id] = streamCacheEntry{
-		url:       streamURL,
-		expiresAt: time.Now().Add(3 * time.Hour),
-	}
-	urlCacheMu.Unlock()
-
-	// Redirect client (MPV / media_kit) directly to CDN
-	http.Redirect(w, r, streamURL, http.StatusFound)
 
 	// Trigger background disk caching for offline & future instant replays
 	go maybeCacheInBackground(id, cacheFilePath)
+
+	// Proxy stream with Range and CORS support
+	proxyStream(w, r, streamURL)
+}
+
+func proxyStream(w http.ResponseWriter, r *http.Request, targetURL string) {
+	req, err := http.NewRequestWithContext(r.Context(), r.Method, targetURL, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if rangeHdr := r.Header.Get("Range"); rangeHdr != "" {
+		req.Header.Set("Range", rangeHdr)
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	client := &http.Client{Timeout: 0}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	for k, vv := range resp.Header {
+		for _, v := range vv {
+			w.Header().Add(k, v)
+		}
+	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Accept-Ranges", "bytes")
+	if w.Header().Get("Content-Type") == "" {
+		w.Header().Set("Content-Type", "audio/mp4")
+	}
+	w.WriteHeader(resp.StatusCode)
+
+	buf := make([]byte, 64*1024)
+	for {
+		n, rErr := resp.Body.Read(buf)
+		if n > 0 {
+			if _, wErr := w.Write(buf[:n]); wErr != nil {
+				return
+			}
+			if f, ok := w.(http.Flusher); ok {
+				f.Flush()
+			}
+		}
+		if rErr != nil {
+			break
+		}
+	}
 }
 
 func maybeCacheInBackground(id string, destPath string) {
