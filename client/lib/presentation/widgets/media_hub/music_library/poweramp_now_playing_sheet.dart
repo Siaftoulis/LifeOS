@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../theme/everforest_colors.dart';
@@ -1136,7 +1137,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             borderRadius: BorderRadius.circular(24),
             child: widget.thumbnailUrl.isNotEmpty
                 ? Image.network(
-                    widget.thumbnailUrl,
+                    (kIsWeb && Uri.base.scheme == 'https' && widget.thumbnailUrl.startsWith('http://'))
+                        ? widget.thumbnailUrl.replaceFirst('http://', 'https://')
+                        : widget.thumbnailUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _buildFallbackArt(),
                   )

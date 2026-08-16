@@ -76,7 +76,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _isLoadingTrack &&
           _currentTrackId.isNotEmpty &&
           _player.position < const Duration(milliseconds: 500)) {
-        _player.play();
+        _player.play().catchError((e) => debugPrint('stateStream play note: $e'));
       }
       if (state.playing) {
         _isLoadingTrack = false;
@@ -106,7 +106,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         return;
       }
       if (!_player.playing) {
-        _player.play();
+        _player.play().catchError((e) => debugPrint('watchdog play note: $e'));
       }
       if ((_player.playing && _player.position > const Duration(milliseconds: 300)) || ticks > 10) {
         _isLoadingTrack = false;
@@ -321,13 +321,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     _isLoadingTrack = true;
     _queueIndex = i;
     final item = _queue[i];
+    final sanitizedUrl = _sanitizeStreamUrl(item.url, item.id);
+    final sanitizedThumb = _sanitizeThumbnailUrl(item.thumbnail);
     setState(() {
       _currentTrackId = item.id;
-      _currentStreamUrl = item.url;
+      _currentStreamUrl = sanitizedUrl;
       _currentTitle = item.title;
       _currentArtist = item.artist;
       _currentAlbum = item.album;
-      _currentThumbnail = item.thumbnail;
+      _currentThumbnail = sanitizedThumb;
     });
     TelemetryReporter.instance
         .track('music', 'track_streamed', {'track_id': item.id});
@@ -337,20 +339,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
 
     try {
-      String playUrl = item.url;
-      final daemon = ApiClient.instance.daemonUrl.replaceAll(RegExp(r'/+$'), '');
-      if (item.url.contains('/api/v1/music/ytstream/') ||
-          item.url.contains('ytstream') ||
-          (!item.url.startsWith('file:') &&
-              !item.url.startsWith('http://') &&
-              !item.url.startsWith('https://'))) {
-        playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=${item.id}';
-      }
-
+      String playUrl = sanitizedUrl;
       debugPrint('Music player playing url: $playUrl');
       await _player.setUrl(playUrl);
       if (_userWantsPlay) {
-        await _player.play();
+        try {
+          await _player.play();
+        } catch (playErr) {
+          debugPrint('Music playback play() note: $playErr');
+        }
         _startPlaybackWatchdog();
         // Reapply audiophile EQ and DSP filters to newly loaded audio stream
         Future.delayed(const Duration(milliseconds: 150), () {
@@ -358,7 +355,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         });
       }
     } catch (e) {
-      debugPrint('Music playback failed: $e');
+      debugPrint('Music playback setUrl failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -368,6 +365,47 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         );
       }
     }
+  }
+
+  String _sanitizeStreamUrl(String url, String trackId) {
+    String playUrl = url.trim();
+    final daemon = ApiClient.instance.daemonUrl.replaceAll(RegExp(r'/+$'), '');
+
+    if (playUrl.isEmpty) {
+      playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=$trackId';
+    } else if (playUrl.startsWith('/')) {
+      playUrl = '$daemon$playUrl';
+    } else if (!playUrl.startsWith('file:') &&
+        !playUrl.startsWith('http://') &&
+        !playUrl.startsWith('https://') &&
+        !playUrl.startsWith('blob:')) {
+      playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=$trackId';
+    }
+
+    // Encrypted HTTPS upgrade for Web Browser & Secure Contexts
+    if (kIsWeb) {
+      if (Uri.base.origin.isNotEmpty && !playUrl.startsWith('blob:')) {
+        final originUri = Uri.parse(Uri.base.origin);
+        final uri = Uri.tryParse(playUrl);
+        if (uri != null) {
+          final isLocalOrPrivate = uri.host == 'localhost' ||
+              uri.host == '127.0.0.1' ||
+              uri.host == '0.0.0.0' ||
+              uri.host.startsWith('192.168.') ||
+              uri.host.startsWith('10.') ||
+              uri.host.startsWith('172.16.');
+
+          if (isLocalOrPrivate || (originUri.scheme == 'https' && uri.scheme == 'http')) {
+            playUrl = originUri.replace(
+              path: uri.path,
+              query: uri.hasQuery ? uri.query : null,
+            ).toString();
+          }
+        }
+      }
+    }
+
+    return playUrl;
   }
 
   Future<void> _playQueueAt(
@@ -1310,8 +1348,16 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     );
   }
 
+  String _sanitizeThumbnailUrl(String url) {
+    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
+      return url.replaceFirst('http://', 'https://');
+    }
+    return url;
+  }
+
   Widget _thumbnail(String url, double size) {
-    if (url.isEmpty) {
+    final secureUrl = _sanitizeThumbnailUrl(url);
+    if (secureUrl.isEmpty) {
       return Container(
         width: size,
         height: size,
@@ -1324,7 +1370,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(url, width: size, height: size, fit: BoxFit.cover,
+      child: Image.network(secureUrl, width: size, height: size, fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => Container(
                 width: size,
                 height: size,
@@ -1426,7 +1472,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
                                       child: Image.network(
-                                        _currentThumbnail,
+                                        _sanitizeThumbnailUrl(_currentThumbnail),
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, __, ___) => _buildMiniPlaceholder(),
                                       ),

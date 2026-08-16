@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
 
@@ -226,7 +227,9 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                                     height: 40,
                                     child: item.thumbnail.isNotEmpty
                                         ? Image.network(
-                                            item.thumbnail,
+                                            (kIsWeb && Uri.base.scheme == 'https' && item.thumbnail.startsWith('http://'))
+                                                ? item.thumbnail.replaceFirst('http://', 'https://')
+                                                : item.thumbnail,
                                             fit: BoxFit.cover,
                                             errorBuilder: (_, __, ___) => _buildPlaceholder(),
                                           )

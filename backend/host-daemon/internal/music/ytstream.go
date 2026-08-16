@@ -8,20 +8,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
-	"time"
 )
 
-type streamCacheEntry struct {
-	url       string
-	expiresAt time.Time
-}
-
 var (
-	urlCacheMu sync.RWMutex
-	urlCache   = make(map[string]streamCacheEntry)
-
 	flightMu   sync.Mutex
 	flightLock = make(map[string]*sync.Mutex)
 )
@@ -37,8 +29,7 @@ func getFlightLock(id string) *sync.Mutex {
 	return lock
 }
 
-// HandleResolveStreamURL returns a JSON response containing the direct, playable stream URL.
-// Calling this endpoint ensures the client receives a 100% prepared stream URL before calling the player engine.
+// HandleResolveStreamURL returns a JSON response containing the stream endpoint URL and starts caching.
 func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
@@ -60,75 +51,21 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
-	// 1. If already saved to disk cache, serve directly with byte range seeking
-	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
-		json.NewEncoder(w).Encode(map[string]any{
-			"url":       fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
-			"is_cached": true,
-		})
-		return
+	// If not cached, initiate background download
+	if stat, err := os.Stat(cacheFilePath); err != nil || stat.Size() <= 50000 {
+		go func() {
+			_ = downloadAndCache(id, cacheFilePath)
+		}()
 	}
-
-	// 2. Check in-memory CDN URL cache
-	urlCacheMu.RLock()
-	cached, exists := urlCache[id]
-	urlCacheMu.RUnlock()
-
-	if exists && time.Now().Before(cached.expiresAt) {
-		json.NewEncoder(w).Encode(map[string]any{
-			"url":       cached.url,
-			"is_cached": false,
-		})
-		go maybeCacheInBackground(id, cacheFilePath)
-		return
-	}
-
-	// 3. Resolve direct YouTube audio stream URL via yt-dlp -g
-	log.Printf("music ytstream: resolving direct audio URL for %s...", id)
-	cmd := exec.Command("yt-dlp",
-		"--js-runtimes", "node:C:\\Program Files\\nodejs\\node.exe,node,bun",
-		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
-		"--no-warnings",
-		"--no-check-certificates",
-		"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
-		"-g",
-		"https://www.youtube.com/watch?v="+id,
-	)
-
-	out, err := cmd.Output()
-	if err != nil {
-		log.Printf("music ytstream: failed to resolve stream for %s: %v", id, err)
-		http.Error(w, `{"error":"Failed to resolve stream URL"}`, http.StatusBadGateway)
-		return
-	}
-
-	raw := strings.TrimSpace(string(out))
-	lines := strings.Split(raw, "\n")
-	if len(lines) == 0 || lines[0] == "" {
-		http.Error(w, `{"error":"Empty stream URL resolved"}`, http.StatusBadGateway)
-		return
-	}
-
-	streamURL := strings.TrimSpace(lines[0])
-
-	// Cache URL for 3 hours
-	urlCacheMu.Lock()
-	urlCache[id] = streamCacheEntry{
-		url:       streamURL,
-		expiresAt: time.Now().Add(3 * time.Hour),
-	}
-	urlCacheMu.Unlock()
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"url":       streamURL,
-		"is_cached": false,
+		"url":       fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
+		"is_cached": true,
 	})
-
-	// Trigger background disk caching for offline & future instant replays
-	go maybeCacheInBackground(id, cacheFilePath)
 }
 
-// HandleYTStream serves the stream directly from local SSD disk cache or proxies from CDN.
+// HandleYTStream serves the audio stream directly from local disk cache with HTTP 206 Range support.
+// If the track is not yet cached, it downloads it with yt-dlp first and then serves it progressively.
 func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
@@ -146,183 +83,89 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate YouTube video ID
+	if len(id) > 30 || strings.ContainsAny(id, "/\\?%*:|\"<> ") {
+		http.Error(w, "Invalid video id", http.StatusBadRequest)
+		return
+	}
+
 	cacheDir := filepath.Join("data", "music_cache")
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
 	// 1. If already saved to disk cache, serve directly with byte range seeking
 	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
-		file, err := os.Open(cacheFilePath)
-		if err == nil {
-			defer file.Close()
-			w.Header().Set("Accept-Ranges", "bytes")
-			w.Header().Set("Content-Type", "audio/mp4")
-			http.ServeContent(w, r, "stream.m4a", stat.ModTime(), file)
+		serveCachedFile(w, r, cacheFilePath, stat)
+		return
+	}
+
+	// 2. Not cached yet: download & cache cleanly
+	if err := downloadAndCache(id, cacheFilePath); err == nil {
+		if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
+			serveCachedFile(w, r, cacheFilePath, stat)
 			return
 		}
 	}
 
-	// 2. Check in-memory CDN URL cache
-	urlCacheMu.RLock()
-	cached, exists := urlCache[id]
-	urlCacheMu.RUnlock()
-
-	var streamURL string
-	if exists && time.Now().Before(cached.expiresAt) {
-		streamURL = cached.url
-	} else {
-		// 3. Resolve direct YouTube audio stream URL via yt-dlp -g
-		log.Printf("music ytstream: resolving direct audio URL for %s...", id)
-		cmd := exec.Command("yt-dlp",
-			"--js-runtimes", "node:C:\\Program Files\\nodejs\\node.exe,node,bun",
-			"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
-			"--no-warnings",
-			"--no-check-certificates",
-			"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
-			"-g",
-			"https://www.youtube.com/watch?v="+id,
-		)
-
-		out, err := cmd.Output()
-		if err != nil {
-			log.Printf("music ytstream: failed to resolve stream for %s: %v", id, err)
-			http.Error(w, "Failed to resolve stream URL", http.StatusBadGateway)
-			return
-		}
-
-		raw := strings.TrimSpace(string(out))
-		lines := strings.Split(raw, "\n")
-		if len(lines) == 0 || lines[0] == "" {
-			http.Error(w, "Empty stream URL resolved", http.StatusBadGateway)
-			return
-		}
-
-		streamURL = strings.TrimSpace(lines[0])
-
-		urlCacheMu.Lock()
-		urlCache[id] = streamCacheEntry{
-			url:       streamURL,
-			expiresAt: time.Now().Add(3 * time.Hour),
-		}
-		urlCacheMu.Unlock()
-	}
-
-	// Trigger background disk caching for offline & future instant replays
-	go maybeCacheInBackground(id, cacheFilePath)
-
-	// Proxy stream with Range and CORS support
-	proxyStream(w, r, streamURL)
+	http.Error(w, "Failed to fetch audio stream", http.StatusBadGateway)
 }
 
-func proxyStream(w http.ResponseWriter, r *http.Request, targetURL string) {
-	isHead := r.Method == http.MethodHead
-	httpMethod := http.MethodGet
-
-	req, err := http.NewRequestWithContext(r.Context(), httpMethod, targetURL, nil)
+func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, stat os.FileInfo) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer file.Close()
 
-	if isHead {
-		req.Header.Set("Range", "bytes=0-0")
-	} else if rangeHdr := r.Header.Get("Range"); rangeHdr != "" {
-		req.Header.Set("Range", rangeHdr)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-
-	client := &http.Client{Timeout: 0}
-	resp, err := client.Do(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
-	}
-	defer resp.Body.Close()
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "*")
-	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
+	w.Header().Set("Content-Type", "audio/mp4")
 	w.Header().Set("Accept-Ranges", "bytes")
-
-	if ct := resp.Header.Get("Content-Type"); ct != "" {
-		w.Header().Set("Content-Type", ct)
-	} else {
-		w.Header().Set("Content-Type", "audio/webm")
-	}
-	if cl := resp.Header.Get("Content-Length"); cl != "" && !isHead {
-		w.Header().Set("Content-Length", cl)
-	}
-	if cr := resp.Header.Get("Content-Range"); cr != "" {
-		w.Header().Set("Content-Range", cr)
-	}
-	if lm := resp.Header.Get("Last-Modified"); lm != "" {
-		w.Header().Set("Last-Modified", lm)
-	}
-
-	statusCode := resp.StatusCode
-	if isHead && statusCode == http.StatusPartialContent {
-		statusCode = http.StatusOK
-	}
-	w.WriteHeader(statusCode)
-
-	if isHead {
-		return
-	}
-
-	buf := make([]byte, 64*1024)
-	for {
-		n, rErr := resp.Body.Read(buf)
-		if n > 0 {
-			if _, wErr := w.Write(buf[:n]); wErr != nil {
-				return
-			}
-			if f, ok := w.(http.Flusher); ok {
-				f.Flush()
-			}
-		}
-		if rErr != nil {
-			break
-		}
-	}
+	http.ServeContent(w, r, "stream.m4a", stat.ModTime(), file)
 }
 
-func maybeCacheInBackground(id string, destPath string) {
+func downloadAndCache(id string, destPath string) error {
 	lock := getFlightLock(id)
-	if !lock.TryLock() {
-		return // Already downloading in another worker
-	}
+	lock.Lock()
 	defer lock.Unlock()
 
 	if stat, err := os.Stat(destPath); err == nil && stat.Size() > 50000 {
-		return
+		return nil
 	}
 
 	tmpFile := destPath + ".tmp"
 	_ = os.Remove(tmpFile)
 
-	log.Printf("music ytstream: caching %s to disk in background...", id)
+	log.Printf("music ytstream: downloading & caching %s...", id)
+	jsRuntime := "node:/usr/bin/nodejs"
+	if runtime.GOOS == "windows" {
+		jsRuntime = "node"
+	}
 	cmd := exec.Command("yt-dlp",
-		"--js-runtimes", "node:C:\\Program Files\\nodejs\\node.exe,node,bun",
-		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
+		"--js-runtimes", jsRuntime,
 		"--no-warnings",
 		"--no-check-certificates",
-		"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
+		"-f", "bestaudio[ext=m4a]/140/bestaudio/ba/b",
 		"--no-playlist",
 		"-o", tmpFile,
 		"https://www.youtube.com/watch?v="+id,
 	)
 
-	if err := cmd.Run(); err != nil {
-		log.Printf("music ytstream: background cache failed for %s: %v", id, err)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Printf("music ytstream: download failed for %s: %v, output: %s", id, err, string(out))
 		_ = os.Remove(tmpFile)
-		return
+		return err
 	}
 
 	if stat, err := os.Stat(tmpFile); err == nil && stat.Size() > 50000 {
-		_ = os.Rename(tmpFile, destPath)
+		if err := os.Rename(tmpFile, destPath); err != nil {
+			_ = os.Remove(tmpFile)
+			return err
+		}
 		log.Printf("music ytstream: successfully cached %s (%d bytes)", id, stat.Size())
-	} else {
-		_ = os.Remove(tmpFile)
+		return nil
 	}
+
+	_ = os.Remove(tmpFile)
+	return fmt.Errorf("downloaded file invalid or too small")
 }

@@ -17,7 +17,9 @@ class ApiClient {
   final ValueNotifier<int> queueLengthNotifier = ValueNotifier<int>(0);
   final ValueNotifier<String> connectionStatusNotifier = ValueNotifier<String>('LOCAL WI-FI 🏠');
   static ApiClient? _instance;
-  ApiClient._internal(this.baseUrl, this.daemonUrl) {
+  ApiClient._internal(String base, String daemon)
+      : baseUrl = _normalizeUrl(base),
+        daemonUrl = _normalizeUrl(daemon) {
     _evaluateConnectionStatus(daemonUrl);
   }
   factory ApiClient({String? baseUrl, String? daemonUrl}) {
@@ -30,6 +32,34 @@ class ApiClient {
   }
   static ApiClient get instance => _instance!;
 
+  static String _normalizeUrl(String url) {
+    if (kIsWeb) {
+      if (Uri.base.origin.isNotEmpty) {
+        final origin = Uri.base.origin;
+        if (url.isEmpty ||
+            url.contains('localhost') ||
+            url.contains('127.0.0.1') ||
+            url.contains('0.0.0.0')) {
+          return origin;
+        }
+        final parsed = Uri.tryParse(url);
+        if (parsed != null && Uri.base.host != parsed.host) {
+          final isPrivate = parsed.host.startsWith('192.168.') ||
+              parsed.host.startsWith('10.') ||
+              parsed.host.startsWith('172.16.') ||
+              parsed.host.endsWith('.local');
+          if (isPrivate) {
+            return origin;
+          }
+        }
+      }
+      if (Uri.base.scheme == 'https' && url.startsWith('http://')) {
+        return url.replaceFirst('http://', 'https://');
+      }
+    }
+    return url;
+  }
+
   void _evaluateConnectionStatus(String url) {
     if (url.contains('100.64') || url.contains('100.115') || url.contains('lifeos-daemon')) {
       connectionStatusNotifier.value = 'HEADSCALE MESH 🌐';
@@ -41,10 +71,10 @@ class ApiClient {
   }
 
   void updateUrls(String base, String daemon) {
-    baseUrl = base;
-    daemonUrl = daemon;
-    _evaluateConnectionStatus(daemon);
-    debugPrint('ApiClient: Updated URLs base=$base daemon=$daemon');
+    baseUrl = _normalizeUrl(base);
+    daemonUrl = _normalizeUrl(daemon);
+    _evaluateConnectionStatus(daemonUrl);
+    debugPrint('ApiClient: Updated URLs base=$baseUrl daemon=$daemonUrl');
   }
 
   // ponytail: queue persists to a temp file on io only; on web it lives in memory
