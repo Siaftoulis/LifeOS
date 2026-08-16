@@ -8,7 +8,18 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"lifeos/host-daemon/internal/bus"
 )
+
+// ChangeEvent is published for every balance mutation — the telemetry feed
+// of the points economy. Subscribers react (e.g. TV lock on negative).
+type ChangeEvent struct {
+	UserID  string
+	Amount  int
+	Event   string
+	Balance int
+}
 
 type UserPoints struct {
 	Username string `json:"username"`
@@ -166,6 +177,25 @@ func AddPointsWithEvent(username string, amount int, event string) int {
 		ledger = ledger[:50]
 	}
 	saveLedger()
+
+	bus.Publish(bus.Event{
+		Topic:  "points:balance-change",
+		UserID: username,
+		Payload: ChangeEvent{
+			UserID:  username,
+			Amount:  amount,
+			Event:   event,
+			Balance: newBalance,
+		},
+	})
+	if newBalance < 0 {
+		bus.Publish(bus.Event{Topic: "points:negative-balance", UserID: username, Payload: ChangeEvent{
+			UserID:  username,
+			Amount:  amount,
+			Event:   event,
+			Balance: newBalance,
+		}})
+	}
 
 	return newBalance
 }

@@ -13,6 +13,10 @@ func newTestRouter(t *testing.T) *http.ServeMux {
 		t.Fatalf("InitDB: %v", err)
 	}
 	t.Cleanup(func() { DB.Close() })
+	DB.Exec("INSERT INTO music_tracks (id, title, artist, album, file_path) VALUES (?, ?, ?, ?, ?)",
+		"t1", "Nightcall", "Kavinsky", "OutRun", "test/nightcall.mp3")
+	DB.Exec("INSERT INTO music_tracks (id, title, artist, album, file_path) VALUES (?, ?, ?, ?, ?)",
+		"t2", "Resonance", "HOME", "Odyssey", "test/resonance.mp3")
 	mux := http.NewServeMux()
 	RegisterRoutes(mux)
 	return mux

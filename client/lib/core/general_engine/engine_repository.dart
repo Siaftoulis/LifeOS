@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'general_engine_client.dart';
+import '../telemetry/telemetry_reporter.dart';
 
 class EngineRepository {
   static final EngineRepository instance = EngineRepository._internal();
@@ -30,6 +31,12 @@ class EngineRepository {
 
   List<GeneralEngineEntity> get bankTransactions => 
       allEntities.value.where((e) => e.type == 'bank_transaction').toList();
+
+  List<GeneralEngineEntity> get bills => 
+      allEntities.value.where((e) => e.type == 'bill').toList();
+
+  List<GeneralEngineEntity> get budgetConfigs => 
+      allEntities.value.where((e) => e.type == 'budget_config').toList();
 
   List<GeneralEngineEntity> get accountingCreds => 
       allEntities.value.where((e) => e.type == 'accounting_cred').toList();
@@ -109,6 +116,7 @@ class EngineRepository {
       }
       allEntities.value = current;
     }
+    TelemetryReporter.instance.track('engine', 'entity_created', {'type': entity.type});
   }
   
   void dispose() {

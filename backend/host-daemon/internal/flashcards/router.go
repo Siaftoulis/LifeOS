@@ -4,16 +4,43 @@ import (
 	"archive/zip"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/flashcards/decks", HandleListDecks)
+	mux.HandleFunc("/api/v1/flashcards/decks/create", HandleCreateDeck)
 	mux.HandleFunc("/api/v1/flashcards/import-anki", HandleImportAnki)
 	mux.HandleFunc("/api/v1/flashcards/scan", HandleScanNotes)
+}
+
+// HandleCreateDeck creates an empty deck from a name (POST /decks/create).
+func HandleCreateDeck(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var payload struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.Name == "" {
+		http.Error(w, "name is required", http.StatusBadRequest)
+		return
+	}
+
+	id := fmt.Sprintf("deck_%d", time.Now().UnixNano())
+	if _, err := DB.Exec("INSERT INTO decks (id, name, new_cards, due_cards) VALUES (?, ?, 10, 0)",
+		id, payload.Name); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(Deck{ID: id, Name: payload.Name, NewCards: 10, DueCards: 0})
 }
 
 type Deck struct {

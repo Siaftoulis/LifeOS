@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
+import 'package:clock/clock.dart';
 import '../../theme/everforest_colors.dart';
-import '../../database/preferences_service.dart';
 import '../widgets/keyboard_integrity/smooth_keyboard_integrity.dart';
 
 class SpatialEngine extends StatefulWidget {
@@ -27,10 +27,6 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   late AnimationController _animCtrl;
   late Animation<Offset> _anim;
   
-  bool _hasBumpedInCurrentDrag = false;
-  DateTime? _lastBumpTime;
-  String? _lastBumpDirection;
-  
   bool _isFirstLayout = true;
   Offset _baseOffset = Offset.zero;
   final ValueNotifier<Offset> _dragOffset = ValueNotifier(Offset.zero);
@@ -38,6 +34,10 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   double _w = 0;
   double _h = 0;
   final FocusNode _focusNode = FocusNode();
+
+  final List<(int, int)> _backStack = [];
+  bool _isBackNav = false;
+  DateTime? _lastEscapeAt;
 
   List<List<Widget>> _cachedModules = [];
 
@@ -101,89 +101,10 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (!PreferencesService.spatialGestures.value) return false;
-
-    if (notification is ScrollStartNotification) {
-      _hasBumpedInCurrentDrag = false;
-    } else if (notification is ScrollUpdateNotification) {
-      if (_hasBumpedInCurrentDrag) return false;
-
-      final metrics = notification.metrics;
-      final delta = notification.scrollDelta ?? 0.0;
-      if (delta == 0) return false;
-
-      final atStart = metrics.pixels <= metrics.minScrollExtent;
-      final atEnd = metrics.pixels >= metrics.maxScrollExtent;
-
-      if (metrics.axis == Axis.vertical) {
-        if (atStart && delta < -1.0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('up');
-        } else if (atEnd && delta > 1.0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('down');
-        }
-      } else if (metrics.axis == Axis.horizontal) {
-        if (atStart && delta < -1.0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('left');
-        } else if (atEnd && delta > 1.0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('right');
-        }
-      }
-    } else if (notification is OverscrollNotification) {
-      if (_hasBumpedInCurrentDrag) return false;
-      final metrics = notification.metrics;
-      final overscroll = notification.overscroll;
-
-      if (metrics.axis == Axis.vertical) {
-        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('up');
-        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('down');
-        }
-      } else if (metrics.axis == Axis.horizontal) {
-        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('left');
-        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
-          _hasBumpedInCurrentDrag = true;
-          _registerBump('right');
-        }
-      }
-    } else if (notification is ScrollEndNotification) {
-      _hasBumpedInCurrentDrag = false;
-    }
+    // Inner scroll views (ListView, SingleChildScrollView, etc.) handle their own scrolling.
+    // We do not bump screens on normal scroll updates or overscroll to prevent disrupting inner navigation.
     return false;
   }
-
-  void _registerBump(String direction) {
-    final now = DateTime.now();
-    if (_lastBumpDirection == direction && _lastBumpTime != null) {
-      final diff = now.difference(_lastBumpTime!);
-      if (diff.inMilliseconds > 100 && diff.inMilliseconds < 800) {
-        _lastBumpTime = null;
-        _lastBumpDirection = null;
-        if (direction == 'up') {
-          nav(0, -1);
-        } else if (direction == 'down') {
-          nav(0, 1);
-        } else if (direction == 'left') {
-          nav(-1, 0);
-        } else if (direction == 'right') {
-          nav(1, 0);
-        }
-        return;
-      }
-    }
-    _lastBumpTime = now;
-    _lastBumpDirection = direction;
-  }
-
-
 
   void _handlePanUpdate(DragUpdateDetails d) {
     if (_animCtrl.isAnimating) return;
@@ -191,7 +112,13 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   }
 
   void navigateTo(int newX, int newY) {
+    final isBack = _isBackNav;
+    _isBackNav = false;
     if (_animCtrl.isAnimating) return;
+
+    if (!isBack && (newX != x || newY != y)) {
+      _backStack.add((x, y));
+    }
 
     setState(() {
       x = newX;
@@ -220,6 +147,28 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     final newRowWidth = widget.layout[newY].length;
     if (newX >= newRowWidth) newX = newRowWidth - 1;
     navigateTo(newX, newY);
+  }
+
+  void _goBack() {
+    if (_backStack.isEmpty) return;
+    _animCtrl.stop();
+    final prev = _backStack.removeLast();
+    _isBackNav = true;
+    navigateTo(prev.$1, prev.$2);
+  }
+
+  void _goHome() {
+    _backStack.clear();
+    _animCtrl.stop();
+    for (int r = 0; r < widget.layout.length; r++) {
+      for (int c = 0; c < widget.layout[r].length; c++) {
+        if (widget.layout[r][c] == 'home') {
+          _isBackNav = true;
+          navigateTo(c, r);
+          return;
+        }
+      }
+    }
   }
 
   void _handlePanEnd(DragEndDetails d) {
@@ -349,19 +298,36 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
 
                   if (event is KeyDownEvent) {
                     final key = event.logicalKey;
-                    final isModifierPressed = HardwareKeyboard.instance.isControlPressed || HardwareKeyboard.instance.isAltPressed;
 
-                    if (isModifierPressed) {
-                      if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
+                    if (key == LogicalKeyboardKey.escape) {
+                      // ανοιχτό dialog/μενού: το κλείνει πρώτα το Navigator
+                      if (Navigator.of(context).canPop()) return KeyEventResult.ignored;
+                      _focusNode.requestFocus();
+                      final now = clock.now();
+                      final isDoubleEscape = _lastEscapeAt != null &&
+                          now.difference(_lastEscapeAt!) < const Duration(milliseconds: 400);
+                      _lastEscapeAt = now;
+                      if (isDoubleEscape) {
+                        _goHome();
+                      } else {
+                        _goBack();
+                      }
+                      return KeyEventResult.handled;
+                    }
+
+                    final isCtrlPressed = HardwareKeyboard.instance.isControlPressed;
+
+                    if (isCtrlPressed) {
+                      if (key == LogicalKeyboardKey.arrowLeft) {
                         nav(-1, 0);
                         return KeyEventResult.handled;
-                      } else if (key == LogicalKeyboardKey.arrowRight || key == LogicalKeyboardKey.keyD) {
+                      } else if (key == LogicalKeyboardKey.arrowRight) {
                         nav(1, 0);
                         return KeyEventResult.handled;
-                      } else if (key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.keyW) {
+                      } else if (key == LogicalKeyboardKey.arrowUp) {
                         nav(0, -1);
                         return KeyEventResult.handled;
-                      } else if (key == LogicalKeyboardKey.arrowDown || key == LogicalKeyboardKey.keyS) {
+                      } else if (key == LogicalKeyboardKey.arrowDown) {
                         nav(0, 1);
                         return KeyEventResult.handled;
                       }
@@ -369,30 +335,9 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                   }
                   return KeyEventResult.ignored;
                 },
-                child: Listener(
-                  onPointerSignal: (PointerSignalEvent event) {
-                    if (event is PointerScrollEvent) {
-                      final dx = event.scrollDelta.dx;
-                      final dy = event.scrollDelta.dy;
-                      if (dx.abs() > dy.abs() && dx.abs() > 10) {
-                        _registerBump(dx > 0 ? 'right' : 'left');
-                      } else if (dy.abs() > dx.abs() && dy.abs() > 10) {
-                        _registerBump(dy > 0 ? 'down' : 'up');
-                      }
-                    }
-                  },
-                  onPointerPanZoomUpdate: (PointerPanZoomUpdateEvent event) {
-                    final dx = event.panDelta.dx;
-                    final dy = event.panDelta.dy;
-                    if (dx.abs() > dy.abs() && dx.abs() > 10) {
-                      _registerBump(dx < 0 ? 'right' : 'left'); // panning left means moving right
-                    } else if (dy.abs() > dx.abs() && dy.abs() > 10) {
-                      _registerBump(dy < 0 ? 'down' : 'up');
-                    }
-                  },
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: _handleScrollNotification,
-                    child: Stack(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: _handleScrollNotification,
+                  child: Stack(
                     children: [
                       GestureDetector(
                         behavior: HitTestBehavior.translucent,
@@ -469,10 +414,9 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                     ],
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-    );
+              );
+            },
+          ),
+      );
   }
 }

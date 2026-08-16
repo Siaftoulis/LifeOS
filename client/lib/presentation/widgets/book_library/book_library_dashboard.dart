@@ -5,6 +5,7 @@ import '../../../database/database.dart';
 import '../../../api_client.dart';
 import 'book_card_widget.dart';
 import 'highlight_curtain.dart';
+import 'search_view.dart';
 
 class BookLibraryDashboard extends StatefulWidget {
   const BookLibraryDashboard({super.key});
@@ -62,6 +63,14 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard> {
         elevation: 0,
         iconTheme: const IconThemeData(color: EverforestColors.fg),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search sources',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const BookSearchView()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.bookmarks_outlined),
             onPressed: () => showDialog(context: context, builder: (_) => const HighlightCurtain()),

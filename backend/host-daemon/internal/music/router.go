@@ -3,34 +3,46 @@ package music
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"lifeos/host-daemon/internal/bus"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/v1/music/tracks", HandleGetTracks)
-	mux.HandleFunc("/api/v1/music/tracks/{id}", HandleGetTrack)
-	mux.HandleFunc("/api/v1/music/stream", HandleGetStream)
+	mux.HandleFunc("GET /api/v1/music/tracks", HandleGetTracks)
+	mux.HandleFunc("GET /api/v1/music/tracks/{id}", HandleGetTrack)
+	mux.HandleFunc("DELETE /api/v1/music/tracks/{id}", HandleDeleteTrack)
+	mux.HandleFunc("DELETE /api/v1/music/tracks", HandleDeleteTrack)
+	mux.HandleFunc("/api/v1/music/stream/", HandleGetStream)
 	mux.HandleFunc("/api/v1/music/lyrics", HandleGetLyrics)
+	mux.HandleFunc("/api/v1/music/search", HandleSearch)
+	mux.HandleFunc("/api/v1/music/download", HandleDownload)
+	mux.HandleFunc("/api/v1/music/resolve", HandleResolveStreamURL)
+	mux.HandleFunc("/api/v1/music/ytstream/", HandleYTStream)
 }
 
 type Track struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Artist   string `json:"artist"`
-	Album    string `json:"album"`
-	FilePath string `json:"file_path"`
+	ID        string  `json:"id"`
+	Title     string  `json:"title"`
+	Artist    string  `json:"artist"`
+	Album     string  `json:"album"`
+	FilePath  string  `json:"file_path"`
+	Duration  float64 `json:"duration"`
+	Thumbnail string  `json:"thumbnail"`
 }
 
 func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	query := "SELECT id, title, artist, album, file_path FROM music_tracks"
+	query := "SELECT id, title, artist, album, file_path, duration, thumbnail FROM music_tracks"
 	var args []any
 	if q := strings.TrimSpace(r.URL.Query().Get("q")); q != "" {
 		query += " WHERE title LIKE ? OR artist LIKE ? OR album LIKE ?"
 		args = append(args, "%"+q+"%", "%"+q+"%", "%"+q+"%")
 	}
-	query += " ORDER BY title"
+	query += " ORDER BY artist, title"
 
 	rows, err := DB.Query(query, args...)
 	if err != nil {
@@ -42,7 +54,7 @@ func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	var tracks []Track
 	for rows.Next() {
 		var t Track
-		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath); err == nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &t.Thumbnail); err == nil {
 			tracks = append(tracks, t)
 		}
 	}
@@ -60,8 +72,8 @@ func HandleGetTrack(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
 	var t Track
-	if err := DB.QueryRow("SELECT id, title, artist, album, file_path FROM music_tracks WHERE id = ?", id).
-		Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath); err != nil {
+	if err := DB.QueryRow("SELECT id, title, artist, album, file_path, duration, thumbnail FROM music_tracks WHERE id = ?", id).
+		Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &t.Thumbnail); err != nil {
 		http.Error(w, "Track not found", http.StatusNotFound)
 		return
 	}
@@ -77,19 +89,51 @@ func HandleGetStream(w http.ResponseWriter, r *http.Request) {
 
 	var filePath string
 	err := DB.QueryRow("SELECT file_path FROM music_tracks WHERE id = ?", trackID).Scan(&filePath)
-	if err != nil {
-		// Fallback to a dummy file if not found in db just to keep it from completely crashing if they don't have music
-		filePath = "./data/media/dummy.mp3"
+	if err == nil && filePath != "" {
+		if _, statErr := os.Stat(filePath); statErr == nil {
+			w.Header().Set("Accept-Ranges", "bytes")
+			http.ServeFile(w, r, filePath)
+			return
+		}
 	}
 
-	w.Header().Set("Accept-Ranges", "bytes")
-	http.ServeFile(w, r, filePath)
+	// If not available locally on disk, stream live via YouTube
+	HandleYTStream(w, r)
 }
 
-func HandleGetLyrics(w http.ResponseWriter, r *http.Request) {
+func HandleDeleteTrack(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode([]map[string]interface{}{
-		{"time": 0.5, "text": "I'm giving you a nightcall to tell you how I feel"},
-		{"time": 4.2, "text": "I want to drive you through the night, down the hills"},
+	id := r.PathValue("id")
+	if id == "" {
+		id = r.URL.Query().Get("id")
+	}
+	if id == "" {
+		http.Error(w, "Missing track id", http.StatusBadRequest)
+		return
+	}
+
+	var filePath string
+	_ = DB.QueryRow("SELECT file_path FROM music_tracks WHERE id = ?", id).Scan(&filePath)
+	if filePath != "" {
+		_ = os.Remove(filePath)
+	}
+
+	// Also remove cache file if any
+	cachePath := filepath.Join(DataDir, "music_cache", id+".mp4")
+	_ = os.Remove(cachePath)
+
+	_, err := DB.Exec("DELETE FROM music_tracks WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	bus.Publish(bus.Event{
+		Topic: "music:deleted",
+		Payload: map[string]any{
+			"track_id": id,
+		},
 	})
+
+	json.NewEncoder(w).Encode(map[string]any{"status": "deleted", "id": id})
 }

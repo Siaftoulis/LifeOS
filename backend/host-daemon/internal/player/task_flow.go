@@ -2,6 +2,7 @@ package player
 
 import (
 	"log"
+	"lifeos/host-daemon/internal/bus"
 	"lifeos/host-daemon/internal/points"
 )
 
@@ -18,6 +19,15 @@ type TaskReward struct {
 	XPAdded          int
 	AttributeXPAdded int
 	AttributeName    string
+}
+
+// TaskCompleteEvent is published on the bus when a task finishes; awards are
+// applied by the player, subscribers react (telemetry, rules).
+type TaskCompleteEvent struct {
+	TaskID    string
+	Attribute string
+	XP        int
+	Points    int
 }
 
 // ProcessTaskCompletion distributes rewards based on system rules
@@ -43,6 +53,15 @@ func ProcessTaskCompletion(task TaskCompletion) TaskReward {
 	UpdatePlayerXP(reward.XPAdded)
 	UpdateAttributeXP(reward.AttributeName, reward.AttributeXPAdded)
 	points.AddPoints("panospds", reward.PointsAdded) // Using a hardcoded ID for now since auth is proxy based
+
+	bus.Publish(bus.Event{
+		Topic:  "rpg:task-complete",
+		UserID: "panospds", // same hardcoded auth as above; real users arrive with auth work
+		Payload: TaskCompleteEvent{
+			TaskID: task.TaskID, Attribute: reward.AttributeName,
+			XP: reward.XPAdded, Points: reward.PointsAdded,
+		},
+	})
 
 	return reward
 }

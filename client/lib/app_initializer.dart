@@ -7,6 +7,8 @@ import 'database/db_executor.dart';
 import 'platform_dirs.dart';
 import 'api_client.dart';
 import 'feature_registry.dart';
+import 'core/event_hub.dart';
+import 'core/points_live_feedback.dart';
 import 'core/local_discovery_service.dart';
 import 'core/p2p_transfer_service.dart';
 
@@ -43,6 +45,10 @@ class AppInitializer {
     final api = ApiClient(baseUrl: base, daemonUrl: daemon);
     FeatureRegistry.buildRegistry(db, api);
     debugPrint('LifeOSInit: FeatureRegistry.buildRegistry took ${s.elapsedMilliseconds - registryStart}ms');
+
+    // Push channel: live ecosystem events (points, movies, books, ...)
+    EventHub.instance.connect();
+    PointsLiveFeedback.instance.start();
 
     _startBackgroundDiscovery();
 

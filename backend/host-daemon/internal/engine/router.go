@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"lifeos/host-daemon/internal/bus"
 )
 
 func generateID() string {
@@ -41,7 +43,12 @@ func handleEntities(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SaveEntity(entity)
-		RunAutomations(entity) // Trigger server-side metrics and tasks
+		// The engine only announces; every rule lives in internal/automations.
+		bus.Publish(bus.Event{
+			Topic:   "engine:upsert:" + string(entity.Type),
+			UserID:  entity.CreatorID,
+			Payload: entity,
+		})
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)

@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
   flutter_secure_storage_windows
   geolocator_windows
+  media_kit_libs_windows_audio
   nsd_windows
   permission_handler_windows
   rich_clipboard_windows

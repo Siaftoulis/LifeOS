@@ -73,17 +73,6 @@ class _GalleryViewState extends State<GalleryView> {
     });
   }
 
-  List<String> _expandedGroups = [];
-  void _toggleGroup(String key) {
-    setState(() {
-      if (_expandedGroups.contains(key)) {
-        _expandedGroups.remove(key);
-      } else {
-        _expandedGroups.add(key);
-      }
-    });
-  }
-
   // Pinch-to-zoom grid state
   int _crossAxisCount = 4;
   double _baseScaleFactor = 1.0;

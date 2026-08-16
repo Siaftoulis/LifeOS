@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import '../../../api_client.dart';
+import '../../../core/telemetry/telemetry_reporter.dart';
 
 class VoiceRecorderDialog extends StatefulWidget {
   const VoiceRecorderDialog({super.key});
@@ -54,6 +55,7 @@ class _VoiceRecorderDialogState extends State<VoiceRecorderDialog> {
                 final res = await ApiClient.instance.postDaemon('/api/v1/voice-parse', {
                   'text': 'Simulated voice input text...',
                 });
+                TelemetryReporter.instance.track('voice', 'parsed', {});
                 
                 if (mounted) {
                   Navigator.pop(context);

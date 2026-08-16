@@ -34,7 +34,10 @@ func createTables() error {
 		current_page INTEGER NOT NULL,
 		total_pages INTEGER NOT NULL,
 		file_path TEXT NOT NULL,
-		status TEXT NOT NULL DEFAULT 'NOT_STARTED'
+		status TEXT NOT NULL DEFAULT 'NOT_STARTED',
+		cover TEXT NOT NULL DEFAULT '',
+		description TEXT NOT NULL DEFAULT '',
+		rating REAL NOT NULL DEFAULT 0
 	);
 	
 	CREATE TABLE IF NOT EXISTS reading_progress (
@@ -50,6 +53,21 @@ func createTables() error {
 		note_content TEXT NOT NULL,
 		page_number INTEGER NOT NULL
 	);
+	
+	CREATE TABLE IF NOT EXISTS download_jobs (
+		id TEXT PRIMARY KEY,
+		url TEXT NOT NULL,
+		title TEXT NOT NULL,
+		author TEXT NOT NULL DEFAULT '',
+		format TEXT NOT NULL DEFAULT 'epub',
+		status TEXT NOT NULL DEFAULT 'PENDING',
+		progress_bytes INTEGER NOT NULL DEFAULT 0,
+		total_bytes INTEGER NOT NULL DEFAULT 0,
+		file_path TEXT NOT NULL DEFAULT '',
+		error TEXT NOT NULL DEFAULT '',
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
 	`
 
 	_, err := DB.Exec(query)
@@ -62,6 +80,19 @@ func createTables() error {
 	if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('books') WHERE name='status'").Scan(&hasStatus); err == nil && hasStatus == 0 {
 		if _, err := DB.Exec("ALTER TABLE books ADD COLUMN status TEXT NOT NULL DEFAULT 'NOT_STARTED'"); err != nil {
 			return fmt.Errorf("failed to migrate books table: %v", err)
+		}
+	}
+	// Migration: metadata columns (cover/description/rating) on older DBs.
+	for _, col := range []string{"cover", "description", "rating"} {
+		var has int
+		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('books') WHERE name=?", col).Scan(&has); err == nil && has == 0 {
+			typ := "TEXT NOT NULL DEFAULT ''"
+			if col == "rating" {
+				typ = "REAL NOT NULL DEFAULT 0"
+			}
+			if _, err := DB.Exec("ALTER TABLE books ADD COLUMN " + col + " " + typ); err != nil {
+				return fmt.Errorf("failed to migrate books table: %v", err)
+			}
 		}
 	}
 

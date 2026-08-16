@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../api_client.dart';
+import '../../../core/telemetry/telemetry_reporter.dart';
 
 import '../../../database/layout_sanitizer.dart';
 
@@ -54,12 +55,13 @@ synced_at: null
         'file_path': relativePath,
         'content': fileContent,
       });
-
-      await db.pointsDao.awardPoints(2, 'Exported highlight of ${book.title}');
+      // ponytail: server decides the award (markdown:synced); local mirror
+      // overwritten by PointsRepository sync — never award points client-side
+      TelemetryReporter.instance.track('markdown', 'synced', {'file_path': relativePath});
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exported to Zen Editor (+2 Stars)!'), backgroundColor: EverforestColors.green),
+          const SnackBar(content: Text('Exported to Zen Editor'), backgroundColor: EverforestColors.green),
         );
       }
     } catch (e) {

@@ -25,7 +25,7 @@ class P2PTransferService {
   Future<void> startServer() async {
     if (_isListening) return;
     try {
-      _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 4444);
+      _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 4444, shared: true);
       _isListening = true;
       debugPrint("P2P Socket Server listening on port 4444");
 

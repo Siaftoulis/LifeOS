@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../api_client.dart';
+import 'telemetry/telemetry_reporter.dart';
 
 /// Canonical movie record as served by `GET /api/v1/movies`.
 class Movie {
@@ -85,6 +86,7 @@ class MovieRepository {
       await ApiClient.instance
           .postDaemon('/api/v1/movies/watchlist', {'movie_id': id});
       await refresh();
+      TelemetryReporter.instance.track('movies', 'watchlist_added', {'movie_id': id});
     } catch (_) {}
   }
 
@@ -96,6 +98,7 @@ class MovieRepository {
         'comment': comment,
       });
       await refresh();
+      TelemetryReporter.instance.track('movies', 'review_added', {'movie_id': id});
     } catch (_) {}
   }
 
@@ -105,6 +108,7 @@ class MovieRepository {
         'status': status,
       });
       await refresh();
+      TelemetryReporter.instance.track('movies', 'status_changed', {'movie_id': id});
     } catch (_) {}
   }
 

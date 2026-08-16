@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"lifeos/host-daemon/internal/auth/middleware"
+	"lifeos/host-daemon/internal/bus"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -35,6 +38,13 @@ var validStatuses = map[string]bool{
 	"AVAILABLE": true, "DOWNLOADING": true, "WATCHED": true,
 }
 
+// WatchedEvent is the payload of the "movies:watched" bus event.
+type WatchedEvent struct {
+	MovieID string
+	Title   string
+	UserID  string
+}
+
 func updateMovieStatus(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Status string `json:"status"`
@@ -56,6 +66,16 @@ func updateMovieStatus(w http.ResponseWriter, r *http.Request) {
 	if n, _ := res.RowsAffected(); n == 0 {
 		http.Error(w, "Movie not found", http.StatusNotFound)
 		return
+	}
+	if status == "WATCHED" {
+		var title string
+		DB.QueryRow("SELECT title FROM movies WHERE id = ?", r.PathValue("id")).Scan(&title)
+		userID, _ := r.Context().Value(middleware.UserContextKey).(string)
+		bus.Publish(bus.Event{
+			Topic:   "movies:watched",
+			UserID:  userID,
+			Payload: WatchedEvent{MovieID: r.PathValue("id"), Title: title, UserID: userID},
+		})
 	}
 	fmt.Fprintf(w, `{"status":"%s"}`, status)
 }

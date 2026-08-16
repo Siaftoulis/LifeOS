@@ -108,7 +108,7 @@ LifeOS is designed as a modular platform. Here's every module and its current st
 | Banking System | 🔜 Planned | Bank account aggregation |
 | Book Library | 🔜 Planned | EPUB/PDF reader |
 | Movie Library | 🔜 Planned | Collection and watchlist |
-| Music Library | 🔜 Planned | Local music player |
+| Music Library | ✅ Active | Local music player + yt-dlp search/stream/download |
 | Photo/Video Gallery | 🔜 Planned | Local media gallery |
 | YouTube Client | 🔜 Planned | Privacy-focused viewer |
 | Cloud & Fake VM | 🔜 Planned | Sandboxed VM execution |

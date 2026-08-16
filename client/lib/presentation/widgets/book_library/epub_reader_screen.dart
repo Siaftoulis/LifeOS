@@ -3,7 +3,9 @@ import 'package:drift/drift.dart' show Value;
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import '../../../api_client.dart';
+import '../../../core/telemetry/telemetry_reporter.dart';
 import 'epub_viewer_pane.dart';
+import 'zen_ai_panel.dart';
 
 class EPUBReaderScreen extends StatefulWidget {
   final Book book;
@@ -57,6 +59,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
         'page': _currentPage,
         'seconds': 0,
       });
+      TelemetryReporter.instance.track('books', 'progress_saved', {'book_id': widget.book.id});
     } catch (_) {}
   }
 
@@ -100,6 +103,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
         'note_content': 'User highlight',
         'page_number': _currentPage,
       });
+      TelemetryReporter.instance.track('books', 'highlight_added', {'book_id': widget.book.id});
     } catch (_) {}
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,6 +122,16 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
         title: Text(widget.book.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
         iconTheme: const IconThemeData(color: EverforestColors.fg),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome, color: EverforestColors.yellow),
+            tooltip: 'Zen Code AI',
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              backgroundColor: EverforestColors.bg1,
+              isScrollControlled: true,
+              builder: (_) => ZenAIPanel(book: widget.book),
+            ),
+          ),
           if (_selectedText.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.border_color, color: EverforestColors.yellow),

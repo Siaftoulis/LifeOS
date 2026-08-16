@@ -3,6 +3,7 @@ import 'dart:async';
 import 'database/database.dart';
 import 'database/dao.dart';
 import 'core/obsidian/frontmatter_service.dart';
+import 'core/telemetry/telemetry_reporter.dart';
 import 'api_client.dart';
 
 class VaultWatcher {
@@ -54,6 +55,7 @@ class VaultWatcher {
         'file_path': relativePath,
         'content': content,
       });
+      TelemetryReporter.instance.track('markdown', 'synced', {'file_path': relativePath});
       return res['status'] == 'ok';
     } catch (e) {
       print('Daemon Markdown Sync error: $e');

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
-import '../../../core/general_engine/engine_repository.dart';
-import '../../../core/general_engine/general_engine_client.dart';
+import '../../../core/domain_repositories.dart';
 
 class SmartHomeDashboard extends StatefulWidget {
   const SmartHomeDashboard({super.key});
@@ -11,27 +10,6 @@ class SmartHomeDashboard extends StatefulWidget {
 }
 
 class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
-  Future<void> _toggleDevice(GeneralEngineEntity device) async {
-    final currentState = device.payload['state'] as String? ?? 'OFF';
-    final newState = currentState == 'ON' ? 'OFF' : 'ON';
-    
-    final updatedPayload = Map<String, dynamic>.from(device.payload);
-    updatedPayload['state'] = newState;
-
-    final updatedEntity = GeneralEngineEntity(
-      id: device.id,
-      type: device.type,
-      creatorId: device.creatorId,
-      payload: updatedPayload,
-      sharedWith: device.sharedWith,
-      assignedTo: device.assignedTo,
-      createdAt: device.createdAt,
-      updatedAt: DateTime.now(),
-    );
-
-    await EngineRepository.instance.saveEntity(updatedEntity);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -79,10 +57,9 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
           ),
           const SizedBox(height: 24),
           Expanded(
-            child: ValueListenableBuilder<List<GeneralEngineEntity>>(
-              valueListenable: EngineRepository.instance.allEntities,
-              builder: (context, entities, child) {
-                final devices = EngineRepository.instance.smartDevices;
+            child: ValueListenableBuilder<List<SmartDevice>>(
+              valueListenable: HomeRepository.instance.devices,
+              builder: (context, devices, child) {
                 if (devices.isEmpty) {
                   return const Center(child: Text('No Smart Devices configured.', style: TextStyle(color: EverforestColors.grey)));
                 }
@@ -106,11 +83,10 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
     );
   }
 
-  Widget _buildDeviceCard(GeneralEngineEntity device) {
-    final stateStr = device.payload['state'] as String? ?? 'OFF';
-    final isOn = stateStr == 'ON';
-    final type = device.payload['type'] as String? ?? 'light';
-    final name = device.payload['name'] as String? ?? device.id;
+  Widget _buildDeviceCard(SmartDevice device) {
+    final isOn = device.state == 'ON';
+    final type = device.type;
+    final name = device.name;
     
     IconData icon;
     switch(type) {
@@ -147,7 +123,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
               ),
               Switch(
                 value: isOn,
-                onChanged: (val) => _toggleDevice(device),
+                onChanged: (val) => HomeRepository.instance.toggle(device.deviceId),
                 activeThumbColor: EverforestColors.green,
                 inactiveThumbColor: EverforestColors.grey,
                 inactiveTrackColor: EverforestColors.bg0,
@@ -167,7 +143,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
               ),
               const SizedBox(height: 4),
               Text(
-                stateStr,
+                device.state,
                 style: TextStyle(
                   color: isOn ? EverforestColors.green : EverforestColors.grey,
                   fontSize: 12,

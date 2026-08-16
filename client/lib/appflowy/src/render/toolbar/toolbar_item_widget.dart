@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
 
-import 'toolbar_item.dart';
-
 class ToolbarItemWidget extends StatelessWidget {
   const ToolbarItemWidget({
     Key? key,

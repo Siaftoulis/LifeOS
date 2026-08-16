@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+
+	"lifeos/host-daemon/internal/bus"
 )
 
 func RegisterRoutes(mux *http.ServeMux) {
@@ -93,7 +95,12 @@ func HandleReportLocation(w http.ResponseWriter, r *http.Request) {
 
 	triggered := checkProximity(report, GetGeofences())
 	if len(triggered) > 0 {
-		TriggerAutomation(report, triggered)
+		// The location module only announces; rules fire in internal/automations.
+		bus.Publish(bus.Event{
+			Topic:   "location:enter",
+			UserID:  report.DeviceID,
+			Payload: LocationEnterEvent{DeviceID: report.DeviceID, Fences: triggered},
+		})
 	}
 
 	update := LiveUpdate{

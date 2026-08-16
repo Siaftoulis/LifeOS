@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import '../../../database/database.dart';
 import 'audio_player_widget.dart';
+import 'cbz_reader_screen.dart';
 import 'epub_reader_screen.dart';
 
 class BookCardWidget extends StatelessWidget {
@@ -38,6 +39,11 @@ class BookCardWidget extends StatelessWidget {
                 context: context,
                 backgroundColor: Colors.transparent,
                 builder: (_) => AudioPlayerWidget(book: book, audiobook: audiobook),
+              );
+            } else if (book.filePath.toLowerCase().endsWith('.cbz')) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CBZReaderScreen(book: book)),
               );
             } else {
               Navigator.push(

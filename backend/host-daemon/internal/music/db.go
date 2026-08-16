@@ -10,8 +10,10 @@ import (
 )
 
 var DB *sql.DB
+var DataDir string
 
 func InitDB(dataDir string) error {
+	DataDir = dataDir
 	dbPath := filepath.Join(dataDir, "media.db")
 	log.Printf("Initializing media database at %s", dbPath)
 
@@ -32,7 +34,9 @@ func createTables() error {
 		title TEXT NOT NULL,
 		artist TEXT NOT NULL,
 		album TEXT NOT NULL,
-		file_path TEXT NOT NULL DEFAULT ''
+		file_path TEXT NOT NULL DEFAULT '',
+		duration REAL NOT NULL DEFAULT 0,
+		thumbnail TEXT NOT NULL DEFAULT ''
 	);
 	
 	CREATE TABLE IF NOT EXISTS photos (
@@ -48,46 +52,27 @@ func createTables() error {
 		return fmt.Errorf("failed to create media tables: %v", err)
 	}
 
-	// Migration: file_path column on DBs created before it existed (the
-	// stream handler already queries it).
-	var hasPath int
-	if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('music_tracks') WHERE name='file_path'").Scan(&hasPath); err == nil && hasPath == 0 {
-		if _, err := DB.Exec("ALTER TABLE music_tracks ADD COLUMN file_path TEXT NOT NULL DEFAULT ''"); err != nil {
-			return fmt.Errorf("failed to migrate music_tracks table: %v", err)
+	// Migrations for DBs created before these columns existed.
+	for _, col := range []struct{ name, ddl string }{
+		{"file_path", "ALTER TABLE music_tracks ADD COLUMN file_path TEXT NOT NULL DEFAULT ''"},
+		{"duration", "ALTER TABLE music_tracks ADD COLUMN duration REAL NOT NULL DEFAULT 0"},
+		{"thumbnail", "ALTER TABLE music_tracks ADD COLUMN thumbnail TEXT NOT NULL DEFAULT ''"},
+	} {
+		var has int
+		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('music_tracks') WHERE name=?", col.name).Scan(&has); err == nil && has == 0 {
+			if _, err := DB.Exec(col.ddl); err != nil {
+				return fmt.Errorf("failed to migrate music_tracks (%s): %v", col.name, err)
+			}
 		}
 	}
 
-	// Seed data
-	var count int
-	err = DB.QueryRow("SELECT COUNT(*) FROM music_tracks").Scan(&count)
-	if err == nil && count == 0 {
-		seedMedia()
-	}
+	// Remove legacy placeholder records if any exist
+	DB.Exec("DELETE FROM music_tracks WHERE file_path LIKE 'storage/media/%' OR id IN ('t1', 't2', 't3')")
 
 	return nil
 }
 
 func seedMedia() {
-	tracks := []struct {
-		ID       string
-		Title    string
-		Artist   string
-		Album    string
-		FilePath string
-	}{
-		{"t1", "Nightcall", "Kavinsky", "OutRun", "storage/media/nightcall.mp3"},
-		{"t2", "Resonance", "HOME", "Odyssey", "storage/media/resonance.mp3"},
-		{"t3", "Blinding Lights", "The Weeknd", "After Hours", "storage/media/blinding_lights.mp3"},
-	}
-
-	for _, t := range tracks {
-		_, err := DB.Exec("INSERT INTO music_tracks (id, title, artist, album, file_path) VALUES (?, ?, ?, ?, ?)",
-			t.ID, t.Title, t.Artist, t.Album, t.FilePath)
-		if err != nil {
-			log.Printf("Failed to seed music track: %v", err)
-		}
-	}
-	
 	photos := []struct {
 		ID    string
 		Title string
@@ -100,7 +85,7 @@ func seedMedia() {
 	}
 	
 	for _, p := range photos {
-		_, err := DB.Exec("INSERT INTO photos (id, title, url, date) VALUES (?, ?, ?, ?)",
+		_, err := DB.Exec("INSERT OR IGNORE INTO photos (id, title, url, date) VALUES (?, ?, ?, ?)",
 			p.ID, p.Title, p.URL, p.Date)
 		if err != nil {
 			log.Printf("Failed to seed photo: %v", err)

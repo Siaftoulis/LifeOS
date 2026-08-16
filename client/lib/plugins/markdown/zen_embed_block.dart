@@ -10,9 +10,8 @@ import '../../theme/everforest_colors.dart';
 import '../../api_client.dart';
 import '../../core/movie_repository.dart' as repo;
 import '../../core/device_gallery_service.dart';
-import '../../core/general_engine/engine_repository.dart';
-import '../../core/general_engine/general_engine_client.dart';
-import '../../database/database.dart';
+import '../../core/domain_repositories.dart' show MusicTrack, MusicRepository;
+import '../../database/database.dart' hide MusicTrack;
 import '../../database/chtm_dao.dart';
 import '../../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
 import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_screen.dart';
@@ -1546,19 +1545,16 @@ class MusicEmbedPreview extends StatelessWidget {
     if (ref != null && ref!.isNotEmpty) {
       return _SingleTrackEmbed(ref: ref!);
     }
-    return ValueListenableBuilder<List<GeneralEngineEntity>>(
-      valueListenable: EngineRepository.instance.allEntities,
-      builder: (context, entities, child) {
-        final items = EngineRepository.instance.musicTracks
+    return ValueListenableBuilder<List<MusicTrack>>(
+      valueListenable: MusicRepository.instance.tracks,
+      builder: (context, tracks, child) {
+        final items = tracks
             .take(8)
-            .map((t) {
-              final track = t.payload;
-              return _EmbedCardData(
-                track['title'] as String? ?? 'Unknown',
-                track['artist'] as String? ?? '',
-                EverforestColors.green.withValues(alpha: 0.35),
-              );
-            })
+            .map((t) => _EmbedCardData(
+                  t.title,
+                  t.artist,
+                  EverforestColors.green.withValues(alpha: 0.35),
+                ))
             .toList();
         return _CardStrip(items: items);
       },

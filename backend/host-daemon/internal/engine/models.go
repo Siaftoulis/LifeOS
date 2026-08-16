@@ -14,6 +14,8 @@ const (
 	TypeZenLog          EntityType = "zen_log"
 	TypeBankAccount     EntityType = "bank_account"
 	TypeBankTransaction EntityType = "bank_transaction"
+	TypeBudgetConfig    EntityType = "budget_config"
+	TypeBill            EntityType = "bill"
 	TypeAccountingCred  EntityType = "accounting_cred"
 	TypeAccountingDoc   EntityType = "accounting_doc"
 	TypeFlashcardDeck   EntityType = "flashcard_deck"

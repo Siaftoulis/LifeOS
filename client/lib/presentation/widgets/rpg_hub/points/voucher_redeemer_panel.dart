@@ -65,6 +65,12 @@ class VoucherRedeemerPanel extends StatelessWidget {
                             const Icon(Icons.star, color: EverforestColors.yellow, size: 18),
                             const SizedBox(width: 4),
                             Text('$currentPoints pts', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            Container(width: 1, height: 16, color: EverforestColors.bg2),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.stars, color: EverforestColors.orange, size: 18),
+                            const SizedBox(width: 4),
+                            Text('${currentPoints ~/ 100} stars', style: const TextStyle(color: EverforestColors.orange, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -145,17 +151,24 @@ class VoucherRedeemerPanel extends StatelessWidget {
       await db.update(db.vouchers).replace(updatedVoucher);
 
       // Forward transaction to daemon API in background (fire-and-forget, fallback to sync queue)
+      String? code;
       try {
-        await ApiClient.instance.postDaemon('/api/v1/points/vouchers/redeem', {
+        final res = await ApiClient.instance.postDaemon('/api/v1/points/vouchers/redeem', {
           'voucher_id': voucher.id,
           'user_id': user.id,
         });
+        code = (res as Map<String, dynamic>?)?['code'] as String?;
       } catch (_) {}
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully redeemed: ${voucher.title}!', style: const TextStyle(color: Colors.white)),
+            content: Text(
+              code != null
+                  ? 'Redeemed ${voucher.title}! Code: $code'
+                  : 'Successfully redeemed: ${voucher.title}!',
+              style: const TextStyle(color: Colors.white),
+            ),
             backgroundColor: EverforestColors.green,
           ),
         );

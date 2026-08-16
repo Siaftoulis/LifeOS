@@ -55,12 +55,17 @@ The host daemon manages downloader pipelines, queries TMDb APIs, and downloads s
 
 ### REST Endpoints
 - **List & Control Catalog:**
-  - `GET /api/v1/movies`
+  - `GET /api/v1/movies?q={query}&status={AVAILABLE|DOWNLOADING|WATCHED}` — search + filter (powers the Zen Editor `movie:` autocomplete). *Implemented 2026-08-11.*
+  - `GET /api/v1/movies/{id}` — single movie incl. average review rating. *Implemented.*
   - Response: `JSON` list of local files, TMDb ratings, and watch logs.
 - **Add Watchlist Targets:**
+  - `GET /api/v1/movies/watchlist` — list watchlist entries joined with movie metadata. *Implemented.*
   - `POST /api/v1/movies/watchlist`
   - Payload: `{"movie_id": "imdb_code_string"}`
   - Response: Added watchlist metadata details.
+- **Reviews (one per movie, upsert, sets status WATCHED):**
+  - `POST /api/v1/movies/reviews` — payload `{"movie_id", "rating" (0-10), "comment"}`. *Implemented.*
+  - `GET /api/v1/movies/reviews?movie_id={id}` — fetch review. *Implemented.*
 - **Get OpenSubtitles Lists:**
   - `GET /api/v1/movies/subtitles?imdb_id={id}`
   - Response: Matching subtitles files list.

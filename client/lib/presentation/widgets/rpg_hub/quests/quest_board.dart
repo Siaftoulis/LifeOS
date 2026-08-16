@@ -7,6 +7,7 @@ import 'quest_pool_list.dart';
 import 'quest_reward_store.dart';
 import 'add_quest_dialog.dart';
 import '../../../../api_client.dart';
+import '../../../../core/event_hub.dart';
 
 class QuestBoard extends StatefulWidget {
   const QuestBoard({super.key});
@@ -23,6 +24,8 @@ class _QuestBoardState extends State<QuestBoard> {
   void initState() {
     super.initState();
     _fetchPoints();
+    // Live: the daemon pushed a balance change → refresh instantly, no poll.
+    EventHub.instance.on('points:balance-change').listen((_) => _fetchPoints());
   }
 
   Future<void> _fetchPoints() async {

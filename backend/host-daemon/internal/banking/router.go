@@ -2,7 +2,13 @@ package banking
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 type Transaction struct {
@@ -15,12 +21,7 @@ type Transaction struct {
 }
 
 func RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/v1/banking/parse-pdf", func(w http.ResponseWriter, r *http.Request) {
-		// keeping old stub
-		response := map[string]interface{}{"provider": "DEI"}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
-	})
+	mux.HandleFunc("/api/v1/banking/parse-pdf", handleParsePdf)
 
 	mux.HandleFunc("/api/v1/banking/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -63,5 +64,67 @@ func RegisterRoutes(mux *http.ServeMux) {
 		}
 
 		json.NewEncoder(w).Encode(txs)
+	})
+}
+
+// handleParsePdf accepts a multipart PDF upload, extracts the amount (and
+// invoice date) and archives the receipt. The client confirms before saving
+// the transaction.
+func handleParsePdf(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 20<<20)
+	f, h, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "missing file field", http.StatusBadRequest)
+		return
+	}
+	defer f.Close()
+	if !strings.HasSuffix(strings.ToLower(h.Filename), ".pdf") {
+		http.Error(w, "only PDF files are accepted", http.StatusBadRequest)
+		return
+	}
+
+	tmp, err := os.CreateTemp("", "receipt-*.pdf")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := io.Copy(tmp, f); err != nil {
+		tmp.Close()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmp.Close()
+
+	amountCents, err := ExtractBillAmount(tmp.Name())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	os.MkdirAll("./data/receipts", 0755)
+	archivePath := filepath.Join("./data/receipts", fmt.Sprintf("%s-%s", time.Now().Format("20060102-150405"), h.Filename))
+	archived, err := os.Open(tmp.Name())
+	if err == nil {
+		defer archived.Close()
+		dest, derr := os.Create(archivePath)
+		if derr == nil {
+			io.Copy(dest, archived)
+			dest.Close()
+		}
+	}
+
+	title := strings.TrimSuffix(h.Filename, filepath.Ext(h.Filename))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"amount":       float64(amountCents) / 100.0,
+		"amount_cents": amountCents,
+		"title":        title,
+		"date":         ExtractBillDate(tmp.Name()),
+		"archived_at":  archivePath,
 	})
 }

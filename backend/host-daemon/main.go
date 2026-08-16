@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"lifeos/host-daemon/internal/accounting"
 	"lifeos/host-daemon/internal/auth"
 	"lifeos/host-daemon/internal/auth/middleware"
+	"lifeos/host-daemon/internal/automations"
 	"lifeos/host-daemon/internal/backup"
 	"lifeos/host-daemon/internal/banking"
 	"lifeos/host-daemon/internal/books"
@@ -12,6 +14,8 @@ import (
 	"lifeos/host-daemon/internal/cloud"
 	"lifeos/host-daemon/internal/darkweb"
 	"lifeos/host-daemon/internal/devsim"
+	"lifeos/host-daemon/internal/engine"
+	"lifeos/host-daemon/internal/events"
 	"lifeos/host-daemon/internal/flashcards"
 	"lifeos/host-daemon/internal/gallery"
 	"lifeos/host-daemon/internal/home"
@@ -21,10 +25,10 @@ import (
 	"lifeos/host-daemon/internal/knowledge"
 	"lifeos/host-daemon/internal/location"
 	"lifeos/host-daemon/internal/markdown"
-	"lifeos/host-daemon/internal/notes"
 	"lifeos/host-daemon/internal/media"
 	"lifeos/host-daemon/internal/movies"
 	"lifeos/host-daemon/internal/music"
+	"lifeos/host-daemon/internal/notes"
 	"lifeos/host-daemon/internal/oauth"
 	"lifeos/host-daemon/internal/player"
 	"lifeos/host-daemon/internal/points"
@@ -35,8 +39,7 @@ import (
 	"lifeos/host-daemon/internal/voice"
 	"lifeos/host-daemon/internal/youtube"
 	"lifeos/host-daemon/internal/zen"
-	"lifeos/host-daemon/internal/engine"
-	"encoding/json"
+	"lifeos/host-daemon/internal/telemetry"
 	"log"
 	"net/http"
 	"os"
@@ -114,6 +117,10 @@ func main() {
 		log.Printf("Sync DB init error: %v", err)
 	}
 
+	if err := engine.InitDB("./data"); err != nil {
+		log.Printf("Engine DB init error: %v", err)
+	}
+
 	if err := sandbox.InitDB("./data"); err != nil {
 		log.Printf("Sandbox DB init error: %v", err)
 	}
@@ -159,6 +166,15 @@ func main() {
 	knowledge.RegisterRoutes(mux)
 	engine.RegisterRoutes(mux)
 	zen.RegisterRoutes(mux)
+	telemetry.RegisterRoutes(mux)
+
+	// The ecosystem brain: every cross-domain rule lives here. Publishing
+	// modules never know their listeners; listeners never know each other.
+	automations.Register()
+
+	// Push every bus fact to connected clients (app + web portal).
+	events.Start()
+	mux.HandleFunc("/api/v1/events", events.HandleEvents)
 
 	// OAuth SSO (GitHub/Google) for family members; 503 if not configured
 	mux.HandleFunc("/api/v1/auth/oauth/providers", func(w http.ResponseWriter, r *http.Request) {
@@ -186,6 +202,9 @@ func main() {
 		"/api/v1/auth/oauth/google/start",
 		"/api/v1/auth/oauth/google/callback",
 		"/api/markdown/collab",
+		"/api/v1/events", // WS: validates ?token= / Bearer itself
+		"/api/v1/radar/live", // WS: radar live coordinates
+		"/api/v1/music/*",
 	}, mux)
 
 	// ponytail: Funnel upstream — public traffic arrives here via Tailscale

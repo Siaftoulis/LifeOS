@@ -6,7 +6,6 @@ class SyncInterceptor extends QueryInterceptor {
 
   SyncInterceptor(this._inner);
 
-  @override
   QueryExecutor get inner => _inner;
 
   @override

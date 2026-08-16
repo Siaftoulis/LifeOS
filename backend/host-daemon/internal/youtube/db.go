@@ -32,6 +32,10 @@ func createTables() error {
 		title TEXT NOT NULL,
 		size TEXT NOT NULL
 	);
+	CREATE TABLE IF NOT EXISTS sessions (
+		user_id TEXT PRIMARY KEY,
+		started_at INTEGER NOT NULL
+	);
 	`
 
 	_, err := DB.Exec(query)
@@ -39,32 +43,5 @@ func createTables() error {
 		return fmt.Errorf("failed to create youtube tables: %v", err)
 	}
 
-	// Seed data
-	var count int
-	err = DB.QueryRow("SELECT COUNT(*) FROM videos").Scan(&count)
-	if err == nil && count == 0 {
-		seedVideos()
-	}
-
 	return nil
-}
-
-func seedVideos() {
-	videos := []struct {
-		ID    string
-		Title string
-		Size  string
-	}{
-		{"yt_1", "Flutter Tutorial - State Management", "345 MB"},
-		{"yt_2", "Lofi Hip Hop Radio 24/7", "1.2 GB"},
-		{"yt_3", "Tech News Weekly", "128 MB"},
-	}
-
-	for _, v := range videos {
-		_, err := DB.Exec("INSERT INTO videos (id, title, size) VALUES (?, ?, ?)",
-			v.ID, v.Title, v.Size)
-		if err != nil {
-			log.Printf("Failed to seed video: %v", err)
-		}
-	}
 }

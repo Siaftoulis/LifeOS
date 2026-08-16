@@ -90,13 +90,29 @@ func ValidateToken(authHeader string) (*Claims, bool) {
 // public allowlist. The whole daemon is unusable without a valid session.
 func WithAuthGate(public []string, next http.Handler) http.Handler {
 	publicSet := make(map[string]bool, len(public))
+	var publicPrefixes []string
 	for _, p := range public {
-		publicSet[p] = true
+		if strings.HasSuffix(p, "*") {
+			publicPrefixes = append(publicPrefixes, strings.TrimSuffix(p, "*"))
+		} else if strings.HasSuffix(p, "/") {
+			publicPrefixes = append(publicPrefixes, p)
+		} else {
+			publicSet[p] = true
+		}
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") && !publicSet[r.URL.Path] {
-			RequireAuth(next.ServeHTTP)(w, r)
-			return
+			isPublicPrefix := false
+			for _, prefix := range publicPrefixes {
+				if strings.HasPrefix(r.URL.Path, prefix) {
+					isPublicPrefix = true
+					break
+				}
+			}
+			if !isPublicPrefix {
+				RequireAuth(next.ServeHTTP)(w, r)
+				return
+			}
 		}
 		next.ServeHTTP(w, r)
 	})

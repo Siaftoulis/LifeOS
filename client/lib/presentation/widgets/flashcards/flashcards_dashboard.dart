@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
-import '../../../core/general_engine/engine_repository.dart';
-import '../../../core/general_engine/general_engine_client.dart';
-import 'package:uuid/uuid.dart';
+import '../../../core/domain_repositories.dart';
 
 class FlashcardsDashboard extends StatefulWidget {
   const FlashcardsDashboard({super.key});
@@ -14,10 +12,9 @@ class FlashcardsDashboard extends StatefulWidget {
 class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<GeneralEngineEntity>>(
-      valueListenable: EngineRepository.instance.allEntities,
-      builder: (context, entities, child) {
-        final decks = EngineRepository.instance.flashcardDecks;
+    return ValueListenableBuilder<List<FlashcardDeck>>(
+      valueListenable: FlashcardsRepository.instance.decks,
+      builder: (context, decks, child) {
 
         return Container(
           color: EverforestColors.bg0,
@@ -114,20 +111,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
             onPressed: () async {
               final name = controller.text.trim();
               if (name.isNotEmpty) {
-                final entity = GeneralEngineEntity(
-                  id: const Uuid().v4(),
-                  type: 'flashcard_deck',
-                  creatorId: 'local_user',
-                  payload: {
-                    'name': name,
-                    'due_cards': 0,
-                    'new_cards': 10,
-                  },
-                  sharedWith: [],
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-                await EngineRepository.instance.saveEntity(entity);
+                await FlashcardsRepository.instance.createDeck(name);
               }
               if (ctx.mounted) Navigator.pop(ctx);
             },
@@ -138,12 +122,12 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
     );
   }
 
-  Widget _buildDailyTargets(List<GeneralEngineEntity> decks) {
+  Widget _buildDailyTargets(List<FlashcardDeck> decks) {
     int toReview = 0;
     int newCards = 0;
     for (final d in decks) {
-      toReview += (d.payload['due_cards'] as num?)?.toInt() ?? 0;
-      newCards += (d.payload['new_cards'] as num?)?.toInt() ?? 0;
+      toReview += d.dueCards;
+      newCards += d.newCards;
     }
 
     return Container(
@@ -216,7 +200,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
     );
   }
 
-  Widget _buildDecksGrid(List<GeneralEngineEntity> decks) {
+  Widget _buildDecksGrid(List<FlashcardDeck> decks) {
     if (decks.isEmpty) {
       return const Center(child: Text("No decks found.", style: TextStyle(color: EverforestColors.grey)));
     }
@@ -235,8 +219,8 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
         final deck = decks[index];
         final color = colors[index % colors.length];
         
-        final due = (deck.payload['due_cards'] as num?)?.toInt() ?? 0;
-        final newCards = (deck.payload['new_cards'] as num?)?.toInt() ?? 0;
+        final due = deck.dueCards;
+        final newCards = deck.newCards;
         
         return Container(
           padding: const EdgeInsets.all(20),
@@ -265,7 +249,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
               ),
               const Spacer(),
               Text(
-                deck.payload['name'] as String? ?? 'Unknown Deck',
+                deck.name,
                 style: const TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,

@@ -111,14 +111,19 @@ jobs:
         run: |
           BUILD_NUM=$(jq '.build_number' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## Release Build #$BUILD_NUM — v1.2.0 (Aves Libre Replica)
+          ## Release Build #$BUILD_NUM — LifeOS Audiophile Studio & Music Vault
 
-          ### Highlights
-          - **1:1 Aves Libre Viewer Engine**: Integrated high-performance `extended_image` for exact pinch-to-zoom, pan physics, and gesture mechanics identical to Aves Libre.
-          - **Native Media Access**: Replaced platform channels with direct native integration via `photo_manager` for instant, raw device gallery access without serialization bottlenecks.
-          - **Smart Video Player & Scrubber**: Engineered a gesture-aware video player that syncs perfectly with immersive mode, overlay menus, and includes precise drag-to-scrub functionality.
-          - **Dynamic Map Clustering**: Deployed `flutter_map_marker_cluster` on the Map View to smoothly cluster hundreds of geo-tagged photos dynamically, optimizing RAM and preventing map overloading.
-          - **Async Location Extraction**: Implemented granular `ACCESS_MEDIA_LOCATION` permission requests and async EXIF parsing to load real GPS metadata on-the-fly.
+          ### Highlights & What's New
+          - **Audiophile Music Studio & Poweramp UI**:
+            - Live Poweramp v3 Now Playing Sheet, Mini-Player Dock, and Real-Time Waveform Visualizer.
+            - Native libmpv DSP Audio Pipeline: 10-Band Graphic Equalizer, Bass Boost, Treble Boost, 3D Spatial Audio (\`stereotools\`), and Preamp Gain.
+            - Smart Auto-Generated Playlists: Dynamic Artist Collections, Genre & Mood Mixes (Greek Classics, Rock & Metal, Pop Hits, Hip-Hop, EDM Club, Acoustic Ballads, Chill & Relax), and Smart Mixes (Quick Hits, Deep Sessions, Discovery Shuffle).
+            - Track Management: Direct track deletion from disk, stream cache, and SQLite vault.
+            - Instant Stream Resolver (\`/api/v1/music/resolve\`) with direct CDN handoff.
+          - **YouTube Media Hub**:
+            - Integrated NewPipe bridge for fast audio/video stream extraction and background caching.
+          - **Host Daemon & Embedded Web App**:
+            - Unified Go backend daemon (\`/api/v1/...\`) serving local-first SQLite and embedded Flutter web application.
           EOF
 
       - name: Publish Release

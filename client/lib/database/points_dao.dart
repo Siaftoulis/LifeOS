@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'database.dart';
 import 'tables.dart';
 
-import 'package:flutter/foundation.dart';
 import '../api_client.dart';
 
 part 'points_dao.g.dart';
@@ -41,17 +40,6 @@ class PointsDao extends DatabaseAccessor<AppDatabase> with _$PointsDaoMixin {
           timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           isDirty: const Value(1),
         ));
-
-        // Async sync to daemon
-        try {
-          ApiClient.instance.postDaemon('/api/v1/points/ledger', {
-            'user_id': user.id,
-            'event': event,
-            'points': points,
-          });
-        } catch (e) {
-          debugPrint('Daemon points sync deferred: $e');
-        }
       }
     });
   }

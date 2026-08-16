@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../../theme/everforest_colors.dart';
 import '../../../../database/database.dart';
 import '../../../../api_client.dart';
+import '../../../../core/telemetry/telemetry_reporter.dart';
 
 class VMManagementDashboard extends StatefulWidget {
   const VMManagementDashboard({super.key});
@@ -57,6 +58,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
       });
       if (res is Map<String, dynamic> && res['status'] == 'action_dispatched') {
         final dao = AppDatabase.instance.vmDao;
+        TelemetryReporter.instance.track('vm', 'toggled', {'vm_id': vm.id, 'action': action});
         await dao.updateVM(VirtualMachinesCompanion(
           id: drift.Value(vm.id),
           name: drift.Value(vm.name),

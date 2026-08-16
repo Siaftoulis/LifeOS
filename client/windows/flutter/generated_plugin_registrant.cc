@@ -9,6 +9,7 @@
 #include <desktop_multi_window/desktop_multi_window_plugin.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <geolocator_windows/geolocator_windows.h>
+#include <media_kit_libs_windows_audio/media_kit_libs_windows_audio_plugin_c_api.h>
 #include <nsd_windows/nsd_windows_plugin_c_api.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <rich_clipboard_windows/none.h>
@@ -24,6 +25,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   GeolocatorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("GeolocatorWindows"));
+  MediaKitLibsWindowsAudioPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("MediaKitLibsWindowsAudioPluginCApi"));
   NsdWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("NsdWindowsPluginCApi"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(

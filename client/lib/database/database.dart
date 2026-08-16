@@ -89,9 +89,9 @@ class AppDatabase extends _$AppDatabase {
             await customStatement("INSERT INTO system_users (id, username, is_locked, failed_attempts, current_points, updated_at, is_dirty) VALUES ('u-bob', 'Bob', 0, 0, 820, 1622000000, 0);");
             await customStatement("INSERT INTO system_users (id, username, is_locked, failed_attempts, current_points, updated_at, is_dirty) VALUES ('u-charlie', 'Charlie', 0, 0, 310, 1622000000, 0);");
             
-            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-1', '1 Hour TV/Netflix', 50, 0, 0);");
-            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-2', 'Stay Up 1hr Later', 100, 0, 0);");
-            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-3', 'Pizza Night', 300, 0, 0);");
+            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-1', '1 Hour TV/Netflix', 100, 0, 0);");
+            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-2', 'Stay Up 1hr Later', 200, 0, 0);");
+            await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-3', 'Pizza Night', 500, 0, 0);");
             await customStatement("INSERT INTO vouchers (id, title, cost_points, is_redeemed, is_dirty) VALUES ('v-4', 'Buy New Video Game', 1000, 0, 0);");
 
             await customStatement("INSERT INTO points_ledgers (id, user_id, event, points, timestamp, is_dirty) VALUES ('l-1', 'u-admin-1', 'Completed Math Homework', 10, 1622000000, 0);");

@@ -142,6 +142,32 @@ class ApiClient {
     throw Exception();
   }
 
+  Future<dynamic> deleteDaemon(String endpoint) async {
+    final res = await _http.delete(Uri.parse('$daemonUrl$endpoint'), headers: _headers).timeout(const Duration(seconds: 5));
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (res.body.isNotEmpty) {
+        try {
+          return jsonDecode(res.body);
+        } catch (_) {}
+      }
+      return {'status': 'deleted'};
+    }
+    throw Exception('Delete failed with status: ${res.statusCode}');
+  }
+
+  // Slow daemon calls (NewPipe bridge spawn + extraction can take ~30s).
+  Future<dynamic> postDaemonSlow(String endpoint, Map<String, dynamic> body) async {
+    final res = await _http.post(Uri.parse('$daemonUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 120));
+    if (res.statusCode == 200) return jsonDecode(res.body);
+    throw Exception();
+  }
+
+  Future<dynamic> getDaemonSlow(String endpoint) async {
+    final res = await _http.get(Uri.parse('$daemonUrl$endpoint'), headers: _headers).timeout(const Duration(seconds: 120));
+    if (res.statusCode == 200) return jsonDecode(res.body);
+    throw Exception();
+  }
+
   Future<void> _flushQueue() async {
     if (_syncQueue.isEmpty) return;
     final copy = List<Map<String, dynamic>>.from(_syncQueue); _syncQueue.clear(); _updateQueueState();

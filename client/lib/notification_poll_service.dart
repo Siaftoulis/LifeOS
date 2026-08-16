@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart' show Variable;
 import 'api_client.dart';
+import 'auth_service.dart';
 import 'database/database.dart';
 
 import 'core/general_engine/engine_repository.dart';
@@ -45,6 +46,7 @@ class NotificationPollService {
 
     _timer = Timer.periodic(const Duration(seconds: 4), (_) async {
       try {
+        if (!AuthService.instance.isAuthenticated) return;
         final List<dynamic> list = await ApiClient.instance.postDaemon('/api/v1/notifications', {});
         final dao = AppDatabase.instance.homeScreenDao;
         for (final item in list) {
@@ -70,9 +72,7 @@ class NotificationPollService {
           }
         }
       } catch (e) {
-        if (!e.toString().contains('Connection refused')) {
-          debugPrint('Error polling notifications: $e');
-        }
+        // Silently ignore expected network / auth retry exceptions during startup
       }
     });
   }

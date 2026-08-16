@@ -30,7 +30,6 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
   late ExtendedPageController _pageController;
   late int _currentIndex;
   bool _isImmersive = false;
-  double _bgOpacity = 1.0;
   bool _isSyncing = false;
 
   @override
@@ -373,6 +372,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
     }
 
     try {
+      // ignore: deprecated_member_use
       await Share.shareXFiles([XFile(targetItem.pathOrUrl)], text: targetItem.label);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to share: $e')));

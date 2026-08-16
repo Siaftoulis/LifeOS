@@ -45,6 +45,12 @@ dependencies:
   markdown_editor_live: ^0.6.0
   appflowy_editor: ^1.4.0
   file_picker: ^11.0.0
+  just_audio: ^0.10.6
+  on_audio_query: ^2.9.0
+  just_audio_media_kit: ^2.1.0
+  media_kit_libs_windows_audio: ^1.0.9
+  media_kit: ^1.2.6
+  ffi: ^2.1.2
 
 
 

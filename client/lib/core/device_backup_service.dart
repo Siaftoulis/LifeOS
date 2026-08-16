@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:crypto/crypto.dart';
 import '../api_client.dart';
+import 'telemetry/telemetry_reporter.dart';
 
 class DeviceBackupService {
   static String get baseUrl => '${ApiClient.instance.daemonUrl}/api/v1/backup';
@@ -178,7 +179,11 @@ class DeviceBackupService {
       // Cleanup temp
       if (pdsFile.existsSync()) pdsFile.deleteSync();
 
-      return mergeResponse.statusCode == 200;
+      final mergeOk = mergeResponse.statusCode == 200;
+      if (mergeOk) {
+        TelemetryReporter.instance.track('backup', 'uploaded', {'upload_id': uploadId});
+      }
+      return mergeOk;
     } catch (e) {
       print('Backup Error: $e');
       return false;

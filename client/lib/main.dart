@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/rendering.dart';
 import 'app_bootstrap.dart';
@@ -16,6 +17,11 @@ Future<void> main([List<String> args = const []]) async {
     debugPaintSizeEnabled = false;
     
     if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      JustAudioMediaKit.ensureInitialized(
+        windows: true,
+        linux: true,
+        macOS: true,
+      );
       await windowManager.ensureInitialized();
       WindowOptions windowOptions = const WindowOptions(
         size: Size(1280, 720),

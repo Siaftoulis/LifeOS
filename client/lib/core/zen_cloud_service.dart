@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import '../api_client.dart';
 import '../database/database.dart';
 import 'obsidian/zen_sync_service.dart';
+import 'telemetry/telemetry_reporter.dart';
 
 /// Cloud sync for the Zen vault. Pushes locally-dirty ZenNodes/ZenDocuments to
 /// the Go daemon and applies whatever the server has that is newer.
@@ -72,6 +73,7 @@ class ZenCloudService {
 
       await _clearDirty(dirtyNodes, dirtyDocs);
       await _applyRemote(res);
+      TelemetryReporter.instance.track('zen', 'note_synced', {'nodes': dirtyNodes.length});
       debugPrint('[ZenCloud] sync ok: pushed ${dirtyNodes.length} nodes/${dirtyDocs.length} docs, '
           'got ${(res['nodes'] as List).length} nodes/${(res['documents'] as List).length} docs');
     } catch (e) {

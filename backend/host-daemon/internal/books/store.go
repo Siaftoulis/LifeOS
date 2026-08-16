@@ -8,6 +8,9 @@ type Book struct {
 	TotalPages  int    `json:"total_pages"`
 	FilePath    string `json:"file_path"`
 	Status      string `json:"status"`
+	Cover       string `json:"cover"`
+	Description string `json:"description"`
+	Rating      float64 `json:"rating"`
 }
 
 type ReadingProgress struct {
