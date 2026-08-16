@@ -41,7 +41,16 @@ func parseLRC(lrc string) []LyricLine {
 // HandleGetLyrics fetches synced lyrics from LRCLIB (free, no key) for the
 // given title/artist and returns timed lines.
 func HandleGetLyrics(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	title := strings.TrimSpace(r.URL.Query().Get("title"))
 	artist := strings.TrimSpace(r.URL.Query().Get("artist"))
 	if title == "" {

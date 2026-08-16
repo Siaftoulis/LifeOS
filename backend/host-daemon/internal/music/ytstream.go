@@ -40,7 +40,16 @@ func getFlightLock(id string) *sync.Mutex {
 // HandleResolveStreamURL returns a JSON response containing the direct, playable stream URL.
 // Calling this endpoint ensures the client receives a 100% prepared stream URL before calling the player engine.
 func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	id := strings.TrimSpace(r.URL.Query().Get("id"))
 	if id == "" {
 		http.Error(w, `{"error":"Missing video id"}`, http.StatusBadRequest)
@@ -54,7 +63,7 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	// 1. If already saved to disk cache, serve directly with byte range seeking
 	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
 		json.NewEncoder(w).Encode(map[string]any{
-			"url":       fmt.Sprintf("http://localhost:50051/api/v1/music/ytstream/stream.m4a?id=%s", id),
+			"url":       fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
 			"is_cached": true,
 		})
 		return
@@ -81,7 +90,7 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
 		"--no-warnings",
 		"--no-check-certificates",
-		"-f", "bestaudio/18/ba/b/best",
+		"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
 		"-g",
 		"https://www.youtube.com/watch?v="+id,
 	)
@@ -124,6 +133,7 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -142,10 +152,14 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 
 	// 1. If already saved to disk cache, serve directly with byte range seeking
 	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
-		w.Header().Set("Accept-Ranges", "bytes")
-		w.Header().Set("Content-Type", "audio/mp4")
-		http.ServeFile(w, r, cacheFilePath)
-		return
+		file, err := os.Open(cacheFilePath)
+		if err == nil {
+			defer file.Close()
+			w.Header().Set("Accept-Ranges", "bytes")
+			w.Header().Set("Content-Type", "audio/mp4")
+			http.ServeContent(w, r, "stream.m4a", stat.ModTime(), file)
+			return
+		}
 	}
 
 	// 2. Check in-memory CDN URL cache
@@ -160,10 +174,11 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		// 3. Resolve direct YouTube audio stream URL via yt-dlp -g
 		log.Printf("music ytstream: resolving direct audio URL for %s...", id)
 		cmd := exec.Command("yt-dlp",
+			"--js-runtimes", "node:C:\\Program Files\\nodejs\\node.exe,node,bun",
 			"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
 			"--no-warnings",
 			"--no-check-certificates",
-			"-f", "bestaudio/18/ba/b/best",
+			"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
 			"-g",
 			"https://www.youtube.com/watch?v="+id,
 		)
@@ -200,13 +215,18 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 }
 
 func proxyStream(w http.ResponseWriter, r *http.Request, targetURL string) {
-	req, err := http.NewRequestWithContext(r.Context(), r.Method, targetURL, nil)
+	isHead := r.Method == http.MethodHead
+	httpMethod := http.MethodGet
+
+	req, err := http.NewRequestWithContext(r.Context(), httpMethod, targetURL, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if rangeHdr := r.Header.Get("Range"); rangeHdr != "" {
+	if isHead {
+		req.Header.Set("Range", "bytes=0-0")
+	} else if rangeHdr := r.Header.Get("Range"); rangeHdr != "" {
 		req.Header.Set("Range", rangeHdr)
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -219,17 +239,36 @@ func proxyStream(w http.ResponseWriter, r *http.Request, targetURL string) {
 	}
 	defer resp.Body.Close()
 
-	for k, vv := range resp.Header {
-		for _, v := range vv {
-			w.Header().Add(k, v)
-		}
-	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
 	w.Header().Set("Accept-Ranges", "bytes")
-	if w.Header().Get("Content-Type") == "" {
-		w.Header().Set("Content-Type", "audio/mp4")
+
+	if ct := resp.Header.Get("Content-Type"); ct != "" {
+		w.Header().Set("Content-Type", ct)
+	} else {
+		w.Header().Set("Content-Type", "audio/webm")
 	}
-	w.WriteHeader(resp.StatusCode)
+	if cl := resp.Header.Get("Content-Length"); cl != "" && !isHead {
+		w.Header().Set("Content-Length", cl)
+	}
+	if cr := resp.Header.Get("Content-Range"); cr != "" {
+		w.Header().Set("Content-Range", cr)
+	}
+	if lm := resp.Header.Get("Last-Modified"); lm != "" {
+		w.Header().Set("Last-Modified", lm)
+	}
+
+	statusCode := resp.StatusCode
+	if isHead && statusCode == http.StatusPartialContent {
+		statusCode = http.StatusOK
+	}
+	w.WriteHeader(statusCode)
+
+	if isHead {
+		return
+	}
 
 	buf := make([]byte, 64*1024)
 	for {
@@ -268,7 +307,7 @@ func maybeCacheInBackground(id string, destPath string) {
 		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
 		"--no-warnings",
 		"--no-check-certificates",
-		"-f", "bestaudio/18/ba/b/best",
+		"-f", "bestaudio[ext=m4a]/bestaudio/ba/b",
 		"--no-playlist",
 		"-o", tmpFile,
 		"https://www.youtube.com/watch?v="+id,

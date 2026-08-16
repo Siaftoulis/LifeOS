@@ -338,12 +338,13 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
     try {
       String playUrl = item.url;
+      final daemon = ApiClient.instance.daemonUrl.replaceAll(RegExp(r'/+$'), '');
       if (item.url.contains('/api/v1/music/ytstream/') ||
           item.url.contains('ytstream') ||
           (!item.url.startsWith('file:') &&
               !item.url.startsWith('http://') &&
               !item.url.startsWith('https://'))) {
-        playUrl = '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${item.id}';
+        playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=${item.id}';
       }
 
       debugPrint('Music player playing url: $playUrl');
