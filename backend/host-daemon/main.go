@@ -187,7 +187,13 @@ func main() {
 	}
 
 	// Web portal: family browser access (login + modules) served at /
-	mux.Handle("/", http.FileServer(http.Dir("./web")))
+	fileServer := http.FileServer(http.Dir("./web"))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		fileServer.ServeHTTP(w, r)
+	})
 
 	// ponytail: global auth gate. Every /api/ route requires a valid JWT except
 	// login, register (public by design), the OAuth entry points and the collab

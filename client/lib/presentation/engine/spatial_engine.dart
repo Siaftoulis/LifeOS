@@ -39,6 +39,10 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   bool _isBackNav = false;
   DateTime? _lastEscapeAt;
 
+  DateTime? _lastBumpTime;
+  String? _lastBumpDirection;
+  bool _hasBumpedInCurrentDrag = false;
+
   List<List<Widget>> _cachedModules = [];
 
   void _buildModuleCache() {
@@ -101,9 +105,80 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    // Inner scroll views (ListView, SingleChildScrollView, etc.) handle their own scrolling.
-    // We do not bump screens on normal scroll updates or overscroll to prevent disrupting inner navigation.
+    if (notification is ScrollUpdateNotification) {
+      if (_hasBumpedInCurrentDrag) return false;
+      final metrics = notification.metrics;
+      final delta = notification.scrollDelta ?? 0;
+
+      final atStart = metrics.pixels <= metrics.minScrollExtent;
+      final atEnd = metrics.pixels >= metrics.maxScrollExtent;
+
+      if (metrics.axis == Axis.vertical) {
+        if (atStart && delta < -1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('up');
+        } else if (atEnd && delta > 1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('down');
+        }
+      } else if (metrics.axis == Axis.horizontal) {
+        if (atStart && delta < -1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('left');
+        } else if (atEnd && delta > 1.0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('right');
+        }
+      }
+    } else if (notification is OverscrollNotification) {
+      if (_hasBumpedInCurrentDrag) return false;
+      final metrics = notification.metrics;
+      final overscroll = notification.overscroll;
+
+      if (metrics.axis == Axis.vertical) {
+        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('up');
+        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('down');
+        }
+      } else if (metrics.axis == Axis.horizontal) {
+        if (metrics.pixels <= metrics.minScrollExtent && overscroll < 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('left');
+        } else if (metrics.pixels >= metrics.maxScrollExtent && overscroll > 0) {
+          _hasBumpedInCurrentDrag = true;
+          _registerBump('right');
+        }
+      }
+    } else if (notification is ScrollEndNotification) {
+      _hasBumpedInCurrentDrag = false;
+    }
     return false;
+  }
+
+  void _registerBump(String direction) {
+    final now = DateTime.now();
+    if (_lastBumpDirection == direction && _lastBumpTime != null) {
+      final diff = now.difference(_lastBumpTime!);
+      if (diff.inMilliseconds > 100 && diff.inMilliseconds < 800) {
+        _lastBumpTime = null;
+        _lastBumpDirection = null;
+        if (direction == 'up') {
+          nav(0, -1);
+        } else if (direction == 'down') {
+          nav(0, 1);
+        } else if (direction == 'left') {
+          nav(-1, 0);
+        } else if (direction == 'right') {
+          nav(1, 0);
+        }
+        return;
+      }
+    }
+    _lastBumpTime = now;
+    _lastBumpDirection = direction;
   }
 
   void _handlePanUpdate(DragUpdateDetails d) {
