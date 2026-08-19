@@ -25,17 +25,9 @@ jobs:
           channel: 'stable'
           flutter-version: '3.44.9'
 
-      - name: Scaffold & Patch Android Project
+      - name: Strip Local JVM Paths
         working-directory: ./client
-        run: |
-          # Backup our custom AndroidManifest before flutter create overwrites it
-          cp android/app/src/main/AndroidManifest.xml /tmp/LifeOSManifest.xml
-          flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
-          flutter pub add desktop_multi_window:^0.2.0 drift
-          # Restore our manifest that declares LifeOSWidgetProvider
-          cp /tmp/LifeOSManifest.xml android/app/src/main/AndroidManifest.xml
-          # Strip local JVM paths so Gradle uses setup-java path on the runner
-          sed -i '/org.gradle.java/d' android/gradle.properties
+        run: sed -i '/org.gradle.java/d' android/gradle.properties
 
       - name: Install Dependencies
         working-directory: ./client
@@ -63,12 +55,6 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.44.9'
-
-      - name: Scaffold Missing Project Files
-        working-directory: ./client
-        run: |
-          flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows .
-          flutter pub add desktop_multi_window:^0.2.0 drift
 
       - name: Install Dependencies
         working-directory: ./client
