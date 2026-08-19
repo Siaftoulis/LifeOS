@@ -23,6 +23,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: 'stable'
+          flutter-version: '3.44.9'
 
       - name: Scaffold & Patch Android Project
         working-directory: ./client
@@ -61,6 +62,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: 'stable'
+          flutter-version: '3.44.9'
 
       - name: Scaffold Missing Project Files
         working-directory: ./client
