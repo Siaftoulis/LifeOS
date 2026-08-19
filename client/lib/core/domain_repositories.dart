@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import '../api_client.dart';
 import '../database/database.dart';
+import 'offline_music_download.dart';
 import 'telemetry/telemetry_reporter.dart';
 
 class MusicTrack {
@@ -205,6 +207,10 @@ class MusicRepository extends _DaemonRepo {
 
   final ValueNotifier<List<MusicTrack>> tracks = ValueNotifier(const []);
 
+  /// Device-local offline tracks (Drift vault + app documents dir).
+  final ValueNotifier<List<OfflineMusicTrack>> offlineTracks =
+      ValueNotifier(const []);
+
   @override
   Future<void> _load() async {
     try {
@@ -221,6 +227,72 @@ class MusicRepository extends _DaemonRepo {
   }
   /// Reload the track library from the daemon.
   Future<void> refresh() => _load();
+
+  /// Load device-local offline tracks from the local Drift vault.
+  Future<void> loadOffline() async {
+    try {
+      final rows = await AppDatabase.instance.musicDao.getOfflineTracks();
+      rows.sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
+      offlineTracks.value = rows;
+    } catch (e) {
+      debugPrint('Load offline music error: $e');
+    }
+  }
+
+  bool isOffline(String trackId) =>
+      offlineTracks.value.any((t) => t.id == trackId);
+
+  String? offlineFilePath(String trackId) {
+    for (final t in offlineTracks.value) {
+      if (t.id == trackId && t.filePath.isNotEmpty) return t.filePath;
+    }
+    return null;
+  }
+
+  /// Download a library track to THIS device for offline playback.
+  /// On web this triggers a browser "Save as" download instead.
+  Future<bool> downloadOffline(MusicTrack track) async {
+    try {
+      final url =
+          '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${track.id}';
+      final path = await downloadToDevice(url, track.id);
+      await AppDatabase.instance.musicDao.insertOfflineTrack(
+        OfflineMusicTracksCompanion.insert(
+          id: track.id,
+          title: track.title,
+          artist: Value(track.artist),
+          album: Value(track.album),
+          thumbnail: Value(track.thumbnail),
+          filePath: path,
+          duration: Value(track.duration),
+          downloadedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      await loadOffline();
+      TelemetryReporter.instance
+          .track('music', 'offline_downloaded', {'track_id': track.id});
+      return true;
+    } catch (e) {
+      debugPrint('Offline music download error: $e');
+      return false;
+    }
+  }
+
+  /// Remove a device-local offline track (file + DB row).
+  Future<bool> deleteOffline(String trackId) async {
+    try {
+      final row = await AppDatabase.instance.musicDao.getOfflineTrack(trackId);
+      if (row != null) {
+        await deleteDownloadedFile(row.filePath);
+      }
+      await AppDatabase.instance.musicDao.deleteOfflineTrack(trackId);
+      await loadOffline();
+      return true;
+    } catch (e) {
+      debugPrint('Offline music delete error: $e');
+      return false;
+    }
+  }
 
   /// YouTube-Music-style search: `POST /api/v1/music/search` → daemon yt-dlp.
   Future<List<MusicTrack>> search(String query) async {

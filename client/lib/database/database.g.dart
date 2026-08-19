@@ -17853,6 +17853,429 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
   }
 }
 
+class $OfflineMusicTracksTable extends OfflineMusicTracks
+    with TableInfo<$OfflineMusicTracksTable, OfflineMusicTrack> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OfflineMusicTracksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistMeta = const VerificationMeta('artist');
+  @override
+  late final GeneratedColumn<String> artist = GeneratedColumn<String>(
+      'artist', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _albumMeta = const VerificationMeta('album');
+  @override
+  late final GeneratedColumn<String> album = GeneratedColumn<String>(
+      'album', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbnailMeta =
+      const VerificationMeta('thumbnail');
+  @override
+  late final GeneratedColumn<String> thumbnail = GeneratedColumn<String>(
+      'thumbnail', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _filePathMeta =
+      const VerificationMeta('filePath');
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+      'file_path', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _durationMeta =
+      const VerificationMeta('duration');
+  @override
+  late final GeneratedColumn<double> duration = GeneratedColumn<double>(
+      'duration', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  static const VerificationMeta _downloadedAtMeta =
+      const VerificationMeta('downloadedAt');
+  @override
+  late final GeneratedColumn<int> downloadedAt = GeneratedColumn<int>(
+      'downloaded_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, artist, album, thumbnail, filePath, duration, downloadedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'offline_music_tracks';
+  @override
+  VerificationContext validateIntegrity(Insertable<OfflineMusicTrack> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('artist')) {
+      context.handle(_artistMeta,
+          artist.isAcceptableOrUnknown(data['artist']!, _artistMeta));
+    }
+    if (data.containsKey('album')) {
+      context.handle(
+          _albumMeta, album.isAcceptableOrUnknown(data['album']!, _albumMeta));
+    }
+    if (data.containsKey('thumbnail')) {
+      context.handle(_thumbnailMeta,
+          thumbnail.isAcceptableOrUnknown(data['thumbnail']!, _thumbnailMeta));
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(_filePathMeta,
+          filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta));
+    } else if (isInserting) {
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('duration')) {
+      context.handle(_durationMeta,
+          duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
+    }
+    if (data.containsKey('downloaded_at')) {
+      context.handle(
+          _downloadedAtMeta,
+          downloadedAt.isAcceptableOrUnknown(
+              data['downloaded_at']!, _downloadedAtMeta));
+    } else if (isInserting) {
+      context.missing(_downloadedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  OfflineMusicTrack map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OfflineMusicTrack(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      artist: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artist']),
+      album: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}album']),
+      thumbnail: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail']),
+      filePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_path'])!,
+      duration: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}duration'])!,
+      downloadedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}downloaded_at'])!,
+    );
+  }
+
+  @override
+  $OfflineMusicTracksTable createAlias(String alias) {
+    return $OfflineMusicTracksTable(attachedDatabase, alias);
+  }
+}
+
+class OfflineMusicTrack extends DataClass
+    implements Insertable<OfflineMusicTrack> {
+  final String id;
+  final String title;
+  final String? artist;
+  final String? album;
+  final String? thumbnail;
+  final String filePath;
+  final double duration;
+  final int downloadedAt;
+  const OfflineMusicTrack(
+      {required this.id,
+      required this.title,
+      this.artist,
+      this.album,
+      this.thumbnail,
+      required this.filePath,
+      required this.duration,
+      required this.downloadedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || artist != null) {
+      map['artist'] = Variable<String>(artist);
+    }
+    if (!nullToAbsent || album != null) {
+      map['album'] = Variable<String>(album);
+    }
+    if (!nullToAbsent || thumbnail != null) {
+      map['thumbnail'] = Variable<String>(thumbnail);
+    }
+    map['file_path'] = Variable<String>(filePath);
+    map['duration'] = Variable<double>(duration);
+    map['downloaded_at'] = Variable<int>(downloadedAt);
+    return map;
+  }
+
+  OfflineMusicTracksCompanion toCompanion(bool nullToAbsent) {
+    return OfflineMusicTracksCompanion(
+      id: Value(id),
+      title: Value(title),
+      artist:
+          artist == null && nullToAbsent ? const Value.absent() : Value(artist),
+      album:
+          album == null && nullToAbsent ? const Value.absent() : Value(album),
+      thumbnail: thumbnail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnail),
+      filePath: Value(filePath),
+      duration: Value(duration),
+      downloadedAt: Value(downloadedAt),
+    );
+  }
+
+  factory OfflineMusicTrack.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OfflineMusicTrack(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      artist: serializer.fromJson<String?>(json['artist']),
+      album: serializer.fromJson<String?>(json['album']),
+      thumbnail: serializer.fromJson<String?>(json['thumbnail']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      duration: serializer.fromJson<double>(json['duration']),
+      downloadedAt: serializer.fromJson<int>(json['downloadedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'artist': serializer.toJson<String?>(artist),
+      'album': serializer.toJson<String?>(album),
+      'thumbnail': serializer.toJson<String?>(thumbnail),
+      'filePath': serializer.toJson<String>(filePath),
+      'duration': serializer.toJson<double>(duration),
+      'downloadedAt': serializer.toJson<int>(downloadedAt),
+    };
+  }
+
+  OfflineMusicTrack copyWith(
+          {String? id,
+          String? title,
+          Value<String?> artist = const Value.absent(),
+          Value<String?> album = const Value.absent(),
+          Value<String?> thumbnail = const Value.absent(),
+          String? filePath,
+          double? duration,
+          int? downloadedAt}) =>
+      OfflineMusicTrack(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        artist: artist.present ? artist.value : this.artist,
+        album: album.present ? album.value : this.album,
+        thumbnail: thumbnail.present ? thumbnail.value : this.thumbnail,
+        filePath: filePath ?? this.filePath,
+        duration: duration ?? this.duration,
+        downloadedAt: downloadedAt ?? this.downloadedAt,
+      );
+  OfflineMusicTrack copyWithCompanion(OfflineMusicTracksCompanion data) {
+    return OfflineMusicTrack(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      artist: data.artist.present ? data.artist.value : this.artist,
+      album: data.album.present ? data.album.value : this.album,
+      thumbnail: data.thumbnail.present ? data.thumbnail.value : this.thumbnail,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      duration: data.duration.present ? data.duration.value : this.duration,
+      downloadedAt: data.downloadedAt.present
+          ? data.downloadedAt.value
+          : this.downloadedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OfflineMusicTrack(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('album: $album, ')
+          ..write('thumbnail: $thumbnail, ')
+          ..write('filePath: $filePath, ')
+          ..write('duration: $duration, ')
+          ..write('downloadedAt: $downloadedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, title, artist, album, thumbnail, filePath, duration, downloadedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OfflineMusicTrack &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.artist == this.artist &&
+          other.album == this.album &&
+          other.thumbnail == this.thumbnail &&
+          other.filePath == this.filePath &&
+          other.duration == this.duration &&
+          other.downloadedAt == this.downloadedAt);
+}
+
+class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> artist;
+  final Value<String?> album;
+  final Value<String?> thumbnail;
+  final Value<String> filePath;
+  final Value<double> duration;
+  final Value<int> downloadedAt;
+  final Value<int> rowid;
+  const OfflineMusicTracksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.album = const Value.absent(),
+    this.thumbnail = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.downloadedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OfflineMusicTracksCompanion.insert({
+    required String id,
+    required String title,
+    this.artist = const Value.absent(),
+    this.album = const Value.absent(),
+    this.thumbnail = const Value.absent(),
+    required String filePath,
+    this.duration = const Value.absent(),
+    required int downloadedAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        title = Value(title),
+        filePath = Value(filePath),
+        downloadedAt = Value(downloadedAt);
+  static Insertable<OfflineMusicTrack> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? artist,
+    Expression<String>? album,
+    Expression<String>? thumbnail,
+    Expression<String>? filePath,
+    Expression<double>? duration,
+    Expression<int>? downloadedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (artist != null) 'artist': artist,
+      if (album != null) 'album': album,
+      if (thumbnail != null) 'thumbnail': thumbnail,
+      if (filePath != null) 'file_path': filePath,
+      if (duration != null) 'duration': duration,
+      if (downloadedAt != null) 'downloaded_at': downloadedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OfflineMusicTracksCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? title,
+      Value<String?>? artist,
+      Value<String?>? album,
+      Value<String?>? thumbnail,
+      Value<String>? filePath,
+      Value<double>? duration,
+      Value<int>? downloadedAt,
+      Value<int>? rowid}) {
+    return OfflineMusicTracksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      album: album ?? this.album,
+      thumbnail: thumbnail ?? this.thumbnail,
+      filePath: filePath ?? this.filePath,
+      duration: duration ?? this.duration,
+      downloadedAt: downloadedAt ?? this.downloadedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
+    }
+    if (album.present) {
+      map['album'] = Variable<String>(album.value);
+    }
+    if (thumbnail.present) {
+      map['thumbnail'] = Variable<String>(thumbnail.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<double>(duration.value);
+    }
+    if (downloadedAt.present) {
+      map['downloaded_at'] = Variable<int>(downloadedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OfflineMusicTracksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('album: $album, ')
+          ..write('thumbnail: $thumbnail, ')
+          ..write('filePath: $filePath, ')
+          ..write('duration: $duration, ')
+          ..write('downloadedAt: $downloadedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MediaAssetsTable extends MediaAssets
     with TableInfo<$MediaAssetsTable, MediaAsset> {
   @override
@@ -22821,6 +23244,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MusicTracksTable musicTracks = $MusicTracksTable(this);
   late final $PlaylistsTable playlists = $PlaylistsTable(this);
   late final $PlaylistTracksTable playlistTracks = $PlaylistTracksTable(this);
+  late final $OfflineMusicTracksTable offlineMusicTracks =
+      $OfflineMusicTracksTable(this);
   late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
   late final $MediaTagsTable mediaTags = $MediaTagsTable(this);
   late final $PointRulesTable pointRules = $PointRulesTable(this);
@@ -22913,6 +23338,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         musicTracks,
         playlists,
         playlistTracks,
+        offlineMusicTracks,
         mediaAssets,
         mediaTags,
         pointRules,
@@ -35467,6 +35893,227 @@ typedef $$PlaylistTracksTableProcessedTableManager = ProcessedTableManager<
     (PlaylistTrack, $$PlaylistTracksTableReferences),
     PlaylistTrack,
     PrefetchHooks Function({bool playlistId, bool trackId})>;
+typedef $$OfflineMusicTracksTableCreateCompanionBuilder
+    = OfflineMusicTracksCompanion Function({
+  required String id,
+  required String title,
+  Value<String?> artist,
+  Value<String?> album,
+  Value<String?> thumbnail,
+  required String filePath,
+  Value<double> duration,
+  required int downloadedAt,
+  Value<int> rowid,
+});
+typedef $$OfflineMusicTracksTableUpdateCompanionBuilder
+    = OfflineMusicTracksCompanion Function({
+  Value<String> id,
+  Value<String> title,
+  Value<String?> artist,
+  Value<String?> album,
+  Value<String?> thumbnail,
+  Value<String> filePath,
+  Value<double> duration,
+  Value<int> downloadedAt,
+  Value<int> rowid,
+});
+
+class $$OfflineMusicTracksTableFilterComposer
+    extends Composer<_$AppDatabase, $OfflineMusicTracksTable> {
+  $$OfflineMusicTracksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get artist => $composableBuilder(
+      column: $table.artist, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get album => $composableBuilder(
+      column: $table.album, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnail => $composableBuilder(
+      column: $table.thumbnail, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get downloadedAt => $composableBuilder(
+      column: $table.downloadedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$OfflineMusicTracksTableOrderingComposer
+    extends Composer<_$AppDatabase, $OfflineMusicTracksTable> {
+  $$OfflineMusicTracksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get artist => $composableBuilder(
+      column: $table.artist, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get album => $composableBuilder(
+      column: $table.album, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbnail => $composableBuilder(
+      column: $table.thumbnail, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get downloadedAt => $composableBuilder(
+      column: $table.downloadedAt,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$OfflineMusicTracksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OfflineMusicTracksTable> {
+  $$OfflineMusicTracksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get artist =>
+      $composableBuilder(column: $table.artist, builder: (column) => column);
+
+  GeneratedColumn<String> get album =>
+      $composableBuilder(column: $table.album, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbnail =>
+      $composableBuilder(column: $table.thumbnail, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<double> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<int> get downloadedAt => $composableBuilder(
+      column: $table.downloadedAt, builder: (column) => column);
+}
+
+class $$OfflineMusicTracksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $OfflineMusicTracksTable,
+    OfflineMusicTrack,
+    $$OfflineMusicTracksTableFilterComposer,
+    $$OfflineMusicTracksTableOrderingComposer,
+    $$OfflineMusicTracksTableAnnotationComposer,
+    $$OfflineMusicTracksTableCreateCompanionBuilder,
+    $$OfflineMusicTracksTableUpdateCompanionBuilder,
+    (
+      OfflineMusicTrack,
+      BaseReferences<_$AppDatabase, $OfflineMusicTracksTable, OfflineMusicTrack>
+    ),
+    OfflineMusicTrack,
+    PrefetchHooks Function()> {
+  $$OfflineMusicTracksTableTableManager(
+      _$AppDatabase db, $OfflineMusicTracksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OfflineMusicTracksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OfflineMusicTracksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OfflineMusicTracksTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String?> artist = const Value.absent(),
+            Value<String?> album = const Value.absent(),
+            Value<String?> thumbnail = const Value.absent(),
+            Value<String> filePath = const Value.absent(),
+            Value<double> duration = const Value.absent(),
+            Value<int> downloadedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              OfflineMusicTracksCompanion(
+            id: id,
+            title: title,
+            artist: artist,
+            album: album,
+            thumbnail: thumbnail,
+            filePath: filePath,
+            duration: duration,
+            downloadedAt: downloadedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String title,
+            Value<String?> artist = const Value.absent(),
+            Value<String?> album = const Value.absent(),
+            Value<String?> thumbnail = const Value.absent(),
+            required String filePath,
+            Value<double> duration = const Value.absent(),
+            required int downloadedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              OfflineMusicTracksCompanion.insert(
+            id: id,
+            title: title,
+            artist: artist,
+            album: album,
+            thumbnail: thumbnail,
+            filePath: filePath,
+            duration: duration,
+            downloadedAt: downloadedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$OfflineMusicTracksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $OfflineMusicTracksTable,
+    OfflineMusicTrack,
+    $$OfflineMusicTracksTableFilterComposer,
+    $$OfflineMusicTracksTableOrderingComposer,
+    $$OfflineMusicTracksTableAnnotationComposer,
+    $$OfflineMusicTracksTableCreateCompanionBuilder,
+    $$OfflineMusicTracksTableUpdateCompanionBuilder,
+    (
+      OfflineMusicTrack,
+      BaseReferences<_$AppDatabase, $OfflineMusicTracksTable, OfflineMusicTrack>
+    ),
+    OfflineMusicTrack,
+    PrefetchHooks Function()>;
 typedef $$MediaAssetsTableCreateCompanionBuilder = MediaAssetsCompanion
     Function({
   required String id,
@@ -38492,6 +39139,8 @@ class $AppDatabaseManager {
       $$PlaylistsTableTableManager(_db, _db.playlists);
   $$PlaylistTracksTableTableManager get playlistTracks =>
       $$PlaylistTracksTableTableManager(_db, _db.playlistTracks);
+  $$OfflineMusicTracksTableTableManager get offlineMusicTracks =>
+      $$OfflineMusicTracksTableTableManager(_db, _db.offlineMusicTracks);
   $$MediaAssetsTableTableManager get mediaAssets =>
       $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
   $$MediaTagsTableTableManager get mediaTags =>

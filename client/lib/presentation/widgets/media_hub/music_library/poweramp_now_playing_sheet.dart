@@ -41,7 +41,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
   final VoidCallback? onDownload;
   final VoidCallback? onDelete;
   final VoidCallback? onOpenQueue;
+  final VoidCallback? onDownloadOffline;
   final bool isDownloaded;
+  final bool isOfflineLocal;
 
   final List<QueueItem>? queue;
   final int currentIndex;
@@ -65,6 +67,8 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     this.onDelete,
     this.onOpenQueue,
     this.isDownloaded = false,
+    this.onDownloadOffline,
+    this.isOfflineLocal = false,
     this.queue,
     this.currentIndex = -1,
     this.onPlayIndex,
@@ -88,6 +92,8 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     VoidCallback? onDelete,
     VoidCallback? onOpenQueue,
     bool isDownloaded = false,
+    VoidCallback? onDownloadOffline,
+    bool isOfflineLocal = false,
     List<QueueItem>? queue,
     int currentIndex = -1,
     ValueChanged<int>? onPlayIndex,
@@ -115,6 +121,8 @@ class PowerampNowPlayingSheet extends StatefulWidget {
         onDelete: onDelete,
         onOpenQueue: onOpenQueue,
         isDownloaded: isDownloaded,
+        onDownloadOffline: onDownloadOffline,
+        isOfflineLocal: isOfflineLocal,
         queue: queue,
         currentIndex: currentIndex,
         onPlayIndex: onPlayIndex,
@@ -420,6 +428,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   tooltip: 'Download Song',
                   onPressed: widget.onDownload,
                 ),
+              if (!widget.isOfflineLocal && widget.onDownloadOffline != null)
+                IconButton(
+                  icon: const Icon(Icons.download_for_offline_rounded, color: EverforestColors.aqua, size: 22),
+                  tooltip: 'Save to this device (offline)',
+                  onPressed: widget.onDownloadOffline,
+                ),
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.info_outline_rounded, color: EverforestColors.grey, size: 22),
@@ -619,16 +633,18 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     children: [
                       IconButton(
                         icon: Icon(
-                          widget.isDownloaded
+                          widget.isOfflineLocal
                               ? Icons.check_circle_rounded
                               : Icons.download_for_offline_rounded,
-                          color: widget.isDownloaded
+                          color: widget.isOfflineLocal
                               ? EverforestColors.green
                               : EverforestColors.grey,
                           size: 22,
                         ),
-                        tooltip: widget.isDownloaded ? 'Downloaded' : 'Download for Offline',
-                        onPressed: widget.onDownload,
+                        tooltip: widget.isOfflineLocal
+                            ? 'Saved on this device'
+                            : 'Download for Offline',
+                        onPressed: widget.onDownloadOffline,
                       ),
                       const SizedBox(width: 8),
                       _buildDesktopVolumeSlider(),
@@ -957,6 +973,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               color: EverforestColors.green, size: 22),
                           tooltip: 'Download Song',
                           onPressed: widget.onDownload,
+                        ),
+                      if (!widget.isOfflineLocal && widget.onDownloadOffline != null)
+                        IconButton(
+                          icon: const Icon(Icons.download_for_offline_rounded,
+                              color: EverforestColors.aqua, size: 22),
+                          tooltip: 'Save to this device (offline)',
+                          onPressed: widget.onDownloadOffline,
                         ),
                       IconButton(
                         icon: const Icon(Icons.info_outline_rounded,
@@ -1454,12 +1477,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           Expanded(
             child: _buildDockButton(
-              icon: widget.isDownloaded
+              icon: widget.isOfflineLocal
                   ? Icons.check_circle_rounded
                   : Icons.download_for_offline_rounded,
-              label: widget.isDownloaded ? 'Cached' : 'Download',
-              active: widget.isDownloaded,
-              onTap: widget.onDownload,
+              label: widget.isOfflineLocal ? 'On Device' : 'Download',
+              active: widget.isOfflineLocal,
+              onTap: widget.onDownloadOffline,
             ),
           ),
         ],

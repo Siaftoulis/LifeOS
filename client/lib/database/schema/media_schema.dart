@@ -77,6 +77,21 @@ class PlaylistTracks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('OfflineMusicTrack')
+class OfflineMusicTracks extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+  TextColumn get artist => text().nullable()();
+  TextColumn get album => text().nullable()();
+  TextColumn get thumbnail => text().nullable()();
+  TextColumn get filePath => text()();
+  RealColumn get duration => real().withDefault(const Constant(0.0))();
+  IntColumn get downloadedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DataClassName('MediaAsset')
 class MediaAssets extends Table {
   TextColumn get id => text()();

@@ -8,6 +8,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import '../../../../theme/everforest_colors.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../api_client.dart';
+import '../../../../database/database.dart' hide MusicTrack;
 import '../../../../core/telemetry/telemetry_reporter.dart';
 import 'lyrics_sync_viewer.dart';
 import 'poweramp_now_playing_sheet.dart';
@@ -43,6 +44,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   final List<({String id, String url, String title, String artist, String thumbnail, String album})> _queue = [];
   int _queueIndex = -1;
   final Set<String> _downloading = {};
+  final Set<String> _offlineDownloading = {};
   Timer? _playbackWatchdogTimer;
 
   // Track playback state intent to prevent aggressive watchdog unpausing
@@ -60,6 +62,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     AudioDspService.instance.attachPlayer(_player);
     _loadPhoneSongs();
     MusicRepository.instance.refresh();
+    MusicRepository.instance.loadOffline();
 
     _player.processingStateStream.listen((state) {
       if (state == ProcessingState.completed &&
@@ -189,6 +192,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   void _openNowPlaying() {
     if (_currentTrackId.isEmpty && _currentTitle == 'Nothing playing') return;
     final isDownloaded = MusicRepository.instance.tracks.value.any((t) => t.id == _currentTrackId);
+    final isOfflineLocal = MusicRepository.instance.isOffline(_currentTrackId);
 
     PowerampNowPlayingSheet.show(
       context,
@@ -203,6 +207,18 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       onPrev: _playPrev,
       onOpenQueue: _openQueue,
       isDownloaded: isDownloaded,
+      isOfflineLocal: isOfflineLocal,
+      onDownloadOffline: () {
+        final track = MusicTrack(
+          id: _currentTrackId,
+          title: _currentTitle,
+          artist: _currentArtist,
+          album: _currentAlbum,
+          thumbnail: _currentThumbnail,
+          duration: _player.duration?.inSeconds.toDouble() ?? 0,
+        );
+        _downloadOffline(track);
+      },
       queue: _queue,
       currentIndex: _queueIndex,
       onPlayIndex: (idx) => _playAt(idx),
@@ -457,6 +473,74 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       SnackBar(
         content: Text('Downloading "${t.title}" (+5 stars when done)...'),
         backgroundColor: EverforestColors.bg1,
+      ),
+    );
+  }
+
+  /// Download the track to THIS device for offline playback.
+  Future<void> _downloadOffline(MusicTrack t) async {
+    if (_offlineDownloading.contains(t.id)) return;
+    setState(() => _offlineDownloading.add(t.id));
+    final ok = await MusicRepository.instance.downloadOffline(t);
+    if (!mounted) return;
+    setState(() => _offlineDownloading.remove(t.id));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? kIsWeb
+                  ? 'Saving "${t.title}" via browser download...'
+                  : 'Saved "${t.title}" to this device — playable offline'
+              : 'Could not save "${t.title}" to this device',
+        ),
+        backgroundColor: ok ? EverforestColors.bg1 : EverforestColors.red,
+      ),
+    );
+  }
+
+  void _confirmDeleteOffline(OfflineMusicTrack o) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: EverforestColors.bg1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 24),
+            SizedBox(width: 8),
+            Text('Remove Offline Copy', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          'Remove "${o.title}" from this device? The server library copy stays intact.',
+          style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: EverforestColors.red.withValues(alpha: 0.2),
+              foregroundColor: EverforestColors.red,
+              side: const BorderSide(color: EverforestColors.red, width: 1),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final ok = await MusicRepository.instance.deleteOffline(o.id);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok ? 'Removed "${o.title}" from this device' : 'Could not remove "${o.title}"'),
+                    backgroundColor: ok ? EverforestColors.bg1 : EverforestColors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Remove'),
+          ),
+        ],
       ),
     );
   }
@@ -853,8 +937,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
               _buildArtistsSliver(artistGroups, list)
             else if (_libraryTab == 2)
               _buildGenresSliver(genreGroups, list)
+            else if (_libraryTab == 3)
+              _buildSmartMixesSliver(smartMixes, list)
             else
-              _buildSmartMixesSliver(smartMixes, list),
+              _buildOfflineSliver(),
 
             if (!kIsWeb && Platform.isAndroid && _phoneSongs.isNotEmpty)
               _buildPhoneSongsSliver(),
@@ -894,11 +980,13 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   Widget _buildLibraryTabs(int trackCount, int artistCount, int genreCount, int mixCount) {
+    final offlineCount = MusicRepository.instance.offlineTracks.value.length;
     final tabs = [
       ('All Songs ($trackCount)', Icons.audiotrack_rounded, 0),
       ('Artists ($artistCount)', Icons.person_rounded, 1),
       ('Genres & Styles ($genreCount)', Icons.category_rounded, 2),
       ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 3),
+      ('Offline ($offlineCount)', Icons.download_for_offline_rounded, 4),
     ];
 
     return SingleChildScrollView(
@@ -1288,6 +1376,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   Widget _buildTrackTile(MusicTrack t, List<MusicTrack> currentList, int index) {
+    final isOfflineLocal = MusicRepository.instance.isOffline(t.id);
     return ListTile(
       leading: _thumbnail(t.thumbnail, 48),
       title: Text(t.title,
@@ -1295,7 +1384,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
       subtitle: Text(
-        '${t.artist}${t.album.isNotEmpty ? ' · ${t.album}' : ''}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
+        '${t.artist}${t.album.isNotEmpty ? ' · ${t.album}' : ''}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}${isOfflineLocal ? ' · 📱 On device' : ''}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
@@ -1303,6 +1392,25 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (isOfflineLocal)
+            const Icon(Icons.download_done_rounded, color: EverforestColors.green, size: 20)
+          else if (_offlineDownloading.contains(t.id))
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: EverforestColors.aqua),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.download_for_offline_rounded,
+                  color: EverforestColors.aqua, size: 20),
+              tooltip: 'Save to this device (offline)',
+              onPressed: () => _downloadOffline(t),
+            ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 20),
             tooltip: 'Delete Song',
@@ -1315,6 +1423,92 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         ],
       ),
       onTap: () => _playTrackList(currentList, index),
+    );
+  }
+
+  /// Device-local offline tracks — plays straight from disk, no server needed.
+  Widget _buildOfflineSliver() {
+    return ValueListenableBuilder<List<OfflineMusicTrack>>(
+      valueListenable: MusicRepository.instance.offlineTracks,
+      builder: (context, list, _) {
+        if (list.isEmpty) {
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              child: Center(
+                child: Text(
+                  'Nothing saved to this device yet.\nTap the download icon on any song to make it\nplayable offline — no internet needed.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 15, height: 1.5),
+                ),
+              ),
+            ),
+          );
+        }
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) {
+              final o = list[i];
+              final isPlaying = _currentTrackId == o.id;
+              final playQueue = list
+                  .map((x) => (
+                        id: x.id,
+                        url: x.filePath.isNotEmpty
+                            ? Uri.file(x.filePath).toString()
+                            : '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${x.id}',
+                        title: x.title,
+                        artist: x.artist ?? '',
+                        thumbnail: x.thumbnail ?? '',
+                        album: x.album ?? '',
+                      ))
+                  .toList();
+              return ListTile(
+                leading: Stack(
+                  children: [
+                    _thumbnail(o.thumbnail ?? '', 48),
+                    if (isPlaying)
+                      const Positioned(
+                        right: 2,
+                        bottom: 2,
+                        child: Icon(Icons.graphic_eq_rounded,
+                            color: EverforestColors.green, size: 16),
+                      ),
+                  ],
+                ),
+                title: Text(o.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isPlaying ? EverforestColors.green : EverforestColors.fg,
+                      fontWeight: FontWeight.w600,
+                    )),
+                subtitle: Text(
+                  '${o.artist ?? 'Unknown'}${o.duration > 0 ? ' · ${_fmt(o.duration)}' : ''} · 📱 On this device',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 20),
+                      tooltip: 'Remove from this device',
+                      onPressed: () => _confirmDeleteOffline(o),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
+                      onPressed: () => _playQueueAt(playQueue, i),
+                    ),
+                  ],
+                ),
+                onTap: () => _playQueueAt(playQueue, i),
+              );
+            },
+            childCount: list.length,
+          ),
+        );
+      },
     );
   }
 

@@ -111,9 +111,15 @@ jobs:
         run: |
           BUILD_NUM=$(jq '.build_number' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## Release Build #$BUILD_NUM — LifeOS Audiophile Studio & Music Vault
+          ## Release Build #$BUILD_NUM — LifeOS Audiophile Studio & Offline Music Vault
 
           ### Highlights & What's New
+          - **Offline Music Downloads (v1.5)**:
+            - Save any song from your server music vault directly to your device (Android/Windows) and play it back with zero internet — the audio file lives inside the app.
+            - New "Offline" tab in the Music Vault listing everything stored on this device, with per-track remove (the server library copy stays intact).
+            - Save-to-device button on every library track and in the Poweramp Now-Playing sheet ("Download for Offline").
+            - On web, "Save to this device" triggers a native browser download of the high-quality MP3.
+            - Local offline files play through the full DSP pipeline: 10-band EQ, bass/treble, 3D spatial and preamp.
           - **Audiophile Music Studio & Poweramp UI**:
             - Live Poweramp v3 Now Playing Sheet, Mini-Player Dock, and Real-Time Waveform Visualizer.
             - Native libmpv DSP Audio Pipeline: 10-Band Graphic Equalizer, Bass Boost, Treble Boost, 3D Spatial Audio (\`stereotools\`), and Preamp Gain.
