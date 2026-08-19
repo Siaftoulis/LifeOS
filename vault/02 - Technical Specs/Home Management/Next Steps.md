@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Home Management|Home Management]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Smart Device Protocols:** Replace the stubs with actual local IoT protocol integrations. The Go Daemon should implement MQTT client logic or local HTTP polling (e.g., for Shelly relays or local Tuya devices) to control smart plugs without relying on cloud APIs.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Should we run a full Home Assistant instance locally and have the Go Daemon just act as a proxy, or do you want the Go Daemon to be the *actual* IoT orchestrator?
 2. How should we handle IP camera streams (RTSP) in the Flutter UI?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Home Management|Home Management]] for the live feature list.

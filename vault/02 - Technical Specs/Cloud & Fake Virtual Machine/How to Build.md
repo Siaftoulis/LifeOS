@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]]
+> **Implementation Status:** Partially Implemented (backups + quarantine live; web-os / sandbox are stubs)
 
 
 
@@ -68,3 +69,4 @@ This document outlines the step-by-step coding directives and architectural wiri
    - Call `PointStarSystem.addPoints(1)` upon verified clean upload via the Web OS portal.
    - Call `PointStarSystem.deductPoints(10)` if ClamAV flags an upload as infected/malicious.
 2. **Sync Mark:** Set `is_dirty = 1` to command immediate Tailscale syncing loops.
+

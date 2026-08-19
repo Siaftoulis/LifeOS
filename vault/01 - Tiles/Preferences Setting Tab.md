@@ -1,7 +1,7 @@
 # Preferences Setting Tab | Module Documentation
 
 > [!NOTE]
-> **Status:** Concept Defined / Active Development
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[YouTube Client]], [[Virtual Machine Management]], [[Dark Web Management]], and all other modules (Global Scope)*
 
 ---
@@ -16,22 +16,24 @@ The Preferences Setting Tab serves as the central management hub exclusively for
 ---
 
 ## Work Done So Far
-- **Foundational Settings:** The settings currently handle foundational features such as Tailnet Sync toggles, OLED Deep Black canvas themes, and the basic mapping of the spatial grid layout.
-- **Initial Grid Configurator:** A static implementation of the tiling manager currently exists to organize the 3x3 layout.
+- **Configurator Module:** The settings module is live on the spatial grid and includes the grid configurator, my profile, the admin console (family user management), and the online users list.
+- **Spatial Matrix Editor:** Rows and columns can be added or dropped directly in the UI, with the home and configurator cells protected from removal.
+- **Android Launcher Widget:** A launcher widget surfaces preferences and diagnostics from the home screen.
+- **Legacy Settings Plugin:** Provides the OTA update check and system diagnostics path, keeping older settings features available.
+- **Backing Services:** Preferences are stored reactively via `PreferencesService` (JSON-reactive store) with `SystemSettings` tables in the database.
 
 ---
 
 ## Current Focus & Actions
-- **Backend Stability & Polishing:** The immediate focus is ensuring a flawless, bug-free connection to the backend and resolving any visual anomalies within the settings interface.
-- **User Role Implementation:** Establishing a robust User Role architecture:
-  - **Normal User:** Standard customization and daily usage.
-  - **Admin User:** Exclusive access for system diagnostics, node monitoring, and budget rule configurations.
-  - **Child User:** A locked, restricted profile. The Preferences engine broadcasts this status globally to enforce automated, timer-based lockouts, gate the [[YouTube Client]] via Star Points, and hide all VM, SSH, and Torrent controls in the [[Virtual Machine Management]] and [[Dark Web Management]] tiles when active star balances fall below threshold rules.
+- **Backend Stability & Polishing:** Ensuring flawless, bug-free connectivity to the daemon and resolving any visual anomalies within the settings interface.
+- **Role Enforcement Review:** Verifying the Normal / Admin / Child user-role behaviour (child lockouts, gated [[YouTube Client]] via Star Points, hidden VM/SSH/Torrent controls) against current point balances.
+- **Grid Editor Ergonomics:** Tuning the matrix editor interaction so tile re-arrangement stays intuitive across devices.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Interactive Spatial Tiling Manager:** Evolving the grid configurator from a static menu into a dynamic, visual interface. Users will be able to "tap, hold, and drag" tiles freely across the spatial grid, mirroring the intuitive experience of rearranging apps on a smartphone home screen.
+- **(DONE) Spatial Matrix Editor:** The grid editor is operational with add/drop row and column support plus protected home/configurator cells; "tap, hold, and drag" free-form tile movement remains the next evolution of this interface.
+- **(DONE) User Roles & Admin Console:** Family user management and the online users list are live; deeper diagnostics and budget-rule configuration remain on the roadmap.
 - **Advanced Node Monitoring:** Expanding the networking section to give the Admin real-time visibility into all connected devices and their live-syncing status across the LifeOS network.
 
 ---

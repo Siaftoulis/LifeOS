@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Maps & Live Tracking|Maps & Live Tracking]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -77,3 +78,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`DarkRadarWidget`:** Custom maps panel rendering real-time sweeps of client nodes and coordinate bookmarks.
 - **`MapsDashboardWidget`:** Central maps viewport integrating vector packages and offline overlays.
 - **`GeofenceEditorWidget`:** Dynamic editor panel providing touch inputs to modify circular boundaries and labels.
+

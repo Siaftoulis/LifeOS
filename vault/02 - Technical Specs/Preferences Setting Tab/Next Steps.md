@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Role-Based Access Control (RBAC):** Implement actual JSON Web Token (JWT) signing in the Go Daemon for the `CHILD` vs `ADMIN` profiles. The Go Daemon must enforce `403 Forbidden` on critical API routes if the token is not an ADMIN token.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Will there be more than two roles (ADMIN/CHILD), such as a "GUEST" role for temporary device usage?
 2. How should we handle PIN recovery if the ADMIN PIN is forgotten?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]] for the live feature list.

@@ -1,7 +1,7 @@
 # Calendar Habit Task Manager | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Planning for Next Development Sprint
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Point Star System]], [[Home Screen]]*
 
 ---
@@ -32,26 +32,26 @@ The system then automatically updates the active task list and logs it without m
 ---
 
 ## Work Done So Far
-- **System Architecture Mapping:** The unified data model combining calendar events, tasks, and habits has been defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI matching the overall LifeOS theme has been drafted. It aligns with the existing codebase:
-  - **Backgrounds:** Scaffold screens in `EverforestColors.bg0` (Deep Charcoal) and container cards in `bg1` (Dark Charcoal).
-  - **Borders:** Containers structured with clean 1px borders in `EverforestColors.bg2`.
-  - **Fills & Corners:** Rounded card components (16px radius) with flat, solid background fills (no gradients or transparency blur).
-  - **Color-Coded Status Highlights:** Active statuses mapped to specific Everforest accents (`green` for checked habits, `yellow` for pending items, `blue` for primary metrics).
-  - **Typography & Scale:** Uppercase headers in `EverforestColors.fg` (Beige) with clean letter-spacing, accompanied by responsive scale feedback animations (0.9x scale on click).
+- **CHTM Hub (DONE):** The unified hub is live with a calendar tab (full calendar plus daily list), a habits tab (habit tracker), and an analytics tab (stats and memos).
+- **Auto-Scheduler (DONE):** The auto-scheduler assigns tasks and habits to open slots in the calendar.
+- **Voice Recorder Dialog (DONE):** An in-app voice recorder dialog captures verbal task notes.
+- **Unified Task/Habit Flow (DONE):** The unified flow awards RPG rewards via `/api/v1/player/task/complete` and points — tasks grant +15 XP and habits +10 XP.
+- **Daemon Data Layer (DONE):** Calendar events persist in `calendar.json`, with a CHTM stats endpoint served by the daemon.
+- **Client Data Layer (DONE):** `chtm_dao` plus the `habit_tracker_view` drive the hub screens.
 
 ---
 
 ## Current Focus & Actions
-- **Database Schema Modeling:** Designing a SQLite schema in the Go backend to hold polymorphic schedules (events, checklist tasks, recurring habit patterns with frequency rules) under a unified timeline table.
-- **Flutter UI Prototypes:** Designing the calendar widget grid with custom gestures for habit check-offs (sliding to complete, tapping for historical metrics).
+- **Voice Pipeline:** Wiring the recorder dialog to the daemon's LLM extraction so recordings produce structured tasks automatically.
+- **Analytics Depth:** Extending the analytics tab with longer-range habit trends and memo search.
+- **Auto-Scheduler Tuning:** Improving slot assignment heuristics so scheduled items respect priorities and deadlines.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **AI Voice Parser Handler:** Implementing the whisper/local LLM voice-extraction pipeline in the Go backend daemon to parse verbal tasks.
+- **AI Voice Parser Handler:** Implementing the whisper/local LLM voice-extraction pipeline in the Go backend daemon to parse verbal tasks; the recorder dialog is already live on the client.
+- **Gamified Feedback (DONE):** XP rewards for completed tasks and habits are live via the player API; deeper streak multipliers and achievements are planned.
 - **Shared Calendar Synchronization:** Building real-time WebSocket communication layer for group calendars (syncing events instantly between users, modeling the TimeTree core synchronization loops).
-- **Gamified Feedback:** Connecting completed tasks and habits directly to the [[Point Star System]] to award stars and achievements dynamically.
 
 ---
 

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Knowledge Base|Knowledge Base]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -64,3 +65,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`KnowledgeBaseDashboard`:** Main screen presenting directories, dynamic note stats, and study status meters.
 - **`TopicCardWidget`:** Folders view widget summarizing category detail lists, tags badges, and action triggers.
 - **`RelationshipGraphWidget`:** Localized vector graph panel drawing connections between topics in active review modes.
+

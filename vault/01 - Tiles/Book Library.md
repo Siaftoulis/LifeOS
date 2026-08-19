@@ -1,7 +1,7 @@
 # Book Library | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Point Star System]], [[Music Library]], [[Project Infinity]], [[Flashcards]]*
 
 ---
@@ -25,21 +25,29 @@ The Book Library is a unified e-book reader, audiobook player, and study organiz
 ---
 
 ## Work Done So Far
-- **System Concept Outlined:** Multi-device sync architecture and file pairing protocols defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (plain book grid, rounded panels, thin outline indicators, and clear text fields) mapped.
+- **Library Dashboard (DONE):** The Flutter client shows a book card dashboard for the catalog.
+- **Reader Stack (DONE):** An EPUB reader, CBZ reader, and e-ink reader view are implemented.
+- **Audiobook Player (DONE):** An audiobook player with full playback controls is live.
+- **Highlight Curtain (DONE):** A highlight curtain overlays text selection for marking passages.
+- **Search View (DONE):** A search view queries multiple sources — Project Gutenberg, OpenLibrary, MangaDex, and Anna's Archive — with parallel search.
+- **Zen AI Panel (DONE):** An AI panel provides describe, summarize, and chat actions via daemon LLM endpoints (default `llama3.2` through Ollama).
+- **Background Downloads (DONE):** Book download jobs run in the background.
+- **Persistence (DONE):** Reading progress and highlights are stored in `books.db`; the client uses `books_dao`.
 
 ---
 
 ## Current Focus & Actions
-- **EPUB Parser Engine:** Reviewing open-source Flutter EPUB engines to fork and adapt for the LifeOS core rendering grid.
-- **Audiobook Sync Handlers:** Designing sync payloads in the Go backend to coordinate audio timestamps with EPUB page numbers.
+- **Reader Polish:** Refining EPUB/CBZ rendering, pagination, and e-ink contrast tuning.
+- **Zen AI Refinement:** Improving summarization quality and chat context for the current book.
+- **Download Manager:** Hardening background jobs with resume and retry behavior.
 
 ---
 
 ## Next Steps & Future Roadmap
 - **Kindle Web Server Interface:** Building a lightweight, minimal HTML portal hosted by the Go backend to serve books directly to Kindle devices.
 - **Smartwatch Audio Controller:** Creating simplified watch UI controller mockups for audiobook controls.
-- **Highlight Extraction to Zen Editor:** Creating dynamic links that extract text highlights and annotations from the Book Library directly into notes inside the [[Obsidian Zen Editor]].
+- **Highlight Extraction to Zen Editor:** Creating dynamic links that extract text highlights and annotations from the Book Library directly into notes inside the [[Obsidian Zen Editor]]; highlights are already captured in `books.db`, ready for the export link.
+- **Text-to-Audio Pairing:** The pairing of EPUB/PDF entries with M4B/MP3 audiobooks and synced progression markers remains on the roadmap.
 
 ---
 

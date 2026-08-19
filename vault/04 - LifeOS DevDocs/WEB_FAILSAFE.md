@@ -1,77 +1,85 @@
-# Technical Specification: Web Fail-Safe Layer (Zero-Trust Proxy)
+---
+id: "a1b2c3d4-0005-4a5b-9c0d-lifeoswebfailsafe"
+type: "lifeos_web_failsafe"
+last_modified: 1784500000000
+sync_status: "clean"
+---
+
+# Technical Specification: Web Fail-Safe Layer
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]] · [[04 - LifeOS DevDocs/Architecture/Web_Failsafe|Web Failsafe Architecture]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]] · [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]
 
-
-This document details the configuration for the LifeOS zero-exposure web fail-safe layer. This infrastructure provides secure, containerized web access to the LifeOS platform on restricted foreign machines (e.g., corporate laptops, public PCs) where installing the native client or embedding the `tsnet` daemon is prohibited.
+This document describes the web access layer that exposes the LifeOS Flutter web portal on restricted foreign machines (e.g., corporate laptops, public PCs) where installing the native client is prohibited. As of August 2026 the host daemon itself performs OAuth and serves the web portal; the dockerized zero-trust proxy stack remains available as an alternative deployment.
 
 ---
 
-## 1. Network Traffic Flow Architecture
+## Current Status (August 2026)
 
-The fail-safe layer leverages a secure inbound tunnel exposing a strictly controlled web gateway protected by an identity-aware proxy. The internal database or syncing API is never exposed directly.
+The daemon (`backend/host-daemon/`) serves the Flutter web build directly:
+
+*   **Web portal at `/`:** `http.FileServer(http.Dir("./web"))` in `main.go`, wrapped by the global JWT auth gate (`internal/auth/middleware/jwt.go`, HS256, 24h expiry).
+*   **Tailscale Funnel:** `tailnet.go` → `enableFunnel` configures `ipn.ServeConfig` with TCP 443 (HTTPS) proxying `/` to `http://127.0.0.1:50052/`. Public URL: `https://lifeos-host.husky-forel.ts.net` (also set as `OAUTH_BASE_URL` in `backend/host-daemon/start.ps1`). Requires "HTTPS Certificates" enabled in the tailnet admin console.
+*   **Global JWT auth gate with public allowlist:** login, register, `oauth providers/start/callback`, `/api/markdown/collab`, `/api/v1/events`, `/api/v1/radar/live`, `/api/v1/music/*`. All other `/api/` routes require a valid JWT (stored in `localStorage('lifeos_token')` on the web portal).
+*   **`publicOnly` handler:** the `:50052` Funnel upstream denies `POST /api/v1/auth/register` and `POST /api/v1/auth/login`. Registration is invite-only via OAuth — GitHub (`read:user`) or Google (`openid email profile`) — with accounts mapped in `data/oauth_users.json`; password login is disabled on the public path.
+*   **No-cache + purged service worker:** static assets are served with `Cache-Control: no-cache, no-store, must-revalidate`; `flutter_service_worker.js` is stripped at deploy time.
+*   **Deploys:** `deploy_server.ps1` (repo root) — `flutter build web` → strip service worker → cross-compile daemon → push via tailscale ssh → systemd restart, with MD5 checksum verification of transferred files.
 
 ```mermaid
 graph TD
-    User(Foreign Machine Web Browser) -->|HTTPS Request| InboundTunnel(Zrok Public Share / Tailscale Funnel)
-    InboundTunnel -->|Encrypted Forward| AuthProxy(OAuth2 Proxy / Authelia)
-    
-    AuthProxy -->|Validation Check| IdP(Google/GitHub OAuth Provider)
-    IdP -->|Returns JWT Identity| AuthProxy
-    
-    AuthProxy -->|Validate Allowed Email| ACL{Is User Authorized?}
-    
-    ACL -- YES --> CaddyProxy(Caddy Reverse Proxy)
-    ACL -- NO --> Block(403 Forbidden)
-    
-    CaddyProxy --> WebApp(LifeOS Web/Sync Portal)
+    User(Browser on Foreign Machine) -->|"HTTPS 443"| Funnel(Tailscale Funnel)
+    Funnel -->|"Proxy"| Upstream(Daemon 127.0.0.1:50052)
+    Upstream --> Gate{publicOnly + Global JWT Gate}
+    Gate -- "public allowlist" --> Web(Web Portal / + OAuth SSO)
+    Gate -- "valid JWT" --> Api(Daemon /api/v1/&lt;domain&gt;)
+    Gate -- "no JWT" --> Login(OAuth redirect GitHub/Google)
 ```
 
 ---
 
-## 2. Inbound Tunnel Options
+## 1. Inbound Exposure Options
 
-To maintain 100% free infrastructure with zero open firewall ports on the host router, the system utilizes one of two ephemeral tunneling options:
+To maintain 100% free infrastructure with zero open firewall ports on the host router, the system uses one of two inbound tunneling options:
 
-### Option A: Tailscale Funnel
-*   **Mechanism:** Routes public internet traffic directly onto the Tailnet via a secure Tailscale node.
-*   **Deployment:** The host Tailscale daemon uses `tailscale serve` and `tailscale funnel` to expose the OAuth proxy port (`4180` or `9091`).
-*   **Benefit:** Native integration if the node is already running Tailscale. Requires specific Tailnet ACL modifications.
+### Option A: Tailscale Funnel (primary)
+*   **Mechanism:** `enableFunnel` in `backend/host-daemon/tailnet.go` — waits for the tailnet backend to reach `Running`, then sets `AllowFunnel` with TCP 443 → HTTPS → `/` proxied to `127.0.0.1:50052`.
+*   **Deployment:** automatic at daemon boot; no manual `tailscale serve`/`funnel` commands.
+*   **Benefit:** native integration with the already-running tailnet node (`lifeos-host`); no extra containers.
 
-### Option B: Zrok Public Share (OpenZiti)
-*   **Mechanism:** Uses the Zrok network to create a secure, ephemeral or reserved public URL.
-*   **Deployment:** The sidecar container runs `zrok share public http://proxy:80 --headless`, targeting Caddy directly.
-*   **Benefit:** Highly isolated from the core Tailnet. Traffic is seamlessly authenticated upstream via Caddy's `forward_auth` integration querying the oauth2-proxy sidecar.
+### Option B: Dockerized Zrok + Caddy + oauth2-proxy stack (alternative)
+*   **Mechanism:** `backend/docker-compose.yml` runs `zrok-tunnel` (`zrok share public http://proxy:80 --headless`), the `lifeos-proxy` Caddy container (ports `80`/`443`), and the `lifeos-auth-proxy` oauth2-proxy container (port `4180`).
+*   **Benefit:** highly isolated from the core tailnet; traffic is authenticated upstream via oauth2-proxy before reaching Caddy.
+*   The same compose file hosts the PostgreSQL-backed `sync-service` and the RustDesk (hbbs/hbbr) containers — see [[04 - LifeOS DevDocs/INFRASTRUCTURE_CONTROL|Infrastructure Control]].
 
 ---
 
-## 3. Zero-Trust Identity Wall (OAuth2 Proxy)
+## 2. Zero-Trust Identity Wall
 
-No inbound HTTP request reaches the application web server unless it carries a cryptographically signed cookie from the Identity Provider (IdP).
+No inbound HTTP request reaches the application API unless it carries a valid identity.
 
-### Proxy Configuration (OAuth2-Proxy)
-The `oauth2-proxy` container sits at the edge of the Docker network, directly behind the inbound tunnel.
+### Primary deployment: daemon-native auth
+*   **Global JWT gate:** every `/api/` route except the public allowlist requires a JWT; `JWT_SECRET` env → `data/jwt_secret` file → random fallback.
+*   **OAuth SSO:** `internal/oauth` — GitHub `read:user`, Google `openid email profile`; state-cookie CSRF (10 min); `data/oauth_users.json` maps OAuth identities to daemon accounts; roles `ADMIN` / `USER` / `CHILD`.
+*   **Invite-only registration:** the `publicOnly` middleware (main.go) rejects register/login on the Funnel path; admin creates accounts.
 
+### Alternative deployment: oauth2-proxy container
 *   **Provider:** Google Workspace or GitHub OAuth.
-*   **Strict Whitelist (`authenticated_emails_file`):** A hardcoded text file containing ONLY the owner's explicit email address (e.g., `user@example.com`).
-*   **Cookie Security:** 
-    *   `cookie_secure=true`
-    *   `cookie_httponly=true`
-    *   `cookie_samesite=lax`
-*   **Upstream Routing:** Authenticated traffic is proxied internally to `http://lifeos-proxy:80` (the Caddy relay).
+*   **Strict Whitelist (`authenticated_emails_file`):** `backend/proxy/emails.txt` — only the owner's explicit email addresses.
+*   **Cookie Security:** `cookie_secure=true`, `cookie_httponly=true`, `cookie_samesite=lax`.
+*   **Upstream Routing:** authenticated traffic is proxied to `http://lifeos-proxy:80` (Caddy relay).
 
 ---
 
-## 4. Threat Modeling & Failsafe Guarantees
+## 3. Threat Modeling & Failsafe Guarantees
 
-*   **Stolen URL:** If a bad actor discovers the Zrok or Funnel URL, they are immediately stopped by the Google/GitHub SSO redirect. No LifeOS server code is executed.
-*   **Brute Force Immunity:** The authentication relies entirely on the IdP's infrastructure (Google/GitHub), leveraging their native 2FA, rate-limiting, and anomaly detection.
-*   **Isolated Web Layer:** The Web portal exposed behind this proxy only has access to a bounded session context. It cannot execute administrative structural commands to the underlying server host.
+*   **Stolen URL:** if a bad actor discovers the Funnel or Zrok URL, they are stopped at the OAuth redirect (or JWT gate); no LifeOS API executes without a valid token.
+*   **Brute Force Immunity:** password login is disabled on the public path; authentication relies on the IdP's (Google/GitHub) infrastructure — 2FA, rate-limiting, anomaly detection.
+*   **No Admin Execution:** the web portal exposes only the daemon's bounded `/api/v1/<domain>` surface behind the JWT gate; it cannot execute structural commands on the underlying host outside that gate.
 
 ---
 
 ## Related Specifications
-*   [Split-Storage & Frontmatter Architecture](DATA_SCHEMAS.md)
-*   [Embedded Network Protocol (tsnet)](EMBEDDED_NETWORK.md)
-*   [Transactional Sync Protocol & LWW](SYNC_PROTOCOL.md)
+*   [[04 - LifeOS DevDocs/DATA_SCHEMAS|Split-Storage & Frontmatter Architecture]]
+*   [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network Protocol (tsnet)]]
+*   [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Transactional Sync Protocol & LWW]]
+*   [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]

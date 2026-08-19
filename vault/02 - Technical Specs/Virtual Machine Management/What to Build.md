@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -64,3 +65,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`VMManagementDashboard`:** Main screen presenting active virtual machines cards, system limits sliders, and active session controls.
 - **`VMCondensedCard`:** Compact status panel showing visual indicators, neon state guides, and safety lock toggles.
 - **`RemoteFileExplorerView`:** Explorer viewport rendering folder listings, navigation trails, and file transfer options.
+

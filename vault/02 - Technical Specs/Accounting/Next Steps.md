@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local OCR Engine:** Integrate a local OCR binary (e.g., `tesseract-ocr`) executed via `os/exec` in the Go Daemon to parse receipts offline without cloud APIs.
@@ -15,3 +16,7 @@
 ## 3. Open Design Questions
 1. Do we want to support automated email parsing (e.g., IMAP local sync) to automatically pull PDF invoices into the Accounting system?
 2. Should we implement custom categorization rules (Regex-based) to automatically tag expenses (e.g., "S/M" -> "Groceries")?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Accounting|Accounting]] for the live feature list.

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -48,3 +49,4 @@ This document establishes the exact development task checklists and integration 
 - [ ] **Live PDF OCR Integration:** Replace the stubbed PDF bill extraction algorithm with an actual implementation of `github.com/ledongthuc/pdfreader` or a local Go OCR package to parse utility bills natively.
 - [ ] **OpenBanking API Sync:** Integrate secure OAuth callbacks via the Go backend to natively fetch real balances and ledger streams directly from supported European banks (PSD2 OpenBanking layer).
 - [ ] **Dynamic Point Star Linking:** Connect the 50/30/20 budget splitter to the live `PointStarSystem` database so that the "silly things" allowance scales precisely with the user's weekly reward progression.
+

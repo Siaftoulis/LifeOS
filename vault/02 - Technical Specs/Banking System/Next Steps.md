@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local CSV/OFX Parsing:** Instead of integrating cloud-based APIs like Plaid/Tink, the Go Daemon will monitor a designated folder for exported CSV/OFX statements from the bank and parse them locally.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Will we rely exclusively on manual statement exports (CSV drops), or do you want to explore headless browser scraping (e.g., Puppeteer/Playwright locally) to automate balance fetching?
 2. How should we handle multi-currency accounts or cryptocurrency wallets in the schema?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Banking System|Banking System]] for the live feature list.

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Calendar Habit Task Manager|Calendar Habit Task Manager]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local Source of Truth:** Maintain the offline-first approach. LifeOS is the master calendar.
@@ -15,3 +16,7 @@
 ## 3. Open Design Questions
 1. Do we want unidirectional export to Google Calendar/CalDAV (so others can see your busy times), or strictly keep it air-gapped within LifeOS?
 2. Should habits have "streak freezes" purchasable with Star Points?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Calendar Habit Task Manager|Calendar Habit Task Manager]] for the live feature list.

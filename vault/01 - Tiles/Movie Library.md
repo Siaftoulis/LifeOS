@@ -1,7 +1,7 @@
 # Movie Library | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Point Star System]], [[Dark Web Management]]*
 
 ---
@@ -27,22 +27,30 @@ The Movie Library is a self-hosted, advanced media cataloging, downloading, and 
 ---
 
 ## Work Done So Far
-- **Module Definition:** Deep structural requirements for the media player and background download loops have been finalized.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grid of movie cards, solid outline borders, metadata listings in Everforest cream/grey typography) drafted.
+- **TMDB Metadata Enrichment:** Posters, overviews, genres, and ratings are fetched via TMDB (key held in the daemon only) and displayed across the library.
+- **Browse & Search:** Movie browsing and search with filters (status, genre, rating) in the Flutter client.
+- **Statuses & Watchlist:** Movies track AVAILABLE / DOWNLOADING / WATCHED states; the watchlist drives library views.
+- **Personal Reviews:** Private reviews with ratings are logged per movie.
+- **VLC Player:** VLC-based player screen handles local playback; subtitles tables live in `movies.db`.
+- **Event Streaming:** `movies:watched` events broadcast through the events bus for cross-module reactions.
+- **Client Persistence:** `movie_repository` and `movies_dao` manage local data access.
 
 ---
 
 ## Current Focus & Actions
-- **Torrent/Usenet Client Wrapper:** Designing interfaces for the Go daemon to interact with backend torrent and downloader clients (like qBittorrent or NZBGet).
-- **SQLite Database Schema:** Modeling tables to hold local media files, IMDb metadata caches, watchlist queues, and subtitle reference paths.
+- **Metadata Refresh:** Keeping TMDB enrichment current and handling rating/overview fallbacks gracefully.
+- **Player Polish:** Refining the VLC player screen, subtitle loading, and resume behaviour.
+- **Watchlist Workflow:** Tuning the AVAILABLE / DOWNLOADING / WATCHED transitions and event emission on completion.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **VLC Flutter Integration:** Embedding the libvlc native video controller inside the Flutter app.
-- **OpenSubtitles Client Integration:** Writing the subtitle search and download handlers in the Go daemon.
+- **(DONE) VLC Flutter Integration:** The libvlc-based player screen is embedded in the client for local playback.
+- **(DONE) Subtitles Foundation:** Subtitle tables are in `movies.db`; multi-language subtitle search/download automation remains the next layer.
+- **(DONE) Review Ledger:** Personal reviews with ratings are logged and surfaced in the library.
+- **Dark-Web / Torrent Download Engine:** Wiring background download manager hooks (indexer queries, overnight queueing) into the daemon.
 - **Zen Editor Linkage:** Building custom Markdown templates in the [[Obsidian Zen Editor]] that automatically render movie metadata cards and render reviews back to the Movie Library database.
-- **Point Star Integration:** Rewarding points via the [[Point Star System]] when a movie review is completed or a watchlist item is finalized.
+- **Point Star Integration:** Rewarding points via the [[Point Star System]] when a movie review is completed or a watchlist item is finalized (watched events already stream via the events bus).
 
 ---
 

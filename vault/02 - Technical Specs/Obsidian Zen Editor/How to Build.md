@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -47,3 +48,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Time spent trackers:** Register background rules inside auto-saving handlers:
    - Calculate active typing durations. Call `PointStarSystem.addPoints(5)` per hour.
 2. **Dirty Flags:** Mark mutated rows with `is_dirty = 1` to command immediate synchronization loops.
+

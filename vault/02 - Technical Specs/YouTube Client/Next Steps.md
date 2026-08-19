@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/YouTube Client|YouTube Client]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **yt-dlp Native Integration:** The Go Daemon must execute the local `yt-dlp` binary with specific flags (`-f best`, `--write-thumbnail`) to fetch videos and save them to the local NAS.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. How should we prevent the user from just opening YouTube in a normal browser? Should the Go Daemon alter the OS `hosts` file to block youtube.com system-wide unless the LifeOS session is active?
 2. Do you want the YouTube client to support pulling full playlists, or just single videos?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/YouTube Client|YouTube Client]] for the live feature list.

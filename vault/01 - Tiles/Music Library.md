@@ -1,7 +1,7 @@
 # Music Library | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Book Library]], [[Project Infinity]], [[Flashcards]], [[Point Star System]]*
 
 ---
@@ -27,21 +27,29 @@ The Music Library is a self-hosted personal music cloud built into LifeOS. It se
 ---
 
 ## Work Done So Far
-- **Module Concept Defined:** Scope for playback logic, caching policies, and cross-platform remote controllers established.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI (grid of album covers, solid cards, thin outlines, plain lists, clean uppercase headers) drafted.
+- **Audiophile Music Studio UI:** Poweramp v3-style interface with now-playing sheet, queue sheet, equalizer modal (presets incl. Audiophile Reference), waveform seekbar, track metadata modal, and lyrics viewer.
+- **DSP Equalizer:** 10-band equalization via Android Equalizer on mobile and lavfi filters on Windows.
+- **Smart Listening:** Smart mixes and playlists tabs for curated listening.
+- **Downloads & Streaming:** yt-dlp search/download through the daemon; m4a proxy streaming with background cache (CORS + byte-range support); LRCLIB synced lyrics.
+- **Local Library Scanning:** Phone audio discovery via `on_audio_query`; playback engines are `just_audio` plus `media_kit`.
+- **Mini-Player Dock:** Persistent dock with the Audiophile Quality Tag.
+- **Daemon API:** `/api/v1/music` exposes `tracks`, `search`, `download`, `lyrics`, `stream`, and `resolve` endpoints.
 
 ---
 
 ## Current Focus & Actions
-- **Flutter Audio Engine Evaluation:** Reviewing Dart audio playback packages (such as `just_audio` or `audioplayers`) to integrate into the Flutter client core.
-- **Music Indexer Engine:** Planning the folder scanner in Go to recursively read and catalog directories of audio files on the server.
+- **Playback Engine Tuning:** Balancing `just_audio` and `media_kit` behaviour, gapless playback, and equalizer routing across devices.
+- **Cache & Stream Polish:** Refining the background cache and byte-range proxy for smooth scrubbing and offline replay.
+- **UI Refinement:** Polishing the now-playing/queue sheets and lyrics viewer, keeping the Everforest flat-line aesthetic.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Playlist Manager Schema:** Modeling SQLite tables to handle user-created playlists, track queues, and offline synchronization markers.
+- **(DONE) Playlist Manager:** Smart mixes and playlist tabs are live in the client; deeper schema work for user-created playlists and offline markers remains.
+- **(DONE) Metadata & Lyrics Sync:** Track metadata parsing plus LRCLIB synced lyrics (with the lyrics viewer) are operational.
 - **Smartwatch Controller:** Drafting the Bluetooth/network protocol for smartwatches to interact with the active mobile/desktop audio player.
 - **Subsonic API Compatibility:** Exploring implementation of a Subsonic-compatible API endpoint in the Go server, allowing standard community music apps to connect directly to the LifeOS music library.
+- **Lyrics Translation Study Engine:** Routing tapped foreign words in the lyrics viewer to the [[Project Infinity]] dictionary and auto-generating [[Flashcards]] study cards.
 
 ---
 

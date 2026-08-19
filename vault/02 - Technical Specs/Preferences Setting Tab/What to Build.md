@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Preferences Setting Tab|Preferences Setting Tab]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -60,3 +61,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`PreferencesDashboardView`:** Main screen presenting launcher configuration settings and user profiles editors.
 - **`GridConfiguratorWidget`:** Interactive drag grid providing visual controls to organize the 3x3 layout.
 - **`TailscaleNodeMonitorWidget`:** Details grid displaying dynamic lists of connected network items.
+

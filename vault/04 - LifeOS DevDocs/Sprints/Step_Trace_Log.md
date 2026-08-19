@@ -1,4 +1,11 @@
+---
+last_modified: 1784500000000
+---
+
 # LifeOS Engineering Step Trace Log
+
+> [!NOTE]
+> **Superseded:** this snapshot is dominated by [[03 - work/Step_Trace_Log|main trace log]]. Prefer the main trace log as the authoritative, current milestone history.
 
 > [!NOTE]
 > **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Also:** [[03 - work/Step_Trace_Log|Main Step Trace Log]] · [[03 - work/current_sprint.json|Current Sprint]] · [[03 - work/subagent_delegation|Subagent Delegation]]

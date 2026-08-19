@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Project Infinity|Project Infinity]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -64,3 +65,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`ProjectInfinityDashboard`:** Main screen presenting Word of the Day cards, translation inputs, and study statistics.
 - **`WordOfTheDayCard`:** Visual block presenting dictionary definitions and translation toggles.
 - **`TriviaLogTimeline`:** Scrolling vertical timeline showing trivia entries.
+

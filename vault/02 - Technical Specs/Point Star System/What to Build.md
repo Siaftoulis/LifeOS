@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -82,3 +83,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`PointStarDashboard`:** Main screen presenting users leaderboard, history log listings, and points status blocks.
 - **`LeaderboardCard`:** Profile row displaying balances stats, neon progress metrics, and points counters.
 - **`VoucherRedeemerPanel`:** Ticket-roll interface showing active vouchers, cost markers, and redeem toggles.
+

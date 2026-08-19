@@ -1,172 +1,99 @@
-# Technical Specification: On-Demand User-Space Mesh (tsnet)
+---
+id: "a1b2c3d4-0005-4a5b-9c0d-lifeosembeddednet"
+type: "lifeos_embedded_network"
+last_modified: 1784500000000
+sync_status: "clean"
+---
+
+# Technical Specification: Embedded User-Space Mesh (tsnet)
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]] · [[04 - LifeOS DevDocs/DATA_SCHEMAS|Data Schemas]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]] · [[04 - LifeOS DevDocs/DATA_SCHEMAS|Data Schemas]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]
 
+This specification details the embedded user-space Tailscale mesh node used by the LifeOS host daemon via the `tsnet` Go library. It establishes a zero-configuration overlay connection between native clients, the web portal, and the self-hosted backup infrastructure, without requiring administrative privileges or a TUN/TAP adapter on the host.
 
-This specification details the lifecycle management, authentication flow, and integration rules of an embedded user-space Tailscale mesh node using the `tsnet` Go library. This establishes a zero-configuration overlay connection directly between native clients and the self-hosted backup infrastructure.
+---
+
+## Current Status (August 2026)
+
+*   **Standalone daemon:** the daemon is a standalone Go binary (`backend/host-daemon/`). The earlier model of embedding the mesh into the Flutter C++ runner / Gradle build (`tsnet_client.dll` / `.aar` via `tsnet_client.h`) is obsolete.
+*   **tsnet facts (still true):** `tailnet.go` (`InitTailnet`) starts a `tsnet.Server` with hostname `lifeos-host`, state directory `./tsnet-state`, `CONTROL_URL` env (default `https://controlplane.tailscale.com`), listening on `:50051`; every request is verified via `LocalClient().WhoIs()` and the peer identity is forwarded as the `X-Tailnet-User` header.
+*   **Funnel:** `enableFunnel` serves the web portal publicly (TCP 443 → `127.0.0.1:50052`) — see [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]].
+*   **Sync topology (changed):** the PostgreSQL relay-as-source-of-truth model is gone. Sync is now daemon-side per-module SQLite (`data/*.db`) plus client polling and the events WS bus (`/api/v1/events`). The repo-root `server/` relay (`:8080`) handles `POST /api/sync` → append to `generic_vault.jsonl` and `GET /ws` as a Yjs room relay with per-room ACL (`lifeos.db` permissions; allow-all when empty).
 
 ---
 
 ## 1. Process & Binding Architecture
 
-To maintain cross-compatibility without requiring administrative system access, the Tailscale interface is run in **user-space** via the `tsnet` library. It does not create a virtual network interface card (TUN/TAP) on the host operating system. Instead, it exposes a local user-space network stack directly to the app.
+The Tailscale interface runs in **user-space** via the `tsnet` library; it does not create a virtual network interface card (TUN/TAP) on the host operating system.
 
 ```mermaid
 graph TD
     subgraph Client ["Client Device"]
         UI["UI / Dart Layer"]
-        
-        subgraph LocalHost ["Local Sidecar / Desktop Target"]
-            Daemon["Go Daemon (Local Service - Port 50051)"]
-            LocalVault["Local Obsidian Vault"]
-        end
-
-        subgraph EmbeddedClient ["Embedded tsnet Client (Go Lib)"]
-            Mesh["Mesh Tunnel"]
-        end
-        
-        UI -->|"1. Local Markdown Saves (Port 50051)"| Daemon
+        Daemon["Go Daemon (Local Service)"]
+        LocalVault["Local Obsidian Vault"]
+        UI -->|"1. Local API calls (:50051)"| Daemon
         Daemon -->|"Write"| LocalVault
     end
 
-    subgraph Server ["Remote Server Stack (Private Tailnet)"]
-        Proxy["Caddy (Reverse Proxy - Port 80/443)"]
-        DockerSync["Docker Sync Server (tsnet Listener - Port 8080)"]
-        DB[("PostgreSQL DB (Port 5432)")]
+    subgraph Server ["Host Server (Windows 11 Pro)"]
+        HostDaemon["lifeos-host daemon (tsnet :50051)"]
+        Funnel["Funnel upstream (:50052)"]
+        Relay["Sync Relay (server/ :8080)"]
     end
 
-    UI -->|"2. SQLite Sync (Port 8080 via tsnet)"| Mesh
-    Mesh -->|"Direct tsnet Connection (Port 8080)"| DockerSync
-    DockerSync --> DB
+    UI -->|"2. Tailnet HTTP :50051"| HostDaemon
+    UI -->|"3. Relay sync / Yjs /ws :8080"| Relay
+    Browser -->|"4. HTTPS 443 via Funnel"| Funnel
 ```
 
-### Compile-Target Specifications
-*   **Windows 11 (x86_64):** Compiled as a C-archive dynamic-link library (`tsnet_client.dll` / `tsnet_client.h`) with Go's `__declspec(dllexport)` bindings. Integrated directly into the Flutter C++ runner CMake build process.
-*   **Android (ARM64 Target API 34+):** Compiled as a Java Archive Package (`tsnet_client.aar`) via `gomobile bind`. Embedded directly inside the Gradle dependencies.
+### Node Configuration
+*   **Hostname:** `lifeos-host` (init from `backend/host-daemon/main.go`).
+*   **State:** `./tsnet-state` relative to the daemon working directory.
+*   **Control Plane:** `CONTROL_URL` env (default `https://controlplane.tailscale.com`).
+*   **Identity:** `X-Tailnet-User` header set from `WhoIs` before the app handler runs.
+*   **Local-only mode:** `LIFEOS_LOCAL_ONLY=1` skips the tailnet listener and serves plain HTTP on `:50051`.
 
 ---
 
 ## 2. Zero-Click Network State Machine
 
-The client application must seamlessly establish connections without requiring manual terminal setup or administrative privileges.
+The daemon establishes the mesh at boot and keeps it for its whole lifetime; no per-client key handling exists inside the daemon.
 
 ```mermaid
 graph TD
-    Offline("[1] OFFLINE") -->|"App Launches"| Init("[2] INITIALIZING")
-    Init -->|"Read Key from OS Secure Storage"| Auth("[3] AUTHENTICATING")
-    Auth -->|"Key Validated by Tailnet"| Conn("[4] CONNECTING")
-    Conn -->|"Wireguard Tunnel Up"| Connected("[5] CONNECTED")
-    Connected -->|"App Terminates"| Teardown("[6] TEARDOWN")
+    Start("Daemon Boot") --> Init("tsnet.Server (state dir, CONTROL_URL)")
+    Init --> Listen("Listen tcp :50051")
+    Listen --> Auth("Per-request WhoIs verification")
+    Auth --> Serve("X-Tailnet-User → app handler")
+    Listen --> Funnel("enableFunnel: 443 → :50052")
 ```
 
-### Detailed State Specifications
-
-#### State 1: OFFLINE
-*   **Description:** The host application process is inactive or network functionality is explicitly disabled.
-*   **System Action:** No virtual network processes exist.
-
-#### State 2: INITIALIZING
-*   **Description:** The application starts up and kicks off the background thread runner.
-*   **System Action:**
-    *   Initialize a directory in local application sandbox storage to cache `tsnet` state:
-        *   **Windows:** `%APPDATA%\LifeOS\tsnet\`
-        *   **Android:** `/data/user/0/com.lifeos.client/files/tsnet/`
-    *   Set runtime configurations: `HostName = "lifeos-client"`, `Ephemeral = true`, `Logf = nil` (or routing to standard file loggers).
-
-#### State 3: AUTHENTICATING
-*   **Description:** The embedded client attempts to fetch credentials to join the target tailnet.
-*   **Secure Storage Rules:**
-    *   **Windows Target:** The C++ runner queries the **Windows Credential Manager** via the Win32 Security API (`CredReadW` function) using the target identifier `LifeOS:Tailscale:AuthKey`.
-    *   **Android Target:** The Android runner utilizes the **Android Keystore System** to decrypt an encrypted `SharedPreference` containing the ephemeral Auth Key.
-    *   **Fallback Sequence:** If no key exists in secure storage, the client transitions to a *Pending Setup* state, spawning a platform-native notification prompting the user to paste their tailnet configuration key.
-
-#### State 4: CONNECTING
-*   **Description:** The `tsnet` client calls `tsnet.Server.Start()`, initializing its local virtual network interfaces.
-*   **System Action:**
-    *   Construct standard Wireguard encapsulation sockets.
-    *   Spin up background DNS listeners to resolve names inside the self-hosted Tailscale domain (e.g. `sync-relay.tailnet-xyz.ts.net`).
-
-#### State 5: CONNECTED
-*   **Description:** Successful handshake completed with the self-hosted backup stack endpoint.
-*   **System Action:**
-    *   Expose a secure Dial context (`tsnet.Server.Dial()`) to the client application.
-    *   SQLite synchronization workers can now instantiate direct HTTP/gRPC channels to the backup relay without public internet exposure.
-
-#### State 6: TEARDOWN
-*   **Description:** Clean termination sequence during application shutdown or networking toggle-off.
-*   **System Action:**
-    *   Invoke `tsnet.Server.Close()` to release lock handles.
-    *   Cleanly close active TCP sockets to prevent leakages and thread blocks on the host OS.
+*   **Authentication:** clients join the tailnet independently (standard Tailscale login / auth keys at the control plane); the daemon identifies every peer per-request via `WhoIs`, so no shared secret is stored in the daemon.
+*   **Teardown:** daemon shutdown closes the `tsnet.Server` and its listeners; no lock handles or virtual interfaces are left behind.
 
 ---
 
-## 3. Secure Keychain API Specifications
-
-### Windows Credential Manager Interop (C++)
-To retrieve and write the Tailscale Auth Key, the Windows client C++ runner executes native interop via the Windows API:
-
-```cpp
-#include <windows.h>
-#include <wincred.h>
-#include <string>
-
-std::wstring GetSecureAuthKey() {
-    PCREDENTIALW credential;
-    if (CredReadW(L"LifeOS:Tailscale:AuthKey", CRED_TYPE_GENERIC, 0, &credential)) {
-        std::wstring key(reinterpret_cast<wchar_t*>(credential->CredentialBlob));
-        CredFree(credential);
-        return key;
-    }
-    return L"";
-}
-```
-
-### Android Keystore & Encrypted Preferences (Kotlin)
-The Android runner uses Jetpack Security to fetch keys from securely encrypted hardware:
-
-```kotlin
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
-
-fun getSecureAuthKey(): String? {
-    val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-
-    val sharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "lifeos_secure_prefs",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
-    
-    return sharedPreferences.getString("tailscale_auth_key", null)
-}
-```
-
----
-
-## 4. Traffic Segregation & Port Map Reference
-
-To prevent latency on heavy file operations and conserve mobile mesh bandwidth, the traffic routing paths are split cleanly:
-
-### Port & Tunnel Architecture Map
+## 3. Traffic Segregation & Port Map Reference
 
 | Service Name | Source Node | Destination Node | Network Path | Target Port | Protocol | Data Type |
 |:---|:---|:---|:---|:---|:---|:---|
-| **Host Daemon API & WebSocket** | Flutter UI Client | Go Daemon Host Service | Localhost Loopback | `50051` | HTTP / WS | Actions, Markdown Sync, Location radar WS, and Media streaming |
-| **Relational Sync** | Flutter UI Client | Remote Docker Server | Embedded `tsnet` | `8080` | HTTP / JSON | SQLite `sync_queue` deltas |
-| **Identity Proxy** | Inbound Gateway | OAuth2 Proxy | Docker Mesh | `4180` | HTTP | Authentication tokens |
-| **RustDesk Relay** | RustDesk Client | Remote RustDesk | Embedded `tsnet` | `21115` - `21119`| TCP/UDP | Desktop stream relay |
-| **Sunshine / Moonlight**| Moonlight Client | Host GPU Server | Embedded `tsnet` | `47989` - `47990`| TCP/UDP | High-performance video |
-| **OTA Server** | Flutter UI Client | Go Daemon / GitHub | Localhost Loopback / WAN | `50051` / `443` | HTTP / HTTPS | Android APK binaries (uses port 50051 on daemon; client may query port 8081 for fallback) |
-| **Web Fail-Safe Gateway (Caddy)** | Remote Web Browser | OAuth2 Proxy / Caddy | Public Inbound Tunnel | `80` / `443` | HTTP / HTTPS | Fail-safe web UI access (protected via forward_auth to port 4180) |
+| **Host Daemon API & WebSocket** | Flutter UI Client | Go Daemon (`lifeos-host`) | Tailnet / Localhost | `50051` | HTTP / WS | Actions, Markdown sync, location radar WS, media streaming |
+| **Funnel Upstream (Web Portal)** | Tailscale Funnel (TCP 443) | Go Daemon | Localhost Loopback | `50052` | HTTP | Web portal + OAuth (publicOnly gate) |
+| **Sync Relay** | Flutter UI Client | `server/` relay | Tailnet | `8080` | HTTP / WS | `POST /api/sync` → `generic_vault.jsonl`; `GET /ws` Yjs room relay (per-room ACL) |
+| **NewPipe Bridge** | Go Daemon | NewPipe bridge jar | Localhost Loopback | `18785` | HTTP | YouTube data extraction (`internal/youtube/bridge.go`) |
+| **P2P File Transfer** | Flutter UI Client | Peer client | LAN direct | `4444` | TCP | Device-to-device file transfer (`client/lib/core/p2p_transfer_service.dart`) |
+| **Identity Proxy (alt stack only)** | Inbound Gateway | oauth2-proxy container | Docker Mesh | `4180` | HTTP | Authentication tokens (dockerized alternative stack) |
+| **RustDesk Relay** | RustDesk Client | Remote RustDesk (hbbs/hbbr) | Docker Compose | `21115` - `21119` | TCP/UDP | Desktop stream relay |
+| **OTA Updates** | Flutter UI Client | Go Daemon | Tailnet / WAN | `50051` | HTTP | APK binaries via `/api/update/download` (daemon-served; port `8081` no longer used) |
+
+> [!NOTE]
+> Ports `21115`–`21119` and `4180` are bound only when the alternative dockerized stack (`backend/docker-compose.yml`) is running. OTA is served by the daemon from `/api/update/download` (`internal/sync/router.go`), replacing the old `8081` OTA server.
 
 ---
 
 ## Related Specifications
-*   [Split-Storage & Frontmatter Architecture](DATA_SCHEMAS.md)
-*   [Transactional Sync Protocol & LWW](SYNC_PROTOCOL.md)
-
+*   [[04 - LifeOS DevDocs/DATA_SCHEMAS|Split-Storage & Frontmatter Architecture]]
+*   [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Transactional Sync Protocol & LWW]]
+*   [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Fail-Safe Layer]]

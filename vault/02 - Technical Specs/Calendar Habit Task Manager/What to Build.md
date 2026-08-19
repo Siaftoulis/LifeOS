@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Calendar Habit Task Manager|Calendar Habit Task Manager]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -99,3 +100,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`SlideableTaskCard`:** Swipe gesture container. Dragging left completes the task, dragging right opens a reschedule sheet.
 - **`HabitProgressGrid`:** Loop-style layout presenting habit streaks, check-in history dots, and target counts.
 - **`VoiceRecorderDialog`:** Compact microphone panel displaying audio recording overlays and transcription progress buffers.
+

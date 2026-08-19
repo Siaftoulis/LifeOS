@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Home Screen|Home Screen]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -68,3 +69,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`LockScreenOverlay`:** Full-screen lock display. Renders security PIN pad controls, dynamic time widgets, and notification timeline lists.
 - **`ClockWidget`:** High-contrast time viewer adapting background wallpapers based on system theme configurations.
 - **`ConsolidatedTaskFeedWidget`:** Central notifications tracker listing tasks, sync updates, and habit alerts in a compact list format.
+

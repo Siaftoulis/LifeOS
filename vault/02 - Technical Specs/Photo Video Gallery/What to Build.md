@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Photo Video Gallery|Photo Video Gallery]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -69,3 +70,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`GalleryGridWidget`:** Main interface rendering album lists and photo grid cards.
 - **`PhotoDetailScreen`:** Fullscreen display supporting gesture swipes and EXIF data summaries.
 - **`BackupActivityPanel`:** Settings overlay listing active camera-roll uploads and progress bar schedules.
+

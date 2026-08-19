@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Book Library|Book Library]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **EPUB/PDF Processing:** Implement actual EPUB metadata extraction in Go (using an epub parsing library) to extract Title, Author, Cover Image, and Chapter list.
@@ -15,3 +16,7 @@
 ## 3. Open Design Questions
 1. Do we need an OPDS server (like Calibre-Web) to sync reading progress with dedicated e-ink readers, or will reading happen exclusively within the LifeOS Flutter app?
 2. Should we integrate a text-to-speech (TTS) local engine to read EPUB files aloud?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Book Library|Book Library]] for the live feature list.

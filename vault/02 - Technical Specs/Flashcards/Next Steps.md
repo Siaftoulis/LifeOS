@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Flashcards|Flashcards]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Spaced Repetition Algorithm (SRS):** Port a proven SRS algorithm (like Anki's SM-2 or FSRS) into the Go Daemon to calculate the exact `next_review` Unix timestamps based on user difficulty ratings (Easy, Good, Hard, Again).
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Will flashcards remain isolated text-based cards, or do we need to support rich media (images/audio) synced via the local Go server?
 2. Should we support bi-directional sync with AnkiWeb, or strictly keep LifeOS as a closed, proprietary SRS system?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Flashcards|Flashcards]] for the live feature list.

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Movie Library|Movie Library]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -79,3 +80,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`MovieLibraryDashboard`:** Main screen presenting catalog cards, search fields, and watchlist status indicators.
 - **`VLCPlayerScreen`:** Integrated native player rendering high-quality streams, volume sliders, and subtitle selectors.
 - **`MovieReviewEditor`:** Editor view prompting reviews input, ratings selectors, and notes export keys.
+

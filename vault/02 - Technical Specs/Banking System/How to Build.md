@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -107,3 +108,4 @@ This document provides step-by-step instructions for implementing the backend PD
    - Query points ratios from the [[Point Star System]] SQLite cache dynamically.
    - Compute the split percentage for the 30% "silly things" personal allowance based on the active Star Point ratio.
    - Render horizontal progress bars showing allocations with clean highlights.
+

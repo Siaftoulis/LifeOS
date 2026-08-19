@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Hypervisor Control:** The Go Daemon must execute native PowerShell commands (`Get-VM`, `Start-VM`) for Hyper-V, or API calls to the local Docker daemon, to genuinely start and stop these environments.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Do you want to build a Flutter-based remote desktop viewer (VNC/RDP) inside LifeOS, or just rely on external apps like RustDesk for the actual screen viewing?
 2. Should we support automatic VM snapshots before boot?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]] for the live feature list.

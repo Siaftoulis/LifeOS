@@ -1,7 +1,7 @@
 # Project Infinity | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Planning for Implementation
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Obsidian Zen Editor]], [[Flashcards]], [[Knowledge Base]], [[Point Star System]]*
 
 ---
@@ -20,21 +20,26 @@ Project Infinity acts as a custom view layer feeding directly into the core know
 ---
 
 ## Work Done So Far
-- **Concept Definition:** The daily three-part learning structure has been established and approved.
-- **Workflow Architecture:** Visual integration flow connecting raw Markdown notes in the Zen Editor to automated vocabulary database parsing has been planned.
+- **Daily Dashboard:** Flutter dashboard with a word-of-the-day card and a trivia log timeline, styled per the Everforest theme.
+- **Seeded Content:** Daily Greek words and daily trivia are seeded in `infinity.db` for ongoing rotation.
+- **Daemon API:** `GET /api/v1/infinity/daily` serves the daily word/trivia payload to the client.
+- **Client Persistence:** `infinity_dao` exposes the `DailyWords` and `DailyTrivias` tables for history and stats.
 
 ---
 
 ## Current Focus & Actions
-- **Data Schemas Design:** Defining structural layouts for custom dictionaries, vocabulary tables, and historical daily logs in the Go daemon.
-- **UI Mockups:** Drafting simple Everforest-themed screens to show the "Word of the Day" cards.
+- **Dashboard Polish:** Refining the word-of-the-day card and trivia timeline visuals and empty states.
+- **Content Pipeline:** Maintaining the seeded daily word/trivia rotation and preparing richer fact sources.
+- **Workspace Integration:** Exploring tighter coupling with the [[Obsidian Zen Editor]] so daily entries written in the vault feed the dashboard automatically.
 
 ---
 
 ## Next Steps & Future Roadmap
+- **(DONE) Interactive Study Space:** The dedicated dashboard slot showing the word of the day, trivia log, and daily history is live in Flutter.
 - **Dictionary API Integrations:** Connecting the Go backend to open-source or custom dictionary APIs for automatic translations and definition retrieval.
-- **Interactive Study Space:** Building a dedicated UI slot in Flutter to view past words, review learning statistics, and log daily facts.
 - **Vocabulary Export:** Creating features to export custom compiled lists to external formats.
+- **Zen Workspace Parsing:** Parsing daily entries written in [[Obsidian Zen Editor]] vault files to populate the dashboard automatically.
+- **Flashcard Pipeline:** Feeding every vocabulary word and trivia fact into active decks in the [[Flashcards]] module.
 
 ---
 

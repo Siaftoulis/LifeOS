@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Dark Web Management|Dark Web Management]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Tor Proxy Integration:** The Go Daemon must spawn or connect to a local `tor` daemon instance (e.g., exposing a SOCKS5 proxy on `localhost:9050`) to route HTTP requests for `.onion` URLs.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Should the Flutter UI render actual web content (via a WebView routed through the proxy), or should it strictly remain a text-based intelligence feed scraped by the backend?
 2. Do we need an alerting system (e.g., OS notifications) if a monitored `.onion` site suddenly goes offline or changes its cryptographic signature?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Dark Web Management|Dark Web Management]] for the live feature list.

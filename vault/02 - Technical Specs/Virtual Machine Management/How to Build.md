@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Virtual Machine Management|Virtual Machine Management]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -42,3 +43,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Limits Builders:** Bind limits settings update updates inside client forms:
    - Call `VMManager.setLimits(cpuCount, ramMB)` on database actions.
 2. **Sync Flags:** Set `is_dirty = 1` to command immediate synchronization loops.
+

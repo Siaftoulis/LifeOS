@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -109,3 +110,4 @@ Decrypts and serves document binary streams locally.
 - `GovernmentCredentialCard` (`client/lib/presentation/widgets/gov_credential_card.dart`): Outlined container displaying individual credentials with tap-to-reveal functionality.
 - `SecureDocumentCard` (`client/lib/presentation/widgets/secure_document_card.dart`): Grid block for PDFs and images showing preview thumbnails only after successful PIN verification.
 - `SecurityPinCurtain` (`client/lib/presentation/widgets/security_pin_curtain.dart`): Screen overlay that intercepts touch inputs and requests the system passcode.
+

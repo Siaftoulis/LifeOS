@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Accounting|Accounting]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -91,3 +92,4 @@ This document provides step-by-step instructions for implementing the backend cr
    - Listen to tap triggers on any `SecureDocumentCard`.
    - Intercept the action, slide up a numeric pad, and request the PIN.
    - If verified, send the decryption JSON-RPC request to the Go daemon and render the decrypted asset.
+

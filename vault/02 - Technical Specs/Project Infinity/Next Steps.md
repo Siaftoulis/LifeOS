@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Project Infinity|Project Infinity]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Vocabulary/Trivia Engine:** The Go Daemon must automatically scrape or generate (perhaps via a local LLM or a predefined massive SQLite dictionary) the "Word of the Day" and "Trivia of the Day" at exactly midnight local time.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Do you want Project Infinity to expand into other daily domains (e.g., "Math Problem of the Day" or "Coding Challenge")?
 2. Should the system pause generating new words if the user hasn't logged in for a week, or keep cycling?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Project Infinity|Project Infinity]] for the live feature list.

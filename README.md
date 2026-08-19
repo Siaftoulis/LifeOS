@@ -5,24 +5,25 @@
     A self-hosted, offline-first operating system layer that consolidates your entire digital life into a single, private, unified workspace.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.0.2-blue" alt="Version" />
-    <img src="https://img.shields.io/badge/build-27-green" alt="Build" />
+    <img src="https://img.shields.io/badge/version-1.5.0-blue" alt="Version" />
+    <img src="https://img.shields.io/badge/build-33-green" alt="Build" />
     <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter" alt="Flutter" />
-    <img src="https://img.shields.io/badge/Go-1.22-00ADD8?logo=go" alt="Go" />
+    <img src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go" alt="Go" />
     <img src="https://img.shields.io/badge/license-private-lightgrey" alt="License" />
   </p>
 </p>
 
 ---
 
-## 🌐 Web Access (Family Portal)
+## Web Access (Family Portal)
 
 Access LifeOS from **any browser** (PC, tablet, phone — no installation needed):
 
 - **Public URL (permanent):** `https://lifeos-host.husky-forel.ts.net`
   *(Tailscale Funnel — HTTPS, valid certificate, served by the host daemon itself)*
-- **Login:** with your own LifeOS account (username/password), or **Google / GitHub** (invite-only — the admin must create your account first).
-- All traffic is HTTPS; the API requires authentication for everything except login.
+- **Login:** with your own LifeOS account (username/password), or **Google / GitHub** single sign-on (invite-only — the admin must create or map your account first).
+- **Security:** every API call (except the public login/register/OAuth flows) requires a **JWT** issued by the daemon. Account **registration is disabled on the public internet path** — new accounts can only be created on your private network.
+- All traffic is HTTPS end-to-end; the Flutter web portal is served by the daemon at `/`.
 
 *If the daemon runs on a network that blocks Tailscale's control server, ask the admin — a temporary fallback URL may be provided.*
 
@@ -40,51 +41,53 @@ Think of it as a private operating system for your life.
 
 - ** You Own Your Data** — Everything stays on your devices. No cloud. No subscriptions. No tracking.
 - ** Works Offline** — Every feature works without internet. Sync happens automatically when devices reconnect.
-- ** Gamified Productivity** — Earn Star Points for completing tasks, habits, and learning. Spend them to unlock rewards.
-- ** Family-Friendly** — Built-in parental controls, family leaderboards, and role-based access.
+- ** Gamified Productivity** — Earn Star Points and RPG experience for completing tasks, habits, and learning. Spend them to unlock rewards.
+- ** Family-Friendly** — Built-in parental controls (Child Lock), family leaderboards, and role-based access.
 
 ---
 
 ## Features
 
 ###  Home Screen
-A custom lock screen with swipe-to-unlock, real-time clock, and a live notifications feed color-coded by category (system, habits, security, finances).
+A custom lock screen with PIN / login / OAuth, real-time clock, and a live notifications feed color-coded by category (system, habits, security, finances). A connection status badge shows your current route (Tailscale Mesh / Local Wi-Fi / Remote Cloud).
 
-###  Point Star System
-A household gamification engine where family members earn points through productive activities:
-
-| Earn Points | Spend Points |
-|-------------|-------------|
-| Complete daily habits (+10) | 30min Screen Time (50 pts) |
-| Finish a flashcard session (+15) | Movie Night (100 pts) |
-| Read for 30 minutes (+20) | Game Session (150 pts) |
-| Complete a task (+5 to +25) | Late Bedtime (200 pts) |
-| Exercise logged (+15) | Choose Dinner (300 pts) |
-| Chore completed (+10) | Day Off Chores (500 pts) |
-
-Features a **family leaderboard** with gold/silver/bronze rankings, a **voucher rewards shop**, and **point-gated app access** — each app launch can cost Star Points.
-
-###  Maps & Live Tracking
-Real-time GPS tracking with OpenStreetMap, live location feed via WebSocket, interactive geofence zone drawing, and turn-by-turn navigation overlay. Includes an animated dark radar sweep visualization.
-
-###  Android Launcher Mode
-A full Android home screen replacement with an app drawer, dock bar, and AI-powered app categorization (powered by Gemini). Apps are organized into folders and each launch can be gated behind Star Points.
+###  Spatial Engine
+Navigate the whole OS with the **keyboard**: arrow keys move across the module grid, double-bump at a screen edge to jump to the adjacent container, `Esc` steps back, double-`Esc` returns home. Every module is cached and transitioned with animated 350ms ease transitions.
 
 ###  Obsidian Zen Editor
-A built-in markdown editor integrated with your local vault. Read, edit, and link notes with frontmatter support and automatic link tokenization.
+A full **AppFlowy-powered markdown editor** integrated with your local vault:
+- Wiki links `[[note]]` with vault autocomplete, tables, code blocks, callouts, toggles, headings 1–6, slash menu
+- Markdown clipboard copy/paste **round-trip** (import and export)
+- Entity embeds — insert a movie, book, music track, note, or geofence straight into a note
+- File tree (drag & drop, rename, favorites), graph view, live collaboration presence (Yjs CRDT)
+- Syncs to the daemon (DB-backed file system with LWW conflict resolution)
 
-###  Preferences & Settings
-System settings hub with:
-- **My Profile** — Edit display name, status, and avatar
-- **Admin Console** — Create and manage family user accounts
-- **Grid Configurator** — Customize your dashboard layout
-- **Tailscale Node Monitor** — View all devices on your mesh network
+###  Music Library — "Audiophile Music Studio"
+A high-fidelity private music player with a **Poweramp v3-style interface**:
+- 10-band **DSP equalizer** (preamp, bass/treble boost, spatial audio) — native on Android, audio filters on Windows
+- Smart mixes & playlists, waveform seekbar, synced lyrics (LRCLIB)
+- Search, download and **stream from YouTube** via the daemon (yt-dlp + m4a proxy with caching, CORS and byte-range support)
+- Scans local phone audio, plays through `just_audio` + `media_kit`, mini-player dock with "Audiophile Quality Tag"
 
-###  Authentication
-Secure login with username/password, bcrypt-hashed credentials, "Remember Me" session persistence, and role-based access control (Admin, User, Child).
+###  Movie Library
+- TMDB metadata enrichment (posters, genres, ratings), browse/search with filters
+- Status tracking (Available / Downloading / Watched), watchlist, personal reviews
+- VLC-based player with subtitle support
 
-###  Remote System Management
-Control your host machine from anywhere on your network — reboot, shutdown, view services, stream logs, and run diagnostics.
+###  Photo & Video Gallery
+A **1:1 Aves Libre replica** — full-screen viewer, video scrubber, map view with clustering, albums, cloud gallery, backup activity panel, peer-to-peer sharing (port 4444), and a **smart picker** that dedupes by content hash and perceptual (dHash) similarity.
+
+###  Books
+EPUB / CBZ / e-ink readers, audiobook player, highlights, and an **AI panel** (describe / summarize / chat) powered by your local LLM (default: Llama 3.2 via Ollama). Search across Gutenberg, OpenLibrary, MangaDex and Anna's Archive with background downloads.
+
+###  RPG Player System
+Family members level up like a game: XP from tasks and habits, attributes, quests (daily, main-line, pool), **illness/injury system** with recovery, and XP decay when you slack off. Star Points (points/100) power the voucher shop and app-launch gating.
+
+###  Banking & Accounting
+Banking dashboard with ledger, bill-pay tracker, budgets and **PDF statement import**. Accounting keeps government credentials and secure documents **AES-GCM encrypted** behind a PIN curtain.
+
+###  And everything else
+Maps & live tracking (OSM, geofences, radar, navigation overlay), flashcards (SM-2 spaced repetition), knowledge base with relationship graph, YouTube client (NewPipe bridge, point-costed sessions), virtual machine management, smart home control, dark-web / torrent monitor with quarantine, project infinity (word of the day + trivia), cloud backups, calendar/habits/tasks with voice capture — all wired into one grid.
 
 ---
 
@@ -95,27 +98,28 @@ LifeOS is designed as a modular platform. Here's every module and its current st
 | Module | Status | Description |
 |--------|--------|-------------|
 | Home Screen | ✅ Active | Lock screen, clock, notifications |
-| Point Star System | ✅ Active | Gamification, leaderboard, vouchers |
-| Maps & Live Tracking | ✅ Active | GPS, geofences, live radar |
-| Preferences & Settings | ✅ Active | Profile, admin, grid config |
-| Obsidian Zen Editor | ✅ Active | Markdown vault editor |
-| Live Sharing | ✅ Active | WebSocket real-time sharing |
-| Location Tracker | ✅ Active | Background GPS plugin |
-| Knowledge Base | 🔜 Planned | PKM wiki with backlinks |
-| Calendar & Habits | 🔜 Planned | Unified calendar + habits + tasks |
-| Flashcards | 🔜 Planned | Spaced repetition system |
-| Accounting | 🔜 Planned | Personal finance tracking |
-| Banking System | 🔜 Planned | Bank account aggregation |
-| Book Library | 🔜 Planned | EPUB/PDF reader |
-| Movie Library | 🔜 Planned | Collection and watchlist |
-| Music Library | ✅ Active | Local music player + yt-dlp search/stream/download |
-| Photo/Video Gallery | 🔜 Planned | Local media gallery |
-| YouTube Client | 🔜 Planned | Privacy-focused viewer |
-| Cloud & Fake VM | 🔜 Planned | Sandboxed VM execution |
-| VM Management | 🔜 Planned | Hyper-V/Docker control |
-| Dark Web Management | 🔜 Planned | Tor/I2P gateway |
-| Home Management | 🔜 Planned | IoT/smart home control |
-| Project Infinity | 🔜 Planned | Project management |
+| Spatial Engine | ✅ Active | Keyboard grid navigation, edge bumping, Esc back-stack |
+| Obsidian Zen Editor | ✅ Active | AppFlowy markdown editor, wiki links, tables, embeds, collab |
+| Music Library | ✅ Active | Audiophile Studio, DSP EQ, smart playlists, m4a streaming |
+| Movie Library | ✅ Active | TMDB metadata, watchlist, reviews, VLC player |
+| Photo/Video Gallery | ✅ Active | Aves replica, smart picker, map clustering, P2P share |
+| Book Library | ✅ Active | EPUB/CBZ/e-ink, audiobooks, AI panel, 4 sources |
+| YouTube Client | ✅ Active | NewPipe bridge, point-costed sessions, downloads |
+| Point Star System | ✅ Active | Gamification, leaderboard, vouchers, app gating |
+| RPG Player System | ✅ Active | XP, leveling, quests, illness/injury, decay |
+| Maps & Live Tracking | ✅ Active | GPS, geofences, radar, offline tiles, navigation |
+| Calendar/Habits/Tasks | ✅ Active | CHTM hub, auto-scheduler, voice capture |
+| Flashcards | ✅ Active | SM-2 spaced repetition, Anki import |
+| Knowledge Base | ✅ Active | Topics, articles, relationship graph |
+| Banking System | ✅ Active | Accounts, ledger, bills, budgets, PDF import |
+| Accounting | ✅ Active | AES-GCM vault, PIN curtain, credentials |
+| Home Management | ✅ Active | Smart devices, sensor logs, schedules |
+| Virtual Machine Management | ✅ Active | VM list/toggle, remote file explorer, WoL |
+| Dark Web Management | ✅ Active | Torrents monitor, quarantine, antivirus scan |
+| Project Infinity | ✅ Active | Word of the day, trivia timeline |
+| Cloud & Fake VM | 🔶 Partial | Backups + quarantine live; web-os/sandbox stubs |
+| Preferences & Settings | ✅ Active | Profile, admin, grid configurator, matrix editor |
+| Web Portal | ✅ Active | Flutter web served by daemon, Tailscale Funnel |
 
 ---
 
@@ -126,13 +130,14 @@ LifeOS is designed as a modular platform. Here's every module and its current st
 Go to [Releases](../../releases) and download:
 - **Android**: `app-release.apk` — Install directly on your phone
 - **Windows**: `lifeos-windows-release.zip` — Extract and run
+- **Web**: served live at `https://lifeos-host.husky-forel.ts.net` — no install needed
 
 ### First Launch
 
 1. Install the APK or extract the Windows build
-2. On first launch, enter your **server URL** (your host machine's Tailscale IP + port 50051)
+2. On first launch, enter your **server URL** (your host machine's Tailscale IP + port 50051) — or let the app auto-discover it (mDNS, localhost, Tailscale mesh, emulator)
 3. Register or log in with your credentials
-4. The default admin account is `admin` / `admin` — **change the password immediately**
+4. The default admin account is `panospds` / `1897` — **change the password immediately**
 
 ---
 
@@ -141,27 +146,33 @@ Go to [Releases](../../releases) and download:
 LifeOS requires two backend services running on your host machine:
 
 ### 1. Host Daemon (required)
-The main backend service handling auth, points, maps, system management, and more:
+The main backend service: auth (JWT + OAuth SSO), all domain APIs, web portal, maps, points, RPG, media streaming, and more:
 ```bash
 cd backend/host-daemon
 go run main.go
 ```
-Runs on port `:50051` over your Tailscale mesh network.
+Listens on port `:50051` over your Tailscale mesh network (and `:50052` as the public Funnel upstream).
 
 > **First run**: A browser will open for Tailscale authentication. Log in to your Tailscale account to register this node.
 
-### 2. Sync Server (optional)
-Lightweight service for delta-based data synchronization between devices:
+### 2. Sync Relay (optional)
+Lightweight service for delta-based sync and Yjs collaboration relay:
 ```bash
 cd server
 go run main.go
 ```
-Runs on port `:8080`.
+Runs on port `:8080` (`POST /api/sync` → JSONL append log; `GET /ws` → Yjs room relay).
 
 ### 3. Flutter Client (for development)
 ```bash
 cd client
 flutter run
+```
+
+### 4. Web Portal (deploy)
+```powershell
+.\deploy_server.ps1          # build web + cross-compile Linux binaries + deploy via Tailscale SSH
+.\client\deploy.ps1          # web-only deploy
 ```
 
 ---
@@ -174,14 +185,14 @@ LifeOS uses [Tailscale](https://tailscale.com) to create a private encrypted mes
 - ✅ Works across WiFi, cellular, and different networks
 - ✅ All traffic encrypted with WireGuard
 - ✅ Automatic peer discovery and reconnection
+- ✅ Optional **Tailscale Funnel** for a public HTTPS web portal (invite-only accounts)
 
 ### Steps:
 1. Create a free [Tailscale account](https://tailscale.com)
 2. Install Tailscale on your Android phone
 3. Run the Host Daemon — it embeds Tailscale automatically
 4. All devices on the same Tailscale account can now reach each other
-
----
+5. To publish the web portal publicly, run `tailscale funnel 443` on the host (the daemon configures this automatically when enabled)
 
 ---
 
@@ -190,104 +201,98 @@ LifeOS uses [Tailscale](https://tailscale.com) to create a private encrypted mes
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  Tailscale Mesh Network                  │
-│                  (WireGuard E2E Encrypted)               │
-│                                                         │
-│  ┌────────────────┐         ┌─────────────────────────┐ │
-│  │ Flutter Client  │         │  Host Daemon (Go)       │ │
-│  │ Android/Windows │◄───────►│  :50051 via tsnet       │ │
-│  │                 │   REST  │                         │ │
-│  │ • 22 Modules    │   + WS  │  • Auth (bcrypt/token)  │ │
-│  │ • 27 DB Tables  │         │  • Location (geofence)  │ │
-│  │ • 6 Plugins     │         │  • Points (gamify)      │ │
-│  │ • Drift SQLite  │         │  • System (admin)       │ │
-│  │ • Auth Service  │         │  • Sync (deltas)        │ │
-│  └────────────────┘         │  • WoL (wake devices)   │ │
-│                              └──────────┬──────────────┘ │
-│                                         │                │
-│                              ┌──────────▼──────────────┐ │
-│                              │  Sync Server (Go)       │ │
-│                              │  :8080                  │ │
-│                              │                         │ │
-│                              │  • Delta sync handler   │ │
-│                              │  • JSONL append log     │ │
-│                              │  • Event type routing   │ │
-│                              └─────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                    Tailscale Mesh Network                          │
+│                    (WireGuard E2E Encrypted)                       │
+│                                                                    │
+│   ┌──────────────────┐   ┌────────────────────────────────────┐   │
+│   │  Flutter Client   │   │  Host Daemon (Go)  :50051         │   │
+│   │  Android/Windows/ │──►│  ─────────────────────────────────│   │
+│   │  Web (Flutter)    │◄──┤  • Global JWT auth gate + OAuth   │   │
+│   │                   │   │    SSO (GitHub/Google)            │   │
+│   │  • ~32 modules    │   │  • ~38 domain packages            │   │
+│   │  • Drift 60 tables│   │  • Per-module SQLite DBs (data/)  │   │
+│   │  • Spatial engine │   │  • Web portal at / (Flutter web)  │   │
+│   │  • JWT session    │   │  • Music m4a proxy + caching      │   │
+│   │  • Offline queue  │   │  • Events WebSocket bus           │   │
+│   └──────────────────┘   │  • RPG/points/automations engine   │   │
+│                          └──────────────┬─────────────────────┘   │
+│                                         │                         │
+│                            ┌────────────▼──────────────────────┐  │
+│                            │  Tailscale Funnel  :443 → :50052  │  │
+│                            │  https://lifeos-host.husky-forel  │  │
+│                            │  .ts.net (public, invite-only)    │  │
+│                            └────────────┬──────────────────────┘  │
+│                                         │                         │
+│                            ┌────────────▼──────────────────────┐  │
+│                            │  Sync Relay (Go)  :8080           │  │
+│                            │  • POST /api/sync → JSONL log     │  │
+│                            │  • GET /ws  Yjs collab relay +    │  │
+│                            │    per-room ACL                   │  │
+│                            └───────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## Monorepo Structure
 
 ```
 LifeOS/
-├── client/                          # Flutter app (Android + Windows)
+├── client/                          # Flutter app (Android + Windows + Web)
 │   ├── lib/
 │   │   ├── main.dart                # Entry point, auth flow, notification polling
-│   │   ├── app_shell.dart           # Root layout, spatial grid
-│   │   ├── auth_service.dart        # Login/logout/session management
-│   │   ├── api_client.dart          # HTTP client with auth headers
+│   │   ├── app_module_router.dart   # ~32 module IDs → widgets
+│   │   ├── auth_service.dart        # JWT login/logout/session/OAuth (web)
+│   │   ├── api_client.dart          # HTTP client with auth headers + offline queue
+│   │   ├── spatial_engine_scaffold.dart  # Keyboard grid navigation
 │   │   ├── core/
-│   │   │   └── feature_registry.dart  # 22 registered module definitions
+│   │   │   ├── feature_registry.dart    # Module catalog (15 modules)
+│   │   │   ├── domain_repositories.dart # Music/movies/books… daemon repos
+│   │   │   ├── audio_dsp_service.dart   # 10-band DSP equalizer
+│   │   │   ├── obsidian/                # Vault scanner, frontmatter, Yrs bindings
+│   │   │   └── event_hub.dart           # WebSocket events bus client
 │   │   ├── database/
-│   │   │   ├── database.dart        # 27 Drift/SQLite tables
-│   │   │   ├── maps_dao.dart        # Location data queries
-│   │   │   └── preferences_service.dart  # JSON-based reactive preferences
-│   │   ├── plugins/
-│   │   │   ├── location_tracker/    # Background GPS streaming
-│   │   │   ├── live_sharing/        # WebSocket real-time sharing
-│   │   │   ├── gallery/             # Photo/video indexing
-│   │   │   ├── map_view/            # OSM tile abstraction
-│   │   │   ├── markdown/            # Vault file parser
-│   │   │   └── settings/            # Platform settings integration
-│   │   └── presentation/widgets/
-│   │       ├── home_screen/         # Clock, lock screen, notifications
-│   │       ├── maps_live_tracking/  # 9 widgets: map, radar, geofence, nav
-│   │       ├── point_star_system/   # Dashboard, vouchers, gating, leaderboard
-│   │       └── preferences_setting/ # Profile, admin, launcher, grid, nodes
-│   ├── android/                     # Android platform config
-│   ├── windows/                     # Windows platform config
-│   └── pubspec.yaml                 # Dependencies
+│   │   │   ├── database.dart        # 60 Drift/SQLite tables (WAL)
+│   │   │   └── schema/              # 9 schema files (core, chtm, economy, …)
+│   │   ├── appflowy/                # Vendored AppFlowy editor fork + custom blocks
+│   │   ├── plugins/                 # gallery, live_sharing, map_view, markdown, settings
+│   │   ├── presentation/widgets/    # media_hub, finance, rpg_hub, knowledge_hub,
+│   │   │                            #   chtm, zen_workspace, maps, points, …
+│   │   └── theme/everforest_colors.dart  # Everforest design system
+│   ├── web/                         # Flutter web (sqlite3.wasm + drift worker)
+│   └── pubspec.yaml
 │
-├── backend/host-daemon/             # Go backend service
-│   ├── main.go                      # Entry point, tsnet init, 24 routes
-│   ├── wol.go                       # Wake-on-LAN utility
-│   └── internal/
-│       ├── auth/
-│       │   ├── router.go            # Login, register, validate, notifications
-│       │   └── users.go             # bcrypt hashing, JSON user store
-│       ├── location/
-│       │   ├── router.go            # Geofence CRUD, location reporting, routing
-│       │   ├── geofence.go          # Haversine + ray-casting proximity engine
-│       │   ├── websocket.go         # Real-time location broadcast broker
-│       │   └── automations.go       # Geofence-triggered smart home actions
-│       ├── points/
-│       │   └── router.go            # Leaderboard, ledger, voucher redemption
-│       ├── system/
-│       │   └── router.go            # Reboot, shutdown, services, logs, AI categorize
-│       └── sync/
-│           └── router.go            # Delta sync ingestion
+├── backend/host-daemon/             # Go backend service (the single API)
+│   ├── main.go                      # Entry: DB init, routes, auth gate, web portal
+│   ├── tailnet.go                   # tsnet mesh + Tailscale Funnel (443 → :50052)
+│   ├── ddns.go / wol.go / hyperv.go # Host utilities
+│   ├── web/                         # Flutter web portal bundle (served at /)
+│   └── internal/                    # ~38 domain packages:
+│       ├── auth/ oauth/             # JWT gate, bcrypt, GitHub/Google SSO
+│       ├── movies/ music/ books/ gallery/ notes/ media/
+│       ├── player/ points/          # RPG + gamification
+│       ├── banking/ accounting/ home/ infinity/ knowledge/ flashcards/
+│       ├── zen/ engine/ markdown/   # Editor FS, entities, collab
+│       ├── location/ events/ bus/ telemetry/ automations/
+│       ├── vm/ youtube/ darkweb/ cloud/ sandbox/ kb/ chtm/ illness/ calendar/
+│       ├── system/ backup/ sync/ voice/ devsim/
+│       └── middleware/jwt.go        # Global auth gate
 │
-├── server/                          # Lightweight sync server
-│   └── main.go                      # Delta handler, JSONL append log
+├── server/                          # Lightweight sync relay (:8080)
+│   └── main.go, sync_hub.go, database.go   # JSONL sync + Yjs relay + ACL
 │
+├── native_yrs/                      # Rust Yrs CRDT C-ABI crate (libnative_yrs)
+├── docs/                            # Zen editor architecture + markdown reference
 ├── vault/                           # Obsidian documentation vault
-│   ├── 00 - System/                 # Project home page
-│   ├── 01 - Tiles/                  # Module specifications (20+ tiles)
-│   ├── 02 - Technical Specs/        # Point Star System, Accounting specs
-│   ├── 03 - work/                   # Sprint tasks, architecture, trace logs
-│   └── 04 - LifeOS DevDocs/        # Architecture docs, schemas, protocols
+│   ├── 00 - System/                 # Workspace map of content
+│   ├── 01 - Tiles/                  # 20 module specifications (all live)
+│   ├── 02 - Technical Specs/        # Planning docs per module (annotated)
+│   ├── 03 - work/                   # Architecture, trace logs, sprint tracking
+│   └── 04 - LifeOS DevDocs/         # Security, sync, deployment, data schemas…
 │
-├── .agent/                          # AI agent configuration
-│   ├── version.json                 # Build number tracking
-│   ├── subagent_delegation.md       # Agent role definitions
-│   ├── rules/                       # 8 scope-specific rules
-│   └── workflows/                   # 8 workflow definitions
-│
-├── .github/workflows/
-│   └── release.yml                  # CI/CD: build APK + Windows + publish release
-│
+├── .agent/                          # AI agent config, version.json, workflows
+├── .github/workflows/release.yml    # CI/CD: APK + Windows + release on v* tag
 ├── setup.ps1                        # Dev environment bootstrapper
+├── deploy_server.ps1                # Web + daemon deploy to Linux box (Tailscale SSH)
 └── README.md                        # This file
 ```
 
@@ -295,122 +300,179 @@ LifeOS/
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Client** | Flutter 3.x / Dart | Cross-platform UI (Android + Windows) |
-| **Backend** | Go 1.22 | Host daemon, API server |
-| **Database** | Drift (SQLite) | 27 local-first tables |
-| **Networking** | Tailscale tsnet | Embedded WireGuard mesh |
-| **Real-time** | gorilla/websocket | Live location + data streaming |
-| **Auth** | bcrypt + Bearer tokens | Password hashing + session management |
+| **Client** | Flutter 3.x / Dart | Cross-platform UI (Android, Windows, Web) |
+| **Editor** | AppFlowy (vendored fork) | Markdown/rich-text editing with custom blocks |
+| **Backend** | Go 1.26 | Host daemon, single API for all domains |
+| **Database** | Drift (SQLite, WAL) | 60 local-first tables on device |
+| **Server DBs** | SQLite per module | `data/` — one `.db` per domain |
+| **Networking** | Tailscale tsnet | Embedded WireGuard mesh + Funnel |
+| **Real-time** | gorilla/websocket | Events bus, radar live feed, Yjs collab relay |
+| **Auth** | JWT (HS256) + bcrypt + OAuth | Sessions, roles, GitHub/Google SSO |
 | **Maps** | flutter_map + OSM | Offline-capable map rendering |
-| **GPS** | geolocator | Battery-optimized background tracking |
-| **AI** | Google Gemini API | App categorization (with local fallback) |
-| **CI/CD** | GitHub Actions | Automated APK + Windows builds on tag push |
-| **Containerization** | Docker | Optional sync server deployment |
+| **Audio** | just_audio, media_kit, on_audio_query | Playback + local scanning + DSP EQ |
+| **Video** | video_player, VLC | Movie/gallery playback |
+| **RPG** | Custom Go engine | XP, leveling, quests, illness, decay |
+| **AI** | LLM via Ollama (llama3.2 default) | Book summaries, app categorization |
+| **CRDT** | Yrs (Rust, C ABI) | Collaborative editing state |
+| **CI/CD** | GitHub Actions + Tailscale SSH | Automated releases + Linux deploys |
 
 ## API Reference
+
+One daemon, one API: `/api/v1/<domain>`. Every domain endpoint supports `?q=` search.
 
 ### Auth (`/api/v1/auth/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/login` | Authenticate → returns token + user profile |
+| `POST` | `/login` | Authenticate → JWT + user profile |
+| `POST` | `/register` | Create account (blocked on public Funnel path) |
+| `GET` | `/me` | Validate JWT, return profile |
 | `POST` | `/lock` | Lock current session |
-| `GET` | `/users` | List all users |
+| `GET` | `/users` | List users (admin) |
 | `POST` | `/users` | Create user (username, password, role) |
 | `PUT` | `/profile` | Update display name, status, avatar |
-| `GET` | `/validate` | Validate Bearer token |
+| `PUT` | `/password` | Change password |
 | `GET` | `/notifications` | Poll time-dripped notifications |
 
-### Location (`/api/v1/radar/`)
+### OAuth SSO (`/api/v1/oauth/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/geofences` | List geofence zones |
-| `POST` | `/geofences` | Create geofence (circle or polygon) |
-| `POST` | `/report` | Submit GPS location → triggers automations |
-| `GET` | `/live` | WebSocket upgrade → real-time broadcast |
-| `POST` | `/routing` | Request route between coordinates |
+| `GET` | `/providers` | List enabled providers (GitHub/Google) |
+| `GET` | `/start` | Redirect to provider (state-cookie CSRF) |
+| `GET` | `/callback` | Exchange code → JWT → portal |
 
-### Points (`/api/v1/points/`)
+### Movies (`/api/v1/movies/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/leaderboard` | Family rankings by total points |
-| `GET` | `/ledger` | Transaction history |
-| `POST` | `/vouchers/redeem` | Redeem voucher → deduct points |
+| `GET` | `/` | Browse/search (TMDB-enriched) |
+| `PUT` | `/…` | Set status (available/downloading/watched) |
+| `GET/POST` | `/watchlist` | Watchlist management |
+| `GET/POST` | `/reviews` | Personal reviews |
 
-### System (`/api/v1/system/`)
+### Music (`/api/v1/music/`) — public routes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/status` | Host health (CPU, RAM, uptime, OS) |
-| `GET`/`POST` | `/settings` | System settings (blocked for CHILD role) |
-| `GET` | `/nodes` | Tailscale mesh node status |
-| `POST` | `/reboot` | Reboot host machine |
-| `POST` | `/shutdown` | Shutdown host machine |
-| `GET` | `/services` | List running OS services |
-| `GET` | `/logs` | Stream system logs |
-| `POST` | `/apps/categorize` | AI-powered app categorization |
-| `GET` | `/diagnostics` | Go runtime stats |
+| `GET` | `/tracks` | Library tracks |
+| `GET` | `/search` | YouTube search (yt-dlp / NewPipe bridge) |
+| `POST` | `/download` | Download to `data/media/music/` |
+| `GET` | `/stream.m4a` | m4a proxy stream (cache + CORS + byte-range) |
+| `GET` | `/ytstream/resolve` | Resolve stream URL + cache status |
+| `GET` | `/lyrics` | LRCLIB synced lyrics |
 
-### Sync (`/api/v1/sync/`)
+### Books (`/api/v1/books/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/` | Submit delta change records |
+| `GET` | `/` + `/search` | Browse / multi-source search |
+| `POST` | `/download` + `/downloads` | Background download jobs |
+| `PUT` | `/progress`, `/highlight` | Reading progress, highlights |
+| `POST` | `/ai/describe`, `/ai/summarize`, `/ai/chat` | Local LLM features |
 
-### Infrastructure
+### Gallery (`/api/v1/gallery/`)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `GET` | `/assets` | Asset list (hash/dHash metadata) |
+| `GET` | `/asset?id=` | Asset detail / stream |
+
+### RPG & Points (`/api/v1/player/`, `/api/v1/points/`, `/api/v1/rpg/`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/player/stats` | XP, attributes, level |
+| `POST` | `/player/task/complete` | Task → XP + points pipeline |
+| `GET` | `/rpg/quests` (+ add/activate/accept/complete/cancel/delete/update/add-main) | Quest workflow |
+| `GET` | `/points/balance`, `/ledger`, `/leaderboard`, `/store` | Gamification data |
+| `POST` | `/points/vouchers/redeem`, `/apps/deduct` | Spend points |
+
+### Zen Editor (`/api/v1/zen/`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/sync` | LWW sync with tombstones |
+| `GET` | `/fs/list`, `/fs/read` | Vault file tree |
+| `POST` | `/fs/write`, `/fs/mkdir`, `/fs/delete`, `/fs/rename`, `/fs/copy` | File operations |
+
+### Notes / Media / Knowledge
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/notes` | Vault note search (path-traversal guarded) |
+| `GET` | `/api/media/` | Media file serving |
+| `GET` | `/api/v1/knowledge/categories`, `/articles` | Knowledge base |
+| `GET` | `/api/v1/flashcards/decks` (+ create/import-anki/scan) | Flashcards |
+| `GET` | `/api/v1/infinity/daily` | Word of the day + trivia |
+
+### Banking / Home / VM / YouTube
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/banking/parse-pdf` | PDF statement import |
+| `GET` | `/api/v1/home/devices`, `POST` `/toggle`, `POST` `/sensors/report` | Smart home |
+| `GET` | `/api/v1/vm` (+ toggle/discovery/explore) | Virtual machines |
+| `GET` | `/api/v1/youtube/search`, `/streams` (+ sessions/start/stop) | YouTube client |
+| `GET` | `/api/v1/darkweb/torrents` (+ promote) | Torrent monitor |
+
+### System & Infrastructure
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET/POST` | `/api/v1/system/settings` | Settings (CHILD role blocked) |
+| `POST` | `/api/v1/system/apps/categorize` | AI app categorization |
+| `GET/POST` | `/api/v1/backup/…` | list/upload/download/chunk/merge |
 | `POST` | `/api/v1/wol` | Wake-on-LAN magic packet |
+| `POST` | `/api/v1/voice-parse` | Voice capture transcription |
+| `POST` | `/api/v1/sync/push` | Delta sync envelope (base64+gzip) |
+| `GET` | `/api/update/download` | OTA APK download |
+| `GET` | `/api/health` | Health check |
 
-**Total: 24 endpoints** across 5 modules.
+### WebSockets
+| Endpoint | Description |
+|----------|-------------|
+| `/api/v1/events?token=` | Global events bus (points, movies watched, …) |
+| `/api/v1/radar/live?device_id=` | Real-time location broadcast |
+| `/api/markdown/collab?doc_id=` | Per-document collab hubs (JWT-validated) |
+| `/ws?token=` (:8080 relay) | Yjs room relay with per-room ACL |
 
-## Database Schema
+**Total: 85+ endpoints** across ~38 domain packages on the single daemon.
 
-27 Drift/SQLite tables organized by module:
+## Database
 
-| Domain | Tables |
-|--------|--------|
-| **Core** | `obsidian_files`, `obsidian_links`, `sync_deltas`, `sync_state`, `local_notifications` |
-| **Productivity** | `calendar_events`, `habits`, `tasks`, `flashcard_decks`, `flashcards`, `projects` |
-| **Finance** | `accounting_transactions`, `banking_accounts` |
-| **Media** | `books`, `movies`, `music_tracks`, `photos`, `videos`, `youtube_subscriptions` |
-| **Infrastructure** | `cloud_vms`, `docker_containers`, `iot_devices`, `knowledge_entries` |
-| **Gamification** | `point_star_balances`, `point_star_ledger` |
-| **Location** | `maps_location_history`, `maps_geofences` |
+- **Client (source of truth):** 60 Drift/SQLite tables (WAL) across 9 schema files — every table carries the sync quartet `updatedAt / syncedAt / isDirty / id`, with a buffered offline queue flushed every 15s.
+- **Daemon:** one SQLite `.db` per module in `data/` (gallery, movies, books, finance, rpg, knowledge, flashcards, media, home, infinity, backup, darkweb, vm, voice, youtube, system, sync, engine, sandbox, devsim, zen…) plus JSON stores (`calendar.json`, `geofences.json`, `points.json`, `ledger.json`, `illness.json`).
+- **Design rule (reference, don't copy):** entities stored once and referenced (`movie:imdb_id`, `book:isbn`, `photo:sha256`); uploads dedupe by content hash.
 
 ## Security Model
 
 | Layer | Implementation |
 |-------|---------------|
-| **Transport** | WireGuard encryption via Tailscale — all traffic E2E encrypted |
-| **Authentication** | bcrypt password hashing, random 32-byte hex session tokens |
-| **Authorization** | RBAC with 3 roles: `ADMIN`, `USER`, `CHILD` |
+| **Transport** | WireGuard via Tailscale — all traffic E2E encrypted |
+| **API Gate** | Global JWT middleware; explicit public allowlist only |
+| **Authentication** | bcrypt passwords, JWT HS256 (24h), OAuth SSO (GitHub/Google) with CSRF state cookies |
+| **Authorization** | RBAC: `ADMIN`, `USER`, `CHILD` (+ Child Lock on settings) |
+| **Public Exposure** | Funnel serves only the portal; register/login denied publicly (invite-only) |
 | **Storage** | Local SQLite only — no cloud database |
-| **Credentials** | Hashed in `data/users.json`, tokens in memory |
-| **Network** | No public endpoints — services only reachable within tailnet |
-| **Git Security** | Binaries, state dirs, API keys, and `.env` files all gitignored |
+| **Credentials** | Hashed in DB; external API keys env-only, backend-only (never in client) |
+| **Secrets** | `data/`, binaries, state dirs, `.env` files all gitignored |
+| **Web Hardening** | No-cache headers, purged service worker, MD5-verified deploys |
+| **Brute Force** | Per-IP login limiter (5 fails / 5 min) |
 
-> **Default admin**: `admin` / `admin` — change immediately on first boot.
+> **Default admin**: `panospds` / `1897` — change immediately on first boot.
 
 ## Automation Triggers
 
 | Trigger | Condition | Action |
 |---------|-----------|--------|
-| Geofence Enter: "Home Base" | GPS enters home zone | Turn on AC + home lighting |
-| Geofence Enter: "Work Polygon" | GPS enters work zone | Start robot vacuum + work lighting |
-| Points: Negative Balance | Voucher redemption drops below 0 | TV Lock Webhook fires |
-| Notification Drip | Every 15 seconds | New notification surfaces from template |
-| Wake-on-LAN | Manual API call | Send magic packet to wake sleeping PC |
+| Geofence Enter | GPS enters a zone | Webhook fires (smart home actions) |
+| Points Negative Balance | Voucher redemption drops below 0 | TV Lock webhook |
+| Task Completion | `player/task/complete` | +15 XP task / +10 habit, level-up, points |
+| Engine Rules | `engine:upsert:<type>` facts | Rewards (zen log +20) + notifications |
+| Events Bus | Any domain fact | Pushed live to all clients over WS |
+| Wake-on-LAN | Manual API call | Magic packet to wake sleeping PC |
 
 ## CI/CD Pipeline
 
-Automated on every `v*` tag push:
+Automated on every `v*` tag push (`release.yml`):
 
 ```
-git tag v27 → git push --tags
+git tag v33 → git push --tags
        │
        ▼
 ┌──────────────────┐   ┌──────────────────┐
 │  Build Android   │   │  Build Windows   │
 │  (ubuntu-latest) │   │ (windows-latest) │
-│                  │   │                  │
 │  Java 17 + Flutter│   │  Flutter stable  │
 │  → APK (arm64)   │   │  → ZIP (x64)    │
 └────────┬─────────┘   └────────┬─────────┘
@@ -418,12 +480,13 @@ git tag v27 → git push --tags
          ▼                      ▼
     ┌────────────────────────────────┐
     │    Publish GitHub Release      │
-    │                                │
-    │  • Release notes from template │
+    │  • Notes from version.json     │
     │  • app-release.apk attached    │
     │  • lifeos-windows.zip attached │
     └────────────────────────────────┘
 ```
+
+Production web/daemon deploys use `deploy_server.ps1` (build → cross-compile → `tailscale ssh` → systemd → MD5 verify) targeting `pds-laptop-old`.
 
 ## Development Setup
 
@@ -442,43 +505,50 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 cd backend/host-daemon
 go run main.go
 
-# In a new terminal, start the sync server
+# In a new terminal, start the sync relay
 cd server
 go run main.go
 
 # In a new terminal, run the Flutter client
 cd client
 flutter run
+
+# Web portal (deploy mode)
+.\deploy_server.ps1 -SkipBuild   # just deploy, skip rebuild
 ```
 
-### Docker (Sync Server Only)
-```bash
-docker-compose up -d
+### Build the Web Portal
+```powershell
+cd client
+flutter build web --release
 ```
 
 ## External Dependencies
 
-### Go (3 packages)
+### Go (host daemon)
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `tailscale.com` | v1.82.5 | Embedded Tailscale mesh networking |
-| `gorilla/websocket` | v1.5.3 | WebSocket server |
-| `golang.org/x/crypto` | v0.38.0 | bcrypt password hashing |
+| `tailscale.com` | v1.82+ | Embedded Tailscale mesh + Funnel |
+| `gorilla/websocket` | v1.5.3 | WebSocket server (events, radar, collab) |
+| `golang.org/x/crypto` | latest | bcrypt password hashing |
+| `golang-jwt/jwt` | latest | HS256 JWT issuance/validation |
+| `mattn/go-sqlite3` | v1.14+ | Per-module SQLite |
+| `yt-dlp` (binary) | latest | YouTube search/download/stream |
 
-### Flutter (10 packages)
+### Flutter (key packages)
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `drift` | any | SQLite ORM with code generation |
-| `flutter_map` | ^8.3.0 | OpenStreetMap tile rendering |
-| `geolocator` | ^14.0.3 | GPS location services |
-| `web_socket_channel` | ^3.0.3 | WebSocket client |
-| `http` | ^1.2.0 | HTTP client |
-| `path_provider` | ^2.1.5 | File system paths |
-| `url_launcher` | ^6.3.2 | Open URLs/apps |
-| `installed_apps` | ^2.1.1 | List installed Android apps |
-| `latlong2` | ^0.9.1 | Geographic coordinates |
-| `desktop_multi_window` | ^0.2.0 | Desktop multi-window |
-| `flutter_display_mode` | ^0.6.0 | High refresh rate |
+| `appflowy_editor` | ^1.4.0 (vendored fork) | Zen Editor engine |
+| `drift` | any | SQLite ORM, 60 tables |
+| `just_audio` + `media_kit` | latest | Music playback engine |
+| `on_audio_query` | ^2.9.0 | Local audio scanning |
+| `flutter_map` | ^8.3.0 | OSM rendering |
+| `photo_manager` | 3.9.0 | Gallery device scanning |
+| `nsd` | ^5.0.1 | mDNS local discovery |
+| `window_manager` / `desktop_multi_window` | latest | Desktop multi-window |
+| `flutter_secure_storage` | latest | JWT persistence |
+| `web_socket_channel` | ^3.0.3 | WS client |
+| `yrs` (Rust) | 0.21 | CRDT collab state |
 
 ---
 

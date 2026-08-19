@@ -1,3 +1,7 @@
+---
+last_modified: 1784500000000
+---
+
 # System Architecture Specification
 
 This document details the multi-platform system architecture, modular components, and core data flow paths for the local-first, cross-compatible LifeOS application.
@@ -58,40 +62,40 @@ The application compiles into native code targets, binding underlying OS capabil
 
 ## 3. Data Flow & Integration Lifecycle
 
-The synchronization process bridges three major architectural nodes: the **Obsidian Vault Directory**, the **Local SQLite Database Cache**, and the **Self-Hosted Syncer Stack**.
+The synchronization process bridges three major architectural nodes: the **Obsidian Vault Directory**, the **Local SQLite Database Cache (Drift)**, and the **Host Daemon** with its per-module SQLite stores. The system is local-first: the daemon and each client device hold authoritative relational state, exchanged through client-to-daemon polling and an events WebSocket bus.
 
 Relevant tile modules: [[Maps & Live Tracking]] (telemetry), [[Calendar Habit Task Manager]] (data sync), [[Virtual Machine Management]] (Hyper-V), [[Obsidian Zen Editor]] (markdown vault), [[Home Management]] (smart home), [[Preferences Setting Tab]] (global config).
 
-### Local Sidecar Side vs. Remote Mesh Topology
+### Local-First Topology
 The system enforces a localized split-plane topology:
-1. **Local Go Daemon (Sidecar):** Runs as a background service on the desktop host to directly execute local OS shell routines (Hyper-V control, WOL) and handle local vault disk mutations (POST `/api/markdown/sync`) to bypass remote latency.
-2. **Remote Docker Stack (Relay & PostgreSQL):** The central source of truth for relational state, running in isolated containers (behind Caddy and OAuth2 authentication) on the remote private Tailnet, reachable only through the embedded `tsnet` tunnel.
+1. **Local Go Daemon (Sidecar):** Runs as a background service on the desktop host to directly execute local OS shell routines (Hyper-V control, WOL), serve the REST `/api/v1/<domain>` surface behind a JWT gate, and persist per-module SQLite databases under `data/`.
+2. **Client Drift Cache:** The Flutter client keeps a local-first SQLite cache (~60 tables) as the source of truth on each device. Synchronization is client-to-daemon polling with **base64 + gzip** payload push over the events WebSocket bus. There is no remote PostgreSQL or Docker relay stack in the trust path.
 
-```
-   [Obsidian Vault (.md)]  <==================== (File Watcher / Parser)
-             |
-             |  (Read/Write Frontmatter Blocks via Local Go Daemon on Port 8080)
-             v
-   [Local SQLite Cache (Drift)]  <==== (Delta Appender inside Transaction)
-             |
-             |  (Poll Pending state = 0 deltas)
-             v
-   [sync_queue Database Log]
-             |
-             |  (LWW State Vector & GZIP/Base64 Delta Chunk)
-             v
-    [Embedded tsnet Tunnel]
-             |
-             |  (WireGuard user-space tunnel to Port 80)
-             v
-   [Reverse Proxy (Caddy/Nginx)]
-             |
-             |  (Private Tailnet Route)
-             v
-   [Docker Sync Server Backend]
-             |
-             v
-     [PostgreSQL Server]
+> [!NOTE]
+> The originally planned "Remote Docker Stack (Relay & PostgreSQL) as central source of truth" never materialized. The daemon SQLite stores and the client Drift cache are the truth today; a lightweight relay hub (see Section 4) carries cross-node deltas.
+
+```mermaid
+graph TD
+    subgraph Client["Flutter Client"]
+        A["Drift SQLite - ~60 tables, local-first"]
+        B["Zen Editor, media, RPG UI"]
+    end
+    subgraph Daemon["Host Daemon (Windows host)"]
+        C["REST /api/v1/<domain> - JWT gate"]
+        D["Per-module SQLite in data/"]
+        E["Events WebSocket bus"]
+        F["Web portal - Flutter web at /"]
+    end
+    subgraph Relay["Relay hub - repo-root server/ :8080"]
+        G["POST /api/sync -> generic_vault.jsonl"]
+        H["GET /ws - Yjs room relay with ACL"]
+    end
+    A -->|"poll + base64/gzip push"| C
+    A <-->|"events"| E
+    C <--> D
+    F --> C
+    C -->|"Funnel upstream :50051/:50052"| G
+    H --> C
 ```
 
 ### Path 1: Obsidian File Mutation Lifecycle
@@ -105,7 +109,7 @@ The system enforces a localized split-plane topology:
 1.  The user toggles a habit completion checkbox inside the native Flutter application UI.
 2.  The reactive Drift framework fires a database transaction writing the change into `habits` (setting `synced_at = NULL`).
 3.  Simultaneously, a delta payload transaction is written to the `sync_queue` table.
-4.  The background networking scheduler fires and checks connection status over the **Embedded tsnet** node. If the connection is offline, deltas accumulate in SQLite. To prevent battery drain and db bloat:
+4.  The background networking scheduler fires and checks connection status against the host daemon. If the connection is offline, deltas accumulate in SQLite. To prevent battery drain and db bloat:
     - **Payload Batching:** Transmits in batches of max 50 records per payload.
     - **Exponential Backoff:** Retries scale backoff dynamically on failure.
     - **Queue Compression/Eviction:** If pending deltas exceed 10,000, non-essential logs are compressed or pruned.
@@ -118,7 +122,34 @@ The system enforces a localized split-plane topology:
 
 ---
 
-## 4. Performance & Resource Constraints
+## 4. Current State (August 2026)
+
+The system in August 2026 runs at version **v1.5.0+2 (build 33)**.
+
+### Web Portal
+The daemon serves a Flutter web bundle at `/`, exposed over Tailscale Funnel at `https://lifeos-host.husky-forel.ts.net`. Access is gated by a JWT gate; sign-in uses OAuth (GitHub/Google) and is invite-only.
+
+### Sync Relay Hub
+A relay lives at the repository root in `server/` (port 8080):
+- `POST /api/sync` persists inbound deltas to `generic_vault.jsonl`.
+- `GET /ws` relays Yjs collaboration rooms, enforcing an ACL.
+
+### Daemon
+The host daemon listens on `:50051` and `:50052` as Tailscale Funnel upstreams and persists per-module SQLite databases under `data/` (e.g., `movies.db`, `media.db`, `books.db`, `gallery.db`, `zen.db`, `rpg.db`, `sync.db`). All domains are exposed as REST route groups under `/api/v1/<domain>`, per [[04 - LifeOS DevDocs/INTEGRATION_PLAN|INTEGRATION_PLAN]] (2026-08-11).
+
+### Media Domains
+- **Movies:** TMDB metadata pipeline.
+- **Music:** yt-dlp downloads, m4a proxy streaming, lyrics.
+- **Books:** four content sources plus LLM AI processing.
+- **Gallery:** sha256/dHash smart picker.
+- **Zen / Notes:** DB-backed filesystem for markdown notes.
+
+### RPG Layer
+A player progression layer covers XP, leveling, quests, illness/atrophy mechanics, and automations; star points are derived as `stars = points / 100`.
+
+---
+
+## 5. Performance & Resource Constraints
 
 *   **Thread Safety:** The SQLite instance runs exclusively on the main app background thread. Watchers and networking execute on isolated system threads to prevent frame drops in the client UI.
 *   **Battery Management (Android):** Networking cycles utilize aggressive scheduling policies. The `tsnet` tunnel is shut down when the app is placed in a deep background state, releasing system resources.

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Dark Web Management|Dark Web Management]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -78,3 +79,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`TorrentDashboardView`:** Main screen for torrent audits. Renders downloads list progress bars, seed ratio metrics, and peer counts.
 - **`ActiveTorrentsList`:** Custom list view item presenting active/paused states, velocity badges (speeds), and deletion triggers.
 - **`QuarantineWarningsPanel`:** High-contrast warnings console showing scan results, sandboxed runtime details, and safe database promotion buttons.
+

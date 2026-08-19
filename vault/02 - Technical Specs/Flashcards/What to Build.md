@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Flashcards|Flashcards]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -75,3 +76,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`FlashcardsDashboard`:** Main screen displaying daily study targets, active decks list grid, and historical performance graphs.
 - **`FlashcardSessionScreen`:** Active session player layout presenting clean text cards, tap gesture flips, and SM-2 quality response buttons.
 - **`DeckCard`:** Compact folder block rendering deck properties, progress meters, and review schedules.
+

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -69,3 +70,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **CRDT Sync Engine:** Backend must utilize standard CRDT data structures instead of simple LWW text replacements.
 - **`fsnotify` Integration:** Native OS filesystem monitoring directly bound to the WebSocket broadcasting loop.
 - **Physics-based Graph:** The `NotesGraphCanvas` must employ a custom WebGL or physics-based force-directed graph to render note linkages organically.
+

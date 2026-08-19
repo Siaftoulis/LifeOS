@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Maps & Live Tracking|Maps & Live Tracking]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Live Location WebSockets:** Replace dummy coordinates with real GPS telemetry pulled from mobile devices running the LifeOS Flutter app. The Go Daemon must broadcast this via the `/api/radar/live` WebSocket endpoint over the Tailscale mesh.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Will we use OpenStreetMap data compiled into local vector tiles, or do you prefer raster tiles?
 2. Do we need to retain historical location tracking (breadcrumb trails) in the SQLite database, or only the "live" coordinates?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Maps & Live Tracking|Maps & Live Tracking]] for the live feature list.

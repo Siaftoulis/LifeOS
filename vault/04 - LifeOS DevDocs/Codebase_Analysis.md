@@ -1,114 +1,131 @@
+---
+id: "a1b2c3d4-0006-4a5b-9c0d-lifeoscodebase1"
+type: "lifeos_codebase_analysis"
+last_modified: 1784500000000
+sync_status: "clean"
+---
+
 # LifeOS Codebase Analysis & Architecture Report
 
-This document contains a comprehensive analysis of the LifeOS codebase across the client, backend, and documentation vault, as analyzed on June 15, 2026.
+This document contains a comprehensive analysis of the LifeOS codebase across the client, backend, and documentation vault. Updated August 2026 (previous snapshot: June 2026).
 
 ---
 
 ## 1. Overall Vision & Philosophy
 
-LifeOS is a **local-first, offline-first, multi-platform personal operating system**. It is designed to consolidate a user's entire digital life into a single, private, unified workspace.
+LifeOS is a **local-first, offline-first, multi-platform personal operating system** consolidating a user's entire digital life into a single private workspace.
 
-*   **Digital Sovereignty**: You own all your data. Nothing leaves your devices unless explicitly allowed.
-*   **Offline-First**: Functions without the internet; synchronizes opportunistically.
-*   **Gamification**: The "Point Star System" gamifies productivity, rewarding beneficial actions and penalizing excessive leisure.
-*   **Self-Hosted Infrastructure**: Runs via Tailscale mesh networking without cloud dependencies.
-*   **Design**: Strict Everforest Minimalist Flat-Line theme across UIs.
+- **Digital Sovereignty**: data lives on your devices; nothing leaves the tailnet unless explicitly allowed (Funnel web portal).
+- **Offline-First**: functions without internet; synchronizes opportunistically via buffered queues.
+- **Gamification**: the Point Star System rewards productive actions and penalizes excessive leisure (task +15, habit +10, zen log +20 per engine automations rules).
+- **Self-Hosted Infrastructure**: Tailscale mesh (embedded `tsnet`, node `lifeos-host`) with no cloud dependencies.
+- **Design**: strict Everforest minimalist flat-line theme ([[04 - LifeOS DevDocs/UI_UX_GUIDELINES|UI/UX Guidelines]]).
 
 ---
 
 ## 2. Client Architecture (Flutter)
 
-The client (`client/`) is built with Flutter (Android & Windows) and features a spatial UI engine.
+Client: `client/`, **v1.5.0+2** (Android, Windows, Web).
 
 ### App Initialization (`main.dart`)
-1.  Initializes `PreferencesService` (JSON storage).
-2.  Initializes `AppDatabase` (Drift/SQLite).
-3.  Restores Auth Session via `AuthService.restoreSession()`.
-4.  Displays Login Screen or `AppShell` (spatial grid dashboard).
-5.  Starts a background notification polling timer (`/api/v1/notifications`).
-6.  Initializes `LocationTrackerPlugin` for background GPS streaming.
+1. Initialize `PreferencesService` (JSON reactive) and `AppDatabase` (Drift/SQLite).
+2. Restore auth via `AuthService.restoreSession()` (JWT in memory, `flutter_secure_storage` remember-me; offline fallback = ADMIN "Local Mode" session).
+3. Show login or `AppShell` (spatial grid dashboard).
+4. Start `EventHub` WebSocket (`/api/v1/events?token=`) and location streaming.
 
-### Authentication Flow
-*   **Login**: Sends credentials to `POST /api/v1/auth/login`. Returns a token and user profile, saved via `PreferencesService`.
-*   **Restore**: Validates saved token via `GET /api/v1/auth/validate`.
-*   **Logout**: Clears local token and preferences.
-
-### Registered Modules (22 Total)
-Key modules include: `home_screen`, `point_star_system`, `maps_live_tracking`, `preferences_setting`, `obsidian_zen_workspace`, `knowledge_base`, `calendar_habit_task`, `cloud_vm`, `vm_management`, `live_sharing`, and `location_tracker`.
-
-### Local Database (Drift - 27 Tables)
-Includes tables for productivity (`tasks`, `habits`), media (`movies`, `music_tracks`), location (`maps_location_history`, `maps_geofences`), points (`point_star_balances`, `point_star_ledger`), and synchronization (`sync_deltas`, `sync_state`).
+### Local Database (Drift — 60 tables, WAL)
+- **20 DAOs** with reactive streams; every table carries the sync quartet (`id`, `updatedAt`, `syncedAt`, `isDirty`).
+- `SyncInterceptor` auto-marks dirty; `CustomSyncManager` flushes gzip+base64 payloads (15s poll / on connectivity).
+- Web build uses `db_executor_web` (`sqlite3.wasm` + `drift_worker.js`, IndexedDB); `oauth_browser_web` reads `localStorage('lifeos_token')`; `web_session_guard` idle watchdog signs out.
 
 ### UI & Widgets
-*   **Lock Screen**: Custom swipe-up gesture, animated login form.
-*   **Maps Dashboard**: Live location feed, OSM map rendering, geofence drawing, radar visualization.
-*   **Point Star System**: Family leaderboard, transaction ledger, voucher redemption, and point-gated module wrappers.
-*   **Android Launcher**: Flat grid/folder views, AI-powered app categorization, point-gated app launching.
-*   **Preferences**: Profile editing, admin console (user management), Tailscale node monitoring.
+- **Spatial engine**: `SpatialEngineScaffold` 2D grid of modules; arrow-key nav, double-bump edge pan, Escape back-stack, 350ms `easeOutCubic`, `RepaintBoundary` caching; HUD `[x,y]` coordinates.
+- **PointStarSystem**: family leaderboard, ledger, voucher redemption, point-gated module wrappers (stars = points/100), live updates via `points:balance-change` events.
+- **Signature UIs**: Poweramp v3-style music player, Aves 1:1 gallery replica, AppFlowy-based zen editor (bold + gold highlight styling).
+- **Android launcher**: flat grid/folder views, point-gated app launching.
 
 ---
 
-## 3. Backend Infrastructure (Go Host Daemon)
+## 3. Backend Infrastructure (Go)
 
-The host daemon (`backend/host-daemon/`) serves as the core infrastructure and API layer.
+### Components
 
-### API Endpoints (Port 50051)
-*   **Auth (`/api/v1/auth/`)**: Login, lock, user management (CRUD), profile updates, token validation. Uses bcrypt hashing and JSON-based persistence (`data/users.json`).
-*   **Location (`/api/v1/radar/`)**: Geofence management, GPS reporting, WebSocket live feed (`/live`), routing.
-*   **Points (`/api/v1/points/`)**: Leaderboard, ledger history, voucher redemption (with TV Lock triggers).
-*   **System (`/api/v1/system/`)**: Health status, settings (Role-Based Access Control), Tailscale node status, reboot/shutdown commands, OS service listing, AI app categorization.
-*   **Sync (`/api/v1/sync/`)**: Delta change record submission.
-*   **Infrastructure (`/api/v1/wol`)**: Wake-on-LAN functionality.
+| Component | Location | Ports |
+|---|---|---|
+| Host daemon | `backend/host-daemon/` | `:50051` tailnet HTTP, `:50052` Funnel upstream |
+| Sync relay | `server/` | `:8080` (`POST /api/sync` → `generic_vault.jsonl`; `GET /ws` Yjs relay, per-room ACL from `lifeos.db`, allow-all when empty) |
+| Web portal | served by daemon at `/` | `http.FileServer(http.Dir("./web"))`, no-cache, SW purged |
 
-### Networking & Security
-*   **Embedded Tailscale (`tsnet`)**: The daemon embeds Tailscale, meaning it acts as its own node (`lifeos-host`) without requiring a separate Tailscale client. All traffic on port 50051 is WireGuard-encrypted over the mesh.
-*   **Authentication**: Token-based (Bearer).
-*   **Authorization**: RBAC (ADMIN, USER, CHILD).
-*   **Geofence Automations**: Entering specific zones triggers actions like starting a robot vacuum, adjusting lights, or turning on the AC.
+### Auth (August 2026)
+- Global **JWT gate** (`internal/auth/middleware/jwt.go`): HS256, 24h expiry, `JWT_SECRET` env → `data/jwt_secret` → random fallback.
+- Public allowlist: login, register, oauth start/callback, `/api/markdown/collab`, `/api/v1/events`, `/api/v1/radar/live`, `/api/v1/music/*`.
+- `publicOnly` denies register/login on the Funnel path (invite-only). Roles ADMIN/USER/CHILD; bcrypt; per-IP limiter (5 fails/5min); seeded admin `panospds`.
+- OAuth SSO (`internal/oauth`): GitHub `read:user`, Google `openid email profile`; state-cookie CSRF (10 min); `data/oauth_users.json`; web JWT → localStorage.
+
+### Domain Modules (~38 `internal/` packages)
+auth, oauth, player (RPG XP/leveling sigmoid/quests/decay/illness), points (leaderboard/ledger/store/vouchers/app-costs), movies (TMDB, AVAILABLE/DOWNLOADING/WATCHED), music (yt-dlp, m4a proxy, LRCLIB), books (Gutenberg/OpenLibrary/MangaDex/Annas, epub/audiobook, LLM describe/summarize/chat), notes, media, gallery (sha256/dHash dedupe, smart picker), banking (PDF parser), accounting (JSON-RPC stub), home (devices), infinity (daily words/trivia), knowledge, flashcards (import-anki), zen (DB-backed fs CRUD, tombstones), engine (26 entity types, `engine:upsert:<type>`), system (Child Lock, apps classifier), backup (chunk/merge), vm, youtube (NewPipe jar 127.0.0.1:18785, −10 pts/30min), voice-parse, markdown (collab WS hubs), location (geofences, radar WS), events (WS broker, token-auth), bus (in-memory pub/sub), telemetry (XOR `'lifeos-tel-2026-x'`, server cap), automations (`location:enter` → webhook, `points:negative-balance` → `tv_lock`), sync (base64+gzip LWW, APK update), darkweb, sandbox (clamdscan), cloud/kb (stubs), chtm (stats), devsim (reports to vault), illness, calendar.
+
+### Storage
+- One SQLite `.db` per module in `data/` (gallery, movies, books, finance, rpg, knowledge, flashcards, media, home, infinity, backup, darkweb, vm, voice, youtube, system, sync, engine, sandbox, devsim, zen, relay) + JSON stores (`calendar.json`, `geofences.json`, `points.json`, `ledger.json`, `illness.json`).
+- Integration design (2026-08-11, [[04 - LifeOS DevDocs/INTEGRATION_PLAN|INTEGRATION_PLAN]]): single `/api/v1/<domain>` API; external keys backend-env-only; reference-not-copy entities (`movie:imdb_id`, `book:isbn`, `photo:sha256`); `?q=` search on every domain endpoint.
 
 ---
 
 ## 4. Synchronization Protocol
 
-LifeOS uses a delta-based transactional sync mechanism.
-
-1.  **Deltas**: Changes in the local database generate delta records via a Drift change interceptor.
-2.  **Queue**: Deltas are queued locally (offline support).
-3.  **Transport**: Polled and sent to the sync server (`POST /api/v1/sync`).
-4.  **Resolution**: Employs Last-Write-Wins (LWW) with millisecond timestamps for relational data. Markdown files currently use direct overwrite.
+1. Local mutations set `isDirty` via `SyncInterceptor`; the 15s poller batches dirty rows.
+2. Payload = `Base64(Gzip(JSON))`; pushed to the relay `POST /api/sync`.
+3. Merge: entity-level **LWW by millisecond timestamps** inside a single atomic SQLite transaction.
+4. RPG tables (`player_stats`, `xp_ledger`, `atrophy_log`, `status_effects`) use **server-authoritative LWW**.
+5. Markdown: direct overwrite via daemon; **Yjs collaboration websockets** (`/api/markdown/collab`) added for live multi-user editing; Zen uses tombstone LWW.
+6. APK updates are distributed through the `sync` domain (download endpoint).
 
 ---
 
 ## 5. Deployment & CI/CD
 
-*   **GitHub Actions (`release.yml`)**: Triggered by `v*` tags.
-*   **Builds**: Compiles the Android APK and Windows executable.
-*   **Release**: Generates release notes and publishes artifacts to GitHub Releases.
-*   **Setup Script (`setup.ps1`)**: Bootstraps the development environment, installing Go, Flutter, and dependencies automatically.
+- **GitHub Actions** (`.github/workflows/release.yml`), triggered by `v*` tags:
+  - `build-android`: ubuntu + Java 17; scaffold (`flutter create --project-name lifeos_client --org com.lifeos.app --platforms=android,windows`), restore `AndroidManifest.xml` with `LifeOSWidgetProvider`, strip `gradle.properties` Java lines, `flutter build apk --release`.
+  - `build-windows`: same scaffold, `flutter build windows --release`, zip.
+  - `publish-release`: `release_notes.md` from `.agent/version.json` (`build_number` currently 33); `softprops/action-gh-release` attaches APK + ZIP.
+- **`deploy_server.ps1`**: `flutter build web` → strip `flutter_service_worker.js`, patch bootstrap cache-buster → cross-compile linux daemon+server (`CGO_ENABLED=0`) → `tailscale ssh root@pds-laptop-old` → systemd `lifeos-host-daemon` restart, MD5 verified.
+- **`client/deploy.ps1`**: web-only deploys.
+- Versioning: client `1.5.0+2`; latest tagged release `v1.4.0`; public portal `https://lifeos-host.husky-forel.ts.net`.
 
 ---
 
 ## 6. Point Star System Mechanics
 
-*   **Earning**: Completing habits (+10), flashcards (+15), reading (+20), chores (+10). Deductions exist for negative habits or missed tasks.
-*   **Spending (Vouchers)**: Screen time (50 pts), Movie Night (100 pts), Late Bedtime (200 pts).
-*   **Gating**: External Android apps require points to launch.
-*   **Penalties**: If a balance goes negative, webhooks lock entertainment access (e.g., smart TVs).
+- **Earning (automations/engine rules)**: tasks +15, habits +10, zen log +20; RPG rewards and leveling sigmoid in `player`.
+- **Spending**: vouchers (redeem), app-costs, `apps/deduct`; YouTube sessions −10 pts/30min.
+- **Units**: stars = points/100.
+- **Penalties**: XP decay/atrophy; `points:negative-balance` → `tv_lock` webhook automation.
+- **Gating**: external Android apps require points; CHILD role settings locked (Child Lock interceptor).
 
 ---
 
-## 7. Current Project Status
+## 7. Current Project Status (August 2026)
 
-**Active / Functional Components:**
-*   Maps & Live Tracking (REST, WS, Flutter Dashboard)
-*   Point Star Gamification (Leaderboard, Vouchers, Gating)
-*   Authentication & User Management
-*   Android App Launcher Mode
-*   Core App UI & Widget System
-*   Host Daemon & Sync Backend basics
+**Active / Functional:**
+- Spatial UI engine + 22+ registered modules; web portal on Funnel.
+- Drift 60-table local-first stack with 20 DAOs and LWW sync.
+- Host daemon with ~38 domains; JWT + OAuth + Child Lock; sync relay with Yjs rooms and ACL.
+- CI/CD: Android APK + Windows ZIP releases; MD5-verified server deploys.
+- RPG/points/automations loop (task/habit/zen rewards, TV lock, webhooks).
 
 **Pending / Future Sprints:**
-*   `EncryptedSharedPreferences` for Android.
-*   Full CRDT-based synchronization (currently LWW).
-*   Zero-Trust Proxy (Web Fail-Safe Layer) integration.
-*   Additional modules like Knowledge Base, Accounting, and Virtual Machine management UI.
+- `kb`/`cloud` domains are stubs (topics, backups, web-os).
+- Relay room ACL defaults to allow-all until permissions are populated.
+- Telemetry obfuscation is XOR-only (not encryption).
+- CRDT convergence beyond LWW for relational tables remains a long-term target.
+
+---
+
+## Related Documents
+
+- [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]
+- [[04 - LifeOS DevDocs/STATE_MANAGEMENT|State Management]]
+- [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]]
+- [[04 - LifeOS DevDocs/SECURITY_MODEL|Security Model]]
+- [[04 - LifeOS DevDocs/DEPLOYMENT_CI_CD|Deployment & CI/CD]]
+- [[04 - LifeOS DevDocs/Home|Home]]

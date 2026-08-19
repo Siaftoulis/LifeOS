@@ -1,63 +1,68 @@
+---
+id: "a1b2c3d4-0005-4a5b-9c0d-lifeosinfracontrol"
+type: "lifeos_infrastructure_control"
+last_modified: 1784500000000
+sync_status: "clean"
+---
+
 # Technical Specification: Infrastructure Control & Virtualization
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[04 - LifeOS DevDocs/Architecture/Test_Environment|Test Environment]] · [[Virtual Machine Management]] · [[Cloud & Fake Virtual Machine]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]] · [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]
 
+This specification details the infrastructure-control capabilities of the LifeOS Host Daemon, a secure background service running on the target Windows 11 Pro machine: remote execution of Hyper-V and Docker APIs, power management, remote directory streaming, and remote desktop visualization integration.
 
-This specification details the architecture of the LifeOS Host Daemon, a secure background service running on the target Windows 11 Pro machine. It handles remote execution of Hyper-V and Docker APIs, power management, remote directory streaming, and remote desktop visualization integration.
+---
+
+## Current Status (August 2026)
+
+> [!NOTE]
+> The earlier "Codebase Routing Discrepancy" note claimed the daemon only listened on the generic `/api/v1/action` endpoint and ignored the client's `/api/vm/toggle` calls. That is no longer true: `internal/vm/router.go` now serves the dedicated VM domain — `/api/v1/vm`, `/api/v1/vm/toggle`, `/api/v1/vm/discovery`, `/api/v1/vm/explore`.
+
+*   The HMAC-signed action schema has been **superseded by the global JWT auth gate** for general API access. HMAC signing still exists in `crypto/hmac.go` (`HMAC_SECRET`, `VerifyHMAC`) for infrastructure actions.
+*   **Web portal / remote access:** the Funnel portal can trigger these admin actions from a browser behind the JWT gate (see [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Failsafe]]).
 
 ---
 
 ## 1. LifeOS Host Daemon Architecture
 
-The Host Daemon runs natively as a Windows Service, securely listening to commands relayed through the internal `tsnet` mesh. It has elevated permissions to execute native `PowerShell` cmdlets and Docker CLI arguments.
+The Host Daemon runs natively as a Windows service, listening on the internal `tsnet` mesh (`:50051`). It has elevated permissions to execute native PowerShell cmdlets and Docker CLI arguments.
 
 ### Core Responsibilities
-*   **Hyper-V / VM Orchestration:** Start, stop, and query the status of local virtual machines.
-*   **Docker Container Orchestration:** Reboot sync relays or restart isolated proxy containers.
-*   **Remote File System Explorer:** Stream local Windows directory trees (e.g., `C:\`, external drives) over the secure Tailnet to the Flutter client.
-*   **Power Management:** Trigger Wake-on-LAN (WOL) magic packets to other local machines and handle remote shutdown/hibernate commands for the host.
+*   **Hyper-V / VM Orchestration:** start, stop, and query local virtual machines (`hyperv.go` — `Start-VM`, `Stop-VM`, `Get-VM` PowerShell cmdlets; plus the `internal/vm` domain backed by its own SQLite DB in `data/`).
+*   **Docker Container Orchestration:** reboot sync relays or restart isolated proxy containers (`backend/docker-compose.yml`).
+*   **Remote File System Explorer:** stream local Windows directory trees over the secure tailnet to the Flutter client (`GET /api/v1/vm/explore?path=...`).
+*   **Power Management:** trigger Wake-on-LAN (WOL) magic packets (`wol.go` — `BroadcastMagicPacket` broadcasts on UDP port 9 with a `255.255.255.255` fallback).
 
 ---
 
-## 2. Remote Action API & Secure JSON Schema
+## 2. Remote Action API
 
-The Host Daemon listens on the HTTP endpoint `POST /api/v1/action` (bound to port `50051`). It expects a JSON payload defining the exact action to perform. To prevent arbitrary code execution, actions are strictly typed. 
-
-> [!NOTE]
-> **Codebase Routing Discrepancy:** While the Flutter client currently calls `/api/vm/toggle` in its `vm_card.dart` code, the Go Host Daemon listens exclusively to the generic `/api/v1/action` endpoint.
+### Legacy Generic Action Endpoint (`POST /api/v1/action`)
+The daemon historically exposed a single typed JSON action endpoint (`handler.go`):
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "LifeOS Remote Action Payload",
-  "type": "object",
-  "required": ["action_type", "timestamp", "signature"],
-  "properties": {
-    "action_type": {
-      "type": "string",
-      "enum": ["START_VM", "STOP_VM", "GET_VMS", "TRIGGER_WOL"]
-    },
-    "target_id": {
-      "type": "string",
-      "description": "The VM name or MAC address depending on action_type"
-    },
-    "timestamp": {
-      "type": "integer",
-      "description": "Epoch ms to prevent replay attacks"
-    },
-    "signature": {
-      "type": "string",
-      "description": "HMAC-SHA256 signature generated by the authorized client"
-    }
-  }
+  "action_type": "START_VM | STOP_VM | GET_VMS | TRIGGER_WOL",
+  "target_id": "VM name or MAC address",
+  "timestamp": 1784500000000,
+  "signature": "HMAC-SHA256 signature"
 }
 ```
 
-### Action Type Mapping
-*   **`START_VM` / `STOP_VM`:** Maps to PowerShell `Start-VM -Name <target_id>` and `Stop-VM -Name <target_id>` (executed on the host).
-*   **`GET_VMS`:** Runs PowerShell list cmdlets to return names and running states of configured VMs.
-*   **`TRIGGER_WOL`:** Sends a UDP magic packet to the MAC address provided in `target_id`.
+*   **`START_VM` / `STOP_VM`:** maps to PowerShell `Start-VM -Name <target_id>` and `Stop-VM -Name <target_id>` (`hyperv.go`).
+*   **`GET_VMS`:** runs PowerShell list cmdlets returning names and running states of configured VMs.
+*   **`TRIGGER_WOL`:** sends a UDP magic packet to the MAC address in `target_id` (`wol.go`).
+
+This endpoint is still registered for compatibility, but it now sits behind the global JWT gate like every other route; the HMAC `signature` field is verified via `crypto/hmac.go`.
+
+### Current VM Domain (`internal/vm/router.go`)
+| Route | Method | Behavior |
+|---|---|---|
+| `/api/v1/vm` | GET | List VMs from the `virtual_machines` SQLite table (id, name, type, state, ram) |
+| `/api/v1/vm/toggle` | POST | Set VM state (`RUNNING` / `STOPPED`) by `vm_id` + `action` |
+| `/api/v1/vm/discovery` | GET | Tailnet peer discovery via `tailscale status --json` (stub IP fallback) |
+| `/api/v1/vm/explore` | GET | List directory entries at `?path=` |
 
 ---
 
@@ -66,16 +71,16 @@ The Host Daemon listens on the HTTP endpoint `POST /api/v1/action` (bound to por
 To provide full visual control of the host machine, the LifeOS architecture integrates open-source low-latency streaming protocols.
 
 ### RustDesk Integration (Standard Desktop Access)
-*   **Topology:** A local self-hosted RustDesk Server (hbbs/hbbr) runs inside the `backend/` Docker stack.
-*   **Access:** The Host Daemon acts as the RustDesk client service, continuously bound to the internal relay. The Flutter client launches the native RustDesk viewer library, dialing through the `tsnet` tunnel.
+*   **Topology:** a self-hosted RustDesk Server (hbbs/hbbr) runs inside the `backend/docker-compose.yml` stack (ports `21115`–`21119`).
+*   **Access:** the Flutter client launches the native RustDesk viewer library, dialing through the tailnet.
 
 ### Sunshine / Moonlight (High-Performance GPU Streaming)
-*   **Topology:** For visually intensive tasks (game streaming, 3D rendering), Sunshine is installed on the Windows 11 host natively.
-*   **Access:** The Flutter client integrates the Moonlight protocol viewer, negotiating streams over the secure mesh network on port `47989`.
+*   **Topology:** for visually intensive tasks (game streaming, 3D rendering), Sunshine is installed on the Windows 11 host natively.
+*   **Access:** the Flutter client integrates the Moonlight protocol viewer, negotiating streams over the secure mesh network on port `47989`.
 
 ---
 
 ## Related Specifications
-*   [Embedded Network Protocol (tsnet)](EMBEDDED_NETWORK.md)
-*   [Split-Storage & Frontmatter Architecture](DATA_SCHEMAS.md)
-*   [Web Fail-Safe Layer (Zero-Trust Proxy)](WEB_FAILSAFE.md)
+*   [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network Protocol (tsnet)]]
+*   [[04 - LifeOS DevDocs/DATA_SCHEMAS|Split-Storage & Frontmatter Architecture]]
+*   [[04 - LifeOS DevDocs/WEB_FAILSAFE|Web Fail-Safe Layer]]

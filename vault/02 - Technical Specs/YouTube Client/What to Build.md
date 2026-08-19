@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/YouTube Client|YouTube Client]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -64,3 +65,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`YoutubeClientDashboard`:** Main screen presenting video search cards, local offline lists, and points metrics gauges.
 - **`ActiveSessionTimerOverlay`:** Floating indicator overlay updating points costs and session locking notifications.
 - **`DownloadedVideosList`:** Compact lists widget presenting cached local video rows and file size details.
+

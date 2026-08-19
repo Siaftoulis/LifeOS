@@ -1,7 +1,7 @@
 # Flashcards | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Planning for Implementation
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Project Infinity]], [[Knowledge Base]], [[Point Star System]]*
 
 ---
@@ -18,21 +18,25 @@ The Flashcards module is the primary active recall and spaced repetition engine 
 ---
 
 ## Work Done So Far
-- **System Architecture Design:** Establishing the active recall system architecture connecting external imports and internal notes parsing.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout planned (flat-colored card faces, solid outlines, minimalist pass/fail buttons).
+- **Deck Dashboard (DONE):** The Flutter client shows a deck card dashboard listing all study decks.
+- **SM-2 Review Sessions (DONE):** The spaced repetition session screen is live, tracking interval, repetitions, and ease factor per card per the SM-2 algorithm.
+- **Database Seeding (DONE):** Decks are seeded in `flashcards.db`.
+- **Daemon API (DONE):** The Go daemon serves `/api/v1/flashcards/decks` plus `/create`, `/import-anki`, and `/scan` endpoints.
+- **Client Data Layer (DONE):** `flashcards_dao` provides typed accessors for `FlashcardDecks`, `Flashcards`, and `FlashcardReviews`.
 
 ---
 
 ## Current Focus & Actions
-- **Spaced Repetition System (SRS) Logic:** Designing an implementation of the SM-2 algorithm (SuperMemo-2) in Go to track card intervals, repetitions, and ease factors.
-- **Anki Package Parser Specs:** Researching file-unzipping and schema conversion rules to translate Anki's internal SQLite files into the LifeOS SQLite database structure.
+- **Review Flow Polish:** Refining the session UX (reveal, pass/fail scoring, queue ordering) and daily review queue generation.
+- **Import Hardening:** Improving Anki package import reliability and markdown scan coverage for [[Obsidian Zen Editor]] study folders.
+- **Statistics:** Expanding per-deck stats (due counts, streak tracking) on the dashboard.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Interactive Review Interface:** Developing the Flutter view for card sessions, featuring simple swipe gestures or tap actions to reveal answers and log review scores.
-- **Deck Collections Dashboard:** Creating a minimalist grid list of all custom decks, showing active card counts, review queues, and daily statistics.
-- **Point Star Integration:** Linking successful study sessions or daily streaks to the [[Point Star System]] for gamified feedback.
+- **Interactive Review Interface (DONE):** Shipped as the SM-2 session screen; swipe/tap interactions and scoring are live, with ongoing polish.
+- **Deck Collections Dashboard (DONE):** Shipped as the deck card grid showing active card counts and review queues; daily statistics are being extended.
+- **Point Star Integration:** Linking successful study sessions or daily streaks to the [[Point Star System]] for gamified feedback remains on the roadmap.
 
 ---
 

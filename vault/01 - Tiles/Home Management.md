@@ -1,7 +1,7 @@
 # Home Management | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Hardware & Integration Planning
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Maps & Live Tracking]], [[Point Star System]]*
 
 ---
@@ -23,21 +23,26 @@ The Home Management module is the central dashboard and integration hub for all 
 ---
 
 ## Work Done So Far
-- **System Requirements Drafted:** Hardware topology, webhook schemas, and Home Assistant interface requirements defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grid of toggle cards, solid outline borders, flat state toggle switches, simple progress bars) mapped.
+- **Smart Home Dashboard (DONE):** The Flutter client renders a smart home dashboard with a device grid toggle and sensor logs panel.
+- **Device Schedules (DONE):** Schedule management for devices is implemented in the dashboard UI.
+- **Daemon API (DONE):** The Go daemon serves `/api/v1/home/devices`, `/api/v1/home/devices/toggle`, and `/api/v1/home/sensors/report`.
+- **Database Seeding (DONE):** `home.db` is seeded with devices and sensor logs.
+- **Client Data Layer (DONE):** `home_management_dao` provides typed accessors for `SmartDevices`, `EnvironmentLogs`, and `DeviceSchedules`.
 
 ---
 
 ## Current Focus & Actions
-- **Home Assistant API Wrapper:** Writing OAuth2 and WebSocket client drivers in Go to authenticate and receive real-time device updates from the Home Assistant instance.
-- **Local Sensor Daemon:** Drafting a lightweight python/go script to deploy on the custom Raspberry Pi sensor nodes to publish telemetry.
+- **Sensor Visualization:** Enriching the sensor logs panel with longer-range environment history and trend indicators.
+- **Schedule Refinement:** Polishing device schedule creation, editing, and conflict handling.
+- **Automation Rules:** Wiring the daemon to react to sensor thresholds and scheduled events with automatic device actions.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Proximity Automation Engine:** Developing rules in the Go server to parse geofence ETAs and coordinate appliance starters.
-- **Custom Hardware Integration:** Sourcing and assembling open-source smart switches, temperature probes, and smart relays.
-- **Console Interface Layout:** Designing the dashboard view in Flutter, focusing on simple flat layouts matching the general spatial engine grids.
+- **Proximity Automation Engine:** Developing rules in the Go server to parse geofence ETAs (from [[Maps & Live Tracking]]) and coordinate appliance starters; the local sensor and device command layer is already in place.
+- **Custom Hardware Integration:** Sourcing and assembling open-source smart switches, temperature probes, and smart relays for the Raspberry Pi sensor nodes; the API and database side is ready to ingest their telemetry.
+- **Console Interface Layout (DONE):** The dashboard grid view is live; ongoing polish continues on the flat layouts matching the spatial engine grids.
+- **Home Assistant API Wrapper:** The WebSocket/API driver for a local Home Assistant instance remains planned for deeper hardware integration beyond the built-in device system.
 
 ---
 

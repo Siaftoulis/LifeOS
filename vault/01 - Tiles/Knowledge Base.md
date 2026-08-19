@@ -1,7 +1,7 @@
 # Knowledge Base | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Planning for Implementation
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Obsidian Zen Editor]], [[Project Infinity]], [[Flashcards]], [[Point Star System]]*
 
 ---
@@ -18,21 +18,23 @@ The Knowledge Base is designed to connect directly with the vault files of the [
 ---
 
 ## Work Done So Far
-- **System Concept Outlined:** Core metadata structure mapping subject fields, research tags, and status variables has been established.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout mapped (clean categorised directories, solid 1px borders, grid of index cards).
+- **Knowledge Dashboard (DONE):** The Flutter client ships a dashboard with topic cards and a relationship graph, rendering categories and their interconnections in the Everforest Flat-Line layout.
+- **Daemon Data Service (DONE):** Topics and relationships are served by the Go daemon from `knowledge.db` via `/api/v1/knowledge/categories` and `/api/v1/knowledge/articles`.
+- **Client Data Layer (DONE):** The `knowledge_base_dao` provides typed accessors for `KnowledgeTopics` and `KnowledgeRelationships`.
 
 ---
 
 ## Current Focus & Actions
-- **Categorization Hierarchy:** Modeling metadata structures in SQLite to store page relationships, tags, and category taxonomies.
-- **Search & Filter Rules:** Formulating fast searching routines in Go to index markdown headers, keywords, and tags for rapid retrieval.
+- **Deeper Linking:** Expanding cross-references so vault notes, articles, and topics surface related content from other modules ([[Flashcards]], [[Obsidian Zen Editor]]).
+- **Graph Polish:** Refining the relationship graph rendering and adding richer topic metadata to the dashboard cards.
+- **Article Pipeline:** Tightening the daemon's article indexing so new vault notes appear in the Knowledge Base with minimal delay.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Interactive Directory view:** Building a Flutter interface that shows a clean grid of subject files, displaying note counts, dynamic progress meters, and study statuses.
-- **Auto-Linking System:** Implementing search algorithms that suggest relationships between new research files and existing notes.
-- **Point Star Integration:** Linking subject completions or new note additions to the [[Point Star System]] for feedback.
+- **Interactive Directory view (DONE):** Shipped as the dashboard grid of topic cards with counts and statuses; further refinement of study statuses and progress meters is ongoing.
+- **Auto-Linking System (DONE):** Shipped as the relationship graph; ongoing work adds smarter suggestions between new research files and existing notes.
+- **Point Star Integration:** Linking subject completions or new note additions to the [[Point Star System]] for feedback remains on the roadmap.
 
 ---
 

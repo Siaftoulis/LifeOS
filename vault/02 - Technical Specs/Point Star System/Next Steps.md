@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **True Server-Authoritative Ledger:** The Go Daemon must persist the `PointsLedger` table into its own local SQLite database (`host-daemon/data/lifeos.db`) so that if the mobile client is wiped, the points balance is restored from the host.
@@ -13,3 +14,7 @@
 ## 3. Open Design Questions
 1. Should there be a "bankruptcy" mechanic if points fall too deeply into the negative, or just an indefinite lockout until habits are completed?
 2. Do you want to implement specific Vouchers (e.g., "Cheat Day" or "Order Pizza") that can be redeemed for a high point cost?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Point Star System|Point Star System]] for the live feature list.

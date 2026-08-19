@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Book Library|Book Library]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -91,3 +92,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`AudioPlayerWidget`:** Bottom sheet overlay or sidebar utility presenting playback status, a slide-seek bar, sleep timer controls, and watch companion synchronization.
 - **`HighlightCurtain`:** Pop-up dialog allowing the user to view annotations, edit brief text commentary, and push to the Obsidian Zen Editor layout.
 - **`EinkReaderView`:** High-contrast alternate client mode optimized for minimal frame rates and e-paper displays.
+

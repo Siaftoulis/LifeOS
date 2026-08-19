@@ -1,6 +1,16 @@
+---
+last_modified: 1784500000000
+---
+
 # Dynamic Subagent Delegation Boundaries
 
 This document establishes the execution scopes, read/write permissions, and mandates for the multi-agent assembly line working on the LifeOS workspace. The Main Orchestrator Agent enforces these boundaries to prevent context pollution.
+
+## Current Status (August 2026)
+
+> [!NOTE]
+> The handoff artifacts referenced below (`client/assets/config/network.json`, `backend/host-daemon/schema.json`, and the JSON-RPC contract) no longer exist. The daemon today exposes REST `/api/v1/<domain>` endpoints guarded by JWT, plus an events WebSocket bus; route groups are organized per domain as specified in [[04 - LifeOS DevDocs/INTEGRATION_PLAN|INTEGRATION_PLAN]] (2026-08-11).
+> Agent tooling now lives in `.agents/`, `.zed/`, `opencode.json`, `.agent/workflows/` (alpha, beta, gamma, delta, epsilon, native-runtime, obsidian-watcher, proxy-config, sync-engine, ui-factory) and `.agent/rules/` (`scope-*.md`).
 
 ---
 

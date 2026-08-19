@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Atomic Markdown Sync:** The `/api/markdown/sync` endpoint must use strict file locking (`sync.Mutex` in Go) to prevent corruption when multiple Tailscale nodes try to write to the same `.md` file simultaneously.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Do we want to implement true collaborative editing (like Google Docs) using WebSockets and Operational Transformation (OT), or is LWW file-overwriting sufficient for a single-user system?
 2. How should file attachments (images pasted into the editor) be routed to the local Vault?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Obsidian Zen Editor|Obsidian Zen Editor]] for the live feature list.

@@ -1,7 +1,7 @@
 # Obsidian Zen Editor | Module Documentation
 
 > [!NOTE]
-> **Status:** UI Built / Core Logic in Development
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Maps & Live Tracking]], [[Movie Library]], [[Book Library]], [[Photo Video Gallery]], [[Home Management]], [[Banking System]], [[Accounting]], [[Calendar Habit Task Manager]]*
 
 ---
@@ -35,21 +35,30 @@ To achieve maximum speed while maintaining complete data portability and vault l
 ---
 
 ## Work Done So Far
-- **Visual Frontend:** The core visual interface and UI layout for the Zen Editor have been successfully built and implemented within the spatial grid.
-- **Markdown Compatibility:** The base structure is designed to be fully compatible with Obsidian's Markdown format.
+- **AppFlowy Zen Editor:** The editor is built on a vendored AppFlowy fork under `client/lib/appflowy`, embedded in the spatial grid.
+- **Rich Markdown Editing:** Wiki links `[[...]]` with vault autocomplete, tables, code blocks, callouts, toggles, and headings 1-6 via slash menu; markdown clipboard copy/paste round-trip works end to end.
+- **Entity Embeds:** Movie, book, music, note, and geofence embeds can be inserted via the slash picker, linking the editor to other LifeOS tiles.
+- **File Tree & Graph:** File tree with drag-drop, rename, and favorite support; graph view visualizes vault connections.
+- **Collaboration & Sync:** Presence overlay with live cursors; Yjs collaboration relayed through the server WebSocket relay on `:8080` and the daemon `/api/markdown/collab`; zen sync to the daemon uses `zen.db` filesystem CRUD with LWW tombstones.
+- **CRDT Engine:** Native `native_yrs` Rust CRDT bindings power the underlying collaboration model.
+- **Frontmatter Support:** Markdown frontmatter is parsed and preserved for metadata and vault management.
 
 ---
 
 ## Current Focus & Actions
-- **Core Logic & Plugin Architecture:** The immediate focus is building the underlying mechanics, settings, and the custom plugin framework.
-- **Internal API Routing:** Developing a custom internal API/handler system so the Zen Editor can communicate effortlessly with other LifeOS tiles. This will allow the editor to directly invoke custom handlers for the movie library or push coordinates to the maps module natively.
+- **Editor Stability:** Polishing the AppFlowy fork integration — undo/redo, embeds, and large-vault performance.
+- **Sync & Collab Tuning:** Monitoring Yjs relay traffic, presence overlay behaviour, and offline merge correctness on the `zen.db` sync path.
+- **Inter-App Handlers:** Extending the internal API handler surface so more tiles (maps coordinates, movie ratings, gallery embeds) can be driven directly from notes.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Plugin Porting & Enhancement:** Identifying the most powerful community plugins from Obsidian, rebuilding them natively in Flutter for LifeOS, and optimizing them to be far more user-friendly and tightly integrated.
-- **3D Graph Editor:** Implementing a three-dimensional graph view to visualize the web of connected notes and thoughts, evolving Obsidian's 2D graph into an immersive spatial experience.
+- **(DONE) Graph View:** The vault connection graph is rendered in-client, evolving Obsidian's 2D graph into the LifeOS spatial experience.
+- **(DONE) Live Collaboration:** Real-time presence and Yjs CRDT editing are operational through the server relay.
+- **(DONE) Entity Linking:** Movie, book, music, note, and geofence embeds let notes interact with other tiles without app-switching.
+- **3D Graph Editor:** Implementing a three-dimensional graph view to visualize the web of connected notes and thoughts as an immersive spatial experience.
 - **Vault Reporting & Tracking:** Integrating advanced tracking mechanisms (like daily summary reports and maps tracking) directly into the vault system, turning the Zen Editor into the ultimate life-logging and reporting hub.
+- **Plugin Porting & Enhancement:** Identifying the most powerful community plugins from Obsidian, rebuilding them natively in Flutter for LifeOS, and optimizing them to be far more user-friendly and tightly integrated.
 
 ---
 

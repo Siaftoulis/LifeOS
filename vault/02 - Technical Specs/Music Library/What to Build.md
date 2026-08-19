@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -73,3 +74,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`MusicDashboardWidget`:** Main interface rendering album grid blocks, playlists items, and queue selections.
 - **`MusicPlayerOverlay`:** Bottom sheet player presenting Seek control bars, skip details, and translation hooks.
 - **`LyricsSyncViewer`:** Scrolling lyrics view scrolling text inline with active timestamps.
+

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local Audio Streaming:** Similar to movies, the Go Daemon must serve audio chunks.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Should the Music Library support background playing on mobile (requiring native Android OS service integration), or is it mostly for desktop listening?
 2. Do we need an automated lyrics scraper, or will you embed lyrics directly into the audio files?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Music Library|Music Library]] for the live feature list.

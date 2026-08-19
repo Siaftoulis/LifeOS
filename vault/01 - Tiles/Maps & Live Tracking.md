@@ -1,7 +1,7 @@
 # Maps & Live Tracking | Module Documentation
 
 > [!NOTE]
-> **Status:** Implementation Phase — REST API, WebSocket, Geofence Engine Active
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Home Management]], [[Photo Video Gallery]], [[Point Star System]]*
 
 ---
@@ -24,9 +24,11 @@ The Maps & Live Tracking module acts as the private geospatial visualizer and re
 ---
 
 ## Work Done So Far
-- **Module Concept Defined:** Proximity triggers, GPS telemetry protocols, and offline map cache parameters mapped out.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI (clean mapping layers, solid card outlines for trackers, flat coordinate overlays, minimalist status indicators) drafted.
-- **Go Backend Location API Implemented:**
+- **Map Rendering:** flutter_map with OpenStreetMap rendering, plus an animated dark radar sweep widget and offline tile cache for disconnected use.
+- **Geofence Tooling:** Geofence editor with drawer overlay supporting circle and polygon shapes; geofence enter automations fire webhooks.
+- **Navigation & Telemetry:** Turn-by-turn navigation overlay, live feed preview, and report banner in the client; background GPS capture via `geolocator`.
+- **Discovery & Services:** mDNS local device discovery and a geocoding service for address lookup.
+- **Go Backend Location API:**
   - `GET /api/v1/radar/geofences` — Returns active geofences with coordinates and radius.
   - `POST /api/v1/radar/report` — Parses GPS reports, runs haversine proximity checks, broadcasts via WebSocket.
   - `WS /api/v1/radar/live` — Real-time WebSocket broker for live coordinate streaming between devices.
@@ -34,22 +36,25 @@ The Maps & Live Tracking module acts as the private geospatial visualizer and re
   - `websocket.go` — WebSocket broker with client registration, broadcast, and auto-cleanup.
 - **Flutter Client Integration:**
   - `LiveSharingPlugin` — WebSocket client that connects to `/api/v1/radar/live` and displays live feeds.
-  - `MapsDashboardWidget` — Converted to StatefulWidget; fetches backend data, shows WebSocket connection status, and displays live location cards.
+  - `MapsDashboardWidget` — Fetches backend data, shows WebSocket connection status, and displays live location cards.
   - `MapsDao` — Extended with `deleteGeofence`, `deleteBookmark`, `updateGeofenceActive` queries.
 
 ---
 
 ## Current Focus & Actions
-- **GPS Coordinates API** ✅ `POST /api/v1/radar/report` — Endpoint active and processing background GPS reports.
-- **Geofence Calculation Library** ✅ Haversine distance engine implemented with proximity trigger detection.
-- **WebSocket Telemetry** ✅ Live coordinate streaming operational via gorilla/websocket broker.
-- **Flutter Integration** ✅ Dashboard wired to backend; LiveSharing plugin displays real-time location feeds.
+- **GPS Coordinates API:** `POST /api/v1/radar/report` active and processing background GPS reports.
+- **Geofence Calculation Library:** Haversine distance engine implemented with proximity trigger detection and enter automation webhooks.
+- **WebSocket Telemetry:** Live coordinate streaming operational via the gorilla/websocket broker.
+- **Radar Feed Stability:** Monitoring the live radar feed and radar sweep animation for drift and reconnect edge cases.
+- **Offline Tile Tuning:** Optimizing the offline tile cache size and refresh strategy for car-dashboard use.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Home Assistant API Webhooks:** Creating the Webhook client in Go to bridge geolocation states to Home Assistant actions.
-- **Offline Vector Map Downloader:** Integrating Mapbox/OSM style sheet downloaders to save geographical packages locally.
+- **(DONE) Geofence Enter Automations:** Geofence crossing fires webhooks to [[Home Management]] to trigger smart-device actions.
+- **(DONE) Live Radar Feed:** WebSocket telemetry (`/api/v1/radar/live`) streams coordinates between devices with the live feed preview in the dashboard.
+- **(DONE) Offline Map Cache:** Local tile caching supports offline navigation; full vector package download remains the next evolution.
+- **Home Assistant API Webhooks:** Expanding the webhook client in Go to bridge geolocation states to Home Assistant actions beyond enter automations.
 - **Photo Metadata Pinning:** Linking with the [[Photo Video Gallery]] to display photos taken at specific geographic locations on the map.
 
 ---

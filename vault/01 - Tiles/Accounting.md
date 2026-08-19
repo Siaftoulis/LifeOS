@@ -1,7 +1,7 @@
 # Accounting | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Home Screen]], [[Banking System]], [[Obsidian Zen Editor]], [[Point Star System]]*
 
 ---
@@ -27,19 +27,23 @@ The Accounting module acts as the private registry, official document vault, and
 ---
 
 ## Work Done So Far
-- **Module Requirements Mapping:** Document classification, credential fields, portal indexes, and server encryption rules defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (structured credential detail tables, outline document card grids, clean secure/locked status indicators) mapped.
+- **Accounting View (DONE):** The Flutter client shows government credential cards and secure document cards.
+- **Security PIN Curtain (DONE):** Credentials and documents sit behind a security PIN curtain, matching the [[Home Screen]] PIN authentication philosophy.
+- **Encrypted Storage (DONE):** Credentials and documents are AES-GCM encrypted at rest in `accounting.db`.
+- **Daemon RPC (DONE):** The daemon exposes `/api/accounting/rpc` as a JSON-RPC stub endpoint.
+- **Client Data Layer (DONE):** `accounting_dao` provides typed accessors for `AccountingCredentials` and `AccountingDocuments`.
 
 ---
 
 ## Current Focus & Actions
-- **Crypto Manager Design:** Drafting AES-256 local decryption routines in the Go backend based on PIN hashing.
-- **SQLite Database Schema:** Modeling tables for encrypted credential fields, file reference paths, and government portal indexes.
+- **Encryption Hardening:** Reviewing key derivation from the PIN and rotation paths for stored credentials.
+- **RPC Expansion:** Growing the JSON-RPC stub into richer document and credential operations.
+- **Document UX:** Improving scan upload flows and card metadata display in the locker view.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Scan Upload Tool:** Implementing scanned document loading adapters in Flutter.
+- **Scan Upload Tool (DONE):** Document loading is implemented; ongoing work refines scanned-document adapters in Flutter.
 - **Zen Editor Notes Sync:** Allowing the [[Obsidian Zen Editor]] to link notes directly to the document registry (e.g. tracking tax filing drafts, or formal declarations).
 - **Direct Portal WebView:** Testing native WebViews in Flutter to load taxi portals directly inside isolated workspaces.
 

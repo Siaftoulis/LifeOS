@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Home Management|Home Management]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -74,3 +75,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`SmartHomeDashboard`:** Main screen displays room filters, environmental temperature streams, and quick-access schedules.
 - **`DeviceGridToggle`:** Grid of active switch components showcasing status changes, neon state glows, and touch gestures.
 - **`SensorLogsPanel`:** Inline sensor logs panel presenting dynamic charts of temperature metrics over 24-hour cycles.
+

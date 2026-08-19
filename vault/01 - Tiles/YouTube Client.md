@@ -1,7 +1,7 @@
 # YouTube Client | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design Blueprint Under Review
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Point Star System]], [[Virtual Machine Management]], [[Home Screen]]*
 
 ---
@@ -27,18 +27,23 @@ The YouTube Client (and integrated social media gateway) is designed as a gamifi
 ---
 
 ## Work Done So Far
-- **System Concept Mapped:** Core point-deduction loops, sandboxing parameters, and video caching specifications defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grid of video search results, solid active playback containers, countdown session timer showing point cost, outline warning windows) mapped.
+- **NewPipe-Bridge Metadata & Search:** Video metadata, search, and stream resolution powered by `newpipe-bridge.jar` served on `127.0.0.1:18785`, lazy-spawned by the Go daemon on first use.
+- **Point-Costed Watch Sessions:** Active playback sessions deduct points from the [[Point Star System]] ledger (-10 points per 30 min) through the `POST /api/v1/youtube/sessions` daemon endpoint, wired to the session timer overlay.
+- **Player & Downloads UI:** Dedicated player screen and downloaded-videos list shipped in the Flutter client, rendered in the Everforest Minimalist Flat-Line style.
+- **Local Persistence:** `youtube.db` holds `videos` and `sessions` tables; client access goes through `youtube_dao`.
 
 ---
 
 ## Current Focus & Actions
-- **Gated Session Timer:** Designing client-side timers in Flutter that check point balances and trigger lockouts when balances reach zero.
-- **Backend Download Daemon:** Researching wrapper scripts in Go to interface with media downloader tools securely.
+- **Session & Timer Polish:** Refining the active session timer overlay, point-cost accounting, and lockout behaviour when balances reach zero.
+- **Stream Resolution Tuning:** Maintaining the NewPipe bridge (spawn, restart, fallback) and downloader cache inside the daemon; offline tuning for cached playback.
+- **Deeper Ecosystem Integration:** Continuing to tie playback events into the points ledger and exploring sandboxed webview wrapping for other high-consumption apps.
 
 ---
 
 ## Next Steps & Future Roadmap
+- **(DONE) Gated Session Timer:** Client-side timers that check point balances and trigger lockouts are live; watch sessions deduct 10 points per 30 minutes via `/api/v1/youtube/sessions`.
+- **(DONE) Download Pipeline:** Videos are resolved through the NewPipe bridge and listed in the downloaded-videos view with `youtube.db` persistence.
 - **ReVanced Engine Analysis:** Investigating the feasibility of forking or wrapping open-source ad-blocking player modules (like ReVanced API protocols) inside the Flutter view.
 - **Social Media Sandbox Integration:** Reviewing webview sandboxing libraries to nest web versions of Instagram or TikTok inside safe, tracked mobile app partitions.
 - **Device Lockout Automation:** Linking with [[Virtual Machine Management]] to lock child sandbox sessions once daily points limits are exceeded.

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Banking System|Banking System]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -117,3 +118,4 @@ CREATE TABLE IF NOT EXISTS banking_rollover (
 - **Live PDF & OCR Processor:** Real implementation of `ExtractBillAmount` capable of reading raw PDFs from disk.
 - **PSD2 OpenBanking Layer:** Extend `bank_accounts` and `bank_ledgers` DAOs to interface with European OpenBanking OAuth APIs.
 - **Point Star Ratio Binder:** Bind the Dart `budget_split_indicator.dart` dynamically to the live SQLite `PointStarSystem` stream.
+

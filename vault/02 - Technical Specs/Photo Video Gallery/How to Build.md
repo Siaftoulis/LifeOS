@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Photo Video Gallery|Photo Video Gallery]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -42,3 +43,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Automation Links:** Register classification logs inside sync managers:
    - Call `PhotoClassifier.analyzeImage(assetId)` upon file completions.
 2. **Dirty Flags:** Mark mutated rows with `is_dirty = 1` to command immediate synchronization loops.
+

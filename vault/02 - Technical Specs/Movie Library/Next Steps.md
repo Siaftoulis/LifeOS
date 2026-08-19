@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Movie Library|Movie Library]]
+> **Implementation Status:** Implemented / Production Live
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local Video Streaming:** The Go Daemon must implement `Accept-Ranges: bytes` natively to serve large `.mkv` and `.mp4` files from the local NAS directly to the Flutter video player without buffering the whole file in RAM.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Do you want to integrate a local Plex/Jellyfin instance and just have LifeOS act as a frontend, or should LifeOS handle the raw video files entirely itself?
 2. How should subtitles (`.srt`) be handled over the Tailscale mesh?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Movie Library|Movie Library]] for the live feature list.

@@ -1,7 +1,7 @@
 # Point Star System | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Calendar Habit Task Manager]], [[Obsidian Zen Editor]], [[Book Library]], [[Banking System]], [[Accounting]], [[Home Management]], [[Flashcards]], [[Music Library]], [[Project Infinity]], [[Knowledge Base]]*
 
 ---
@@ -33,21 +33,28 @@ The Point Star System is the central gamification engine and behavioral ledger o
 ---
 
 ## Work Done So Far
-- **Behavioral Framework Defined:** Basic points structure, penalty rules, module integrations, and gamification loops defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (leaderboard grids, line graphs tracking historical scores, custom voucher card illustrations with 1px border cards) mapped.
+- **Client Views:** Points dashboard, ledger panel, leaderboard card, and voucher redeemer panel shipped in the Flutter client, following the Everforest flat-line card style.
+- **Gated Module Wrapper:** Point-gated app launches are enforced through the gated wrapper (costs checked and deducted before an app opens).
+- **Daemon API:** `/api/v1/points` exposes `balance`, `ledger`, `leaderboard`, `store`, `vouchers/redeem`, `app-costs`, and `apps/deduct` endpoints.
+- **Star Conversion:** Stars are derived as points / 100, displayed across the dashboard and leaderboard.
+- **Privilege Automation:** Negative-balance automation fires a TV lock webhook to restrict entertainment access until the score recovers.
+- **Event Streaming:** Points award events are broadcast over the events WebSocket bus under `points:balance-change`.
 
 ---
 
 ## Current Focus & Actions
-- **Points Evaluation Engine:** Designing Go handlers to receive, process, and check custom point rules from other modules.
-- **Unified User Schema:** Modeling database tables in SQLite to link family profile cards, current point balances, active checklists, and historical score streams.
+- **Ledger Accuracy:** Auditing balance/ledger reconciliation between the daemon endpoints and client displays, especially around redeem and deduct transactions.
+- **Automation Tuning:** Refining the negative-balance TV lock webhook triggers and restore logic.
+- **Rule-Builder Planning:** Scoping the no-code rule configurator so admins can add custom tasks and point rules without code changes.
 
 ---
 
 ## Next Steps & Future Roadmap
+- **(DONE) Voucher Redemption:** The ticket-store style voucher redeemer panel and `vouchers/redeem` endpoint are live.
+- **(DONE) Automated Privilege Lockouts:** The negative-balance automation now fires the TV lock webhook through [[Home Management]] hooks; richer threshold-based device toggling remains possible future work.
+- **(DONE) App Gating:** Per-app star costs (`app-costs`) and point deduction on launch (`apps/deduct`) are enforced by the gated module wrapper.
 - **No-Code Task Rule Builder:** Developing the Flutter interface to add custom points rules dynamically.
-- **Automated Privilege Lockouts:** Integrating hooks with [[Home Management]] to toggle device access states dynamically based on leaderboard scores.
-- **Voucher Ledger View:** Creating a mock "ticket roll" view in Flutter to display redeemable family vouchers.
+- **Global Module Listeners:** Broadening the event listeners so more tiles (habits, banking, gallery memories) award points automatically through the `points:balance-change` stream.
 
 ---
 

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]]
+> **Implementation Status:** Partially Implemented (backups + quarantine live; web-os / sandbox are stubs)
 
 
 
@@ -83,3 +84,4 @@ All widgets are declared inside `client/lib/presentation/widgets/` or plugins:
 - **`CloudBackupDashboard`:** Main module screen. Renders registered devices bookshelf style cards, active backup execution states, and sync schedule triggers.
 - **`BackupStatusList`:** Vertical timeline view showing historical backup files count, data volume sizes, and completion markers.
 - **`QuarantineView`:** Security check tab displaying real-time scan statuses of recently uploaded files (cleaning animations for PENDING, threat warnings for INFECTED).
+

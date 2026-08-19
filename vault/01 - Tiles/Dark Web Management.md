@@ -1,7 +1,7 @@
 # Dark Web Management | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Cloud & Fake Virtual Machine]], [[Movie Library]], [[Book Library]], [[Point Star System]]*
 
 ---
@@ -23,20 +23,25 @@ The Dark Web Management module functions as a secure peer-to-peer (P2P) file-sha
 ---
 
 ## Work Done So Far
-- **Module Requirements Mapping:** Secure torrent seeding logic, private tracker generation, and ClamAV integration requirements defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (lists of active torrent seeds, solid upload/download progress indicators, clean outline tables for quarantine files, red/green security flags) mapped.
+- **Torrent Dashboard (DONE):** The Flutter client shows a torrent dashboard with an active torrents list and a quarantine warnings panel.
+- **Database Seeding (DONE):** Torrents are seeded in `darkweb.db`.
+- **Daemon API (DONE):** The Go daemon serves `/api/v1/darkweb/torrents` plus a `/promote` endpoint.
+- **Antivirus Quarantine Flow (DONE):** Cloud uploads run a `clamdscan` antivirus check, and flagged files are moved to quarantine.
+- **Client Data Layer (DONE):** `darkweb_dao` provides typed accessors for `Torrents`, `TorrentPeers`, and `SharedFiles`.
 
 ---
 
 ## Current Focus & Actions
-- **Torrent Client API Hook:** Designing API wrappers in the Go backend to communicate with daemon torrent clients (such as transmission-daemon).
-- **Scanner Wrapper Implementation:** Designing file scan scripts in Go to automate post-download analysis.
+- **Quarantine Workflow:** Polishing the quarantine review and promote/delete actions from the warnings panel.
+- **Peer Monitoring:** Expanding torrent peer and shared-file visibility in the dashboard.
+- **Scan Integration:** Tightening the link between uploads, clamdscan results, and quarantine status reporting.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Private Tracker Generator:** Building automated magnet-link generators inside the Flutter client UI.
-- **Dynamic Virus Analysis Console:** Visual dashboard in Flutter displaying scanning logs, file sandboxing alerts, and quarantine lists.
+- **Private Tracker Generator:** Building automated magnet-link generators inside the Flutter client UI to seed new shares without manual `.torrent` files.
+- **Dynamic Virus Analysis Console (DONE):** The quarantine and warnings panel shipped; deeper scanning logs and sandbox alerts are planned extensions.
+- **Sandbox Analysis:** Leveraging the [[Virtual Machine Management]] engine to execute and monitor files in an isolated micro-VM before promotion remains on the roadmap.
 - **Automated Media Integration:** Linkages with [[Movie Library]] and [[Book Library]] to automatically seed downloaded materials to whitelisted friend IPs.
 
 ---

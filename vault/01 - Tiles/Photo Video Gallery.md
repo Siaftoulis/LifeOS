@@ -1,7 +1,7 @@
 # Photo Video Gallery | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Obsidian Zen Editor]], [[Maps & Live Tracking]], [[Point Star System]]*
 
 ---
@@ -24,20 +24,26 @@ The module is inspired by two key design and performance concepts:
 ---
 
 ## Work Done So Far
-- **Design Philosophy Defined:** Everforest Minimalist Flat-Line UI specifications (smooth scroll animation triggers, flat card containers, 1px lines, and rounded borders, avoiding glassmorphic panels) mapped out.
-- **Boilerplate Folder Setup:** Local mock assets paths and base directories have been configured.
+- **Aves Libre Replica Viewer:** A 1:1 recreation of the Aves Libre experience with the `aves_repo` vendored as the reference implementation.
+- **Viewer Features:** Full-screen viewer, video scrubber, metadata sheet, album list, and cloud view all shipped in the Flutter client.
+- **Map & Sharing:** Gallery map view with clustering and async location loading; peer-to-peer share over port 4444.
+- **Backup & Scanning:** Backup activity panel plus device scanning via `photo_manager`.
+- **Smart Picker:** Deduplication and similarity detection using sha256, dHash, and dominant colors through `/api/v1/gallery`.
+- **Local Persistence:** `gallery.db` stores assets; client access goes through `gallery_dao`.
 
 ---
 
 ## Current Focus & Actions
-- **API Streaming Endpoint Design:** Modeling endpoints in the Go server to deliver byte-range video streaming and dynamic thumbnail generation.
-- **EXIF Metadata Parser:** Writing initial EXIF data extractors in Go to scan and log file metadata (capture dates, camera models, GPS coordinates).
+- **Viewer Polish:** Refining grid smoothness, scrubber behaviour, and metadata rendering across large libraries.
+- **Clustering Tuning:** Adjusting map clustering thresholds and async location-loading performance on large media sets.
+- **Backup Reliability:** Monitoring the backup activity panel and device scanning pipeline for edge cases (duplicates, interrupted uploads).
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Client Backup Sync Daemon:** Creating a background sync utility in the Flutter client to auto-detect new camera-roll additions and upload them to the backend server.
-- **Dynamic Geolocation Clustering:** Mapping media assets onto the [[Maps & Live Tracking]] canvas, allowing the user to view photos by tapping geographic locations.
+- **(DONE) Dynamic Geolocation Clustering:** Media assets are mapped onto the gallery map view with clustering, linked to the [[Maps & Live Tracking]] canvas.
+- **(DONE) Client Backup Pipeline:** Camera-roll scanning via `photo_manager` and the backup activity panel are live; continuous auto-backup of new additions remains a refinement.
+- **Server-Side AI Categorization:** Adding local ML classification (facial clustering, scene/object tagging) to the daemon processing thread.
 - **Media Log Embedding:** Allowing the [[Obsidian Zen Editor]] to embed these hosted gallery assets directly into Markdown logs with native streaming previews.
 
 ---

@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Maps & Live Tracking|Maps & Live Tracking]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -47,3 +48,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Trigger payloads:** Wire location checks to fire external payloads:
    - Call `HomeAutomation.triggerZoneArrival()` when boundaries intersect.
 2. **Sync Flags:** Mark mutated rows with `is_dirty = 1` to command immediate synchronization loops.
+

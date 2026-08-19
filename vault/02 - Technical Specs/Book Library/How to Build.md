@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Book Library|Book Library]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -50,3 +51,4 @@ This document outlines the step-by-step coding directives and architectural wiri
    - Call `PointStarSystem.addPoints(1)` upon every 15 minutes (900 seconds) of confirmed audiobook playback.
    - Call `PointStarSystem.addPoints(2)` upon exporting highlights to the Obsidian Zen Editor database.
 2. **Dirty Flags:** Mark mutated rows with `is_dirty = 1` to command immediate Tailscale syncing.
+

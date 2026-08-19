@@ -1,7 +1,7 @@
 # Home Screen | Module Documentation
 
 > [!NOTE]
-> **Status:** Concept Defined / Future Development Planned
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Calendar Habit Task Manager]], [[Point Star System]]*
 
 ---
@@ -15,22 +15,27 @@ The Home Screen functions identically to a mobile operating system's lock screen
 ---
 
 ## Work Done So Far
-- **Current State:** The Home Screen currently exists as a clean, minimalistic clock view (displaying time and date in the Everforest theme) positioned in the center of the `spatial_engine` grid.
-- **Dynamic Backgrounds (Planned Foundation):** The conceptual groundwork is laid for dynamic wallpapers. Backgrounds will automatically adapt based on the time of day, system theme (dark mode), or specific holidays. There will also be support for custom, user-selected backgrounds.
+- **Clock Widget (DONE):** The central clock view (Everforest theme) is live and anchored at the center of the `spatial_engine` grid.
+- **Lock Screen Overlay (DONE):** A full lock screen overlay gates entry with PIN authentication plus login and OAuth sign-in options (GitHub, Google).
+- **Notifications Feed (DONE):** An in-app feed polls `/api/v1/notifications` every 4 seconds and surfaces live notifications on the Home Screen.
+- **Connection Status Badge (DONE):** The Home Screen displays the active network state: `HEADSCALE MESH`, `LOCAL WI-FI`, or `REMOTE CLOUD`.
+- **Spatial Grid Home Module (DONE):** The Home Screen is registered as a spatial grid tile with point-gated app launches; an RPG player card overlay is available on the lock screen.
 
 ---
 
 ## Current Focus & Actions
-- **Conceptual Blueprint:** At this phase, no immediate code changes are being applied to the Home Screen. The focus is strictly on establishing a solid design philosophy.
-- **Observation & Planning:** The concept is kept open and adaptable to see what special elements (like Smart Home integrations) might fit perfectly as the rest of the application's design matures.
+- **Notification Polish:** Refining notification grouping and delivery timing so the feed stays unobtrusive.
+- **RPG Overlay Enhancements:** Continuing work on the player card overlay (stats, streak data) tied to the [[Point Star System]].
+- **Grid Integration:** Tightening the relationship between point-gated launches and the [[Calendar Habit Task Manager]] task feed.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Home Labbing & Shared Organization:** Designed for shared use (e.g., with a partner) to organize daily routines, habits, and schedules. 
+- **Home Labbing & Shared Organization:** Designed for shared use (e.g., with a partner) to organize daily routines, habits, and schedules; scheduling layers will build on the implemented CHTM data.
 - **In-App Task Dashboard:** Within the app, the Home Screen will feature a scrollable feed showing tasks to be done today, this week, month, or year. It will allow setting criteria, triggering automations, and checking off completed items directly.
 - **Consolidated "Smart" Push Notifications:** Instead of spamming the user's real mobile device with dozens of individual reminders, the backend will send a single, aggregated push notification (e.g., "1 new update, 10 pending tasks for the day"). It functions as a summarized dashboard delivered externally.
 - **Advanced Preferences Integration:** Layout customization (e.g., where to position the clock, where messages appear, toggling minimalist modes) will be moved into the general preferences. This will be modeled after mobile OS settings—using clean, nested menus for task-oriented configuration, which will be detailed further in [[Preferences Setting Tab]].
+- **Dynamic Backgrounds:** Scheduled wallpapers that adapt to time of day, theme, or holidays are still planned on top of the live clock view.
 
 ---
 

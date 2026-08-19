@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Music Library|Music Library]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -42,3 +43,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Vocabulary Study bridge:** Bind lyrics selectors to Project Infinity logs:
    - Call `ProjectInfinity.addWord(lyricsWord)` upon user select events.
 2. **Dirty Mark:** Set `is_dirty = 1` to command immediate synchronization loops.
+

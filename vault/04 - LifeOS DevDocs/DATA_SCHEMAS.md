@@ -1,10 +1,38 @@
+---
+id: "a1b2c3d4-0005-4a5b-9c0d-lifeosdataschemas"
+type: "lifeos_data_schemas"
+last_modified: 1784500000000
+sync_status: "clean"
+---
+
 # Technical Specification: Split-Storage & Frontmatter Architecture
 
 > [!NOTE]
-> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]] · [[04 - LifeOS DevDocs/Schemas/Database_Specs|Database Specs]]
+> **Home:** [[04 - LifeOS DevDocs/Home|Home]] | **Related:** [[04 - LifeOS DevDocs/SYNC_PROTOCOL|Sync Protocol]] · [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network]] · [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]] · [[04 - LifeOS DevDocs/Architecture/Data_Binding|Data Binding]] · [[04 - LifeOS DevDocs/Schemas/Database_Specs|Database Specs]]
 
 
-This document defines the physical data caching schema for the SQLite engine running on client runtimes (via Drift/Moor bindings) and specifies the structural formatting, cleaning, and parsing constraints for Markdown notes synced directly with the local Obsidian Vault.
+This document defines the physical data caching schema for the SQLite engine running on client runtimes (via Drift bindings) and specifies the structural formatting, cleaning, and parsing constraints for Markdown notes synced directly with the local Obsidian Vault. The SQL dump in Section 1 is largely historical/aspirational; the "Current Storage Reality (August 2026)" section below documents the live schema surface.
+
+---
+
+## Current Storage Reality (August 2026)
+
+### Client: Drift Database (`client/lib/database/`)
+*   **61 Drift tables** across the schema files `core_schema.dart`, `chtm_schema.dart`, `economy_schema.dart`, `knowledge_schema.dart`, `gaming_schema.dart`, `media_schema.dart`, `cloud_schema.dart`, `home_schema.dart`, and `misc_schema.dart` (plus the RPG tables `player_stats`, `xp_ledger`, `atrophy_log`, `status_effects`).
+*   **DAO layer:** 21 DAO files, one per domain (books, movies, music, gallery, points, infinity, knowledge, flashcards, chtm, cloud, home, vm, youtube, markdown, maps, system, banking, accounting, darkweb, plus the base `dao.dart`).
+*   **Sync quartet:** tables carry the `updatedAt` / `syncedAt` / `isDirty` / `id` columns; `syncedAt` stays `NULL` while a row is dirty.
+
+### Daemon: One SQLite DB Per Module (`backend/host-daemon/data/`)
+One `.db` per domain: `gallery`, `movies`, `books`, `finance` (banking/accounting), `rpg` (player), `knowledge`, `flashcards`, `media`, `home`, `infinity`, `backup`, `darkweb`, `vm`, `voice`, `youtube`, `system`, `sync`, `engine`, `sandbox`, `devsim`, `zen`, plus the relay DB (`lifeos.db` / `lifeos-relay`). JSON stores: `calendar.json`, `geofences.json`, `points.json`, `ledger.json`, `illness.json`. `data/` is gitignored.
+
+### Key Columns Added Since This Document Was Written
+*   `movies`: `tmdb_id`, `poster_path`, `overview`, `genres`, `tmdb_rating` (TMDB enrichment, `internal/movies`).
+*   `books`: `status` column.
+*   `music_tracks`: `file_path` column.
+*   `gallery` / media assets: `sha256` / perceptual `dHash` hashes and dominant colors (dedupe in `internal/gallery`).
+*   Zen: `zen_nodes`, `zen_documents`, `zen_tombstones` (LWW sync, tombstones in `zen.db`).
+*   RPG: `player` (player_stats), `quests`, `quest_logs`.
+*   General engine: `engine` domain with **26 entity types** (`internal/engine/models.go`), emitted as `engine:upsert:<type>` bus events.
 
 ---
 
@@ -741,6 +769,7 @@ CREATE TABLE status_effects (
 ---
 
 ## Related Specifications
-*   [Embedded Network Protocol (tsnet)](EMBEDDED_NETWORK.md)
+*   [[04 - LifeOS DevDocs/EMBEDDED_NETWORK|Embedded Network Protocol (tsnet)]]
+*   [[04 - LifeOS DevDocs/BACKEND_ARCHITECTURE|Backend Architecture]]
 
 

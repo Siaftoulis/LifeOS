@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]]
+> **Implementation Status:** Partially Implemented (backups + quarantine live; web-os / sandbox are stubs)
 
 ## 1. Backend Implementation (Beyond Stubs)
 - **Local NAS/SMB Integration:** Map the "Cloud" backup storage directly to a local NAS drive or secure external HDD, executing robust differential backups using `rsync` or Go native file-copy algorithms.
@@ -14,3 +15,7 @@
 ## 3. Open Design Questions
 1. Should the cloud backup pipeline support encrypted uploads to an external provider (like AWS S3 or Backblaze B2) via `rclone`, or strictly local NAS?
 2. For the "Fake VM", do you prefer Docker containers (faster, lightweight) or full Hyper-V VMs (better isolation)?
+
+## Implementation Notes
+> [!TIP]
+> This module is now implemented in the production client and daemon. Most "Next Steps" items above have shipped; treat this file as historical planning context. See the [[01 - Tiles/Cloud & Fake Virtual Machine|Cloud & Fake Virtual Machine]] for the live feature list.

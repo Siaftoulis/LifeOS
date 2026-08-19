@@ -2,6 +2,7 @@
 
 > [!NOTE]
 > **Parent Tile:** [[01 - Tiles/Point Star System|Point Star System]]
+> **Implementation Status:** Implemented / Production Live
 
 
 
@@ -42,3 +43,4 @@ This document outlines the step-by-step coding directives and architectural wiri
 1. **Rules Builders:** Build UI options allowing new rules definitions:
    - Configure dynamic points multipliers inside target modules lists.
 2. **Sync Flags:** Set `is_dirty = 1` to command immediate synchronization loops.
+

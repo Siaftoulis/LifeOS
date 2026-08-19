@@ -1,7 +1,7 @@
 # Banking System | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design & Planning Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Point Star System]], [[Accounting]], [[Home Screen]]*
 
 ---
@@ -33,20 +33,24 @@ The Banking System acts as the personal budget coordinator, bill aggregator, and
 ---
 
 ## Work Done So Far
-- **System Logic Formulated:** Budget allocation ratios, PDF parser rules, and Star Points integration parameters mapped.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grids showing balance charts, solid outlines for sub-accounts, flat list tables for parsed bills) mapped.
+- **Banking Dashboard (DONE):** The Flutter client ships a banking dashboard with accounts, ledger transaction cards, a bill pay tracker, and a budget split indicator.
+- **PDF Statement Import (DONE):** The daemon parses statement PDFs via `/api/v1/banking/parse-pdf`.
+- **Database Seeding (DONE):** Accounts and transactions are seeded in `finance.db`.
+- **Client Data Layer (DONE):** `banking_dao` provides typed accessors for `BankAccounts`, `BankLedgers`, `BillLogs`, and `BankingRollovers`.
 
 ---
 
 ## Current Focus & Actions
-- **PDF Extraction Routines:** Designing Go backend helper functions to parse text coordinates in standard Greek utility bill PDFs.
-- **Dynamic Split Algorithms:** Writing calculations to split the personal allowance budget using real-time database inputs from the Point Star System.
+- **PDF Parser Accuracy:** Improving extraction of payables and line items from Greek utility bill PDFs.
+- **Rollover Logic:** Polishing the rollover surplus calculation so targets reduce correctly month over month.
+- **Budget Split View:** Refining the 50/30/20 budget split indicator with live ledger data.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Manual Voucher Ledger:** Flutter UI screens to approve and log voucher redemptions.
+- **Manual Voucher Ledger:** Flutter UI screens to approve and log voucher redemptions from the [[Point Star System]].
 - **Monthly Summary Exporter:** Creating simple data sheets to export structured monthly finances to [[Accounting]] templates.
+- **Point-Scaled Allowance:** Wiring the dynamic leisure budget split against live Star Point ratios from the [[Point Star System]] database.
 
 ---
 

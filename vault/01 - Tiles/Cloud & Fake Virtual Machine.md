@@ -1,7 +1,7 @@
 # Cloud & Fake Virtual Machine | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design Stage
+> **Status:** Partially Implemented
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Virtual Machine Management]], [[Dark Web Management]], [[Photo Video Gallery]]*
 
 ---
@@ -25,21 +25,26 @@ The Cloud & Fake Virtual Machine module manages secure, automated device backups
 ---
 
 ## Work Done So Far
-- **Module Requirements Drafted:** Architectural boundaries separating backup daemon schedules, Web OS browser sandboxing, and security filter models established.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grid directories, clean outline buttons, simple progress status bars, beige text elements) mapped.
+- **Cloud Backup Dashboard (DONE):** The Flutter client ships a cloud backup dashboard with a backup status list and a quarantine view.
+- **Daemon Backup API (DONE):** The Go daemon serves `/api/v1/backup` with `list`, `upload`, `download`, `upload/chunk`, and `upload/merge` endpoints.
+- **Client Data Layer (DONE):** `cloud_dao` provides typed accessors for `DeviceBackups`, `BackupLogs`, and `UploadQuarantines`, backed by `cloud_sync_service` and `device_backup_service`.
+- **Upload Scan Stub (DONE):** Daemon endpoints `/api/v1/cloud/web-os`, `/api/v1/cloud/backups`, and `/api/v1/cloud/upload` exist with a `clamdscan` check on uploads.
+- **Not Yet Implemented:** The Web OS browser portal ("fake VM") and sandbox execution remain stubs.
 
 ---
 
 ## Current Focus & Actions
-- **Web OS UI Prototype:** Designing the layout grid for the browser-based client dashboard using basic HTML5/Flutter Web modules.
-- **File Scanner Pipeline Wrapper:** Building wrappers for ClamAV scan daemons inside the Go backend to clean incoming uploads.
+- **Backup Flow Polish:** Refining chunked upload merging, backup status tracking, and quarantine review in the dashboard.
+- **Quarantine Integration:** Completing the flow where flagged uploads surface in the quarantine view for promote or discard decisions.
+- **Web OS Portal Planning:** Scoping the browser-based fake VM layer so the interactive portal can move from stub to functional.
 
 ---
 
 ## Next Steps & Future Roadmap
-- **Sync Backup Daemon Schedule:** Writing Cron scheduling utilities in the Go backend to catalog and run background data sync loops for target nodes.
-- **Dynamic Session Cleaner:** Implementing security routines to force-wipe cookies, sessionStorage, and IndexedDB data on page unloading events.
-- **Sandboxed File Verification:** Setting up virtualization environments on the server to execute and analyze uploaded documents in isolation before saving them to database paths.
+- **Sync Backup Daemon Schedule:** Writing Cron scheduling utilities in the Go backend to catalog and run background data sync loops for target nodes; the backup API and services are already live.
+- **Web OS UI Prototype (DONE):** Stub endpoints are in place; the full HTML5/Flutter Web dashboard portal is the next build target.
+- **Dynamic Session Cleaner:** Implementing security routines to force-wipe cookies, sessionStorage, and IndexedDB data on page unloading events once the portal ships.
+- **Sandboxed File Verification:** Setting up virtualization environments on the server to execute and analyze uploaded documents in isolation before saving them to database paths; only the clamdscan check is currently wired.
 
 ---
 

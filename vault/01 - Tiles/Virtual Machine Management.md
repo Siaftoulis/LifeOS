@@ -1,7 +1,7 @@
 # Virtual Machine Management | Module Documentation
 
 > [!NOTE]
-> **Status:** Conceptual Phase / Design Stage
+> **Status:** Implemented / Production Live
 > **Links:** [[00 - System/Home|Home]] | *Linked Modules: [[Preferences Setting Tab]], [[Cloud & Fake Virtual Machine]], [[Dark Web Management]], [[YouTube Client]]*
 
 ---
@@ -28,21 +28,27 @@ The Virtual Machine Management module controls the virtualization, sandboxing, a
 ---
 
 ## Work Done So Far
-- **System Requirements Drafted:** Core isolation protocols, Scrcpy/VNC mirroring adapters, and adaptive layout concepts defined.
-- **Design Philosophy:** Everforest Minimalist Flat-Line UI layout (grid of active VM cards, solid outlines, terminal consoles with monochrome text, scale click feedback) mapped.
+- **VM Dashboard:** Condensed VM cards view in the Flutter client, plus the legacy Hyper-V card and desktop multi-window VM panel for direct machine windows.
+- **Remote File Explorer:** Working view into remote filesystem structures across registered machines, backed by the daemon explorer endpoint.
+- **Daemon Endpoints:** `/api/v1/vm` (list), `/api/v1/vm/toggle` (power state), `/api/v1/vm/discovery` (network discovery), and `/api/v1/vm/explore` (remote browsing) are live in the Go daemon.
+- **Host Utilities:** `wol.go` implements Wake-on-LAN wake signals; `hyperv.go` wraps Hyper-V host management commands.
+- **Local Persistence:** `vm.db` is seeded with the known VMs; client access goes through `vm_dao`.
 
 ---
 
 ## Current Focus & Actions
-- **Docker / Firecracker CLI Integration:** Creating Go command-line wrappers to initialize, monitor, and destroy container sandboxes dynamically on the server.
-- **Tailscale Device Discovery:** Formulating connection routines to identify active system nodes and check mirror capabilities.
+- **Power-State Reliability:** Polishing toggle/wake flows (WOL retries, discovery refresh) so VMs respond consistently from the dashboard and desktop panels.
+- **Explorer Ergonomics:** Improving the remote file explorer navigation and feedback for large directory trees.
+- **Sandbox Pipeline Research:** Continuing evaluation of Docker / Firecracker-style CLI wrappers and Tailscale node discovery for future disposable-sandbox sessions.
 
 ---
 
 ## Next Steps & Future Roadmap
+- **(DONE) Remote File Explorer Adapter:** File transfer and browsing routed through private Tailnet nodes is live via `/api/v1/vm/explore` with the in-client explorer view.
+- **(DONE) Machine Power Control:** VM listing, toggling, and WOL wake are operational across the dashboard and legacy Hyper-V card.
 - **Isolated Browser Streaming:** Building WebRTC streams to pipe isolated browser audio and video from the server container directly into the client.
 - **Redroid Flutter Client:** Testing Flutter integrations with Android-in-container rendering protocols.
-- **Remote File Explorer Adapter:** Implementing file transfer APIs that bypass standard OS sharing menus, routing files through private Tailnet nodes directly.
+- **Disposable Sandbox Sessions:** Wiring the Docker / Firecracker engine behind the daemon to spawn isolated, single-use environments on demand.
 
 ---
 
