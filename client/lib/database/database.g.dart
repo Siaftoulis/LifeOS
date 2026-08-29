@@ -16984,6 +16984,24 @@ class $MusicTracksTable extends MusicTracks
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _sampleRateMeta =
+      const VerificationMeta('sampleRate');
+  @override
+  late final GeneratedColumn<int> sampleRate = GeneratedColumn<int>(
+      'sample_rate', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _bitDepthMeta =
+      const VerificationMeta('bitDepth');
+  @override
+  late final GeneratedColumn<int> bitDepth = GeneratedColumn<int>(
+      'bit_depth', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _channelsMeta =
+      const VerificationMeta('channels');
+  @override
+  late final GeneratedColumn<int> channels = GeneratedColumn<int>(
+      'channels', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -17008,7 +17026,10 @@ class $MusicTracksTable extends MusicTracks
         lastPlayedAt,
         addedAt,
         updatedAt,
-        isDirty
+        isDirty,
+        sampleRate,
+        bitDepth,
+        channels
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -17137,6 +17158,20 @@ class $MusicTracksTable extends MusicTracks
       context.handle(_isDirtyMeta,
           isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
     }
+    if (data.containsKey('sample_rate')) {
+      context.handle(
+          _sampleRateMeta,
+          sampleRate.isAcceptableOrUnknown(
+              data['sample_rate']!, _sampleRateMeta));
+    }
+    if (data.containsKey('bit_depth')) {
+      context.handle(_bitDepthMeta,
+          bitDepth.isAcceptableOrUnknown(data['bit_depth']!, _bitDepthMeta));
+    }
+    if (data.containsKey('channels')) {
+      context.handle(_channelsMeta,
+          channels.isAcceptableOrUnknown(data['channels']!, _channelsMeta));
+    }
     return context;
   }
 
@@ -17192,6 +17227,12 @@ class $MusicTracksTable extends MusicTracks
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
       isDirty: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+      sampleRate: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sample_rate']),
+      bitDepth: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}bit_depth']),
+      channels: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}channels']),
     );
   }
 
@@ -17225,6 +17266,9 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
   final int addedAt;
   final int updatedAt;
   final int isDirty;
+  final int? sampleRate;
+  final int? bitDepth;
+  final int? channels;
   const MusicTrack(
       {required this.id,
       required this.title,
@@ -17248,7 +17292,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       this.lastPlayedAt,
       required this.addedAt,
       required this.updatedAt,
-      required this.isDirty});
+      required this.isDirty,
+      this.sampleRate,
+      this.bitDepth,
+      this.channels});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -17305,6 +17352,15 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
     map['added_at'] = Variable<int>(addedAt);
     map['updated_at'] = Variable<int>(updatedAt);
     map['is_dirty'] = Variable<int>(isDirty);
+    if (!nullToAbsent || sampleRate != null) {
+      map['sample_rate'] = Variable<int>(sampleRate);
+    }
+    if (!nullToAbsent || bitDepth != null) {
+      map['bit_depth'] = Variable<int>(bitDepth);
+    }
+    if (!nullToAbsent || channels != null) {
+      map['channels'] = Variable<int>(channels);
+    }
     return map;
   }
 
@@ -17357,6 +17413,15 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       addedAt: Value(addedAt),
       updatedAt: Value(updatedAt),
       isDirty: Value(isDirty),
+      sampleRate: sampleRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sampleRate),
+      bitDepth: bitDepth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bitDepth),
+      channels: channels == null && nullToAbsent
+          ? const Value.absent()
+          : Value(channels),
     );
   }
 
@@ -17387,6 +17452,9 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       addedAt: serializer.fromJson<int>(json['addedAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
       isDirty: serializer.fromJson<int>(json['isDirty']),
+      sampleRate: serializer.fromJson<int?>(json['sampleRate']),
+      bitDepth: serializer.fromJson<int?>(json['bitDepth']),
+      channels: serializer.fromJson<int?>(json['channels']),
     );
   }
   @override
@@ -17416,6 +17484,9 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       'addedAt': serializer.toJson<int>(addedAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
       'isDirty': serializer.toJson<int>(isDirty),
+      'sampleRate': serializer.toJson<int?>(sampleRate),
+      'bitDepth': serializer.toJson<int?>(bitDepth),
+      'channels': serializer.toJson<int?>(channels),
     };
   }
 
@@ -17442,7 +17513,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           Value<int?> lastPlayedAt = const Value.absent(),
           int? addedAt,
           int? updatedAt,
-          int? isDirty}) =>
+          int? isDirty,
+          Value<int?> sampleRate = const Value.absent(),
+          Value<int?> bitDepth = const Value.absent(),
+          Value<int?> channels = const Value.absent()}) =>
       MusicTrack(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -17473,6 +17547,9 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
         addedAt: addedAt ?? this.addedAt,
         updatedAt: updatedAt ?? this.updatedAt,
         isDirty: isDirty ?? this.isDirty,
+        sampleRate: sampleRate.present ? sampleRate.value : this.sampleRate,
+        bitDepth: bitDepth.present ? bitDepth.value : this.bitDepth,
+        channels: channels.present ? channels.value : this.channels,
       );
   MusicTrack copyWithCompanion(MusicTracksCompanion data) {
     return MusicTrack(
@@ -17511,6 +17588,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+      sampleRate:
+          data.sampleRate.present ? data.sampleRate.value : this.sampleRate,
+      bitDepth: data.bitDepth.present ? data.bitDepth.value : this.bitDepth,
+      channels: data.channels.present ? data.channels.value : this.channels,
     );
   }
 
@@ -17539,7 +17620,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           ..write('lastPlayedAt: $lastPlayedAt, ')
           ..write('addedAt: $addedAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('isDirty: $isDirty')
+          ..write('isDirty: $isDirty, ')
+          ..write('sampleRate: $sampleRate, ')
+          ..write('bitDepth: $bitDepth, ')
+          ..write('channels: $channels')
           ..write(')'))
         .toString();
   }
@@ -17568,7 +17652,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
         lastPlayedAt,
         addedAt,
         updatedAt,
-        isDirty
+        isDirty,
+        sampleRate,
+        bitDepth,
+        channels
       ]);
   @override
   bool operator ==(Object other) =>
@@ -17596,7 +17683,10 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           other.lastPlayedAt == this.lastPlayedAt &&
           other.addedAt == this.addedAt &&
           other.updatedAt == this.updatedAt &&
-          other.isDirty == this.isDirty);
+          other.isDirty == this.isDirty &&
+          other.sampleRate == this.sampleRate &&
+          other.bitDepth == this.bitDepth &&
+          other.channels == this.channels);
 }
 
 class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
@@ -17623,6 +17713,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
   final Value<int> addedAt;
   final Value<int> updatedAt;
   final Value<int> isDirty;
+  final Value<int?> sampleRate;
+  final Value<int?> bitDepth;
+  final Value<int?> channels;
   final Value<int> rowid;
   const MusicTracksCompanion({
     this.id = const Value.absent(),
@@ -17648,6 +17741,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     this.addedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDirty = const Value.absent(),
+    this.sampleRate = const Value.absent(),
+    this.bitDepth = const Value.absent(),
+    this.channels = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MusicTracksCompanion.insert({
@@ -17674,6 +17770,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     required int addedAt,
     required int updatedAt,
     this.isDirty = const Value.absent(),
+    this.sampleRate = const Value.absent(),
+    this.bitDepth = const Value.absent(),
+    this.channels = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -17704,6 +17803,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     Expression<int>? addedAt,
     Expression<int>? updatedAt,
     Expression<int>? isDirty,
+    Expression<int>? sampleRate,
+    Expression<int>? bitDepth,
+    Expression<int>? channels,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -17730,6 +17832,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       if (addedAt != null) 'added_at': addedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDirty != null) 'is_dirty': isDirty,
+      if (sampleRate != null) 'sample_rate': sampleRate,
+      if (bitDepth != null) 'bit_depth': bitDepth,
+      if (channels != null) 'channels': channels,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -17758,6 +17863,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       Value<int>? addedAt,
       Value<int>? updatedAt,
       Value<int>? isDirty,
+      Value<int?>? sampleRate,
+      Value<int?>? bitDepth,
+      Value<int?>? channels,
       Value<int>? rowid}) {
     return MusicTracksCompanion(
       id: id ?? this.id,
@@ -17783,6 +17891,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       addedAt: addedAt ?? this.addedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDirty: isDirty ?? this.isDirty,
+      sampleRate: sampleRate ?? this.sampleRate,
+      bitDepth: bitDepth ?? this.bitDepth,
+      channels: channels ?? this.channels,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -17859,6 +17970,15 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     if (isDirty.present) {
       map['is_dirty'] = Variable<int>(isDirty.value);
     }
+    if (sampleRate.present) {
+      map['sample_rate'] = Variable<int>(sampleRate.value);
+    }
+    if (bitDepth.present) {
+      map['bit_depth'] = Variable<int>(bitDepth.value);
+    }
+    if (channels.present) {
+      map['channels'] = Variable<int>(channels.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -17891,6 +18011,9 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
           ..write('addedAt: $addedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDirty: $isDirty, ')
+          ..write('sampleRate: $sampleRate, ')
+          ..write('bitDepth: $bitDepth, ')
+          ..write('channels: $channels, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -39874,6 +39997,9 @@ typedef $$MusicTracksTableCreateCompanionBuilder = MusicTracksCompanion
   required int addedAt,
   required int updatedAt,
   Value<int> isDirty,
+  Value<int?> sampleRate,
+  Value<int?> bitDepth,
+  Value<int?> channels,
   Value<int> rowid,
 });
 typedef $$MusicTracksTableUpdateCompanionBuilder = MusicTracksCompanion
@@ -39901,6 +40027,9 @@ typedef $$MusicTracksTableUpdateCompanionBuilder = MusicTracksCompanion
   Value<int> addedAt,
   Value<int> updatedAt,
   Value<int> isDirty,
+  Value<int?> sampleRate,
+  Value<int?> bitDepth,
+  Value<int?> channels,
   Value<int> rowid,
 });
 
@@ -40046,6 +40175,15 @@ class $$MusicTracksTableFilterComposer
 
   ColumnFilters<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sampleRate => $composableBuilder(
+      column: $table.sampleRate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get bitDepth => $composableBuilder(
+      column: $table.bitDepth, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get channels => $composableBuilder(
+      column: $table.channels, builder: (column) => ColumnFilters(column));
 
   Expression<bool> playlistTracksRefs(
       Expression<bool> Function($$PlaylistTracksTableFilterComposer f) f) {
@@ -40213,6 +40351,15 @@ class $$MusicTracksTableOrderingComposer
 
   ColumnOrderings<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sampleRate => $composableBuilder(
+      column: $table.sampleRate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get bitDepth => $composableBuilder(
+      column: $table.bitDepth, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get channels => $composableBuilder(
+      column: $table.channels, builder: (column) => ColumnOrderings(column));
 }
 
 class $$MusicTracksTableAnnotationComposer
@@ -40292,6 +40439,15 @@ class $$MusicTracksTableAnnotationComposer
 
   GeneratedColumn<int> get isDirty =>
       $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  GeneratedColumn<int> get sampleRate => $composableBuilder(
+      column: $table.sampleRate, builder: (column) => column);
+
+  GeneratedColumn<int> get bitDepth =>
+      $composableBuilder(column: $table.bitDepth, builder: (column) => column);
+
+  GeneratedColumn<int> get channels =>
+      $composableBuilder(column: $table.channels, builder: (column) => column);
 
   Expression<T> playlistTracksRefs<T extends Object>(
       Expression<T> Function($$PlaylistTracksTableAnnotationComposer a) f) {
@@ -40428,6 +40584,9 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             Value<int> addedAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> isDirty = const Value.absent(),
+            Value<int?> sampleRate = const Value.absent(),
+            Value<int?> bitDepth = const Value.absent(),
+            Value<int?> channels = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MusicTracksCompanion(
@@ -40454,6 +40613,9 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             addedAt: addedAt,
             updatedAt: updatedAt,
             isDirty: isDirty,
+            sampleRate: sampleRate,
+            bitDepth: bitDepth,
+            channels: channels,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -40480,6 +40642,9 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             required int addedAt,
             required int updatedAt,
             Value<int> isDirty = const Value.absent(),
+            Value<int?> sampleRate = const Value.absent(),
+            Value<int?> bitDepth = const Value.absent(),
+            Value<int?> channels = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MusicTracksCompanion.insert(
@@ -40506,6 +40671,9 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             addedAt: addedAt,
             updatedAt: updatedAt,
             isDirty: isDirty,
+            sampleRate: sampleRate,
+            bitDepth: bitDepth,
+            channels: channels,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

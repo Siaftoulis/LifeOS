@@ -65,6 +65,11 @@ class MusicTracks extends Table {
   IntColumn get updatedAt => integer()();
   IntColumn get isDirty => integer().withDefault(const Constant(0))();
 
+  // Audio metadata fields
+  IntColumn get sampleRate => integer().nullable()();
+  IntColumn get bitDepth => integer().nullable()();
+  IntColumn get channels => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

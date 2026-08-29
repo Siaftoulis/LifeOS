@@ -6,6 +6,7 @@ import '../../../../core/general_engine/general_engine_client.dart';
 import 'banking_models_and_helpers.dart';
 import 'components/balance_header_card.dart';
 import 'components/budget_card_view.dart';
+import 'components/category_analytics_card.dart';
 import 'components/stars_chip.dart';
 import 'components/transaction_list_view.dart';
 import 'dialogs/banking_dialogs.dart';
@@ -13,6 +14,7 @@ import 'dialogs/banking_dialogs.dart';
 export 'banking_models_and_helpers.dart';
 export 'components/balance_header_card.dart';
 export 'components/budget_card_view.dart';
+export 'components/category_analytics_card.dart';
 export 'components/stars_chip.dart';
 export 'components/transaction_list_view.dart';
 export 'dialogs/banking_dialogs.dart';
@@ -143,17 +145,13 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
               const StarsChip(),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline, color: EverforestColors.green),
+                tooltip: 'Add Transaction',
                 onPressed: () => BankingDialogs.showAddTransactionDialog(
                   context,
                   onAward: _award,
                 ),
               ),
               const SizedBox(width: 8),
-              const CircleAvatar(
-                backgroundColor: EverforestColors.bg2,
-                child: Icon(Icons.person, color: EverforestColors.fg),
-              ),
-              const SizedBox(width: 16),
             ],
           ),
           body: SingleChildScrollView(
@@ -166,6 +164,27 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
                   balance: totalBalance,
                   monthIncome: monthIncome,
                   monthExpenses: monthExpenses,
+                ),
+                const SizedBox(height: 20),
+                QuickActionsRow(
+                  onImportReceipt: () => BankingDialogs.importReceipt(
+                    context,
+                    onAward: _award,
+                  ),
+                  onReceiveMoney: () => BankingDialogs.showAddTransactionDialog(
+                    context,
+                    income: true,
+                    onAward: _award,
+                  ),
+                  onAddBill: () => BankingDialogs.showAddBillDialog(
+                    context,
+                    monthKey: _monthKey,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                CategoryAnalyticsCard(
+                  monthTxs: monthTxs,
+                  income: monthIncome > 0 ? monthIncome : income,
                 ),
                 const SizedBox(height: 24),
                 BudgetCardView(
@@ -192,22 +211,6 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
                     monthKey: _monthKey,
                   ),
                   onAward: _award,
-                ),
-                const SizedBox(height: 24),
-                QuickActionsRow(
-                  onImportReceipt: () => BankingDialogs.importReceipt(
-                    context,
-                    onAward: _award,
-                  ),
-                  onReceiveMoney: () => BankingDialogs.showAddTransactionDialog(
-                    context,
-                    income: true,
-                    onAward: _award,
-                  ),
-                  onAddBill: () => BankingDialogs.showAddBillDialog(
-                    context,
-                    monthKey: _monthKey,
-                  ),
                 ),
                 const SizedBox(height: 24),
                 Row(
