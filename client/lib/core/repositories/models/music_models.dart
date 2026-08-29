@@ -166,6 +166,8 @@ class PlaylistTrack {
 
   final MusicTrack track;
   final int position;
+
+  String get trackId => track.id;
 }
 
 class DownloadQueueItem {
@@ -220,6 +222,12 @@ class DownloadQueueItem {
   final int createdAt;
   final int? startedAt;
   final int? completedAt;
+
+  String get title => trackId;
+  String get artist => '';
+  double? get progress => (totalBytes != null && totalBytes! > 0)
+      ? (downloadedBytes / totalBytes!).clamp(0.0, 1.0)
+      : null;
 }
 
 class DownloadQueueCreate {

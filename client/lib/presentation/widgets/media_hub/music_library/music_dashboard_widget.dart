@@ -11,21 +11,34 @@ import '../../../../core/music_playback/playback_models.dart';
 import '../../../../core/telemetry/telemetry_reporter.dart';
 import '../../../../database/database.dart' hide MusicTrack;
 import '../../../../theme/everforest_colors.dart';
+import 'components/download_queue_sheet.dart';
 import 'components/music_mini_player.dart';
 import 'components/music_search_bar.dart';
+import 'components/music_stats_sheet.dart';
 import 'lyrics_sync_viewer.dart';
+import 'playlists/add_to_playlist_sheet.dart';
 import 'poweramp_now_playing_sheet.dart';
 import 'poweramp_queue_sheet.dart';
 import 'tabs/all_tracks_sliver.dart';
 import 'tabs/artists_and_genres_slivers.dart';
+import 'tabs/liked_songs_sliver.dart';
 import 'tabs/offline_tracks_sliver.dart';
+import 'tabs/playlists_tab_sliver.dart';
 import 'tabs/smart_mixes_sliver.dart';
 
+export 'components/download_queue_sheet.dart';
+export 'components/heart_button.dart';
 export 'components/music_mini_player.dart';
 export 'components/music_search_bar.dart';
+export 'components/music_stats_sheet.dart';
+export 'playlists/add_to_playlist_sheet.dart';
+export 'playlists/create_playlist_dialog.dart';
+export 'playlists/playlist_detail_sheet.dart';
 export 'tabs/all_tracks_sliver.dart';
 export 'tabs/artists_and_genres_slivers.dart';
+export 'tabs/liked_songs_sliver.dart';
 export 'tabs/offline_tracks_sliver.dart';
+export 'tabs/playlists_tab_sliver.dart';
 export 'tabs/smart_mixes_sliver.dart';
 
 class MusicDashboardWidget extends StatefulWidget {
@@ -118,20 +131,20 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     } catch (_) {}
   }
 
-  void _onSearchChanged(String q) {
+  void _onSearchChanged(String val) {
+    setState(() => _query = val);
     _debounceTimer?.cancel();
-    setState(() {
-      _query = q;
-      if (q.trim().isEmpty) {
+    if (val.trim().isEmpty) {
+      setState(() {
         _results = [];
         _isSearching = false;
         _searchError = null;
-      }
-    });
-    if (q.trim().isNotEmpty) {
-      _debounceTimer = Timer(
-          const Duration(milliseconds: 500), () => _search(q.trim()));
+      });
+      return;
     }
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+      _search(val.trim());
+    });
   }
 
   Future<void> _search(String q) async {
@@ -141,151 +154,85 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       _searchError = null;
     });
     try {
-      final results = await MusicRepository.instance.search(q);
-      if (mounted && _query.trim() == q) {
+      final res = await ApiClient.instance.getDaemon(
+        '/api/v1/music/search?q=${Uri.encodeComponent(q)}',
+      );
+      if (res is List && mounted) {
         setState(() {
-          _results = results;
+          _results = res
+              .whereType<Map>()
+              .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
+          _isSearching = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _results = [];
           _isSearching = false;
         });
       }
     } catch (e) {
-      if (mounted && _query.trim() == q) {
+      if (mounted) {
         setState(() {
+          _searchError = 'Search failed. Is the host daemon running?';
           _isSearching = false;
-          _searchError = 'Could not fetch search results. Please try again.';
         });
       }
     }
   }
 
-  void _openNowPlaying() {
-    if (!_canPlay) {
-      _webPlaybackNotice();
-      return;
-    }
-    final player = _pc.player;
-    if (player == null) return;
-    if (_currentTrackId.isEmpty && _currentTitle == 'Nothing playing') return;
-    final isDownloaded = MusicRepository.instance.tracks.value
-        .any((t) => t.id == _currentTrackId);
-    final isOfflineLocal =
-        MusicRepository.instance.isOffline(_currentTrackId);
-
-    PowerampNowPlayingSheet.show(
-      context,
-      player: player,
-      title: _currentTitle,
-      artist: _currentArtist,
-      album: _currentAlbum,
-      trackId: _currentTrackId,
-      streamUrl: _currentStreamUrl,
-      thumbnailUrl: _currentThumbnail,
-      onNext: _pc.next,
-      onPrev: _pc.previous,
-      onOpenQueue: _openQueue,
-      isDownloaded: isDownloaded,
-      isOfflineLocal: isOfflineLocal,
-      onDownloadOffline: () {
-        final track = MusicTrack(
-          id: _currentTrackId,
-          title: _currentTitle,
-          artist: _currentArtist,
-          album: _currentAlbum,
-          thumbnail: _currentThumbnail,
-          duration: player.duration?.inSeconds.toDouble() ?? 0,
+  Future<void> _download(MusicTrack track) async {
+    setState(() => _downloading.add(track.id));
+    try {
+      await MusicRepository.instance.download(track);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Downloading "${track.title}" to server library...'),
+            backgroundColor: EverforestColors.bg1,
+          ),
         );
-        _downloadOffline(track);
-      },
-      queue: _pc.queue,
-      currentIndex: _pc.currentIndex,
-      repeat: _pc.repeat,
-      shuffle: _pc.shuffle,
-      onRepeatChanged: (mode) => _pc.setRepeat(mode),
-      onShuffleChanged: (enabled) {
-        if (enabled != _pc.shuffle) _pc.toggleShuffle();
-      },
-      onPlayIndex: (idx) => _pc.playAt(idx),
-      onReorder: (oldIdx, newIdx) => _pc.reorder(oldIdx, newIdx),
-      onRemove: (idx) {
-        _pc.queue.removeAt(idx);
-        setState(() {});
-      },
-      onClearQueue: () {
-        _pc.queue.clear();
-        setState(() {});
-      },
-    );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _downloading.remove(track.id));
+      }
+    }
   }
 
-  void _openQueue() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PowerampQueueSheet(
-        queue: _pc.queue,
-        currentIndex: _pc.currentIndex,
-        onPlayIndex: (idx) {
-          Navigator.pop(context);
-          _pc.playAt(idx);
-        },
-        onReorder: (oldIdx, newIdx) => _pc.reorder(oldIdx, newIdx),
-        onRemove: (idx) {
-          _pc.queue.removeAt(idx);
-          setState(() {});
-        },
-        onClear: () {
-          _pc.queue.clear();
-          setState(() {});
-        },
-      ),
-    );
+  Future<void> _downloadOffline(MusicTrack track) async {
+    setState(() => _offlineDownloading.add(track.id));
+    try {
+      await MusicRepository.instance.downloadOffline(track);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Saved "${track.title}" for offline playback'),
+            backgroundColor: EverforestColors.bg1,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Offline download failed: $e'),
+            backgroundColor: EverforestColors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _offlineDownloading.remove(track.id));
+      }
+    }
   }
 
-  void _openLyrics() {
-    final player = _pc.player;
-    if (player == null) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => LyricsSyncViewer(
-        title: _currentTitle,
-        artist: _currentArtist,
-        player: player,
-      ),
-    );
+  String _streamUrlFor(String trackId) {
+    return '${ApiClient.instance.daemonUrl}/api/v1/music/stream/$trackId';
   }
 
-  void _webPlaybackNotice() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.phonelink_lock_rounded,
-                color: EverforestColors.orange, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Music playback, offline caching & DSP equalizer are native-app only. '
-                'Open LifeOS on Windows or Android to listen.',
-                style: TextStyle(color: EverforestColors.fg),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: EverforestColors.bg1,
-        duration: Duration(seconds: 4),
-      ),
-    );
-  }
-
-  String _streamUrlFor(String id) {
-    final base = ApiClient.instance.baseUrl;
-    return '$base/api/v1/music/stream?id=$id';
-  }
-
-  Future<void> _playTrackList(List<MusicTrack> list, int index) async {
+  void _playTrackList(List<MusicTrack> list, int startIndex) {
     if (!_canPlay) {
       _webPlaybackNotice();
       return;
@@ -300,41 +247,121 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
               album: t.album,
             ))
         .toList();
-    await _pc.playQueue(queue, startIndex: index);
+    _pc.playQueue(queue, startIndex: startIndex);
   }
 
-  void _download(MusicTrack t) {
-    setState(() => _downloading.add(t.id));
-    MusicRepository.instance.download(t);
-    TelemetryReporter.instance
-        .track('music', 'track_download_queued', {'track_id': t.id});
+  void _webPlaybackNotice() {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Downloading "${t.title}" to server library...'),
+      const SnackBar(
+        content: Text(
+          'Music playback is available in the LifeOS Android and Windows native apps.',
+        ),
         backgroundColor: EverforestColors.bg1,
-        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  Future<void> _downloadOffline(MusicTrack t) async {
-    setState(() => _offlineDownloading.add(t.id));
-    try {
-      final ok = await MusicRepository.instance.downloadOffline(t);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(ok
-              ? 'Saved "${t.title}" to this device for offline play'
-              : 'Could not download "${t.title}" for offline play'),
-          backgroundColor:
-              ok ? EverforestColors.bg1 : EverforestColors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _offlineDownloading.remove(t.id));
+  void _openNowPlaying() {
+    if (!_canPlay || _pc.player == null) {
+      _webPlaybackNotice();
+      return;
     }
+    final curTrack = MusicRepository.instance.tracks.value.firstWhere(
+      (t) => t.id == _currentTrackId,
+      orElse: () => MusicTrack(
+        id: _currentTrackId,
+        title: _currentTitle,
+        artist: _currentArtist,
+        album: _currentAlbum,
+        thumbnail: _currentThumbnail,
+        duration: 0,
+      ),
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PowerampNowPlayingSheet(
+        player: _pc.player!,
+        title: _currentTitle,
+        artist: _currentArtist,
+        album: _currentAlbum,
+        trackId: _currentTrackId,
+        streamUrl: _currentStreamUrl,
+        thumbnailUrl: _currentThumbnail,
+        isDownloaded: MusicRepository.instance.tracks.value
+            .any((t) => t.id == _currentTrackId),
+        isOfflineLocal: MusicRepository.instance.isOffline(_currentTrackId),
+        queue: _pc.queue,
+        currentIndex: _pc.currentIndex,
+        onNext: _pc.next,
+        onPrev: _pc.previous,
+        onDownload: () => _download(curTrack),
+        onDownloadOffline: () => _downloadOffline(curTrack),
+        onDelete: () => _confirmDeleteTrack(curTrack),
+        onOpenQueue: _openQueueSheet,
+        onPlayIndex: _pc.playIndex,
+        onRemove: _pc.removeAt,
+        onClearQueue: _pc.clearQueue,
+        onReorder: _pc.reorderQueue,
+      ),
+    );
+  }
+
+  void _openQueueSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PowerampQueueSheet(
+        queue: _pc.queue,
+        currentIndex: _pc.currentIndex,
+        onPlayIndex: _pc.playIndex,
+        onRemove: _pc.removeAt,
+        onClear: _pc.clearQueue,
+        onReorder: _pc.reorderQueue,
+      ),
+    );
+  }
+
+  void _openLyrics() {
+    if (!_canPlay || _pc.player == null) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+          color: EverforestColors.bg0,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Expanded(
+              child: LyricsSyncViewer(
+                title: _currentTitle,
+                artist: _currentArtist,
+                player: _pc.player!,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _confirmDeleteOffline(OfflineMusicTrack o) {
@@ -344,8 +371,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         backgroundColor: EverforestColors.bg1,
         title: const Row(
           children: [
-            Icon(Icons.delete_outline_rounded,
-                color: EverforestColors.red, size: 24),
+            Icon(Icons.phonelink_erase_rounded,
+                color: EverforestColors.yellow, size: 24),
             SizedBox(width: 8),
             Text('Remove from Device',
                 style: TextStyle(
@@ -444,6 +471,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     );
   }
 
+  void _addToPlaylist(MusicTrack track) {
+    AddToPlaylistSheet.show(context, track);
+  }
+
   Map<String, List<MusicTrack>> _groupTracksByGenre(List<MusicTrack> tracks) {
     final Map<String, List<MusicTrack>> genreMap = {
       '🏛️ Greek / Ελληνικά': [],
@@ -540,32 +571,31 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   Map<String, List<MusicTrack>> _groupTracksByArtist(List<MusicTrack> tracks) {
     final Map<String, List<MusicTrack>> artistMap = {};
     for (final t in tracks) {
-      final name =
-          t.artist.trim().isNotEmpty ? t.artist.trim() : 'Various Artists';
-      artistMap.putIfAbsent(name, () => []).add(t);
+      final key = t.artist.trim().isNotEmpty ? t.artist.trim() : 'Unknown Artist';
+      artistMap.putIfAbsent(key, () => []).add(t);
     }
     return artistMap;
   }
 
-  Map<String, SmartMixEntry> _generateSmartMixes(List<MusicTrack> tracks) {
-    final quickHits =
-        tracks.where((t) => t.duration > 0 && t.duration <= 240).toList();
-    final deepEpics = tracks.where((t) => t.duration >= 270).toList();
+  Map<String, ({String desc, IconData icon, Color color, List<MusicTrack> list})>
+      _generateSmartMixes(List<MusicTrack> tracks) {
+    final quick = tracks.where((t) => t.duration > 0 && t.duration <= 210).toList();
+    final deep = tracks.where((t) => t.duration > 300).toList();
     final shuffled = List<MusicTrack>.from(tracks)..shuffle();
-    final recent = List<MusicTrack>.from(tracks.reversed);
+    final recent = tracks.reversed.take(30).toList();
 
     return {
-      '⚡ Quick Hits (<4 min)': (
-        desc: 'Fast-paced upbeat energy',
+      '⚡ Quick Hits': (
+        desc: 'Upbeat tracks under 3.5 minutes',
         icon: Icons.bolt_rounded,
-        color: EverforestColors.orange,
-        list: quickHits.isNotEmpty ? quickHits : tracks.take(10).toList(),
+        color: EverforestColors.yellow,
+        list: quick,
       ),
-      '🌌 Deep Sessions (>4.5 min)': (
-        desc: 'Extended grooves & atmospheric tracks',
-        icon: Icons.all_inclusive_rounded,
+      '🧘 Deep Sessions': (
+        desc: 'Extended tracks & deep sessions',
+        icon: Icons.headphones_rounded,
         color: EverforestColors.purple,
-        list: deepEpics.isNotEmpty ? deepEpics : tracks.toList(),
+        list: deep,
       ),
       '🎲 Discovery Shuffle': (
         desc: 'Dynamic random library mix',
@@ -586,12 +616,17 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       int trackCount, int artistCount, int genreCount, int mixCount) {
     final offlineCount =
         MusicRepository.instance.offlineTracks.value.length;
+    final likedCount = MusicRepository.instance.likedTracks.value.length;
+    final playlistCount = MusicRepository.instance.playlists.value.length;
+
     final tabs = [
       ('All Songs ($trackCount)', Icons.audiotrack_rounded, 0),
-      ('Artists ($artistCount)', Icons.person_rounded, 1),
-      ('Genres & Styles ($genreCount)', Icons.category_rounded, 2),
-      ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 3),
-      ('Offline ($offlineCount)', Icons.download_for_offline_rounded, 4),
+      ('Liked ($likedCount)', Icons.favorite_rounded, 1),
+      ('Playlists ($playlistCount)', Icons.queue_music_rounded, 2),
+      ('Artists ($artistCount)', Icons.person_rounded, 3),
+      ('Genres & Styles ($genreCount)', Icons.category_rounded, 4),
+      ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 5),
+      ('Offline ($offlineCount)', Icons.download_for_offline_rounded, 6),
     ];
 
     return SingleChildScrollView(
@@ -607,7 +642,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                   size: 16,
                   color: isSelected
                       ? EverforestColors.bg0
-                      : EverforestColors.grey),
+                      : (t.$3 == 1
+                          ? EverforestColors.red
+                          : EverforestColors.grey)),
               label: Text(t.$1),
               selected: isSelected,
               onSelected: (_) {
@@ -673,6 +710,18 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                         ),
                         const Spacer(),
                         IconButton(
+                          icon: const Icon(Icons.insights_rounded,
+                              color: EverforestColors.purple, size: 22),
+                          tooltip: 'Listening Analytics',
+                          onPressed: () => MusicStatsSheet.show(context),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.download_rounded,
+                              color: EverforestColors.aqua, size: 22),
+                          tooltip: 'Download Manager',
+                          onPressed: () => DownloadQueueSheet.show(context),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.refresh_rounded,
                               color: EverforestColors.grey, size: 20),
                           tooltip: 'Refresh Library',
@@ -697,8 +746,26 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteTrack: _confirmDeleteTrack,
                 onPlay: _playTrackList,
                 onWebNotice: _webPlaybackNotice,
+                onAddToPlaylist: _addToPlaylist,
               )
             else if (_libraryTab == 1)
+              LikedSongsSliver(
+                canPlay: _canPlay,
+                offlineDownloading: _offlineDownloading,
+                onDownloadOffline: _downloadOffline,
+                onDeleteTrack: _confirmDeleteTrack,
+                onPlayTrackList: _playTrackList,
+                onWebNotice: _webPlaybackNotice,
+                onAddToPlaylist: _addToPlaylist,
+              )
+            else if (_libraryTab == 2)
+              PlaylistsTabSliver(
+                canPlay: _canPlay,
+                playbackController: _pc,
+                onWebNotice: _webPlaybackNotice,
+                streamUrlFor: _streamUrlFor,
+              )
+            else if (_libraryTab == 3)
               ArtistsSliver(
                 artistGroups: artistGroups,
                 selectedArtist: _selectedArtist,
@@ -713,7 +780,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteTrack: _confirmDeleteTrack,
                 onWebNotice: _webPlaybackNotice,
               )
-            else if (_libraryTab == 2)
+            else if (_libraryTab == 4)
               GenresSliver(
                 genreGroups: genreGroups,
                 selectedGenre: _selectedGenre,
@@ -728,7 +795,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteTrack: _confirmDeleteTrack,
                 onWebNotice: _webPlaybackNotice,
               )
-            else if (_libraryTab == 3)
+            else if (_libraryTab == 5)
               SmartMixesSliver(
                 smartMixes: smartMixes,
                 canPlay: _canPlay,
@@ -792,6 +859,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                         onRetry: () => _search(_query.trim()),
                         onDownload: _download,
                         onWebNotice: _webPlaybackNotice,
+                        onAddToPlaylist: _addToPlaylist,
                       )
                     : _buildLibrary(),
               ),

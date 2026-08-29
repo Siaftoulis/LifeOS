@@ -13,7 +13,6 @@ import 'home_screen_dao.dart';
 import 'knowledge_base_dao.dart';
 import 'maps_dao.dart';
 import 'movies_dao.dart';
-import 'music_dao.dart';
 import 'gallery_dao.dart';
 import 'points_dao.dart';
 import 'system_dao.dart';
@@ -62,30 +61,6 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e) {
     _instance = this;
   }
-
-  // DAO getters (drift generates the fields as galleryDao, musicDao, etc.)
-  GalleryDao get galleryDao => galleryDao;
-  MusicDao get musicDao => musicDao;
-  PointsDao get pointsDao => pointsDao;
-  HomeScreenDao get homeScreenDao => homeScreenDao;
-  DarkWebDao get darkWebDao => darkWebDao;
-  MapsDao get mapsDao => mapsDao;
-  BooksDao get booksDao => booksDao;
-  TransferDao get transferDao => transferDao;
-  CloudDao get cloudDao => cloudDao;
-  ChtmDao get chtmDao => chtmDao;
-  MoviesDao get moviesDao => moviesDao;
-  HomeManagementDao get homeManagementDao => homeManagementDao;
-  KnowledgeBaseDao get knowledgeBaseDao => knowledgeBaseDao;
-  FlashcardsDao get flashcardsDao => flashcardsDao;
-  SystemDao get systemDao => systemDao;
-  InfinityDao get infinityDao => infinityDao;
-  VmDao get vmDao => vmDao;
-  YoutubeDao get youtubeDao => youtubeDao;
-  AccountingDao get accountingDao => accountingDao;
-  BankingDao get bankingDao => bankingDao;
-  LifeEntitiesDao get lifeEntitiesDao => lifeEntitiesDao;
-  MarkdownDao get markdownDao => markdownDao;
 
   @override
   int get schemaVersion => 4;

@@ -1,15 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/everforest_colors.dart';
+import '../components/heart_button.dart';
+import '../track_metadata_modal.dart';
 
 class TrackThumbnail extends StatelessWidget {
-  const TrackThumbnail({super.key, required this.url, this.size = 48});
+  const TrackThumbnail({
+    super.key,
+    required this.url,
+    this.size = 48,
+    this.borderRadius = 8,
+  });
 
   final String url;
   final double size;
+  final double borderRadius;
 
   String _sanitizeThumbnailUrl(String url) {
+    if (url.isEmpty) return '';
     if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
       return url.replaceFirst('http://', 'https://');
     }
@@ -25,25 +35,39 @@ class TrackThumbnail extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           color: EverforestColors.bg1,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
         child:
             const Icon(Icons.music_note_rounded, color: EverforestColors.blue),
       );
     }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        secureUrl,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Image.network(
+          secureUrl,
           width: size,
           height: size,
-          color: EverforestColors.bg1,
-          child: const Icon(Icons.music_note_rounded,
-              color: EverforestColors.blue),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            width: size,
+            height: size,
+            color: EverforestColors.bg1,
+            child: const Icon(Icons.music_note_rounded,
+                color: EverforestColors.blue),
+          ),
         ),
       ),
     );
@@ -63,6 +87,7 @@ class TrackTile extends StatelessWidget {
     required this.onDeleteTrack,
     required this.onPlay,
     required this.onWebNotice,
+    this.onAddToPlaylist,
   });
 
   final MusicTrack track;
@@ -75,6 +100,7 @@ class TrackTile extends StatelessWidget {
   final void Function(MusicTrack track) onDeleteTrack;
   final void Function(List<MusicTrack> list, int index) onPlay;
   final VoidCallback onWebNotice;
+  final VoidCallback? onAddToPlaylist;
 
   String _fmt(double seconds) {
     final s = seconds.round();
@@ -83,10 +109,28 @@ class TrackTile extends StatelessWidget {
     return '$m:${remS.toString().padLeft(2, '0')}';
   }
 
+  void _showMetadata(BuildContext context) {
+    final streamUrl =
+        '${ApiClient.instance.daemonUrl}/api/v1/music/stream/${track.id}';
+    TrackMetadataModal.show(
+      context,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      trackId: track.id,
+      url: streamUrl,
+      duration: Duration(seconds: track.duration.round()),
+      track: track,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: TrackThumbnail(url: track.thumbnail, size: 48),
+      leading: GestureDetector(
+        onTap: () => _showMetadata(context),
+        child: TrackThumbnail(url: track.thumbnail, size: 48),
+      ),
       title: Text(
         track.title,
         maxLines: 1,
@@ -103,6 +147,8 @@ class TrackTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          HeartButton(track: track, size: 20),
+          const SizedBox(width: 4),
           if (isOfflineLocal)
             const Icon(Icons.download_done_rounded,
                 color: EverforestColors.green, size: 20)
@@ -123,6 +169,19 @@ class TrackTile extends StatelessWidget {
               tooltip: 'Save to this device (offline)',
               onPressed: () => onDownloadOffline(track),
             ),
+          if (onAddToPlaylist != null)
+            IconButton(
+              icon: const Icon(Icons.playlist_add_rounded,
+                  color: EverforestColors.grey, size: 22),
+              tooltip: 'Add to Playlist',
+              onPressed: onAddToPlaylist,
+            ),
+          IconButton(
+            icon: const Icon(Icons.info_outline_rounded,
+                color: EverforestColors.grey, size: 20),
+            tooltip: 'Inspect Audio Specs',
+            onPressed: () => _showMetadata(context),
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded,
                 color: EverforestColors.grey, size: 20),
@@ -144,6 +203,7 @@ class TrackTile extends StatelessWidget {
         ],
       ),
       onTap: canPlay ? () => onPlay(currentList, index) : onWebNotice,
+      onLongPress: () => _showMetadata(context),
     );
   }
 }
@@ -158,6 +218,7 @@ class AllTracksSliver extends StatelessWidget {
     required this.onDeleteTrack,
     required this.onPlay,
     required this.onWebNotice,
+    this.onAddToPlaylist,
   });
 
   final List<MusicTrack> tracks;
@@ -167,6 +228,7 @@ class AllTracksSliver extends StatelessWidget {
   final void Function(MusicTrack track) onDeleteTrack;
   final void Function(List<MusicTrack> list, int index) onPlay;
   final VoidCallback onWebNotice;
+  final void Function(MusicTrack track)? onAddToPlaylist;
 
   @override
   Widget build(BuildContext context) {
@@ -200,6 +262,8 @@ class AllTracksSliver extends StatelessWidget {
             onDeleteTrack: onDeleteTrack,
             onPlay: onPlay,
             onWebNotice: onWebNotice,
+            onAddToPlaylist:
+                onAddToPlaylist != null ? () => onAddToPlaylist!(t) : null,
           );
         },
         childCount: tracks.length,

@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' show AudioPlayer, ProcessingState;
 import '../../api_client.dart';
-import '../telemetry/telemetry_reporter.dart';
 import 'playback_engine.dart';
 import 'playback_models.dart';
 
@@ -234,6 +233,9 @@ class PlaybackController extends ChangeNotifier {
     _state = _state.copyWith(queue: q, currentIndex: newIdx);
     notifyListeners();
   }
+
+  void playIndex(int i) => playAt(i);
+  void reorderQueue(int oldIndex, int newIndex) => reorder(oldIndex, newIndex);
 
   void clearQueue() {
     _userWantsPlay = false;

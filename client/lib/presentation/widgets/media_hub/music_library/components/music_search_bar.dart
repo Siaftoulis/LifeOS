@@ -4,6 +4,7 @@ import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../theme/everforest_colors.dart';
+import 'heart_button.dart';
 
 class MusicSearchBar extends StatelessWidget {
   const MusicSearchBar({
@@ -81,6 +82,7 @@ class MusicSearchResults extends StatelessWidget {
     required this.onRetry,
     required this.onDownload,
     required this.onWebNotice,
+    this.onAddToPlaylist,
   });
 
   final bool isSearching;
@@ -93,6 +95,7 @@ class MusicSearchResults extends StatelessWidget {
   final VoidCallback onRetry;
   final void Function(MusicTrack track) onDownload;
   final VoidCallback onWebNotice;
+  final void Function(MusicTrack track)? onAddToPlaylist;
 
   String _sanitizeThumbnailUrl(String url) {
     if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
@@ -229,6 +232,8 @@ class MusicSearchResults extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              HeartButton(track: t, size: 20),
+              const SizedBox(width: 4),
               if (alreadyDownloaded)
                 const Icon(Icons.check_circle_rounded,
                     color: EverforestColors.green)
@@ -247,6 +252,13 @@ class MusicSearchResults extends StatelessWidget {
                   icon: const Icon(Icons.download_rounded,
                       color: EverforestColors.green),
                   onPressed: () => onDownload(t),
+                ),
+              if (onAddToPlaylist != null)
+                IconButton(
+                  icon: const Icon(Icons.playlist_add_rounded,
+                      color: EverforestColors.grey, size: 22),
+                  tooltip: 'Add to Playlist',
+                  onPressed: () => onAddToPlaylist!(t),
                 ),
               if (canPlay)
                 IconButton(

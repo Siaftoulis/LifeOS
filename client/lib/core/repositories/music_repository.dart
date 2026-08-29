@@ -27,6 +27,17 @@ class MusicRepository extends DaemonRepository {
   final ValueNotifier<List<OfflineMusicTrack>> offlineTracks =
       ValueNotifier(const []);
 
+  /// Reactive set of Liked track IDs and list of Liked tracks.
+  final ValueNotifier<Set<String>> likedTrackIds = ValueNotifier({});
+  final ValueNotifier<List<MusicTrack>> likedTracks = ValueNotifier(const []);
+
+  /// Reactive list of user playlists.
+  final ValueNotifier<List<Playlist>> playlists = ValueNotifier(const []);
+
+  /// Reactive daemon download queue.
+  final ValueNotifier<List<DownloadQueueItem>> downloadQueue =
+      ValueNotifier(const []);
+
   @override
   Future<void> load() async {
     try {
@@ -40,6 +51,11 @@ class MusicRepository extends DaemonRepository {
     } catch (_) {
       // daemon offline: keep last known list
     }
+    await Future.wait([
+      loadLiked(),
+      loadPlaylists(),
+      loadDownloadQueue(),
+    ]);
   }
 
   /// Reload the track library from the daemon.
@@ -155,29 +171,74 @@ class MusicRepository extends DaemonRepository {
     }
   }
 
+  bool isLiked(String trackId) => likedTrackIds.value.contains(trackId);
+
   // --- Liked Songs ---
-  Future<List<MusicTrack>> getLikedTracks() async {
+  Future<void> loadLiked() async {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/liked');
       if (res is List) {
-        return res
+        final list = res
             .whereType<Map>()
             .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        likedTracks.value = list;
+        likedTrackIds.value = list.map((t) => t.id).toSet();
       }
     } catch (e) {
-      debugPrint('Get liked tracks error: $e');
+      debugPrint('Load liked tracks error: $e');
     }
-    return const [];
+  }
+
+  Future<List<MusicTrack>> getLikedTracks() async {
+    await loadLiked();
+    return likedTracks.value;
   }
 
   Future<bool> toggleLike(MusicTrack track) async {
+    final currentIds = Set<String>.from(likedTrackIds.value);
+    final wasLiked = currentIds.contains(track.id);
+
+    // Optimistic state update
+    if (wasLiked) {
+      currentIds.remove(track.id);
+      likedTracks.value =
+          likedTracks.value.where((t) => t.id != track.id).toList();
+    } else {
+      currentIds.add(track.id);
+      likedTracks.value = [track, ...likedTracks.value];
+    }
+    likedTrackIds.value = currentIds;
+
     try {
-      await ApiClient.instance.postDaemon('/api/v1/music/liked', {'track_id': track.id});
+      if (wasLiked) {
+        await ApiClient.instance
+            .deleteDaemon('/api/v1/music/liked/${track.id}');
+      } else {
+        await ApiClient.instance
+            .postDaemon('/api/v1/music/liked', {'track_id': track.id});
+      }
       return true;
     } catch (e) {
       debugPrint('Toggle like error: $e');
+      // Revert optimistic update on failure
+      await loadLiked();
       return false;
+    }
+  }
+
+  // --- Playlists ---
+  Future<void> loadPlaylists() async {
+    try {
+      final res = await ApiClient.instance.getDaemon('/api/v1/music/playlists');
+      if (res is List) {
+        playlists.value = res
+            .whereType<Map>()
+            .map((m) => Playlist.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Load playlists error: $e');
     }
   }
 
@@ -294,19 +355,23 @@ class MusicRepository extends DaemonRepository {
   }
 
   // --- Download Queue ---
-  Future<List<DownloadQueueItem>> getDownloadQueue() async {
+  Future<void> loadDownloadQueue() async {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/downloads');
       if (res is List) {
-        return res
+        downloadQueue.value = res
             .whereType<Map>()
             .map((m) => DownloadQueueItem.fromJson(Map<String, dynamic>.from(m)))
             .toList();
       }
     } catch (e) {
-      debugPrint('Get download queue error: $e');
+      debugPrint('Load download queue error: $e');
     }
-    return const [];
+  }
+
+  Future<List<DownloadQueueItem>> getDownloadQueue() async {
+    await loadDownloadQueue();
+    return downloadQueue.value;
   }
 
   Future<bool> enqueueDownload(DownloadQueueCreate create) async {

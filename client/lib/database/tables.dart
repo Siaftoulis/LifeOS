@@ -7,3 +7,9 @@ export 'schema/media_schema.dart';
 export 'schema/cloud_schema.dart';
 export 'schema/home_schema.dart';
 export 'schema/misc_schema.dart';
+
+// Music schema exports (needed for drift generation)
+export 'schema/media_schema.dart' show
+  LikedSongs,
+  DownloadQueue,
+  ListeningHistory;

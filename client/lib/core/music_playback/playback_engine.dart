@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'playback_engine_io.dart'
     if (dart.library.js_interop) 'playback_engine_web.dart'
     if (dart.library.html) 'playback_engine_web.dart';

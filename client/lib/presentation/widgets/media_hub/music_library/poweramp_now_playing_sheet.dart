@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../theme/everforest_colors.dart';
 import '../../../../core/audio_dsp_service.dart';
+import '../../../../core/domain_repositories.dart';
 import '../../../../core/music_playback/playback_models.dart';
+import 'components/heart_button.dart';
+import 'playlists/add_to_playlist_sheet.dart';
 import 'waveform_seekbar.dart';
 import 'track_metadata_modal.dart';
 import 'lyrics_sync_viewer.dart';
@@ -262,6 +265,15 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     });
   }
 
+  MusicTrack get _currentTrack => MusicTrack(
+        id: widget.trackId,
+        title: widget.title,
+        artist: widget.artist,
+        album: widget.album,
+        thumbnail: widget.thumbnailUrl,
+        duration: widget.player.duration?.inSeconds.toDouble() ?? 0,
+      );
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -486,17 +498,36 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           const SizedBox(height: 12),
                           _buildModeSelectorPills(),
                           const SizedBox(height: 12),
-                          Text(
-                            widget.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: EverforestColors.fg,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.4,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              HeartButton(track: _currentTrack, size: 22),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  widget.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: EverforestColors.fg,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.4,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.playlist_add_rounded,
+                                    color: EverforestColors.grey, size: 22),
+                                tooltip: 'Add to Playlist',
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => AddToPlaylistSheet.show(
+                                    context, _currentTrack),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -1273,32 +1304,50 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   Widget _buildTrackInfo() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
         children: [
-          Text(
-            widget.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: EverforestColors.fg,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.3,
+          HeartButton(track: _currentTrack, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  widget.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: EverforestColors.fg,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.artist.isNotEmpty ? widget.artist : 'Unknown Artist',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: EverforestColors.grey,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            widget.artist.isNotEmpty ? widget.artist : 'Unknown Artist',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: EverforestColors.grey,
-              fontSize: 13.5,
-              fontWeight: FontWeight.w500,
-            ),
+          const SizedBox(width: 12),
+          IconButton(
+            icon: const Icon(Icons.playlist_add_rounded,
+                color: EverforestColors.grey, size: 24),
+            tooltip: 'Add to Playlist',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () =>
+                AddToPlaylistSheet.show(context, _currentTrack),
           ),
         ],
       ),
