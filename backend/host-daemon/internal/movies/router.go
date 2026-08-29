@@ -13,6 +13,7 @@ import (
 
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/movies", HandleMovies)
+	mux.HandleFunc("/api/v1/movies/search", HandleSearch)
 	mux.HandleFunc("/api/v1/movies/{id}", HandleMovies)
 	mux.HandleFunc("/api/v1/movies/watchlist", HandleWatchlist)
 	mux.HandleFunc("/api/v1/movies/reviews", HandleReviews)
@@ -103,9 +104,16 @@ func HandleMovies(w http.ResponseWriter, r *http.Request) {
 			getMovie(w, id)
 		case http.MethodPut:
 			updateMovieStatus(w, r)
+		case http.MethodDelete:
+			deleteMovie(w, id)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		createMovie(w, r)
 		return
 	}
 
@@ -307,3 +315,96 @@ func HandleServeSubtitle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	http.ServeFile(w, r, path)
 }
+
+func HandleSearch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" {
+		json.NewEncoder(w).Encode([]Movie{})
+		return
+	}
+
+	results, err := searchTMDB(q)
+	if err == nil && len(results) > 0 {
+		json.NewEncoder(w).Encode(results)
+		return
+	}
+
+	// Fallback to local DB search
+	query := movieSelect + " FROM movies m WHERE m.title LIKE ? ORDER BY m.title"
+	rows, err := DB.Query(query, "%"+q+"%")
+	if err != nil {
+		json.NewEncoder(w).Encode([]Movie{})
+		return
+	}
+	defer rows.Close()
+
+	var moviesList []Movie
+	for rows.Next() {
+		if m, err := scanMovie(rows); err == nil {
+			moviesList = append(moviesList, m)
+		}
+	}
+	if moviesList == nil {
+		moviesList = []Movie{}
+	}
+	json.NewEncoder(w).Encode(moviesList)
+}
+
+func createMovie(w http.ResponseWriter, r *http.Request) {
+	var m Movie
+	if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	if m.ID == "" {
+		m.ID = fmt.Sprintf("mov_%d", time.Now().UnixNano())
+	}
+	if m.Status == "" {
+		m.Status = "AVAILABLE"
+	}
+	posterPath := m.PosterURL
+	if strings.Contains(posterPath, "https://image.tmdb.org/t/p/w500") {
+		posterPath = strings.TrimPrefix(posterPath, "https://image.tmdb.org/t/p/w500")
+	}
+
+	_, err := DB.Exec(`
+		INSERT INTO movies (id, imdb_id, title, director, release_year, color_hex, status, tmdb_id, poster_path, overview, genres, tmdb_rating)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			title = excluded.title,
+			director = excluded.director,
+			release_year = excluded.release_year,
+			color_hex = excluded.color_hex,
+			status = excluded.status,
+			tmdb_id = excluded.tmdb_id,
+			poster_path = excluded.poster_path,
+			overview = excluded.overview,
+			genres = excluded.genres,
+			tmdb_rating = excluded.tmdb_rating`,
+		m.ID, m.ImdbID, m.Title, m.Director, m.Year, m.ColorHex, m.Status,
+		m.TMDBID, posterPath, m.Overview, m.Genres, m.TMDBRating)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(m)
+}
+
+func deleteMovie(w http.ResponseWriter, id string) {
+	DB.Exec("DELETE FROM movie_reviews WHERE movie_id = ?", id)
+	DB.Exec("DELETE FROM watchlist WHERE movie_id = ?", id)
+	res, err := DB.Exec("DELETE FROM movies WHERE id = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		http.Error(w, "Movie not found", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"status":"deleted","id":"%s"}`, id)
+}
+

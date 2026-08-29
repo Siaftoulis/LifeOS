@@ -298,11 +298,23 @@ func handleAssets(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleAsset returns a single asset's metadata (embed card render).
+// handleAsset returns a single asset's metadata (or deletes on DELETE).
 func handleAsset(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if DB == nil || id == "" {
 		http.Error(w, "Missing ID", http.StatusBadRequest)
+		return
+	}
+
+	if r.Method == http.MethodDelete {
+		var filePath string
+		err := DB.QueryRow(`SELECT filepath FROM assets WHERE id = ?`, id).Scan(&filePath)
+		if err == nil && filePath != "" {
+			os.Remove(filepath.Join("./data", filePath))
+		}
+		DB.Exec(`DELETE FROM assets WHERE id = ?`, id)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "deleted_id": id})
 		return
 	}
 

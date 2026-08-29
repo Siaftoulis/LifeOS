@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
-import 'package:photo_manager/photo_manager.dart';
 import '../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
 import '../api_client.dart';
 import '../database/database.dart';
@@ -296,24 +295,16 @@ class CloudGalleryService {
     }
   }
 
-  /// Download a cloud asset to local device storage
-  static Future<bool> downloadAssetToDevice(String assetId, String type) async {
+  /// Delete a cloud asset from the server and clear local cache
+  static Future<bool> deleteAsset(String assetId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/stream?id=$assetId'));
+      final response = await http.delete(Uri.parse('$baseUrl/asset?id=$assetId'));
       if (response.statusCode == 200) {
-        final bytes = response.bodyBytes;
-        
-        // Save to device gallery
-        final filename = 'cloud_download_$assetId.jpg';
-        final AssetEntity? savedAsset = await PhotoManager.editor.saveImage(
-          bytes,
-          filename: filename,
-        );
-        
-        return savedAsset != null;
+        await _dao.deleteCloudAsset(assetId);
+        return true;
       }
     } catch (e) {
-      print('Error downloading asset: $e');
+      print('Error deleting asset: $e');
     }
     return false;
   }

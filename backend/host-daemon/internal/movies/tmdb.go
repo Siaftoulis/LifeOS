@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -106,3 +107,63 @@ func enrichTMDBMovie(id, imdbID string) error {
 		m.ID, m.PosterPath, m.Overview, strings.Join(genres, ", "), m.VoteAverage, id)
 	return err
 }
+
+type tmdbSearchResponse struct {
+	Results []struct {
+		ID          int64   `json:"id"`
+		Title       string  `json:"title"`
+		ReleaseDate string  `json:"release_date"`
+		PosterPath  string  `json:"poster_path"`
+		Overview    string  `json:"overview"`
+		VoteAverage float64 `json:"vote_average"`
+	} `json:"results"`
+}
+
+func searchTMDB(query string) ([]Movie, error) {
+	if tmdbKey() == "" || strings.TrimSpace(query) == "" {
+		return nil, nil
+	}
+
+	searchURL := fmt.Sprintf("%s/search/movie?query=%s&language=en-US&page=1", tmdbBase, url.QueryEscape(query))
+	req, err := http.NewRequest("GET", searchURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+tmdbKey())
+
+	client := &http.Client{Timeout: 8 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("tmdb search error: status %d", resp.StatusCode)
+	}
+
+	var res tmdbSearchResponse
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return nil, err
+	}
+
+	var results []Movie
+	for _, m := range res.Results {
+		year := ""
+		if len(m.ReleaseDate) >= 4 {
+			year = m.ReleaseDate[:4]
+		}
+		results = append(results, Movie{
+			ID:         fmt.Sprintf("tmdb_%d", m.ID),
+			Title:      m.Title,
+			Year:       year,
+			PosterURL:  tmdbPosterURL(m.PosterPath),
+			Overview:   m.Overview,
+			TMDBID:     m.ID,
+			TMDBRating: m.VoteAverage,
+			Status:     "AVAILABLE",
+		})
+	}
+	return results, nil
+}
+

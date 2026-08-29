@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../theme/everforest_colors.dart';
 import '../../core/cloud_gallery_service.dart';
 import '../../core/gallery_sync_engine.dart';
 import '../../presentation/widgets/media_hub/photo_video_gallery/gallery_item.dart';
-import '../../presentation/widgets/media_hub/photo_video_gallery/aves_viewer_screen.dart';
-import '../../api_client.dart';
-import 'package:extended_image/extended_image.dart';
+import '../../theme/everforest_colors.dart';
+import 'gallery_duplicates_sheet.dart';
+import 'gallery_smart_albums_view.dart';
+import 'gallery_timeline_view.dart';
 
 class CloudView extends StatefulWidget {
   const CloudView({super.key});
@@ -17,13 +17,13 @@ class CloudView extends StatefulWidget {
 class _CloudViewState extends State<CloudView> {
   final GallerySyncEngine _syncEngine = GallerySyncEngine.instance;
   final ScrollController _scrollController = ScrollController();
-  
-  List<GalleryItem> _cloudItems = [];
+
+  final List<GalleryItem> _cloudItems = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
   bool _hasMore = true;
   int _offset = 0;
-  static const int _pageSize = 50;
+  static const int _pageSize = 60;
 
   @override
   void initState() {
@@ -49,7 +49,8 @@ class _CloudViewState extends State<CloudView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 300 &&
         !_isLoadingMore &&
         _hasMore) {
       _loadMore();
@@ -68,36 +69,46 @@ class _CloudViewState extends State<CloudView> {
 
   Future<void> _fetchCloudData() async {
     try {
-      final items = await CloudGalleryService.fetchCloudAssets(limit: _pageSize, offset: _offset);
-      setState(() {
-        if (items.length < _pageSize) {
-          _hasMore = false;
-        }
-        _cloudItems.addAll(items);
-        _offset += items.length;
-        _isLoading = false;
-      });
+      final items = await CloudGalleryService.fetchCloudAssets(
+          limit: _pageSize, offset: _offset);
+      if (mounted) {
+        setState(() {
+          if (items.length < _pageSize) {
+            _hasMore = false;
+          }
+          _cloudItems.addAll(items);
+          _offset += items.length;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _loadMore() async {
     if (!_hasMore || _isLoadingMore) return;
-    
+
     setState(() => _isLoadingMore = true);
     try {
-      final items = await CloudGalleryService.fetchCloudAssets(limit: _pageSize, offset: _offset);
-      setState(() {
-        if (items.length < _pageSize) {
-          _hasMore = false;
-        }
-        _cloudItems.addAll(items);
-        _offset += items.length;
-        _isLoadingMore = false;
-      });
+      final items = await CloudGalleryService.fetchCloudAssets(
+          limit: _pageSize, offset: _offset);
+      if (mounted) {
+        setState(() {
+          if (items.length < _pageSize) {
+            _hasMore = false;
+          }
+          _cloudItems.addAll(items);
+          _offset += items.length;
+          _isLoadingMore = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoadingMore = false);
+      if (mounted) {
+        setState(() => _isLoadingMore = false);
+      }
     }
   }
 
@@ -110,115 +121,80 @@ class _CloudViewState extends State<CloudView> {
         appBar: AppBar(
           backgroundColor: EverforestColors.bg0,
           elevation: 0,
-          title: const Text('Cloud Sync', style: TextStyle(color: EverforestColors.fg)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: EverforestColors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.cloud_sync_rounded,
+                    color: EverforestColors.green, size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Cloud Gallery Vault',
+                style: TextStyle(
+                  color: EverforestColors.fg,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
           bottom: const TabBar(
             indicatorColor: EverforestColors.green,
+            indicatorWeight: 3,
             labelColor: EverforestColors.green,
             unselectedLabelColor: EverforestColors.grey,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
             tabs: [
-              Tab(text: 'Timeline'),
-              Tab(text: 'Folders'),
+              Tab(
+                icon: Icon(Icons.photo_library_rounded, size: 18),
+                text: 'Timeline',
+              ),
+              Tab(
+                icon: Icon(Icons.folder_special_rounded, size: 18),
+                text: 'Smart Albums',
+              ),
             ],
           ),
           actions: [
-            ValueListenableBuilder<bool>(
-              valueListenable: _syncEngine.isSyncing,
-              builder: (context, isSyncing, child) {
-                if (isSyncing) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Center(
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: _syncEngine.syncedCount,
-                        builder: (context, synced, child) {
-                          return Text(
-                            '$synced / ${_syncEngine.totalToSync.value}',
-                            style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                }
-                return IconButton(
-                  icon: const Icon(Icons.sync, color: EverforestColors.green),
-                  onPressed: () {
-                    _syncEngine.startSync();
-                  },
-                );
-              },
+            IconButton(
+              icon: const Icon(Icons.auto_delete_rounded,
+                  color: EverforestColors.yellow, size: 22),
+              tooltip: 'Duplicate Cleaner',
+              onPressed: () => GalleryDuplicatesSheet.show(
+                context,
+                onDuplicatesCleaned: _refreshData,
+              ),
             ),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded,
+                  color: EverforestColors.grey, size: 22),
+              tooltip: 'Refresh Gallery',
+              onPressed: _refreshData,
+            ),
+            const SizedBox(width: 8),
           ],
         ),
         body: TabBarView(
           children: [
-            _buildTimelineView(),
-            const Center(child: Text('Folder View (By User/Device)', style: TextStyle(color: EverforestColors.fg))),
+            GalleryTimelineView(
+              items: _cloudItems,
+              isLoading: _isLoading,
+              isLoadingMore: _isLoadingMore,
+              hasMore: _hasMore,
+              onRefresh: _refreshData,
+              scrollController: _scrollController,
+            ),
+            GallerySmartAlbumsView(
+              items: _cloudItems,
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTimelineView() {
-    if (_isLoading && _cloudItems.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
-    }
-    if (_cloudItems.isEmpty) {
-      return const Center(child: Text('No media in the cloud.', style: TextStyle(color: EverforestColors.fg)));
-    }
-    return GridView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-      ),
-      itemCount: _cloudItems.length + (_hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= _cloudItems.length) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(color: EverforestColors.green, strokeWidth: 2),
-            ),
-          );
-        }
-        final item = _cloudItems[index];
-        return GestureDetector(
-          onTap: () => Navigator.push(context, PageRouteBuilder(
-            pageBuilder: (_, __, ___) => AvesViewerScreen(
-              items: _cloudItems,
-              initialIndex: index,
-            ),
-          )),
-          child: Hero(
-            tag: 'gallery_hero_${item.id}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: ExtendedImage.network(
-                '${ApiClient.instance.daemonUrl}/api/v1/gallery/thumbnail?id=${item.id}',
-                fit: BoxFit.cover,
-                cache: true,
-                loadStateChanged: (ExtendedImageState state) {
-                  switch (state.extendedImageLoadState) {
-                    case LoadState.loading:
-                      return Container(color: EverforestColors.bg1);
-                    case LoadState.failed:
-                      return Container(
-                        color: EverforestColors.bg1,
-                        child: const Icon(Icons.broken_image, color: EverforestColors.grey),
-                      );
-                    case LoadState.completed:
-                      return state.completedWidget;
-                  }
-                },
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

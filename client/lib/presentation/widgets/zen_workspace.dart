@@ -31,6 +31,9 @@ import 'zen_workspace/shortcuts/zen_editor_shortcuts.dart';
 import 'zen_workspace/overlays/remote_cursor_overlay.dart';
 import 'zen_workspace/dialogs/vault_search_dialog.dart';
 
+/// Wiki-link regex: [[page name]]
+final _wikiLinkRegExp = RegExp(r'\[\[([^\[\]\n]+)\]\]');
+
 class ZenWorkspace extends StatefulWidget {
   const ZenWorkspace({super.key});
 
@@ -806,7 +809,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   void _showVaultSearchDialog() {
     showDialog<void>(
       context: context,
-      builder: (context) => _VaultSearchDialog(
+      builder: (context) => VaultSearchDialog(
         vaultPath: _vaultPath,
         onOpen: (path) {
           Navigator.of(context).pop();

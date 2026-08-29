@@ -8,6 +8,8 @@ mixin _$ChtmDaoMixin on DatabaseAccessor<AppDatabase> {
   $UserTasksTable get userTasks => attachedDatabase.userTasks;
   $UserHabitsTable get userHabits => attachedDatabase.userHabits;
   $HabitLogsTable get habitLogs => attachedDatabase.habitLogs;
+  $QuestsTable get quests => attachedDatabase.quests;
+  $QuestLogsTable get questLogs => attachedDatabase.questLogs;
   ChtmDaoManager get managers => ChtmDaoManager(this);
 }
 
@@ -23,4 +25,8 @@ class ChtmDaoManager {
       $$UserHabitsTableTableManager(_db.attachedDatabase, _db.userHabits);
   $$HabitLogsTableTableManager get habitLogs =>
       $$HabitLogsTableTableManager(_db.attachedDatabase, _db.habitLogs);
+  $$QuestsTableTableManager get quests =>
+      $$QuestsTableTableManager(_db.attachedDatabase, _db.quests);
+  $$QuestLogsTableTableManager get questLogs =>
+      $$QuestLogsTableTableManager(_db.attachedDatabase, _db.questLogs);
 }

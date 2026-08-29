@@ -28,4 +28,5 @@ class GalleryDao extends DatabaseAccessor<AppDatabase> with _$GalleryDaoMixin {
         .then((row) => row.read<int>('c'));
   }
   Future<void> clearCloudAssets() => delete(cloudAssets).go();
+  Future<int> deleteCloudAsset(String id) => (delete(cloudAssets)..where((t) => t.id.equals(id))).go();
 }

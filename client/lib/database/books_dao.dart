@@ -50,4 +50,7 @@ class BooksDao extends DatabaseAccessor<AppDatabase> with _$BooksDaoMixin {
       ),
     );
   }
+
+  Future<int> deleteBook(String id) =>
+      (delete(books)..where((t) => t.id.equals(id))).go();
 }
