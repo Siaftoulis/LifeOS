@@ -44,8 +44,14 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
 
     _loadOAuthProviders();
 
-    // ponytail: web-only — daemon dropped the JWT in localStorage after OAuth redirect
-    if (kIsWeb) {
+    // Auto-unlock on localhost (zero-login for local development/client)
+    if (AuthService.isLocalhost) {
+      AuthService.instance.ensureLocalhostUser();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onUnlocked();
+      });
+    } else if (kIsWeb) {
+      // ponytail: web-only — daemon dropped the JWT in localStorage after OAuth redirect
       AuthService.instance.tryOAuthToken().then((ok) {
         if (ok && mounted) widget.onUnlocked();
       });

@@ -96,13 +96,8 @@ class TrackMetadataModal extends StatelessWidget {
         ? '${t.bitrate} kbps'
         : (url.endsWith('.mp3') ? '320 kbps (CBR)' : '256 kbps (VBR)');
 
-    final sampleRate = t.sampleRate != null && t.sampleRate! > 0
-        ? '${t.sampleRate} Hz (${t.bitDepth ?? 16}-bit PCM)'
-        : '44,100 Hz (16-bit PCM)';
-
-    final channels = t.channels != null && t.channels! > 0
-        ? 'Stereo ${t.channels}.0 (Left/Right)'
-        : 'Stereo 2.0 (Left/Right)';
+    const sampleRate = '44,100 Hz (16-bit PCM)';
+    const channels = 'Stereo 2.0 (Left/Right)';
 
     final coverUrl = _getHighResCoverUrl(t.thumbnail);
 

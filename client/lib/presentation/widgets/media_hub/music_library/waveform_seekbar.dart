@@ -1,6 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'package:fft/fft.dart';
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
 

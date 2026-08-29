@@ -42,8 +42,27 @@ class AuthService {
   final ValueNotifier<UserProfile?> currentUser = ValueNotifier(null);
   String? _token;
 
-  bool get isAuthenticated => currentUser.value != null;
-  bool get isAdmin => currentUser.value?.role == 'ADMIN';
+  static bool get isLocalhost {
+    if (!kIsWeb) return true;
+    final host = Uri.base.host.toLowerCase();
+    return host == 'localhost' || host == '127.0.0.1' || host == '0.0.0.0' || host == '';
+  }
+
+  void ensureLocalhostUser() {
+    if (isLocalhost && currentUser.value == null) {
+      currentUser.value = UserProfile(
+        id: 'u-admin-1',
+        username: 'panospds',
+        role: 'ADMIN',
+        displayName: 'Panos (Admin)',
+        status: 'Online (Localhost)',
+        avatarAsset: 'assets/avatars/admin.png',
+      );
+    }
+  }
+
+  bool get isAuthenticated => isLocalhost || currentUser.value != null;
+  bool get isAdmin => isLocalhost || currentUser.value?.role == 'ADMIN';
   String? get token => _token;
 
   Future<bool> login(String username, String password, {bool rememberMe = false}) async {

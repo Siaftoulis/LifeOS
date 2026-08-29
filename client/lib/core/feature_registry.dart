@@ -15,6 +15,7 @@ import '../presentation/widgets/zen_workspace.dart';
 import '../presentation/widgets/book_library/book_library_dashboard.dart';
 import '../presentation/widgets/flashcards/flashcards_dashboard.dart';
 import '../presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
+import '../presentation/widgets/prayer_book/prayer_book_dashboard.dart';
 import '../presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 
 class FeatureRegistry {
@@ -38,6 +39,7 @@ class FeatureRegistry {
     'knowledge_base': () => const KnowledgeBaseDashboard(),
     'flashcards': () => const FlashcardsDashboard(),
     'books': () => const BookLibraryDashboard(),
+    'prayer_book': () => const PrayerBookDashboard(),
     'project_infinity': () => const ProjectInfinityDashboard(),
   };
 

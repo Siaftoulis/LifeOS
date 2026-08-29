@@ -17,6 +17,7 @@ import 'presentation/widgets/knowledge_hub/knowledge_hub_dashboard.dart';
 import 'presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
 import 'presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
 import 'presentation/widgets/preferences_setting/android_launcher_widget.dart';
+import 'presentation/widgets/prayer_book/prayer_book_dashboard.dart';
 import 'presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 
 class AppModuleRouter {
@@ -33,6 +34,8 @@ class AppModuleRouter {
       case 'banking': return const FinanceHubDashboard();
       case 'finance': return const FinanceHubDashboard();
       case 'books': return const BookLibraryDashboard();
+      case 'prayer_book': return const PrayerBookDashboard();
+      case 'prayers': return const PrayerBookDashboard();
       case 'chtm': return const CHTMView();
       case 'cloud': return const InfraHubDashboard();
       case 'darkweb': return const InfraHubDashboard();

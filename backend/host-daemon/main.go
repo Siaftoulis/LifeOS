@@ -32,6 +32,7 @@ import (
 	"lifeos/host-daemon/internal/oauth"
 	"lifeos/host-daemon/internal/player"
 	"lifeos/host-daemon/internal/points"
+	"lifeos/host-daemon/internal/prayers"
 	"lifeos/host-daemon/internal/sandbox"
 	"lifeos/host-daemon/internal/sync"
 	"lifeos/host-daemon/internal/system"
@@ -133,6 +134,10 @@ func main() {
 		log.Printf("Zen DB init error: %v", err)
 	}
 
+	if err := prayers.InitDB("./data"); err != nil {
+		log.Printf("Prayers DB init error: %v", err)
+	}
+
 	sync.RegisterRoutes(mux)
 	markdown.RegisterRoutes(mux, "./data/markdown")
 	notes.RegisterRoutes(mux, "./vault")
@@ -167,6 +172,7 @@ func main() {
 	engine.RegisterRoutes(mux)
 	zen.RegisterRoutes(mux)
 	telemetry.RegisterRoutes(mux)
+	prayers.RegisterRoutes(mux)
 
 	// The ecosystem brain: every cross-domain rule lives here. Publishing
 	// modules never know their listeners; listeners never know each other.
@@ -211,6 +217,7 @@ func main() {
 		"/api/v1/events", // WS: validates ?token= / Bearer itself
 		"/api/v1/radar/live", // WS: radar live coordinates
 		"/api/v1/music/*",
+		"/api/v1/prayers/*",
 	}, mux)
 
 	// ponytail: Funnel upstream — public traffic arrives here via Tailscale
