@@ -53,10 +53,9 @@ dependencies:
   ffi: ^2.1.2
   shared_preferences: ^2.5.5
 
-
-
-
-
+  # Audio analysis for waveforms and metadata
+  fft: ^0.4.0
+  audio_waveforms: ^1.0.4
 
 dependency_overrides:
   intl: 0.20.2

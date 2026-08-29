@@ -96,6 +96,14 @@ class TrackMetadataModal extends StatelessWidget {
         ? '${t.bitrate} kbps'
         : (url.endsWith('.mp3') ? '320 kbps (CBR)' : '256 kbps (VBR)');
 
+    final sampleRate = t.sampleRate != null && t.sampleRate! > 0
+        ? '${t.sampleRate} Hz (${t.bitDepth ?? 16}-bit PCM)'
+        : '44,100 Hz (16-bit PCM)';
+
+    final channels = t.channels != null && t.channels! > 0
+        ? 'Stereo ${t.channels}.0 (Left/Right)'
+        : 'Stereo 2.0 (Left/Right)';
+
     final coverUrl = _getHighResCoverUrl(t.thumbnail);
 
     return Container(
@@ -249,9 +257,9 @@ class TrackMetadataModal extends StatelessWidget {
                   const Divider(color: Colors.white10, height: 18),
                   _buildInfoRow('Bitrate', bitrate),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Sample Rate', '44,100 Hz (16-bit PCM)'),
+                  _buildInfoRow('Sample Rate', sampleRate),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Channels', 'Stereo 2.0 (Left/Right)'),
+                  _buildInfoRow('Channels', channels),
                   const Divider(color: Colors.white10, height: 18),
                   _buildInfoRow('Duration', _formatDuration(duration)),
                   if (t.replayGainTrack != null) ...[

@@ -65,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.4"
+  audio_waveforms:
+    dependency: "direct main"
+    description:
+      name: audio_waveforms
+      sha256: "658fef41bbab299184b65ba2fd749e8ec658c1f7d54a21f7cf97fa96b173b4ce"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -305,6 +313,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  fft:
+    dependency: "direct main"
+    description:
+      name: fft
+      sha256: fdb4303db9855a348d2b0f331c7915a22beeb0421e6226303e4d43420486eadd
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
   file:
     dependency: transitive
     description:
@@ -853,6 +869,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  my_complex:
+    dependency: transitive
+    description:
+      name: my_complex
+      sha256: cd6ced61e525438bc57897bacaa7b7fc7c28dc97aa2c2f32a170d047b3bcd8c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   nanoid:
     dependency: transitive
     description:

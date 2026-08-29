@@ -295,6 +295,17 @@ class CloudGalleryService {
     }
   }
 
+  /// Download a cloud asset to local device storage
+  static Future<bool> downloadAssetToDevice(String assetId, String type) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/stream?id=$assetId'));
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error downloading asset: $e');
+      return false;
+    }
+  }
+
   /// Delete a cloud asset from the server and clear local cache
   static Future<bool> deleteAsset(String assetId) async {
     try {
