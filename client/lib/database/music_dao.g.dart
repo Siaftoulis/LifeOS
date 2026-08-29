@@ -9,6 +9,10 @@ mixin _$MusicDaoMixin on DatabaseAccessor<AppDatabase> {
   $PlaylistTracksTable get playlistTracks => attachedDatabase.playlistTracks;
   $OfflineMusicTracksTable get offlineMusicTracks =>
       attachedDatabase.offlineMusicTracks;
+  $LikedSongsTable get likedSongs => attachedDatabase.likedSongs;
+  $DownloadQueueTable get downloadQueue => attachedDatabase.downloadQueue;
+  $ListeningHistoryTable get listeningHistory =>
+      attachedDatabase.listeningHistory;
   MusicDaoManager get managers => MusicDaoManager(this);
 }
 
@@ -25,4 +29,11 @@ class MusicDaoManager {
   $$OfflineMusicTracksTableTableManager get offlineMusicTracks =>
       $$OfflineMusicTracksTableTableManager(
           _db.attachedDatabase, _db.offlineMusicTracks);
+  $$LikedSongsTableTableManager get likedSongs =>
+      $$LikedSongsTableTableManager(_db.attachedDatabase, _db.likedSongs);
+  $$DownloadQueueTableTableManager get downloadQueue =>
+      $$DownloadQueueTableTableManager(_db.attachedDatabase, _db.downloadQueue);
+  $$ListeningHistoryTableTableManager get listeningHistory =>
+      $$ListeningHistoryTableTableManager(
+          _db.attachedDatabase, _db.listeningHistory);
 }

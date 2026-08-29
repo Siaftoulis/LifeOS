@@ -6,25 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../theme/everforest_colors.dart';
 import '../../../../core/audio_dsp_service.dart';
+import '../../../../core/music_playback/playback_models.dart';
 import 'waveform_seekbar.dart';
 import 'track_metadata_modal.dart';
 import 'lyrics_sync_viewer.dart';
 import 'poweramp_equalizer_modal.dart';
+import 'now_playing/now_playing_spectrogram.dart';
 
 enum NowPlayingCardMode {
   artwork,
   lyrics,
   visualizer,
 }
-
-typedef QueueItem = ({
-  String id,
-  String url,
-  String title,
-  String artist,
-  String thumbnail,
-  String album,
-});
 
 /// Poweramp v3 Audiophile Studio Player
 /// Provides an expansive full-width Desktop Studio layout and an adaptive Mobile view.
@@ -45,12 +38,16 @@ class PowerampNowPlayingSheet extends StatefulWidget {
   final bool isDownloaded;
   final bool isOfflineLocal;
 
-  final List<QueueItem>? queue;
+  final List<PlaybackItem>? queue;
   final int currentIndex;
   final ValueChanged<int>? onPlayIndex;
   final void Function(int oldIndex, int newIndex)? onReorder;
   final ValueChanged<int>? onRemove;
   final VoidCallback? onClearQueue;
+  final PlaybackRepeat repeat;
+  final bool shuffle;
+  final ValueChanged<PlaybackRepeat>? onRepeatChanged;
+  final ValueChanged<bool>? onShuffleChanged;
 
   const PowerampNowPlayingSheet({
     super.key,
@@ -75,6 +72,10 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     this.onReorder,
     this.onRemove,
     this.onClearQueue,
+    this.repeat = PlaybackRepeat.off,
+    this.shuffle = false,
+    this.onRepeatChanged,
+    this.onShuffleChanged,
   });
 
   static void show(
@@ -94,12 +95,16 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     bool isDownloaded = false,
     VoidCallback? onDownloadOffline,
     bool isOfflineLocal = false,
-    List<QueueItem>? queue,
+    List<PlaybackItem>? queue,
     int currentIndex = -1,
     ValueChanged<int>? onPlayIndex,
     void Function(int oldIndex, int newIndex)? onReorder,
     ValueChanged<int>? onRemove,
     VoidCallback? onClearQueue,
+    PlaybackRepeat repeat = PlaybackRepeat.off,
+    bool shuffle = false,
+    ValueChanged<PlaybackRepeat>? onRepeatChanged,
+    ValueChanged<bool>? onShuffleChanged,
   }) {
     showModalBottomSheet(
       context: context,
@@ -129,6 +134,10 @@ class PowerampNowPlayingSheet extends StatefulWidget {
         onReorder: onReorder,
         onRemove: onRemove,
         onClearQueue: onClearQueue,
+        repeat: repeat,
+        shuffle: shuffle,
+        onRepeatChanged: onRepeatChanged,
+        onShuffleChanged: onShuffleChanged,
       ),
     );
   }
@@ -140,9 +149,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
 class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     with SingleTickerProviderStateMixin {
   NowPlayingCardMode _cardMode = NowPlayingCardMode.artwork;
-  int _desktopRightTab = 0; // 0 = Equalizer & DSP, 1 = Queue, 2 = Lyrics
-  bool _isShuffle = false;
-  LoopMode _loopMode = LoopMode.off;
+  int _desktopRightTab = 0; // 0 = Equalizer & DSP, 1 = Queue
+  late bool _isShuffle;
+  late PlaybackRepeat _repeat;
   late AnimationController _visualizerAnim;
 
   String? _feedbackText;
@@ -156,6 +165,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   @override
   void initState() {
     super.initState();
+    _isShuffle = widget.shuffle;
+    _repeat = widget.repeat;
     _visualizerAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 60),
@@ -233,21 +244,21 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   void _toggleLoopMode() {
     setState(() {
-      if (_loopMode == LoopMode.off) {
-        _loopMode = LoopMode.all;
-      } else if (_loopMode == LoopMode.all) {
-        _loopMode = LoopMode.one;
+      if (_repeat == PlaybackRepeat.off) {
+        _repeat = PlaybackRepeat.all;
+      } else if (_repeat == PlaybackRepeat.all) {
+        _repeat = PlaybackRepeat.one;
       } else {
-        _loopMode = LoopMode.off;
+        _repeat = PlaybackRepeat.off;
       }
-      widget.player.setLoopMode(_loopMode);
+      widget.onRepeatChanged?.call(_repeat);
     });
   }
 
   void _toggleShuffle() {
     setState(() {
       _isShuffle = !_isShuffle;
-      widget.player.setShuffleModeEnabled(_isShuffle);
+      widget.onShuffleChanged?.call(_isShuffle);
     });
   }
 
@@ -378,7 +389,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     ),
                     const SizedBox(width: 8),
                     const Text(
-                      'AAC 256k · 44.1kHz · 32-bit DSP Float',
+                      'STREAMING · DSP ACTIVE',
                       style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 12,
@@ -586,10 +597,10 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       ),
                       IconButton(
                         icon: Icon(
-                          _loopMode == LoopMode.one
+                          _repeat == PlaybackRepeat.one
                               ? Icons.repeat_one_rounded
                               : Icons.repeat_rounded,
-                          color: _loopMode != LoopMode.off
+                          color: _repeat != PlaybackRepeat.off
                               ? EverforestColors.green
                               : EverforestColors.grey,
                           size: 22,
@@ -915,7 +926,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                         ),
                         const SizedBox(width: 6),
                         const Text(
-                          'AAC 256k · 44.1kHz',
+                          'STREAMING · DSP',
                           style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 11,
@@ -1214,7 +1225,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     animation: _visualizerAnim,
                     builder: (context, _) {
                       return CustomPaint(
-                        painter: _AudioReactiveSpectrogramPainter(
+                        painter: AudioReactiveSpectrogramPainter(
                           position: pos,
                           trackId: widget.trackId,
                           playing: playing,
@@ -1405,10 +1416,10 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           IconButton(
             icon: Icon(
-              _loopMode == LoopMode.one
+              _repeat == PlaybackRepeat.one
                   ? Icons.repeat_one_rounded
                   : Icons.repeat_rounded,
-              color: _loopMode != LoopMode.off
+              color: _repeat != PlaybackRepeat.off
                   ? EverforestColors.green
                   : EverforestColors.grey,
               size: 22,
@@ -1540,122 +1551,3 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 }
 
-/// Dynamic Audio-Reactive Spectrogram Painter
-class _AudioReactiveSpectrogramPainter extends CustomPainter {
-  final Duration position;
-  final String trackId;
-  final bool playing;
-  final List<double> peakCaps;
-  final List<double> capVelocities;
-  final List<double> dspGains;
-  final double bassBoost;
-
-  _AudioReactiveSpectrogramPainter({
-    required this.position,
-    required this.trackId,
-    required this.playing,
-    required this.peakCaps,
-    required this.capVelocities,
-    required this.dspGains,
-    required this.bassBoost,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const int barCount = 28;
-    final barWidth = size.width / (barCount * 1.55);
-    final totalStep = size.width / barCount;
-    final bottomY = size.height * 0.88;
-    final maxHeight = size.height * 0.75;
-
-    final idSeed = trackId.hashCode.abs();
-    final elapsedMs = position.inMilliseconds;
-    final beatTempo = 120.0;
-    final beatIntervalMs = (60000.0 / beatTempo);
-    final beatPhase = (elapsedMs % beatIntervalMs) / beatIntervalMs;
-    final beatPulse = math.exp(-beatPhase * 4.0);
-
-    final barPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          EverforestColors.yellow,
-          EverforestColors.aqua,
-          EverforestColors.green,
-        ],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.fill;
-
-    final capPaint = Paint()
-      ..color = EverforestColors.yellow
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.fill;
-
-    for (int i = 0; i < barCount; i++) {
-      final x = i * totalStep + (barWidth / 2);
-      double targetHeight = size.height * 0.05;
-
-      if (playing) {
-        final isBass = i < 8;
-        final isMid = i >= 8 && i < 19;
-
-        final freqGain = (i < dspGains.length ? dspGains[i] : 0.0) / 12.0;
-        final freqMultiplier = (1.0 + freqGain).clamp(0.2, 1.8);
-
-        final noiseOffset = math.sin((elapsedMs * 0.008) + (i * 0.6) + (idSeed % 17));
-        final harmonicOffset = math.cos((elapsedMs * 0.015) + (i * 1.2));
-
-        if (isBass) {
-          final bassFactor = (1.0 + bassBoost * 0.8);
-          targetHeight = maxHeight * (0.25 + 0.65 * beatPulse * bassFactor + 0.15 * noiseOffset);
-        } else if (isMid) {
-          targetHeight = maxHeight * (0.20 + 0.45 * math.max(0, noiseOffset) + 0.25 * beatPulse * 0.4 + 0.15 * harmonicOffset);
-        } else {
-          final flutter = math.sin((elapsedMs * 0.025) + (i * 2.1)).abs();
-          targetHeight = maxHeight * (0.15 + 0.50 * flutter + 0.20 * math.max(0, harmonicOffset));
-        }
-
-        targetHeight = (targetHeight * freqMultiplier).clamp(size.height * 0.06, maxHeight);
-      }
-
-      if (targetHeight > peakCaps[i]) {
-        peakCaps[i] = targetHeight;
-        capVelocities[i] = 0.0;
-      } else {
-        capVelocities[i] += 0.8;
-        peakCaps[i] = (peakCaps[i] - capVelocities[i]).clamp(size.height * 0.05, maxHeight);
-      }
-
-      final topY = bottomY - targetHeight;
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTRB(
-          x - (barWidth / 2),
-          topY,
-          x + (barWidth / 2),
-          bottomY,
-        ),
-        Radius.circular(barWidth / 2),
-      );
-      canvas.drawRRect(rect, barPaint);
-
-      final capTopY = bottomY - peakCaps[i] - 4;
-      final capRect = RRect.fromRectAndRadius(
-        Rect.fromLTRB(
-          x - (barWidth / 2),
-          capTopY - 2.5,
-          x + (barWidth / 2),
-          capTopY,
-        ),
-        const Radius.circular(1.5),
-      );
-      canvas.drawRRect(capRect, capPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _AudioReactiveSpectrogramPainter oldDelegate) {
-    return true;
-  }
-}

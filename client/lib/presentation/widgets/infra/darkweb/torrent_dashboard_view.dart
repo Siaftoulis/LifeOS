@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as drift;
 import '../../../../theme/everforest_colors.dart';
 import '../../../../database/database.dart';
+import '../../../../database/darkweb_dao.dart';
 import '../../../../api_client.dart';
 
 class TorrentDashboardView extends StatefulWidget {
@@ -12,9 +13,12 @@ class TorrentDashboardView extends StatefulWidget {
 }
 
 class _TorrentDashboardViewState extends State<TorrentDashboardView> {
+  late final DarkWebDao _dao;
+
   @override
   void initState() {
     super.initState();
+    _dao = DarkWebDao(AppDatabase.instance);
     _syncTorrentsFromBackend();
   }
 
@@ -22,7 +26,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/darkweb/torrents');
       if (res is List) {
-        final dao = AppDatabase.instance.darkWebDao;
+        final dao = _dao;
         for (var item in res) {
           final t = item as Map<String, dynamic>;
           
@@ -31,8 +35,6 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
             name: drift.Value(t['name'] as String),
             status: drift.Value(t['status'] as String),
             progress: drift.Value((t['progress'] as num).toDouble()),
-            sizeBytes: const drift.Value(1000000000), // Mock
-            downloadSpeed: const drift.Value(1200000), // Mock
             isDirty: const drift.Value(0),
           );
 
@@ -85,7 +87,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
           const SizedBox(height: 24),
           Expanded(
             child: StreamBuilder<List<Torrent>>(
-              stream: AppDatabase.instance.darkWebDao.watchAllTorrents(),
+              stream: _dao.watchAllTorrents(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator(color: EverforestColors.purple));

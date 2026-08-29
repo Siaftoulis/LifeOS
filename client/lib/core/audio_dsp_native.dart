@@ -11,7 +11,7 @@ class NativeAudioDspEngine {
   static generated.MPV? _mpv;
 
   static List<Pointer<Void>> _getActiveMpvHandles() {
-    if (kIsWeb || !Platform.isWindows) return [];
+    if (kIsWeb || !(Platform.isWindows || Platform.isLinux)) return [];
     try {
       final file = File(path.join(TempFile.directory, 'com.alexmercerind.media_kit.NativeReferenceHolder.$pid'));
       if (!file.existsSync()) return [];
@@ -34,7 +34,7 @@ class NativeAudioDspEngine {
   }
 
   static void applyMpvFilters(String filterString) {
-    if (kIsWeb || !Platform.isWindows) return;
+    if (kIsWeb || !(Platform.isWindows || Platform.isLinux)) return;
     try {
       _mpv ??= generated.MPV(DynamicLibrary.open(NativeLibrary.path));
       final handles = _getActiveMpvHandles();

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -222,9 +223,24 @@ func handleAssets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := DB.Query(`SELECT id, user_id, device_id, filename, type, created_at, size_bytes,
+	limit := 50
+	offset := 0
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v > 0 && v <= 200 {
+			limit = v
+		}
+	}
+	if o := r.URL.Query().Get("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
+		}
+	}
+
+	query := `SELECT id, user_id, device_id, filename, type, created_at, size_bytes,
 		hash, width, height, source, title, tags, colors, lat, lng, place
-		FROM assets ORDER BY created_at DESC`)
+		FROM assets ORDER BY created_at DESC LIMIT ? OFFSET ?`
+
+	rows, err := DB.Query(query, limit, offset)
 	if err != nil {
 		http.Error(w, "Database query error", http.StatusInternalServerError)
 		return
@@ -274,7 +290,12 @@ func handleAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"assets": results,
+		"limit":  limit,
+		"offset": offset,
+		"count":  len(results),
+	})
 }
 
 // handleAsset returns a single asset's metadata (embed card render).

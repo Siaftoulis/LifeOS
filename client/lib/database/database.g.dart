@@ -16867,12 +16867,34 @@ class $MusicTracksTable extends MusicTracks
   late final GeneratedColumn<String> album = GeneratedColumn<String>(
       'album', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _albumArtistMeta =
+      const VerificationMeta('albumArtist');
+  @override
+  late final GeneratedColumn<String> albumArtist = GeneratedColumn<String>(
+      'album_artist', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _trackNumberMeta =
       const VerificationMeta('trackNumber');
   @override
   late final GeneratedColumn<int> trackNumber = GeneratedColumn<int>(
       'track_number', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _discNumberMeta =
+      const VerificationMeta('discNumber');
+  @override
+  late final GeneratedColumn<int> discNumber = GeneratedColumn<int>(
+      'disc_number', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _yearMeta = const VerificationMeta('year');
+  @override
+  late final GeneratedColumn<int> year = GeneratedColumn<int>(
+      'year', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _genreMeta = const VerificationMeta('genre');
+  @override
+  late final GeneratedColumn<String> genre = GeneratedColumn<String>(
+      'genre', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _filePathMeta =
       const VerificationMeta('filePath');
   @override
@@ -16885,6 +16907,69 @@ class $MusicTracksTable extends MusicTracks
   late final GeneratedColumn<String> lyricsPath = GeneratedColumn<String>(
       'lyrics_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbnailUrlMeta =
+      const VerificationMeta('thumbnailUrl');
+  @override
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+      'thumbnail_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _ytDlpIdMeta =
+      const VerificationMeta('ytDlpId');
+  @override
+  late final GeneratedColumn<String> ytDlpId = GeneratedColumn<String>(
+      'yt_dlp_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _durationMeta =
+      const VerificationMeta('duration');
+  @override
+  late final GeneratedColumn<int> duration = GeneratedColumn<int>(
+      'duration', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _bitrateMeta =
+      const VerificationMeta('bitrate');
+  @override
+  late final GeneratedColumn<int> bitrate = GeneratedColumn<int>(
+      'bitrate', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _codecMeta = const VerificationMeta('codec');
+  @override
+  late final GeneratedColumn<String> codec = GeneratedColumn<String>(
+      'codec', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _replayGainTrackMeta =
+      const VerificationMeta('replayGainTrack');
+  @override
+  late final GeneratedColumn<double> replayGainTrack = GeneratedColumn<double>(
+      'replay_gain_track', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _replayGainAlbumMeta =
+      const VerificationMeta('replayGainAlbum');
+  @override
+  late final GeneratedColumn<double> replayGainAlbum = GeneratedColumn<double>(
+      'replay_gain_album', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _playCountMeta =
+      const VerificationMeta('playCount');
+  @override
+  late final GeneratedColumn<int> playCount = GeneratedColumn<int>(
+      'play_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _lastPlayedAtMeta =
+      const VerificationMeta('lastPlayedAt');
+  @override
+  late final GeneratedColumn<int> lastPlayedAt = GeneratedColumn<int>(
+      'last_played_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _addedAtMeta =
+      const VerificationMeta('addedAt');
+  @override
+  late final GeneratedColumn<int> addedAt = GeneratedColumn<int>(
+      'added_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -16905,9 +16990,23 @@ class $MusicTracksTable extends MusicTracks
         title,
         artist,
         album,
+        albumArtist,
         trackNumber,
+        discNumber,
+        year,
+        genre,
         filePath,
         lyricsPath,
+        thumbnailUrl,
+        ytDlpId,
+        duration,
+        bitrate,
+        codec,
+        replayGainTrack,
+        replayGainAlbum,
+        playCount,
+        lastPlayedAt,
+        addedAt,
         updatedAt,
         isDirty
       ];
@@ -16940,11 +17039,31 @@ class $MusicTracksTable extends MusicTracks
       context.handle(
           _albumMeta, album.isAcceptableOrUnknown(data['album']!, _albumMeta));
     }
+    if (data.containsKey('album_artist')) {
+      context.handle(
+          _albumArtistMeta,
+          albumArtist.isAcceptableOrUnknown(
+              data['album_artist']!, _albumArtistMeta));
+    }
     if (data.containsKey('track_number')) {
       context.handle(
           _trackNumberMeta,
           trackNumber.isAcceptableOrUnknown(
               data['track_number']!, _trackNumberMeta));
+    }
+    if (data.containsKey('disc_number')) {
+      context.handle(
+          _discNumberMeta,
+          discNumber.isAcceptableOrUnknown(
+              data['disc_number']!, _discNumberMeta));
+    }
+    if (data.containsKey('year')) {
+      context.handle(
+          _yearMeta, year.isAcceptableOrUnknown(data['year']!, _yearMeta));
+    }
+    if (data.containsKey('genre')) {
+      context.handle(
+          _genreMeta, genre.isAcceptableOrUnknown(data['genre']!, _genreMeta));
     }
     if (data.containsKey('file_path')) {
       context.handle(_filePathMeta,
@@ -16957,6 +17076,56 @@ class $MusicTracksTable extends MusicTracks
           _lyricsPathMeta,
           lyricsPath.isAcceptableOrUnknown(
               data['lyrics_path']!, _lyricsPathMeta));
+    }
+    if (data.containsKey('thumbnail_url')) {
+      context.handle(
+          _thumbnailUrlMeta,
+          thumbnailUrl.isAcceptableOrUnknown(
+              data['thumbnail_url']!, _thumbnailUrlMeta));
+    }
+    if (data.containsKey('yt_dlp_id')) {
+      context.handle(_ytDlpIdMeta,
+          ytDlpId.isAcceptableOrUnknown(data['yt_dlp_id']!, _ytDlpIdMeta));
+    }
+    if (data.containsKey('duration')) {
+      context.handle(_durationMeta,
+          duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
+    }
+    if (data.containsKey('bitrate')) {
+      context.handle(_bitrateMeta,
+          bitrate.isAcceptableOrUnknown(data['bitrate']!, _bitrateMeta));
+    }
+    if (data.containsKey('codec')) {
+      context.handle(
+          _codecMeta, codec.isAcceptableOrUnknown(data['codec']!, _codecMeta));
+    }
+    if (data.containsKey('replay_gain_track')) {
+      context.handle(
+          _replayGainTrackMeta,
+          replayGainTrack.isAcceptableOrUnknown(
+              data['replay_gain_track']!, _replayGainTrackMeta));
+    }
+    if (data.containsKey('replay_gain_album')) {
+      context.handle(
+          _replayGainAlbumMeta,
+          replayGainAlbum.isAcceptableOrUnknown(
+              data['replay_gain_album']!, _replayGainAlbumMeta));
+    }
+    if (data.containsKey('play_count')) {
+      context.handle(_playCountMeta,
+          playCount.isAcceptableOrUnknown(data['play_count']!, _playCountMeta));
+    }
+    if (data.containsKey('last_played_at')) {
+      context.handle(
+          _lastPlayedAtMeta,
+          lastPlayedAt.isAcceptableOrUnknown(
+              data['last_played_at']!, _lastPlayedAtMeta));
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(_addedAtMeta,
+          addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
     }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
@@ -16985,12 +17154,40 @@ class $MusicTracksTable extends MusicTracks
           .read(DriftSqlType.string, data['${effectivePrefix}artist']),
       album: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}album']),
+      albumArtist: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}album_artist']),
       trackNumber: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}track_number']),
+      discNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}disc_number']),
+      year: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}year']),
+      genre: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}genre']),
       filePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}file_path'])!,
       lyricsPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lyrics_path']),
+      thumbnailUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_url']),
+      ytDlpId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}yt_dlp_id']),
+      duration: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration'])!,
+      bitrate: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}bitrate']),
+      codec: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}codec']),
+      replayGainTrack: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}replay_gain_track']),
+      replayGainAlbum: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}replay_gain_album']),
+      playCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}play_count'])!,
+      lastPlayedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_played_at']),
+      addedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}added_at'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
       isDirty: attachedDatabase.typeMapping
@@ -17009,9 +17206,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
   final String title;
   final String? artist;
   final String? album;
+  final String? albumArtist;
   final int? trackNumber;
+  final int? discNumber;
+  final int? year;
+  final String? genre;
   final String filePath;
   final String? lyricsPath;
+  final String? thumbnailUrl;
+  final String? ytDlpId;
+  final int duration;
+  final int? bitrate;
+  final String? codec;
+  final double? replayGainTrack;
+  final double? replayGainAlbum;
+  final int playCount;
+  final int? lastPlayedAt;
+  final int addedAt;
   final int updatedAt;
   final int isDirty;
   const MusicTrack(
@@ -17019,9 +17230,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       required this.title,
       this.artist,
       this.album,
+      this.albumArtist,
       this.trackNumber,
+      this.discNumber,
+      this.year,
+      this.genre,
       required this.filePath,
       this.lyricsPath,
+      this.thumbnailUrl,
+      this.ytDlpId,
+      required this.duration,
+      this.bitrate,
+      this.codec,
+      this.replayGainTrack,
+      this.replayGainAlbum,
+      required this.playCount,
+      this.lastPlayedAt,
+      required this.addedAt,
       required this.updatedAt,
       required this.isDirty});
   @override
@@ -17035,13 +17260,49 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
     if (!nullToAbsent || album != null) {
       map['album'] = Variable<String>(album);
     }
+    if (!nullToAbsent || albumArtist != null) {
+      map['album_artist'] = Variable<String>(albumArtist);
+    }
     if (!nullToAbsent || trackNumber != null) {
       map['track_number'] = Variable<int>(trackNumber);
+    }
+    if (!nullToAbsent || discNumber != null) {
+      map['disc_number'] = Variable<int>(discNumber);
+    }
+    if (!nullToAbsent || year != null) {
+      map['year'] = Variable<int>(year);
+    }
+    if (!nullToAbsent || genre != null) {
+      map['genre'] = Variable<String>(genre);
     }
     map['file_path'] = Variable<String>(filePath);
     if (!nullToAbsent || lyricsPath != null) {
       map['lyrics_path'] = Variable<String>(lyricsPath);
     }
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    if (!nullToAbsent || ytDlpId != null) {
+      map['yt_dlp_id'] = Variable<String>(ytDlpId);
+    }
+    map['duration'] = Variable<int>(duration);
+    if (!nullToAbsent || bitrate != null) {
+      map['bitrate'] = Variable<int>(bitrate);
+    }
+    if (!nullToAbsent || codec != null) {
+      map['codec'] = Variable<String>(codec);
+    }
+    if (!nullToAbsent || replayGainTrack != null) {
+      map['replay_gain_track'] = Variable<double>(replayGainTrack);
+    }
+    if (!nullToAbsent || replayGainAlbum != null) {
+      map['replay_gain_album'] = Variable<double>(replayGainAlbum);
+    }
+    map['play_count'] = Variable<int>(playCount);
+    if (!nullToAbsent || lastPlayedAt != null) {
+      map['last_played_at'] = Variable<int>(lastPlayedAt);
+    }
+    map['added_at'] = Variable<int>(addedAt);
     map['updated_at'] = Variable<int>(updatedAt);
     map['is_dirty'] = Variable<int>(isDirty);
     return map;
@@ -17055,13 +17316,45 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           artist == null && nullToAbsent ? const Value.absent() : Value(artist),
       album:
           album == null && nullToAbsent ? const Value.absent() : Value(album),
+      albumArtist: albumArtist == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumArtist),
       trackNumber: trackNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(trackNumber),
+      discNumber: discNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discNumber),
+      year: year == null && nullToAbsent ? const Value.absent() : Value(year),
+      genre:
+          genre == null && nullToAbsent ? const Value.absent() : Value(genre),
       filePath: Value(filePath),
       lyricsPath: lyricsPath == null && nullToAbsent
           ? const Value.absent()
           : Value(lyricsPath),
+      thumbnailUrl: thumbnailUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailUrl),
+      ytDlpId: ytDlpId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ytDlpId),
+      duration: Value(duration),
+      bitrate: bitrate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bitrate),
+      codec:
+          codec == null && nullToAbsent ? const Value.absent() : Value(codec),
+      replayGainTrack: replayGainTrack == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replayGainTrack),
+      replayGainAlbum: replayGainAlbum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(replayGainAlbum),
+      playCount: Value(playCount),
+      lastPlayedAt: lastPlayedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastPlayedAt),
+      addedAt: Value(addedAt),
       updatedAt: Value(updatedAt),
       isDirty: Value(isDirty),
     );
@@ -17075,9 +17368,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       title: serializer.fromJson<String>(json['title']),
       artist: serializer.fromJson<String?>(json['artist']),
       album: serializer.fromJson<String?>(json['album']),
+      albumArtist: serializer.fromJson<String?>(json['albumArtist']),
       trackNumber: serializer.fromJson<int?>(json['trackNumber']),
+      discNumber: serializer.fromJson<int?>(json['discNumber']),
+      year: serializer.fromJson<int?>(json['year']),
+      genre: serializer.fromJson<String?>(json['genre']),
       filePath: serializer.fromJson<String>(json['filePath']),
       lyricsPath: serializer.fromJson<String?>(json['lyricsPath']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      ytDlpId: serializer.fromJson<String?>(json['ytDlpId']),
+      duration: serializer.fromJson<int>(json['duration']),
+      bitrate: serializer.fromJson<int?>(json['bitrate']),
+      codec: serializer.fromJson<String?>(json['codec']),
+      replayGainTrack: serializer.fromJson<double?>(json['replayGainTrack']),
+      replayGainAlbum: serializer.fromJson<double?>(json['replayGainAlbum']),
+      playCount: serializer.fromJson<int>(json['playCount']),
+      lastPlayedAt: serializer.fromJson<int?>(json['lastPlayedAt']),
+      addedAt: serializer.fromJson<int>(json['addedAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
       isDirty: serializer.fromJson<int>(json['isDirty']),
     );
@@ -17090,9 +17397,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       'title': serializer.toJson<String>(title),
       'artist': serializer.toJson<String?>(artist),
       'album': serializer.toJson<String?>(album),
+      'albumArtist': serializer.toJson<String?>(albumArtist),
       'trackNumber': serializer.toJson<int?>(trackNumber),
+      'discNumber': serializer.toJson<int?>(discNumber),
+      'year': serializer.toJson<int?>(year),
+      'genre': serializer.toJson<String?>(genre),
       'filePath': serializer.toJson<String>(filePath),
       'lyricsPath': serializer.toJson<String?>(lyricsPath),
+      'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'ytDlpId': serializer.toJson<String?>(ytDlpId),
+      'duration': serializer.toJson<int>(duration),
+      'bitrate': serializer.toJson<int?>(bitrate),
+      'codec': serializer.toJson<String?>(codec),
+      'replayGainTrack': serializer.toJson<double?>(replayGainTrack),
+      'replayGainAlbum': serializer.toJson<double?>(replayGainAlbum),
+      'playCount': serializer.toJson<int>(playCount),
+      'lastPlayedAt': serializer.toJson<int?>(lastPlayedAt),
+      'addedAt': serializer.toJson<int>(addedAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
       'isDirty': serializer.toJson<int>(isDirty),
     };
@@ -17103,9 +17424,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           String? title,
           Value<String?> artist = const Value.absent(),
           Value<String?> album = const Value.absent(),
+          Value<String?> albumArtist = const Value.absent(),
           Value<int?> trackNumber = const Value.absent(),
+          Value<int?> discNumber = const Value.absent(),
+          Value<int?> year = const Value.absent(),
+          Value<String?> genre = const Value.absent(),
           String? filePath,
           Value<String?> lyricsPath = const Value.absent(),
+          Value<String?> thumbnailUrl = const Value.absent(),
+          Value<String?> ytDlpId = const Value.absent(),
+          int? duration,
+          Value<int?> bitrate = const Value.absent(),
+          Value<String?> codec = const Value.absent(),
+          Value<double?> replayGainTrack = const Value.absent(),
+          Value<double?> replayGainAlbum = const Value.absent(),
+          int? playCount,
+          Value<int?> lastPlayedAt = const Value.absent(),
+          int? addedAt,
           int? updatedAt,
           int? isDirty}) =>
       MusicTrack(
@@ -17113,9 +17448,29 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
         title: title ?? this.title,
         artist: artist.present ? artist.value : this.artist,
         album: album.present ? album.value : this.album,
+        albumArtist: albumArtist.present ? albumArtist.value : this.albumArtist,
         trackNumber: trackNumber.present ? trackNumber.value : this.trackNumber,
+        discNumber: discNumber.present ? discNumber.value : this.discNumber,
+        year: year.present ? year.value : this.year,
+        genre: genre.present ? genre.value : this.genre,
         filePath: filePath ?? this.filePath,
         lyricsPath: lyricsPath.present ? lyricsPath.value : this.lyricsPath,
+        thumbnailUrl:
+            thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+        ytDlpId: ytDlpId.present ? ytDlpId.value : this.ytDlpId,
+        duration: duration ?? this.duration,
+        bitrate: bitrate.present ? bitrate.value : this.bitrate,
+        codec: codec.present ? codec.value : this.codec,
+        replayGainTrack: replayGainTrack.present
+            ? replayGainTrack.value
+            : this.replayGainTrack,
+        replayGainAlbum: replayGainAlbum.present
+            ? replayGainAlbum.value
+            : this.replayGainAlbum,
+        playCount: playCount ?? this.playCount,
+        lastPlayedAt:
+            lastPlayedAt.present ? lastPlayedAt.value : this.lastPlayedAt,
+        addedAt: addedAt ?? this.addedAt,
         updatedAt: updatedAt ?? this.updatedAt,
         isDirty: isDirty ?? this.isDirty,
       );
@@ -17125,11 +17480,35 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
       title: data.title.present ? data.title.value : this.title,
       artist: data.artist.present ? data.artist.value : this.artist,
       album: data.album.present ? data.album.value : this.album,
+      albumArtist:
+          data.albumArtist.present ? data.albumArtist.value : this.albumArtist,
       trackNumber:
           data.trackNumber.present ? data.trackNumber.value : this.trackNumber,
+      discNumber:
+          data.discNumber.present ? data.discNumber.value : this.discNumber,
+      year: data.year.present ? data.year.value : this.year,
+      genre: data.genre.present ? data.genre.value : this.genre,
       filePath: data.filePath.present ? data.filePath.value : this.filePath,
       lyricsPath:
           data.lyricsPath.present ? data.lyricsPath.value : this.lyricsPath,
+      thumbnailUrl: data.thumbnailUrl.present
+          ? data.thumbnailUrl.value
+          : this.thumbnailUrl,
+      ytDlpId: data.ytDlpId.present ? data.ytDlpId.value : this.ytDlpId,
+      duration: data.duration.present ? data.duration.value : this.duration,
+      bitrate: data.bitrate.present ? data.bitrate.value : this.bitrate,
+      codec: data.codec.present ? data.codec.value : this.codec,
+      replayGainTrack: data.replayGainTrack.present
+          ? data.replayGainTrack.value
+          : this.replayGainTrack,
+      replayGainAlbum: data.replayGainAlbum.present
+          ? data.replayGainAlbum.value
+          : this.replayGainAlbum,
+      playCount: data.playCount.present ? data.playCount.value : this.playCount,
+      lastPlayedAt: data.lastPlayedAt.present
+          ? data.lastPlayedAt.value
+          : this.lastPlayedAt,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
     );
@@ -17142,9 +17521,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           ..write('title: $title, ')
           ..write('artist: $artist, ')
           ..write('album: $album, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('trackNumber: $trackNumber, ')
+          ..write('discNumber: $discNumber, ')
+          ..write('year: $year, ')
+          ..write('genre: $genre, ')
           ..write('filePath: $filePath, ')
           ..write('lyricsPath: $lyricsPath, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('ytDlpId: $ytDlpId, ')
+          ..write('duration: $duration, ')
+          ..write('bitrate: $bitrate, ')
+          ..write('codec: $codec, ')
+          ..write('replayGainTrack: $replayGainTrack, ')
+          ..write('replayGainAlbum: $replayGainAlbum, ')
+          ..write('playCount: $playCount, ')
+          ..write('lastPlayedAt: $lastPlayedAt, ')
+          ..write('addedAt: $addedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDirty: $isDirty')
           ..write(')'))
@@ -17152,8 +17545,31 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, artist, album, trackNumber,
-      filePath, lyricsPath, updatedAt, isDirty);
+  int get hashCode => Object.hashAll([
+        id,
+        title,
+        artist,
+        album,
+        albumArtist,
+        trackNumber,
+        discNumber,
+        year,
+        genre,
+        filePath,
+        lyricsPath,
+        thumbnailUrl,
+        ytDlpId,
+        duration,
+        bitrate,
+        codec,
+        replayGainTrack,
+        replayGainAlbum,
+        playCount,
+        lastPlayedAt,
+        addedAt,
+        updatedAt,
+        isDirty
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -17162,9 +17578,23 @@ class MusicTrack extends DataClass implements Insertable<MusicTrack> {
           other.title == this.title &&
           other.artist == this.artist &&
           other.album == this.album &&
+          other.albumArtist == this.albumArtist &&
           other.trackNumber == this.trackNumber &&
+          other.discNumber == this.discNumber &&
+          other.year == this.year &&
+          other.genre == this.genre &&
           other.filePath == this.filePath &&
           other.lyricsPath == this.lyricsPath &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.ytDlpId == this.ytDlpId &&
+          other.duration == this.duration &&
+          other.bitrate == this.bitrate &&
+          other.codec == this.codec &&
+          other.replayGainTrack == this.replayGainTrack &&
+          other.replayGainAlbum == this.replayGainAlbum &&
+          other.playCount == this.playCount &&
+          other.lastPlayedAt == this.lastPlayedAt &&
+          other.addedAt == this.addedAt &&
           other.updatedAt == this.updatedAt &&
           other.isDirty == this.isDirty);
 }
@@ -17174,9 +17604,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
   final Value<String> title;
   final Value<String?> artist;
   final Value<String?> album;
+  final Value<String?> albumArtist;
   final Value<int?> trackNumber;
+  final Value<int?> discNumber;
+  final Value<int?> year;
+  final Value<String?> genre;
   final Value<String> filePath;
   final Value<String?> lyricsPath;
+  final Value<String?> thumbnailUrl;
+  final Value<String?> ytDlpId;
+  final Value<int> duration;
+  final Value<int?> bitrate;
+  final Value<String?> codec;
+  final Value<double?> replayGainTrack;
+  final Value<double?> replayGainAlbum;
+  final Value<int> playCount;
+  final Value<int?> lastPlayedAt;
+  final Value<int> addedAt;
   final Value<int> updatedAt;
   final Value<int> isDirty;
   final Value<int> rowid;
@@ -17185,9 +17629,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     this.title = const Value.absent(),
     this.artist = const Value.absent(),
     this.album = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.trackNumber = const Value.absent(),
+    this.discNumber = const Value.absent(),
+    this.year = const Value.absent(),
+    this.genre = const Value.absent(),
     this.filePath = const Value.absent(),
     this.lyricsPath = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.ytDlpId = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.bitrate = const Value.absent(),
+    this.codec = const Value.absent(),
+    this.replayGainTrack = const Value.absent(),
+    this.replayGainAlbum = const Value.absent(),
+    this.playCount = const Value.absent(),
+    this.lastPlayedAt = const Value.absent(),
+    this.addedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -17197,24 +17655,53 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     required String title,
     this.artist = const Value.absent(),
     this.album = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.trackNumber = const Value.absent(),
+    this.discNumber = const Value.absent(),
+    this.year = const Value.absent(),
+    this.genre = const Value.absent(),
     required String filePath,
     this.lyricsPath = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.ytDlpId = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.bitrate = const Value.absent(),
+    this.codec = const Value.absent(),
+    this.replayGainTrack = const Value.absent(),
+    this.replayGainAlbum = const Value.absent(),
+    this.playCount = const Value.absent(),
+    this.lastPlayedAt = const Value.absent(),
+    required int addedAt,
     required int updatedAt,
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
         filePath = Value(filePath),
+        addedAt = Value(addedAt),
         updatedAt = Value(updatedAt);
   static Insertable<MusicTrack> custom({
     Expression<String>? id,
     Expression<String>? title,
     Expression<String>? artist,
     Expression<String>? album,
+    Expression<String>? albumArtist,
     Expression<int>? trackNumber,
+    Expression<int>? discNumber,
+    Expression<int>? year,
+    Expression<String>? genre,
     Expression<String>? filePath,
     Expression<String>? lyricsPath,
+    Expression<String>? thumbnailUrl,
+    Expression<String>? ytDlpId,
+    Expression<int>? duration,
+    Expression<int>? bitrate,
+    Expression<String>? codec,
+    Expression<double>? replayGainTrack,
+    Expression<double>? replayGainAlbum,
+    Expression<int>? playCount,
+    Expression<int>? lastPlayedAt,
+    Expression<int>? addedAt,
     Expression<int>? updatedAt,
     Expression<int>? isDirty,
     Expression<int>? rowid,
@@ -17224,9 +17711,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       if (title != null) 'title': title,
       if (artist != null) 'artist': artist,
       if (album != null) 'album': album,
+      if (albumArtist != null) 'album_artist': albumArtist,
       if (trackNumber != null) 'track_number': trackNumber,
+      if (discNumber != null) 'disc_number': discNumber,
+      if (year != null) 'year': year,
+      if (genre != null) 'genre': genre,
       if (filePath != null) 'file_path': filePath,
       if (lyricsPath != null) 'lyrics_path': lyricsPath,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (ytDlpId != null) 'yt_dlp_id': ytDlpId,
+      if (duration != null) 'duration': duration,
+      if (bitrate != null) 'bitrate': bitrate,
+      if (codec != null) 'codec': codec,
+      if (replayGainTrack != null) 'replay_gain_track': replayGainTrack,
+      if (replayGainAlbum != null) 'replay_gain_album': replayGainAlbum,
+      if (playCount != null) 'play_count': playCount,
+      if (lastPlayedAt != null) 'last_played_at': lastPlayedAt,
+      if (addedAt != null) 'added_at': addedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDirty != null) 'is_dirty': isDirty,
       if (rowid != null) 'rowid': rowid,
@@ -17238,9 +17739,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       Value<String>? title,
       Value<String?>? artist,
       Value<String?>? album,
+      Value<String?>? albumArtist,
       Value<int?>? trackNumber,
+      Value<int?>? discNumber,
+      Value<int?>? year,
+      Value<String?>? genre,
       Value<String>? filePath,
       Value<String?>? lyricsPath,
+      Value<String?>? thumbnailUrl,
+      Value<String?>? ytDlpId,
+      Value<int>? duration,
+      Value<int?>? bitrate,
+      Value<String?>? codec,
+      Value<double?>? replayGainTrack,
+      Value<double?>? replayGainAlbum,
+      Value<int>? playCount,
+      Value<int?>? lastPlayedAt,
+      Value<int>? addedAt,
       Value<int>? updatedAt,
       Value<int>? isDirty,
       Value<int>? rowid}) {
@@ -17249,9 +17764,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
+      albumArtist: albumArtist ?? this.albumArtist,
       trackNumber: trackNumber ?? this.trackNumber,
+      discNumber: discNumber ?? this.discNumber,
+      year: year ?? this.year,
+      genre: genre ?? this.genre,
       filePath: filePath ?? this.filePath,
       lyricsPath: lyricsPath ?? this.lyricsPath,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      ytDlpId: ytDlpId ?? this.ytDlpId,
+      duration: duration ?? this.duration,
+      bitrate: bitrate ?? this.bitrate,
+      codec: codec ?? this.codec,
+      replayGainTrack: replayGainTrack ?? this.replayGainTrack,
+      replayGainAlbum: replayGainAlbum ?? this.replayGainAlbum,
+      playCount: playCount ?? this.playCount,
+      lastPlayedAt: lastPlayedAt ?? this.lastPlayedAt,
+      addedAt: addedAt ?? this.addedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDirty: isDirty ?? this.isDirty,
       rowid: rowid ?? this.rowid,
@@ -17273,14 +17802,56 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
     if (album.present) {
       map['album'] = Variable<String>(album.value);
     }
+    if (albumArtist.present) {
+      map['album_artist'] = Variable<String>(albumArtist.value);
+    }
     if (trackNumber.present) {
       map['track_number'] = Variable<int>(trackNumber.value);
+    }
+    if (discNumber.present) {
+      map['disc_number'] = Variable<int>(discNumber.value);
+    }
+    if (year.present) {
+      map['year'] = Variable<int>(year.value);
+    }
+    if (genre.present) {
+      map['genre'] = Variable<String>(genre.value);
     }
     if (filePath.present) {
       map['file_path'] = Variable<String>(filePath.value);
     }
     if (lyricsPath.present) {
       map['lyrics_path'] = Variable<String>(lyricsPath.value);
+    }
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
+    }
+    if (ytDlpId.present) {
+      map['yt_dlp_id'] = Variable<String>(ytDlpId.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<int>(duration.value);
+    }
+    if (bitrate.present) {
+      map['bitrate'] = Variable<int>(bitrate.value);
+    }
+    if (codec.present) {
+      map['codec'] = Variable<String>(codec.value);
+    }
+    if (replayGainTrack.present) {
+      map['replay_gain_track'] = Variable<double>(replayGainTrack.value);
+    }
+    if (replayGainAlbum.present) {
+      map['replay_gain_album'] = Variable<double>(replayGainAlbum.value);
+    }
+    if (playCount.present) {
+      map['play_count'] = Variable<int>(playCount.value);
+    }
+    if (lastPlayedAt.present) {
+      map['last_played_at'] = Variable<int>(lastPlayedAt.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<int>(addedAt.value);
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
@@ -17301,9 +17872,23 @@ class MusicTracksCompanion extends UpdateCompanion<MusicTrack> {
           ..write('title: $title, ')
           ..write('artist: $artist, ')
           ..write('album: $album, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('trackNumber: $trackNumber, ')
+          ..write('discNumber: $discNumber, ')
+          ..write('year: $year, ')
+          ..write('genre: $genre, ')
           ..write('filePath: $filePath, ')
           ..write('lyricsPath: $lyricsPath, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('ytDlpId: $ytDlpId, ')
+          ..write('duration: $duration, ')
+          ..write('bitrate: $bitrate, ')
+          ..write('codec: $codec, ')
+          ..write('replayGainTrack: $replayGainTrack, ')
+          ..write('replayGainAlbum: $replayGainAlbum, ')
+          ..write('playCount: $playCount, ')
+          ..write('lastPlayedAt: $lastPlayedAt, ')
+          ..write('addedAt: $addedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDirty: $isDirty, ')
           ..write('rowid: $rowid')
@@ -17328,11 +17913,67 @@ class $PlaylistsTable extends Playlists
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _coverArtUrlMeta =
+      const VerificationMeta('coverArtUrl');
+  @override
+  late final GeneratedColumn<String> coverArtUrl = GeneratedColumn<String>(
+      'cover_art_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isSmartMeta =
+      const VerificationMeta('isSmart');
+  @override
+  late final GeneratedColumn<bool> isSmart = GeneratedColumn<bool>(
+      'is_smart', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_smart" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _smartTypeMeta =
+      const VerificationMeta('smartType');
+  @override
+  late final GeneratedColumn<String> smartType = GeneratedColumn<String>(
+      'smart_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _smartConfigMeta =
+      const VerificationMeta('smartConfig');
+  @override
+  late final GeneratedColumn<String> smartConfig = GeneratedColumn<String>(
+      'smart_config', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta =
+      const VerificationMeta('trackCount');
+  @override
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
+      'track_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _totalDurationMeta =
+      const VerificationMeta('totalDuration');
+  @override
+  late final GeneratedColumn<int> totalDuration = GeneratedColumn<int>(
+      'total_duration', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
   late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
       'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+      'updated_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _isDirtyMeta =
       const VerificationMeta('isDirty');
@@ -17343,7 +17984,20 @@ class $PlaylistsTable extends Playlists
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
   @override
-  List<GeneratedColumn> get $columns => [id, name, createdAt, isDirty];
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        description,
+        coverArtUrl,
+        isSmart,
+        smartType,
+        smartConfig,
+        trackCount,
+        totalDuration,
+        createdAt,
+        updatedAt,
+        isDirty
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -17365,11 +18019,55 @@ class $PlaylistsTable extends Playlists
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('cover_art_url')) {
+      context.handle(
+          _coverArtUrlMeta,
+          coverArtUrl.isAcceptableOrUnknown(
+              data['cover_art_url']!, _coverArtUrlMeta));
+    }
+    if (data.containsKey('is_smart')) {
+      context.handle(_isSmartMeta,
+          isSmart.isAcceptableOrUnknown(data['is_smart']!, _isSmartMeta));
+    }
+    if (data.containsKey('smart_type')) {
+      context.handle(_smartTypeMeta,
+          smartType.isAcceptableOrUnknown(data['smart_type']!, _smartTypeMeta));
+    }
+    if (data.containsKey('smart_config')) {
+      context.handle(
+          _smartConfigMeta,
+          smartConfig.isAcceptableOrUnknown(
+              data['smart_config']!, _smartConfigMeta));
+    }
+    if (data.containsKey('track_count')) {
+      context.handle(
+          _trackCountMeta,
+          trackCount.isAcceptableOrUnknown(
+              data['track_count']!, _trackCountMeta));
+    }
+    if (data.containsKey('total_duration')) {
+      context.handle(
+          _totalDurationMeta,
+          totalDuration.isAcceptableOrUnknown(
+              data['total_duration']!, _totalDurationMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     } else if (isInserting) {
       context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
     }
     if (data.containsKey('is_dirty')) {
       context.handle(_isDirtyMeta,
@@ -17388,8 +18086,24 @@ class $PlaylistsTable extends Playlists
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      coverArtUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cover_art_url']),
+      isSmart: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_smart'])!,
+      smartType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}smart_type']),
+      smartConfig: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}smart_config']),
+      trackCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}track_count'])!,
+      totalDuration: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_duration'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
       isDirty: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
     );
@@ -17404,19 +18118,51 @@ class $PlaylistsTable extends Playlists
 class Playlist extends DataClass implements Insertable<Playlist> {
   final String id;
   final String name;
+  final String? description;
+  final String? coverArtUrl;
+  final bool isSmart;
+  final String? smartType;
+  final String? smartConfig;
+  final int trackCount;
+  final int totalDuration;
   final int createdAt;
+  final int updatedAt;
   final int isDirty;
   const Playlist(
       {required this.id,
       required this.name,
+      this.description,
+      this.coverArtUrl,
+      required this.isSmart,
+      this.smartType,
+      this.smartConfig,
+      required this.trackCount,
+      required this.totalDuration,
       required this.createdAt,
+      required this.updatedAt,
       required this.isDirty});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || coverArtUrl != null) {
+      map['cover_art_url'] = Variable<String>(coverArtUrl);
+    }
+    map['is_smart'] = Variable<bool>(isSmart);
+    if (!nullToAbsent || smartType != null) {
+      map['smart_type'] = Variable<String>(smartType);
+    }
+    if (!nullToAbsent || smartConfig != null) {
+      map['smart_config'] = Variable<String>(smartConfig);
+    }
+    map['track_count'] = Variable<int>(trackCount);
+    map['total_duration'] = Variable<int>(totalDuration);
     map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
     map['is_dirty'] = Variable<int>(isDirty);
     return map;
   }
@@ -17425,7 +18171,23 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     return PlaylistsCompanion(
       id: Value(id),
       name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      coverArtUrl: coverArtUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverArtUrl),
+      isSmart: Value(isSmart),
+      smartType: smartType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(smartType),
+      smartConfig: smartConfig == null && nullToAbsent
+          ? const Value.absent()
+          : Value(smartConfig),
+      trackCount: Value(trackCount),
+      totalDuration: Value(totalDuration),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       isDirty: Value(isDirty),
     );
   }
@@ -17436,7 +18198,15 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     return Playlist(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      coverArtUrl: serializer.fromJson<String?>(json['coverArtUrl']),
+      isSmart: serializer.fromJson<bool>(json['isSmart']),
+      smartType: serializer.fromJson<String?>(json['smartType']),
+      smartConfig: serializer.fromJson<String?>(json['smartConfig']),
+      trackCount: serializer.fromJson<int>(json['trackCount']),
+      totalDuration: serializer.fromJson<int>(json['totalDuration']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
       isDirty: serializer.fromJson<int>(json['isDirty']),
     );
   }
@@ -17446,23 +18216,65 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'coverArtUrl': serializer.toJson<String?>(coverArtUrl),
+      'isSmart': serializer.toJson<bool>(isSmart),
+      'smartType': serializer.toJson<String?>(smartType),
+      'smartConfig': serializer.toJson<String?>(smartConfig),
+      'trackCount': serializer.toJson<int>(trackCount),
+      'totalDuration': serializer.toJson<int>(totalDuration),
       'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
       'isDirty': serializer.toJson<int>(isDirty),
     };
   }
 
-  Playlist copyWith({String? id, String? name, int? createdAt, int? isDirty}) =>
+  Playlist copyWith(
+          {String? id,
+          String? name,
+          Value<String?> description = const Value.absent(),
+          Value<String?> coverArtUrl = const Value.absent(),
+          bool? isSmart,
+          Value<String?> smartType = const Value.absent(),
+          Value<String?> smartConfig = const Value.absent(),
+          int? trackCount,
+          int? totalDuration,
+          int? createdAt,
+          int? updatedAt,
+          int? isDirty}) =>
       Playlist(
         id: id ?? this.id,
         name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+        coverArtUrl: coverArtUrl.present ? coverArtUrl.value : this.coverArtUrl,
+        isSmart: isSmart ?? this.isSmart,
+        smartType: smartType.present ? smartType.value : this.smartType,
+        smartConfig: smartConfig.present ? smartConfig.value : this.smartConfig,
+        trackCount: trackCount ?? this.trackCount,
+        totalDuration: totalDuration ?? this.totalDuration,
         createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
         isDirty: isDirty ?? this.isDirty,
       );
   Playlist copyWithCompanion(PlaylistsCompanion data) {
     return Playlist(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      coverArtUrl:
+          data.coverArtUrl.present ? data.coverArtUrl.value : this.coverArtUrl,
+      isSmart: data.isSmart.present ? data.isSmart.value : this.isSmart,
+      smartType: data.smartType.present ? data.smartType.value : this.smartType,
+      smartConfig:
+          data.smartConfig.present ? data.smartConfig.value : this.smartConfig,
+      trackCount:
+          data.trackCount.present ? data.trackCount.value : this.trackCount,
+      totalDuration: data.totalDuration.present
+          ? data.totalDuration.value
+          : this.totalDuration,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
     );
   }
@@ -17472,57 +18284,126 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     return (StringBuffer('Playlist(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('coverArtUrl: $coverArtUrl, ')
+          ..write('isSmart: $isSmart, ')
+          ..write('smartType: $smartType, ')
+          ..write('smartConfig: $smartConfig, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('totalDuration: $totalDuration, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('isDirty: $isDirty')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, createdAt, isDirty);
+  int get hashCode => Object.hash(
+      id,
+      name,
+      description,
+      coverArtUrl,
+      isSmart,
+      smartType,
+      smartConfig,
+      trackCount,
+      totalDuration,
+      createdAt,
+      updatedAt,
+      isDirty);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Playlist &&
           other.id == this.id &&
           other.name == this.name &&
+          other.description == this.description &&
+          other.coverArtUrl == this.coverArtUrl &&
+          other.isSmart == this.isSmart &&
+          other.smartType == this.smartType &&
+          other.smartConfig == this.smartConfig &&
+          other.trackCount == this.trackCount &&
+          other.totalDuration == this.totalDuration &&
           other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.isDirty == this.isDirty);
 }
 
 class PlaylistsCompanion extends UpdateCompanion<Playlist> {
   final Value<String> id;
   final Value<String> name;
+  final Value<String?> description;
+  final Value<String?> coverArtUrl;
+  final Value<bool> isSmart;
+  final Value<String?> smartType;
+  final Value<String?> smartConfig;
+  final Value<int> trackCount;
+  final Value<int> totalDuration;
   final Value<int> createdAt;
+  final Value<int> updatedAt;
   final Value<int> isDirty;
   final Value<int> rowid;
   const PlaylistsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.coverArtUrl = const Value.absent(),
+    this.isSmart = const Value.absent(),
+    this.smartType = const Value.absent(),
+    this.smartConfig = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.totalDuration = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PlaylistsCompanion.insert({
     required String id,
     required String name,
+    this.description = const Value.absent(),
+    this.coverArtUrl = const Value.absent(),
+    this.isSmart = const Value.absent(),
+    this.smartType = const Value.absent(),
+    this.smartConfig = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.totalDuration = const Value.absent(),
     required int createdAt,
+    required int updatedAt,
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
-        createdAt = Value(createdAt);
+        createdAt = Value(createdAt),
+        updatedAt = Value(updatedAt);
   static Insertable<Playlist> custom({
     Expression<String>? id,
     Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? coverArtUrl,
+    Expression<bool>? isSmart,
+    Expression<String>? smartType,
+    Expression<String>? smartConfig,
+    Expression<int>? trackCount,
+    Expression<int>? totalDuration,
     Expression<int>? createdAt,
+    Expression<int>? updatedAt,
     Expression<int>? isDirty,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (coverArtUrl != null) 'cover_art_url': coverArtUrl,
+      if (isSmart != null) 'is_smart': isSmart,
+      if (smartType != null) 'smart_type': smartType,
+      if (smartConfig != null) 'smart_config': smartConfig,
+      if (trackCount != null) 'track_count': trackCount,
+      if (totalDuration != null) 'total_duration': totalDuration,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (isDirty != null) 'is_dirty': isDirty,
       if (rowid != null) 'rowid': rowid,
     });
@@ -17531,13 +18412,29 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
   PlaylistsCompanion copyWith(
       {Value<String>? id,
       Value<String>? name,
+      Value<String?>? description,
+      Value<String?>? coverArtUrl,
+      Value<bool>? isSmart,
+      Value<String?>? smartType,
+      Value<String?>? smartConfig,
+      Value<int>? trackCount,
+      Value<int>? totalDuration,
       Value<int>? createdAt,
+      Value<int>? updatedAt,
       Value<int>? isDirty,
       Value<int>? rowid}) {
     return PlaylistsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      description: description ?? this.description,
+      coverArtUrl: coverArtUrl ?? this.coverArtUrl,
+      isSmart: isSmart ?? this.isSmart,
+      smartType: smartType ?? this.smartType,
+      smartConfig: smartConfig ?? this.smartConfig,
+      trackCount: trackCount ?? this.trackCount,
+      totalDuration: totalDuration ?? this.totalDuration,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDirty: isDirty ?? this.isDirty,
       rowid: rowid ?? this.rowid,
     );
@@ -17552,8 +18449,32 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (coverArtUrl.present) {
+      map['cover_art_url'] = Variable<String>(coverArtUrl.value);
+    }
+    if (isSmart.present) {
+      map['is_smart'] = Variable<bool>(isSmart.value);
+    }
+    if (smartType.present) {
+      map['smart_type'] = Variable<String>(smartType.value);
+    }
+    if (smartConfig.present) {
+      map['smart_config'] = Variable<String>(smartConfig.value);
+    }
+    if (trackCount.present) {
+      map['track_count'] = Variable<int>(trackCount.value);
+    }
+    if (totalDuration.present) {
+      map['total_duration'] = Variable<int>(totalDuration.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
     }
     if (isDirty.present) {
       map['is_dirty'] = Variable<int>(isDirty.value);
@@ -17569,7 +18490,15 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
     return (StringBuffer('PlaylistsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('coverArtUrl: $coverArtUrl, ')
+          ..write('isSmart: $isSmart, ')
+          ..write('smartType: $smartType, ')
+          ..write('smartConfig: $smartConfig, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('totalDuration: $totalDuration, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('isDirty: $isDirty, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -17606,6 +18535,18 @@ class $PlaylistTracksTable extends PlaylistTracks
       requiredDuringInsert: true,
       $customConstraints:
           'NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE');
+  static const VerificationMeta _positionMeta =
+      const VerificationMeta('position');
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+      'position', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _addedAtMeta =
+      const VerificationMeta('addedAt');
+  @override
+  late final GeneratedColumn<int> addedAt = GeneratedColumn<int>(
+      'added_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _isDirtyMeta =
       const VerificationMeta('isDirty');
   @override
@@ -17615,7 +18556,8 @@ class $PlaylistTracksTable extends PlaylistTracks
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
   @override
-  List<GeneratedColumn> get $columns => [id, playlistId, trackId, isDirty];
+  List<GeneratedColumn> get $columns =>
+      [id, playlistId, trackId, position, addedAt, isDirty];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -17645,6 +18587,18 @@ class $PlaylistTracksTable extends PlaylistTracks
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
+    if (data.containsKey('position')) {
+      context.handle(_positionMeta,
+          position.isAcceptableOrUnknown(data['position']!, _positionMeta));
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(_addedAtMeta,
+          addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
     if (data.containsKey('is_dirty')) {
       context.handle(_isDirtyMeta,
           isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
@@ -17653,7 +18607,7 @@ class $PlaylistTracksTable extends PlaylistTracks
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {id, playlistId, trackId};
   @override
   PlaylistTrack map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -17664,6 +18618,10 @@ class $PlaylistTracksTable extends PlaylistTracks
           .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
       trackId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      position: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}position'])!,
+      addedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}added_at'])!,
       isDirty: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
     );
@@ -17679,11 +18637,15 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
   final String id;
   final String playlistId;
   final String trackId;
+  final int position;
+  final int addedAt;
   final int isDirty;
   const PlaylistTrack(
       {required this.id,
       required this.playlistId,
       required this.trackId,
+      required this.position,
+      required this.addedAt,
       required this.isDirty});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -17691,6 +18653,8 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
     map['id'] = Variable<String>(id);
     map['playlist_id'] = Variable<String>(playlistId);
     map['track_id'] = Variable<String>(trackId);
+    map['position'] = Variable<int>(position);
+    map['added_at'] = Variable<int>(addedAt);
     map['is_dirty'] = Variable<int>(isDirty);
     return map;
   }
@@ -17700,6 +18664,8 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
       id: Value(id),
       playlistId: Value(playlistId),
       trackId: Value(trackId),
+      position: Value(position),
+      addedAt: Value(addedAt),
       isDirty: Value(isDirty),
     );
   }
@@ -17711,6 +18677,8 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
       id: serializer.fromJson<String>(json['id']),
       playlistId: serializer.fromJson<String>(json['playlistId']),
       trackId: serializer.fromJson<String>(json['trackId']),
+      position: serializer.fromJson<int>(json['position']),
+      addedAt: serializer.fromJson<int>(json['addedAt']),
       isDirty: serializer.fromJson<int>(json['isDirty']),
     );
   }
@@ -17721,16 +18689,25 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
       'id': serializer.toJson<String>(id),
       'playlistId': serializer.toJson<String>(playlistId),
       'trackId': serializer.toJson<String>(trackId),
+      'position': serializer.toJson<int>(position),
+      'addedAt': serializer.toJson<int>(addedAt),
       'isDirty': serializer.toJson<int>(isDirty),
     };
   }
 
   PlaylistTrack copyWith(
-          {String? id, String? playlistId, String? trackId, int? isDirty}) =>
+          {String? id,
+          String? playlistId,
+          String? trackId,
+          int? position,
+          int? addedAt,
+          int? isDirty}) =>
       PlaylistTrack(
         id: id ?? this.id,
         playlistId: playlistId ?? this.playlistId,
         trackId: trackId ?? this.trackId,
+        position: position ?? this.position,
+        addedAt: addedAt ?? this.addedAt,
         isDirty: isDirty ?? this.isDirty,
       );
   PlaylistTrack copyWithCompanion(PlaylistTracksCompanion data) {
@@ -17739,6 +18716,8 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
       playlistId:
           data.playlistId.present ? data.playlistId.value : this.playlistId,
       trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      position: data.position.present ? data.position.value : this.position,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
       isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
     );
   }
@@ -17749,13 +18728,16 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
           ..write('id: $id, ')
           ..write('playlistId: $playlistId, ')
           ..write('trackId: $trackId, ')
+          ..write('position: $position, ')
+          ..write('addedAt: $addedAt, ')
           ..write('isDirty: $isDirty')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, playlistId, trackId, isDirty);
+  int get hashCode =>
+      Object.hash(id, playlistId, trackId, position, addedAt, isDirty);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -17763,6 +18745,8 @@ class PlaylistTrack extends DataClass implements Insertable<PlaylistTrack> {
           other.id == this.id &&
           other.playlistId == this.playlistId &&
           other.trackId == this.trackId &&
+          other.position == this.position &&
+          other.addedAt == this.addedAt &&
           other.isDirty == this.isDirty);
 }
 
@@ -17770,12 +18754,16 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
   final Value<String> id;
   final Value<String> playlistId;
   final Value<String> trackId;
+  final Value<int> position;
+  final Value<int> addedAt;
   final Value<int> isDirty;
   final Value<int> rowid;
   const PlaylistTracksCompanion({
     this.id = const Value.absent(),
     this.playlistId = const Value.absent(),
     this.trackId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.addedAt = const Value.absent(),
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -17783,15 +18771,21 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
     required String id,
     required String playlistId,
     required String trackId,
+    required int position,
+    required int addedAt,
     this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         playlistId = Value(playlistId),
-        trackId = Value(trackId);
+        trackId = Value(trackId),
+        position = Value(position),
+        addedAt = Value(addedAt);
   static Insertable<PlaylistTrack> custom({
     Expression<String>? id,
     Expression<String>? playlistId,
     Expression<String>? trackId,
+    Expression<int>? position,
+    Expression<int>? addedAt,
     Expression<int>? isDirty,
     Expression<int>? rowid,
   }) {
@@ -17799,6 +18793,8 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
       if (id != null) 'id': id,
       if (playlistId != null) 'playlist_id': playlistId,
       if (trackId != null) 'track_id': trackId,
+      if (position != null) 'position': position,
+      if (addedAt != null) 'added_at': addedAt,
       if (isDirty != null) 'is_dirty': isDirty,
       if (rowid != null) 'rowid': rowid,
     });
@@ -17808,12 +18804,16 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
       {Value<String>? id,
       Value<String>? playlistId,
       Value<String>? trackId,
+      Value<int>? position,
+      Value<int>? addedAt,
       Value<int>? isDirty,
       Value<int>? rowid}) {
     return PlaylistTracksCompanion(
       id: id ?? this.id,
       playlistId: playlistId ?? this.playlistId,
       trackId: trackId ?? this.trackId,
+      position: position ?? this.position,
+      addedAt: addedAt ?? this.addedAt,
       isDirty: isDirty ?? this.isDirty,
       rowid: rowid ?? this.rowid,
     );
@@ -17831,6 +18831,12 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
     if (trackId.present) {
       map['track_id'] = Variable<String>(trackId.value);
     }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<int>(addedAt.value);
+    }
     if (isDirty.present) {
       map['is_dirty'] = Variable<int>(isDirty.value);
     }
@@ -17846,6 +18852,8 @@ class PlaylistTracksCompanion extends UpdateCompanion<PlaylistTrack> {
           ..write('id: $id, ')
           ..write('playlistId: $playlistId, ')
           ..write('trackId: $trackId, ')
+          ..write('position: $position, ')
+          ..write('addedAt: $addedAt, ')
           ..write('isDirty: $isDirty, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -17905,9 +18913,26 @@ class $OfflineMusicTracksTable extends OfflineMusicTracks
   late final GeneratedColumn<int> downloadedAt = GeneratedColumn<int>(
       'downloaded_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, title, artist, album, thumbnail, filePath, duration, downloadedAt];
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        title,
+        artist,
+        album,
+        thumbnail,
+        filePath,
+        duration,
+        downloadedAt,
+        isDirty
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -17959,6 +18984,10 @@ class $OfflineMusicTracksTable extends OfflineMusicTracks
     } else if (isInserting) {
       context.missing(_downloadedAtMeta);
     }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
     return context;
   }
 
@@ -17984,6 +19013,8 @@ class $OfflineMusicTracksTable extends OfflineMusicTracks
           .read(DriftSqlType.double, data['${effectivePrefix}duration'])!,
       downloadedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}downloaded_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
     );
   }
 
@@ -18003,6 +19034,7 @@ class OfflineMusicTrack extends DataClass
   final String filePath;
   final double duration;
   final int downloadedAt;
+  final int isDirty;
   const OfflineMusicTrack(
       {required this.id,
       required this.title,
@@ -18011,7 +19043,8 @@ class OfflineMusicTrack extends DataClass
       this.thumbnail,
       required this.filePath,
       required this.duration,
-      required this.downloadedAt});
+      required this.downloadedAt,
+      required this.isDirty});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -18029,6 +19062,7 @@ class OfflineMusicTrack extends DataClass
     map['file_path'] = Variable<String>(filePath);
     map['duration'] = Variable<double>(duration);
     map['downloaded_at'] = Variable<int>(downloadedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
     return map;
   }
 
@@ -18046,6 +19080,7 @@ class OfflineMusicTrack extends DataClass
       filePath: Value(filePath),
       duration: Value(duration),
       downloadedAt: Value(downloadedAt),
+      isDirty: Value(isDirty),
     );
   }
 
@@ -18061,6 +19096,7 @@ class OfflineMusicTrack extends DataClass
       filePath: serializer.fromJson<String>(json['filePath']),
       duration: serializer.fromJson<double>(json['duration']),
       downloadedAt: serializer.fromJson<int>(json['downloadedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
     );
   }
   @override
@@ -18075,6 +19111,7 @@ class OfflineMusicTrack extends DataClass
       'filePath': serializer.toJson<String>(filePath),
       'duration': serializer.toJson<double>(duration),
       'downloadedAt': serializer.toJson<int>(downloadedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
     };
   }
 
@@ -18086,7 +19123,8 @@ class OfflineMusicTrack extends DataClass
           Value<String?> thumbnail = const Value.absent(),
           String? filePath,
           double? duration,
-          int? downloadedAt}) =>
+          int? downloadedAt,
+          int? isDirty}) =>
       OfflineMusicTrack(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -18096,6 +19134,7 @@ class OfflineMusicTrack extends DataClass
         filePath: filePath ?? this.filePath,
         duration: duration ?? this.duration,
         downloadedAt: downloadedAt ?? this.downloadedAt,
+        isDirty: isDirty ?? this.isDirty,
       );
   OfflineMusicTrack copyWithCompanion(OfflineMusicTracksCompanion data) {
     return OfflineMusicTrack(
@@ -18109,6 +19148,7 @@ class OfflineMusicTrack extends DataClass
       downloadedAt: data.downloadedAt.present
           ? data.downloadedAt.value
           : this.downloadedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
     );
   }
 
@@ -18122,14 +19162,15 @@ class OfflineMusicTrack extends DataClass
           ..write('thumbnail: $thumbnail, ')
           ..write('filePath: $filePath, ')
           ..write('duration: $duration, ')
-          ..write('downloadedAt: $downloadedAt')
+          ..write('downloadedAt: $downloadedAt, ')
+          ..write('isDirty: $isDirty')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, title, artist, album, thumbnail, filePath, duration, downloadedAt);
+  int get hashCode => Object.hash(id, title, artist, album, thumbnail, filePath,
+      duration, downloadedAt, isDirty);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -18141,7 +19182,8 @@ class OfflineMusicTrack extends DataClass
           other.thumbnail == this.thumbnail &&
           other.filePath == this.filePath &&
           other.duration == this.duration &&
-          other.downloadedAt == this.downloadedAt);
+          other.downloadedAt == this.downloadedAt &&
+          other.isDirty == this.isDirty);
 }
 
 class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
@@ -18153,6 +19195,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
   final Value<String> filePath;
   final Value<double> duration;
   final Value<int> downloadedAt;
+  final Value<int> isDirty;
   final Value<int> rowid;
   const OfflineMusicTracksCompanion({
     this.id = const Value.absent(),
@@ -18163,6 +19206,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
     this.filePath = const Value.absent(),
     this.duration = const Value.absent(),
     this.downloadedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OfflineMusicTracksCompanion.insert({
@@ -18174,6 +19218,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
     required String filePath,
     this.duration = const Value.absent(),
     required int downloadedAt,
+    this.isDirty = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -18188,6 +19233,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
     Expression<String>? filePath,
     Expression<double>? duration,
     Expression<int>? downloadedAt,
+    Expression<int>? isDirty,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -18199,6 +19245,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
       if (filePath != null) 'file_path': filePath,
       if (duration != null) 'duration': duration,
       if (downloadedAt != null) 'downloaded_at': downloadedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -18212,6 +19259,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
       Value<String>? filePath,
       Value<double>? duration,
       Value<int>? downloadedAt,
+      Value<int>? isDirty,
       Value<int>? rowid}) {
     return OfflineMusicTracksCompanion(
       id: id ?? this.id,
@@ -18222,6 +19270,7 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
       filePath: filePath ?? this.filePath,
       duration: duration ?? this.duration,
       downloadedAt: downloadedAt ?? this.downloadedAt,
+      isDirty: isDirty ?? this.isDirty,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -18253,6 +19302,9 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
     if (downloadedAt.present) {
       map['downloaded_at'] = Variable<int>(downloadedAt.value);
     }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -18270,6 +19322,1498 @@ class OfflineMusicTracksCompanion extends UpdateCompanion<OfflineMusicTrack> {
           ..write('filePath: $filePath, ')
           ..write('duration: $duration, ')
           ..write('downloadedAt: $downloadedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LikedSongsTable extends LikedSongs
+    with TableInfo<$LikedSongsTable, LikedSong> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LikedSongsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE');
+  static const VerificationMeta _likedAtMeta =
+      const VerificationMeta('likedAt');
+  @override
+  late final GeneratedColumn<int> likedAt = GeneratedColumn<int>(
+      'liked_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [id, likedAt, isDirty];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'liked_songs';
+  @override
+  VerificationContext validateIntegrity(Insertable<LikedSong> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('liked_at')) {
+      context.handle(_likedAtMeta,
+          likedAt.isAcceptableOrUnknown(data['liked_at']!, _likedAtMeta));
+    } else if (isInserting) {
+      context.missing(_likedAtMeta);
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LikedSong map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LikedSong(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      likedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}liked_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $LikedSongsTable createAlias(String alias) {
+    return $LikedSongsTable(attachedDatabase, alias);
+  }
+}
+
+class LikedSong extends DataClass implements Insertable<LikedSong> {
+  final String id;
+  final int likedAt;
+  final int isDirty;
+  const LikedSong(
+      {required this.id, required this.likedAt, required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['liked_at'] = Variable<int>(likedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  LikedSongsCompanion toCompanion(bool nullToAbsent) {
+    return LikedSongsCompanion(
+      id: Value(id),
+      likedAt: Value(likedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory LikedSong.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LikedSong(
+      id: serializer.fromJson<String>(json['id']),
+      likedAt: serializer.fromJson<int>(json['likedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'likedAt': serializer.toJson<int>(likedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  LikedSong copyWith({String? id, int? likedAt, int? isDirty}) => LikedSong(
+        id: id ?? this.id,
+        likedAt: likedAt ?? this.likedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  LikedSong copyWithCompanion(LikedSongsCompanion data) {
+    return LikedSong(
+      id: data.id.present ? data.id.value : this.id,
+      likedAt: data.likedAt.present ? data.likedAt.value : this.likedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LikedSong(')
+          ..write('id: $id, ')
+          ..write('likedAt: $likedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, likedAt, isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LikedSong &&
+          other.id == this.id &&
+          other.likedAt == this.likedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class LikedSongsCompanion extends UpdateCompanion<LikedSong> {
+  final Value<String> id;
+  final Value<int> likedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const LikedSongsCompanion({
+    this.id = const Value.absent(),
+    this.likedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LikedSongsCompanion.insert({
+    required String id,
+    required int likedAt,
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        likedAt = Value(likedAt);
+  static Insertable<LikedSong> custom({
+    Expression<String>? id,
+    Expression<int>? likedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (likedAt != null) 'liked_at': likedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LikedSongsCompanion copyWith(
+      {Value<String>? id,
+      Value<int>? likedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return LikedSongsCompanion(
+      id: id ?? this.id,
+      likedAt: likedAt ?? this.likedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (likedAt.present) {
+      map['liked_at'] = Variable<int>(likedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LikedSongsCompanion(')
+          ..write('id: $id, ')
+          ..write('likedAt: $likedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DownloadQueueTable extends DownloadQueue
+    with TableInfo<$DownloadQueueTable, DownloadQueueItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DownloadQueueTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _trackIdMeta =
+      const VerificationMeta('trackId');
+  @override
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
+      'track_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE');
+  static const VerificationMeta _urlMeta = const VerificationMeta('url');
+  @override
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+      'url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _destinationPathMeta =
+      const VerificationMeta('destinationPath');
+  @override
+  late final GeneratedColumn<String> destinationPath = GeneratedColumn<String>(
+      'destination_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _priorityMeta =
+      const VerificationMeta('priority');
+  @override
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
+      'priority', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _retryCountMeta =
+      const VerificationMeta('retryCount');
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+      'retry_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _totalBytesMeta =
+      const VerificationMeta('totalBytes');
+  @override
+  late final GeneratedColumn<int> totalBytes = GeneratedColumn<int>(
+      'total_bytes', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _downloadedBytesMeta =
+      const VerificationMeta('downloadedBytes');
+  @override
+  late final GeneratedColumn<int> downloadedBytes = GeneratedColumn<int>(
+      'downloaded_bytes', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _errorMessageMeta =
+      const VerificationMeta('errorMessage');
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+      'error_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _wifiOnlyMeta =
+      const VerificationMeta('wifiOnly');
+  @override
+  late final GeneratedColumn<bool> wifiOnly = GeneratedColumn<bool>(
+      'wifi_only', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("wifi_only" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _chargingOnlyMeta =
+      const VerificationMeta('chargingOnly');
+  @override
+  late final GeneratedColumn<bool> chargingOnly = GeneratedColumn<bool>(
+      'charging_only', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("charging_only" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _startedAtMeta =
+      const VerificationMeta('startedAt');
+  @override
+  late final GeneratedColumn<int> startedAt = GeneratedColumn<int>(
+      'started_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<int> completedAt = GeneratedColumn<int>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        trackId,
+        url,
+        destinationPath,
+        status,
+        priority,
+        retryCount,
+        totalBytes,
+        downloadedBytes,
+        errorMessage,
+        wifiOnly,
+        chargingOnly,
+        createdAt,
+        startedAt,
+        completedAt,
+        isDirty
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'download_queue';
+  @override
+  VerificationContext validateIntegrity(Insertable<DownloadQueueItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('track_id')) {
+      context.handle(_trackIdMeta,
+          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+    } else if (isInserting) {
+      context.missing(_trackIdMeta);
+    }
+    if (data.containsKey('url')) {
+      context.handle(
+          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
+    } else if (isInserting) {
+      context.missing(_urlMeta);
+    }
+    if (data.containsKey('destination_path')) {
+      context.handle(
+          _destinationPathMeta,
+          destinationPath.isAcceptableOrUnknown(
+              data['destination_path']!, _destinationPathMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('priority')) {
+      context.handle(_priorityMeta,
+          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+          _retryCountMeta,
+          retryCount.isAcceptableOrUnknown(
+              data['retry_count']!, _retryCountMeta));
+    }
+    if (data.containsKey('total_bytes')) {
+      context.handle(
+          _totalBytesMeta,
+          totalBytes.isAcceptableOrUnknown(
+              data['total_bytes']!, _totalBytesMeta));
+    }
+    if (data.containsKey('downloaded_bytes')) {
+      context.handle(
+          _downloadedBytesMeta,
+          downloadedBytes.isAcceptableOrUnknown(
+              data['downloaded_bytes']!, _downloadedBytesMeta));
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+          _errorMessageMeta,
+          errorMessage.isAcceptableOrUnknown(
+              data['error_message']!, _errorMessageMeta));
+    }
+    if (data.containsKey('wifi_only')) {
+      context.handle(_wifiOnlyMeta,
+          wifiOnly.isAcceptableOrUnknown(data['wifi_only']!, _wifiOnlyMeta));
+    }
+    if (data.containsKey('charging_only')) {
+      context.handle(
+          _chargingOnlyMeta,
+          chargingOnly.isAcceptableOrUnknown(
+              data['charging_only']!, _chargingOnlyMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(_startedAtMeta,
+          startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DownloadQueueItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DownloadQueueItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      trackId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      url: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+      destinationPath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}destination_path']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      priority: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}priority'])!,
+      retryCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}retry_count'])!,
+      totalBytes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_bytes']),
+      downloadedBytes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}downloaded_bytes'])!,
+      errorMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error_message']),
+      wifiOnly: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}wifi_only'])!,
+      chargingOnly: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}charging_only'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      startedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}started_at']),
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}completed_at']),
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $DownloadQueueTable createAlias(String alias) {
+    return $DownloadQueueTable(attachedDatabase, alias);
+  }
+}
+
+class DownloadQueueItem extends DataClass
+    implements Insertable<DownloadQueueItem> {
+  final String id;
+  final String trackId;
+  final String url;
+  final String? destinationPath;
+  final String status;
+  final int priority;
+  final int retryCount;
+  final int? totalBytes;
+  final int downloadedBytes;
+  final String? errorMessage;
+  final bool wifiOnly;
+  final bool chargingOnly;
+  final int createdAt;
+  final int? startedAt;
+  final int? completedAt;
+  final int isDirty;
+  const DownloadQueueItem(
+      {required this.id,
+      required this.trackId,
+      required this.url,
+      this.destinationPath,
+      required this.status,
+      required this.priority,
+      required this.retryCount,
+      this.totalBytes,
+      required this.downloadedBytes,
+      this.errorMessage,
+      required this.wifiOnly,
+      required this.chargingOnly,
+      required this.createdAt,
+      this.startedAt,
+      this.completedAt,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['track_id'] = Variable<String>(trackId);
+    map['url'] = Variable<String>(url);
+    if (!nullToAbsent || destinationPath != null) {
+      map['destination_path'] = Variable<String>(destinationPath);
+    }
+    map['status'] = Variable<String>(status);
+    map['priority'] = Variable<int>(priority);
+    map['retry_count'] = Variable<int>(retryCount);
+    if (!nullToAbsent || totalBytes != null) {
+      map['total_bytes'] = Variable<int>(totalBytes);
+    }
+    map['downloaded_bytes'] = Variable<int>(downloadedBytes);
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    map['wifi_only'] = Variable<bool>(wifiOnly);
+    map['charging_only'] = Variable<bool>(chargingOnly);
+    map['created_at'] = Variable<int>(createdAt);
+    if (!nullToAbsent || startedAt != null) {
+      map['started_at'] = Variable<int>(startedAt);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<int>(completedAt);
+    }
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  DownloadQueueCompanion toCompanion(bool nullToAbsent) {
+    return DownloadQueueCompanion(
+      id: Value(id),
+      trackId: Value(trackId),
+      url: Value(url),
+      destinationPath: destinationPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(destinationPath),
+      status: Value(status),
+      priority: Value(priority),
+      retryCount: Value(retryCount),
+      totalBytes: totalBytes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalBytes),
+      downloadedBytes: Value(downloadedBytes),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
+      wifiOnly: Value(wifiOnly),
+      chargingOnly: Value(chargingOnly),
+      createdAt: Value(createdAt),
+      startedAt: startedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory DownloadQueueItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DownloadQueueItem(
+      id: serializer.fromJson<String>(json['id']),
+      trackId: serializer.fromJson<String>(json['trackId']),
+      url: serializer.fromJson<String>(json['url']),
+      destinationPath: serializer.fromJson<String?>(json['destinationPath']),
+      status: serializer.fromJson<String>(json['status']),
+      priority: serializer.fromJson<int>(json['priority']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      totalBytes: serializer.fromJson<int?>(json['totalBytes']),
+      downloadedBytes: serializer.fromJson<int>(json['downloadedBytes']),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
+      wifiOnly: serializer.fromJson<bool>(json['wifiOnly']),
+      chargingOnly: serializer.fromJson<bool>(json['chargingOnly']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      startedAt: serializer.fromJson<int?>(json['startedAt']),
+      completedAt: serializer.fromJson<int?>(json['completedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'trackId': serializer.toJson<String>(trackId),
+      'url': serializer.toJson<String>(url),
+      'destinationPath': serializer.toJson<String?>(destinationPath),
+      'status': serializer.toJson<String>(status),
+      'priority': serializer.toJson<int>(priority),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'totalBytes': serializer.toJson<int?>(totalBytes),
+      'downloadedBytes': serializer.toJson<int>(downloadedBytes),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
+      'wifiOnly': serializer.toJson<bool>(wifiOnly),
+      'chargingOnly': serializer.toJson<bool>(chargingOnly),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'startedAt': serializer.toJson<int?>(startedAt),
+      'completedAt': serializer.toJson<int?>(completedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  DownloadQueueItem copyWith(
+          {String? id,
+          String? trackId,
+          String? url,
+          Value<String?> destinationPath = const Value.absent(),
+          String? status,
+          int? priority,
+          int? retryCount,
+          Value<int?> totalBytes = const Value.absent(),
+          int? downloadedBytes,
+          Value<String?> errorMessage = const Value.absent(),
+          bool? wifiOnly,
+          bool? chargingOnly,
+          int? createdAt,
+          Value<int?> startedAt = const Value.absent(),
+          Value<int?> completedAt = const Value.absent(),
+          int? isDirty}) =>
+      DownloadQueueItem(
+        id: id ?? this.id,
+        trackId: trackId ?? this.trackId,
+        url: url ?? this.url,
+        destinationPath: destinationPath.present
+            ? destinationPath.value
+            : this.destinationPath,
+        status: status ?? this.status,
+        priority: priority ?? this.priority,
+        retryCount: retryCount ?? this.retryCount,
+        totalBytes: totalBytes.present ? totalBytes.value : this.totalBytes,
+        downloadedBytes: downloadedBytes ?? this.downloadedBytes,
+        errorMessage:
+            errorMessage.present ? errorMessage.value : this.errorMessage,
+        wifiOnly: wifiOnly ?? this.wifiOnly,
+        chargingOnly: chargingOnly ?? this.chargingOnly,
+        createdAt: createdAt ?? this.createdAt,
+        startedAt: startedAt.present ? startedAt.value : this.startedAt,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  DownloadQueueItem copyWithCompanion(DownloadQueueCompanion data) {
+    return DownloadQueueItem(
+      id: data.id.present ? data.id.value : this.id,
+      trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      url: data.url.present ? data.url.value : this.url,
+      destinationPath: data.destinationPath.present
+          ? data.destinationPath.value
+          : this.destinationPath,
+      status: data.status.present ? data.status.value : this.status,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      retryCount:
+          data.retryCount.present ? data.retryCount.value : this.retryCount,
+      totalBytes:
+          data.totalBytes.present ? data.totalBytes.value : this.totalBytes,
+      downloadedBytes: data.downloadedBytes.present
+          ? data.downloadedBytes.value
+          : this.downloadedBytes,
+      errorMessage: data.errorMessage.present
+          ? data.errorMessage.value
+          : this.errorMessage,
+      wifiOnly: data.wifiOnly.present ? data.wifiOnly.value : this.wifiOnly,
+      chargingOnly: data.chargingOnly.present
+          ? data.chargingOnly.value
+          : this.chargingOnly,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DownloadQueueItem(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('url: $url, ')
+          ..write('destinationPath: $destinationPath, ')
+          ..write('status: $status, ')
+          ..write('priority: $priority, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('downloadedBytes: $downloadedBytes, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('wifiOnly: $wifiOnly, ')
+          ..write('chargingOnly: $chargingOnly, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      trackId,
+      url,
+      destinationPath,
+      status,
+      priority,
+      retryCount,
+      totalBytes,
+      downloadedBytes,
+      errorMessage,
+      wifiOnly,
+      chargingOnly,
+      createdAt,
+      startedAt,
+      completedAt,
+      isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DownloadQueueItem &&
+          other.id == this.id &&
+          other.trackId == this.trackId &&
+          other.url == this.url &&
+          other.destinationPath == this.destinationPath &&
+          other.status == this.status &&
+          other.priority == this.priority &&
+          other.retryCount == this.retryCount &&
+          other.totalBytes == this.totalBytes &&
+          other.downloadedBytes == this.downloadedBytes &&
+          other.errorMessage == this.errorMessage &&
+          other.wifiOnly == this.wifiOnly &&
+          other.chargingOnly == this.chargingOnly &&
+          other.createdAt == this.createdAt &&
+          other.startedAt == this.startedAt &&
+          other.completedAt == this.completedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class DownloadQueueCompanion extends UpdateCompanion<DownloadQueueItem> {
+  final Value<String> id;
+  final Value<String> trackId;
+  final Value<String> url;
+  final Value<String?> destinationPath;
+  final Value<String> status;
+  final Value<int> priority;
+  final Value<int> retryCount;
+  final Value<int?> totalBytes;
+  final Value<int> downloadedBytes;
+  final Value<String?> errorMessage;
+  final Value<bool> wifiOnly;
+  final Value<bool> chargingOnly;
+  final Value<int> createdAt;
+  final Value<int?> startedAt;
+  final Value<int?> completedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const DownloadQueueCompanion({
+    this.id = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.url = const Value.absent(),
+    this.destinationPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.totalBytes = const Value.absent(),
+    this.downloadedBytes = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.wifiOnly = const Value.absent(),
+    this.chargingOnly = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DownloadQueueCompanion.insert({
+    required String id,
+    required String trackId,
+    required String url,
+    this.destinationPath = const Value.absent(),
+    this.status = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.totalBytes = const Value.absent(),
+    this.downloadedBytes = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.wifiOnly = const Value.absent(),
+    this.chargingOnly = const Value.absent(),
+    required int createdAt,
+    this.startedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        trackId = Value(trackId),
+        url = Value(url),
+        createdAt = Value(createdAt);
+  static Insertable<DownloadQueueItem> custom({
+    Expression<String>? id,
+    Expression<String>? trackId,
+    Expression<String>? url,
+    Expression<String>? destinationPath,
+    Expression<String>? status,
+    Expression<int>? priority,
+    Expression<int>? retryCount,
+    Expression<int>? totalBytes,
+    Expression<int>? downloadedBytes,
+    Expression<String>? errorMessage,
+    Expression<bool>? wifiOnly,
+    Expression<bool>? chargingOnly,
+    Expression<int>? createdAt,
+    Expression<int>? startedAt,
+    Expression<int>? completedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (trackId != null) 'track_id': trackId,
+      if (url != null) 'url': url,
+      if (destinationPath != null) 'destination_path': destinationPath,
+      if (status != null) 'status': status,
+      if (priority != null) 'priority': priority,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (totalBytes != null) 'total_bytes': totalBytes,
+      if (downloadedBytes != null) 'downloaded_bytes': downloadedBytes,
+      if (errorMessage != null) 'error_message': errorMessage,
+      if (wifiOnly != null) 'wifi_only': wifiOnly,
+      if (chargingOnly != null) 'charging_only': chargingOnly,
+      if (createdAt != null) 'created_at': createdAt,
+      if (startedAt != null) 'started_at': startedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DownloadQueueCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? trackId,
+      Value<String>? url,
+      Value<String?>? destinationPath,
+      Value<String>? status,
+      Value<int>? priority,
+      Value<int>? retryCount,
+      Value<int?>? totalBytes,
+      Value<int>? downloadedBytes,
+      Value<String?>? errorMessage,
+      Value<bool>? wifiOnly,
+      Value<bool>? chargingOnly,
+      Value<int>? createdAt,
+      Value<int?>? startedAt,
+      Value<int?>? completedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return DownloadQueueCompanion(
+      id: id ?? this.id,
+      trackId: trackId ?? this.trackId,
+      url: url ?? this.url,
+      destinationPath: destinationPath ?? this.destinationPath,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      retryCount: retryCount ?? this.retryCount,
+      totalBytes: totalBytes ?? this.totalBytes,
+      downloadedBytes: downloadedBytes ?? this.downloadedBytes,
+      errorMessage: errorMessage ?? this.errorMessage,
+      wifiOnly: wifiOnly ?? this.wifiOnly,
+      chargingOnly: chargingOnly ?? this.chargingOnly,
+      createdAt: createdAt ?? this.createdAt,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (trackId.present) {
+      map['track_id'] = Variable<String>(trackId.value);
+    }
+    if (url.present) {
+      map['url'] = Variable<String>(url.value);
+    }
+    if (destinationPath.present) {
+      map['destination_path'] = Variable<String>(destinationPath.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<int>(priority.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (totalBytes.present) {
+      map['total_bytes'] = Variable<int>(totalBytes.value);
+    }
+    if (downloadedBytes.present) {
+      map['downloaded_bytes'] = Variable<int>(downloadedBytes.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    if (wifiOnly.present) {
+      map['wifi_only'] = Variable<bool>(wifiOnly.value);
+    }
+    if (chargingOnly.present) {
+      map['charging_only'] = Variable<bool>(chargingOnly.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<int>(startedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<int>(completedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DownloadQueueCompanion(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('url: $url, ')
+          ..write('destinationPath: $destinationPath, ')
+          ..write('status: $status, ')
+          ..write('priority: $priority, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('totalBytes: $totalBytes, ')
+          ..write('downloadedBytes: $downloadedBytes, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('wifiOnly: $wifiOnly, ')
+          ..write('chargingOnly: $chargingOnly, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ListeningHistoryTable extends ListeningHistory
+    with TableInfo<$ListeningHistoryTable, ListeningEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ListeningHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _trackIdMeta =
+      const VerificationMeta('trackId');
+  @override
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
+      'track_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE');
+  static const VerificationMeta _playedAtMeta =
+      const VerificationMeta('playedAt');
+  @override
+  late final GeneratedColumn<int> playedAt = GeneratedColumn<int>(
+      'played_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _positionMsMeta =
+      const VerificationMeta('positionMs');
+  @override
+  late final GeneratedColumn<int> positionMs = GeneratedColumn<int>(
+      'position_ms', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _durationMsMeta =
+      const VerificationMeta('durationMs');
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+      'duration_ms', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _completionRateMeta =
+      const VerificationMeta('completionRate');
+  @override
+  late final GeneratedColumn<double> completionRate = GeneratedColumn<double>(
+      'completion_rate', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _skippedMeta =
+      const VerificationMeta('skipped');
+  @override
+  late final GeneratedColumn<bool> skipped = GeneratedColumn<bool>(
+      'skipped', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("skipped" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+      'source', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        trackId,
+        playedAt,
+        positionMs,
+        durationMs,
+        completionRate,
+        skipped,
+        source,
+        isDirty
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'listening_history';
+  @override
+  VerificationContext validateIntegrity(Insertable<ListeningEvent> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('track_id')) {
+      context.handle(_trackIdMeta,
+          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+    } else if (isInserting) {
+      context.missing(_trackIdMeta);
+    }
+    if (data.containsKey('played_at')) {
+      context.handle(_playedAtMeta,
+          playedAt.isAcceptableOrUnknown(data['played_at']!, _playedAtMeta));
+    } else if (isInserting) {
+      context.missing(_playedAtMeta);
+    }
+    if (data.containsKey('position_ms')) {
+      context.handle(
+          _positionMsMeta,
+          positionMs.isAcceptableOrUnknown(
+              data['position_ms']!, _positionMsMeta));
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+          _durationMsMeta,
+          durationMs.isAcceptableOrUnknown(
+              data['duration_ms']!, _durationMsMeta));
+    }
+    if (data.containsKey('completion_rate')) {
+      context.handle(
+          _completionRateMeta,
+          completionRate.isAcceptableOrUnknown(
+              data['completion_rate']!, _completionRateMeta));
+    }
+    if (data.containsKey('skipped')) {
+      context.handle(_skippedMeta,
+          skipped.isAcceptableOrUnknown(data['skipped']!, _skippedMeta));
+    }
+    if (data.containsKey('source')) {
+      context.handle(_sourceMeta,
+          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ListeningEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ListeningEvent(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      trackId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      playedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}played_at'])!,
+      positionMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}position_ms'])!,
+      durationMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration_ms']),
+      completionRate: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}completion_rate']),
+      skipped: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}skipped'])!,
+      source: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source']),
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $ListeningHistoryTable createAlias(String alias) {
+    return $ListeningHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class ListeningEvent extends DataClass implements Insertable<ListeningEvent> {
+  final String id;
+  final String trackId;
+  final int playedAt;
+  final int positionMs;
+  final int? durationMs;
+  final double? completionRate;
+  final bool skipped;
+  final String? source;
+  final int isDirty;
+  const ListeningEvent(
+      {required this.id,
+      required this.trackId,
+      required this.playedAt,
+      required this.positionMs,
+      this.durationMs,
+      this.completionRate,
+      required this.skipped,
+      this.source,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['track_id'] = Variable<String>(trackId);
+    map['played_at'] = Variable<int>(playedAt);
+    map['position_ms'] = Variable<int>(positionMs);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    if (!nullToAbsent || completionRate != null) {
+      map['completion_rate'] = Variable<double>(completionRate);
+    }
+    map['skipped'] = Variable<bool>(skipped);
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  ListeningHistoryCompanion toCompanion(bool nullToAbsent) {
+    return ListeningHistoryCompanion(
+      id: Value(id),
+      trackId: Value(trackId),
+      playedAt: Value(playedAt),
+      positionMs: Value(positionMs),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      completionRate: completionRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completionRate),
+      skipped: Value(skipped),
+      source:
+          source == null && nullToAbsent ? const Value.absent() : Value(source),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory ListeningEvent.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ListeningEvent(
+      id: serializer.fromJson<String>(json['id']),
+      trackId: serializer.fromJson<String>(json['trackId']),
+      playedAt: serializer.fromJson<int>(json['playedAt']),
+      positionMs: serializer.fromJson<int>(json['positionMs']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      completionRate: serializer.fromJson<double?>(json['completionRate']),
+      skipped: serializer.fromJson<bool>(json['skipped']),
+      source: serializer.fromJson<String?>(json['source']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'trackId': serializer.toJson<String>(trackId),
+      'playedAt': serializer.toJson<int>(playedAt),
+      'positionMs': serializer.toJson<int>(positionMs),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'completionRate': serializer.toJson<double?>(completionRate),
+      'skipped': serializer.toJson<bool>(skipped),
+      'source': serializer.toJson<String?>(source),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  ListeningEvent copyWith(
+          {String? id,
+          String? trackId,
+          int? playedAt,
+          int? positionMs,
+          Value<int?> durationMs = const Value.absent(),
+          Value<double?> completionRate = const Value.absent(),
+          bool? skipped,
+          Value<String?> source = const Value.absent(),
+          int? isDirty}) =>
+      ListeningEvent(
+        id: id ?? this.id,
+        trackId: trackId ?? this.trackId,
+        playedAt: playedAt ?? this.playedAt,
+        positionMs: positionMs ?? this.positionMs,
+        durationMs: durationMs.present ? durationMs.value : this.durationMs,
+        completionRate:
+            completionRate.present ? completionRate.value : this.completionRate,
+        skipped: skipped ?? this.skipped,
+        source: source.present ? source.value : this.source,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  ListeningEvent copyWithCompanion(ListeningHistoryCompanion data) {
+    return ListeningEvent(
+      id: data.id.present ? data.id.value : this.id,
+      trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      playedAt: data.playedAt.present ? data.playedAt.value : this.playedAt,
+      positionMs:
+          data.positionMs.present ? data.positionMs.value : this.positionMs,
+      durationMs:
+          data.durationMs.present ? data.durationMs.value : this.durationMs,
+      completionRate: data.completionRate.present
+          ? data.completionRate.value
+          : this.completionRate,
+      skipped: data.skipped.present ? data.skipped.value : this.skipped,
+      source: data.source.present ? data.source.value : this.source,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListeningEvent(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('playedAt: $playedAt, ')
+          ..write('positionMs: $positionMs, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('completionRate: $completionRate, ')
+          ..write('skipped: $skipped, ')
+          ..write('source: $source, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, trackId, playedAt, positionMs, durationMs,
+      completionRate, skipped, source, isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListeningEvent &&
+          other.id == this.id &&
+          other.trackId == this.trackId &&
+          other.playedAt == this.playedAt &&
+          other.positionMs == this.positionMs &&
+          other.durationMs == this.durationMs &&
+          other.completionRate == this.completionRate &&
+          other.skipped == this.skipped &&
+          other.source == this.source &&
+          other.isDirty == this.isDirty);
+}
+
+class ListeningHistoryCompanion extends UpdateCompanion<ListeningEvent> {
+  final Value<String> id;
+  final Value<String> trackId;
+  final Value<int> playedAt;
+  final Value<int> positionMs;
+  final Value<int?> durationMs;
+  final Value<double?> completionRate;
+  final Value<bool> skipped;
+  final Value<String?> source;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const ListeningHistoryCompanion({
+    this.id = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.playedAt = const Value.absent(),
+    this.positionMs = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.completionRate = const Value.absent(),
+    this.skipped = const Value.absent(),
+    this.source = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ListeningHistoryCompanion.insert({
+    required String id,
+    required String trackId,
+    required int playedAt,
+    this.positionMs = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.completionRate = const Value.absent(),
+    this.skipped = const Value.absent(),
+    this.source = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        trackId = Value(trackId),
+        playedAt = Value(playedAt);
+  static Insertable<ListeningEvent> custom({
+    Expression<String>? id,
+    Expression<String>? trackId,
+    Expression<int>? playedAt,
+    Expression<int>? positionMs,
+    Expression<int>? durationMs,
+    Expression<double>? completionRate,
+    Expression<bool>? skipped,
+    Expression<String>? source,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (trackId != null) 'track_id': trackId,
+      if (playedAt != null) 'played_at': playedAt,
+      if (positionMs != null) 'position_ms': positionMs,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (completionRate != null) 'completion_rate': completionRate,
+      if (skipped != null) 'skipped': skipped,
+      if (source != null) 'source': source,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ListeningHistoryCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? trackId,
+      Value<int>? playedAt,
+      Value<int>? positionMs,
+      Value<int?>? durationMs,
+      Value<double?>? completionRate,
+      Value<bool>? skipped,
+      Value<String?>? source,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return ListeningHistoryCompanion(
+      id: id ?? this.id,
+      trackId: trackId ?? this.trackId,
+      playedAt: playedAt ?? this.playedAt,
+      positionMs: positionMs ?? this.positionMs,
+      durationMs: durationMs ?? this.durationMs,
+      completionRate: completionRate ?? this.completionRate,
+      skipped: skipped ?? this.skipped,
+      source: source ?? this.source,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (trackId.present) {
+      map['track_id'] = Variable<String>(trackId.value);
+    }
+    if (playedAt.present) {
+      map['played_at'] = Variable<int>(playedAt.value);
+    }
+    if (positionMs.present) {
+      map['position_ms'] = Variable<int>(positionMs.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (completionRate.present) {
+      map['completion_rate'] = Variable<double>(completionRate.value);
+    }
+    if (skipped.present) {
+      map['skipped'] = Variable<bool>(skipped.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListeningHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('playedAt: $playedAt, ')
+          ..write('positionMs: $positionMs, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('completionRate: $completionRate, ')
+          ..write('skipped: $skipped, ')
+          ..write('source: $source, ')
+          ..write('isDirty: $isDirty, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -19171,6 +21715,2269 @@ class MediaTagsCompanion extends UpdateCompanion<MediaTag> {
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
           ..write('confidence: $confidence, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CloudAssetsTable extends CloudAssets
+    with TableInfo<$CloudAssetsTable, CloudAsset> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CloudAssetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _filenameMeta =
+      const VerificationMeta('filename');
+  @override
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+      'filename', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sizeBytesMeta =
+      const VerificationMeta('sizeBytes');
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+      'size_bytes', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _hashMeta = const VerificationMeta('hash');
+  @override
+  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
+      'hash', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _widthMeta = const VerificationMeta('width');
+  @override
+  late final GeneratedColumn<int> width = GeneratedColumn<int>(
+      'width', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _heightMeta = const VerificationMeta('height');
+  @override
+  late final GeneratedColumn<int> height = GeneratedColumn<int>(
+      'height', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+      'source', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+      'tags', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _colorsMeta = const VerificationMeta('colors');
+  @override
+  late final GeneratedColumn<String> colors = GeneratedColumn<String>(
+      'colors', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _latMeta = const VerificationMeta('lat');
+  @override
+  late final GeneratedColumn<double> lat = GeneratedColumn<double>(
+      'lat', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _lngMeta = const VerificationMeta('lng');
+  @override
+  late final GeneratedColumn<double> lng = GeneratedColumn<double>(
+      'lng', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _placeMeta = const VerificationMeta('place');
+  @override
+  late final GeneratedColumn<String> place = GeneratedColumn<String>(
+      'place', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbnailUrlMeta =
+      const VerificationMeta('thumbnailUrl');
+  @override
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+      'thumbnail_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _streamUrlMeta =
+      const VerificationMeta('streamUrl');
+  @override
+  late final GeneratedColumn<String> streamUrl = GeneratedColumn<String>(
+      'stream_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _syncedAtMeta =
+      const VerificationMeta('syncedAt');
+  @override
+  late final GeneratedColumn<int> syncedAt = GeneratedColumn<int>(
+      'synced_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        filename,
+        type,
+        createdAt,
+        sizeBytes,
+        hash,
+        width,
+        height,
+        source,
+        title,
+        tags,
+        colors,
+        lat,
+        lng,
+        place,
+        thumbnailUrl,
+        streamUrl,
+        syncedAt,
+        isDirty
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cloud_assets';
+  @override
+  VerificationContext validateIntegrity(Insertable<CloudAsset> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('filename')) {
+      context.handle(_filenameMeta,
+          filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta));
+    } else if (isInserting) {
+      context.missing(_filenameMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(_sizeBytesMeta,
+          sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta));
+    } else if (isInserting) {
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('hash')) {
+      context.handle(
+          _hashMeta, hash.isAcceptableOrUnknown(data['hash']!, _hashMeta));
+    }
+    if (data.containsKey('width')) {
+      context.handle(
+          _widthMeta, width.isAcceptableOrUnknown(data['width']!, _widthMeta));
+    }
+    if (data.containsKey('height')) {
+      context.handle(_heightMeta,
+          height.isAcceptableOrUnknown(data['height']!, _heightMeta));
+    }
+    if (data.containsKey('source')) {
+      context.handle(_sourceMeta,
+          source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    if (data.containsKey('tags')) {
+      context.handle(
+          _tagsMeta, tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta));
+    }
+    if (data.containsKey('colors')) {
+      context.handle(_colorsMeta,
+          colors.isAcceptableOrUnknown(data['colors']!, _colorsMeta));
+    }
+    if (data.containsKey('lat')) {
+      context.handle(
+          _latMeta, lat.isAcceptableOrUnknown(data['lat']!, _latMeta));
+    }
+    if (data.containsKey('lng')) {
+      context.handle(
+          _lngMeta, lng.isAcceptableOrUnknown(data['lng']!, _lngMeta));
+    }
+    if (data.containsKey('place')) {
+      context.handle(
+          _placeMeta, place.isAcceptableOrUnknown(data['place']!, _placeMeta));
+    }
+    if (data.containsKey('thumbnail_url')) {
+      context.handle(
+          _thumbnailUrlMeta,
+          thumbnailUrl.isAcceptableOrUnknown(
+              data['thumbnail_url']!, _thumbnailUrlMeta));
+    }
+    if (data.containsKey('stream_url')) {
+      context.handle(_streamUrlMeta,
+          streamUrl.isAcceptableOrUnknown(data['stream_url']!, _streamUrlMeta));
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(_syncedAtMeta,
+          syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta));
+    } else if (isInserting) {
+      context.missing(_syncedAtMeta);
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CloudAsset map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CloudAsset(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      filename: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}filename'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}created_at'])!,
+      sizeBytes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}size_bytes'])!,
+      hash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}hash']),
+      width: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}width']),
+      height: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}height']),
+      source: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source']),
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title']),
+      tags: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tags'])!,
+      colors: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}colors'])!,
+      lat: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}lat']),
+      lng: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}lng']),
+      place: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}place']),
+      thumbnailUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_url']),
+      streamUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}stream_url']),
+      syncedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}synced_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $CloudAssetsTable createAlias(String alias) {
+    return $CloudAssetsTable(attachedDatabase, alias);
+  }
+}
+
+class CloudAsset extends DataClass implements Insertable<CloudAsset> {
+  final String id;
+  final String userId;
+  final String filename;
+  final String type;
+  final String createdAt;
+  final int sizeBytes;
+  final String? hash;
+  final int? width;
+  final int? height;
+  final String? source;
+  final String? title;
+  final String tags;
+  final String colors;
+  final double? lat;
+  final double? lng;
+  final String? place;
+  final String? thumbnailUrl;
+  final String? streamUrl;
+  final int syncedAt;
+  final int isDirty;
+  const CloudAsset(
+      {required this.id,
+      required this.userId,
+      required this.filename,
+      required this.type,
+      required this.createdAt,
+      required this.sizeBytes,
+      this.hash,
+      this.width,
+      this.height,
+      this.source,
+      this.title,
+      required this.tags,
+      required this.colors,
+      this.lat,
+      this.lng,
+      this.place,
+      this.thumbnailUrl,
+      this.streamUrl,
+      required this.syncedAt,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['filename'] = Variable<String>(filename);
+    map['type'] = Variable<String>(type);
+    map['created_at'] = Variable<String>(createdAt);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    if (!nullToAbsent || hash != null) {
+      map['hash'] = Variable<String>(hash);
+    }
+    if (!nullToAbsent || width != null) {
+      map['width'] = Variable<int>(width);
+    }
+    if (!nullToAbsent || height != null) {
+      map['height'] = Variable<int>(height);
+    }
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    map['tags'] = Variable<String>(tags);
+    map['colors'] = Variable<String>(colors);
+    if (!nullToAbsent || lat != null) {
+      map['lat'] = Variable<double>(lat);
+    }
+    if (!nullToAbsent || lng != null) {
+      map['lng'] = Variable<double>(lng);
+    }
+    if (!nullToAbsent || place != null) {
+      map['place'] = Variable<String>(place);
+    }
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    if (!nullToAbsent || streamUrl != null) {
+      map['stream_url'] = Variable<String>(streamUrl);
+    }
+    map['synced_at'] = Variable<int>(syncedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  CloudAssetsCompanion toCompanion(bool nullToAbsent) {
+    return CloudAssetsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      filename: Value(filename),
+      type: Value(type),
+      createdAt: Value(createdAt),
+      sizeBytes: Value(sizeBytes),
+      hash: hash == null && nullToAbsent ? const Value.absent() : Value(hash),
+      width:
+          width == null && nullToAbsent ? const Value.absent() : Value(width),
+      height:
+          height == null && nullToAbsent ? const Value.absent() : Value(height),
+      source:
+          source == null && nullToAbsent ? const Value.absent() : Value(source),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      tags: Value(tags),
+      colors: Value(colors),
+      lat: lat == null && nullToAbsent ? const Value.absent() : Value(lat),
+      lng: lng == null && nullToAbsent ? const Value.absent() : Value(lng),
+      place:
+          place == null && nullToAbsent ? const Value.absent() : Value(place),
+      thumbnailUrl: thumbnailUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailUrl),
+      streamUrl: streamUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(streamUrl),
+      syncedAt: Value(syncedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory CloudAsset.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CloudAsset(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      filename: serializer.fromJson<String>(json['filename']),
+      type: serializer.fromJson<String>(json['type']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      hash: serializer.fromJson<String?>(json['hash']),
+      width: serializer.fromJson<int?>(json['width']),
+      height: serializer.fromJson<int?>(json['height']),
+      source: serializer.fromJson<String?>(json['source']),
+      title: serializer.fromJson<String?>(json['title']),
+      tags: serializer.fromJson<String>(json['tags']),
+      colors: serializer.fromJson<String>(json['colors']),
+      lat: serializer.fromJson<double?>(json['lat']),
+      lng: serializer.fromJson<double?>(json['lng']),
+      place: serializer.fromJson<String?>(json['place']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      streamUrl: serializer.fromJson<String?>(json['streamUrl']),
+      syncedAt: serializer.fromJson<int>(json['syncedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'filename': serializer.toJson<String>(filename),
+      'type': serializer.toJson<String>(type),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'hash': serializer.toJson<String?>(hash),
+      'width': serializer.toJson<int?>(width),
+      'height': serializer.toJson<int?>(height),
+      'source': serializer.toJson<String?>(source),
+      'title': serializer.toJson<String?>(title),
+      'tags': serializer.toJson<String>(tags),
+      'colors': serializer.toJson<String>(colors),
+      'lat': serializer.toJson<double?>(lat),
+      'lng': serializer.toJson<double?>(lng),
+      'place': serializer.toJson<String?>(place),
+      'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'streamUrl': serializer.toJson<String?>(streamUrl),
+      'syncedAt': serializer.toJson<int>(syncedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  CloudAsset copyWith(
+          {String? id,
+          String? userId,
+          String? filename,
+          String? type,
+          String? createdAt,
+          int? sizeBytes,
+          Value<String?> hash = const Value.absent(),
+          Value<int?> width = const Value.absent(),
+          Value<int?> height = const Value.absent(),
+          Value<String?> source = const Value.absent(),
+          Value<String?> title = const Value.absent(),
+          String? tags,
+          String? colors,
+          Value<double?> lat = const Value.absent(),
+          Value<double?> lng = const Value.absent(),
+          Value<String?> place = const Value.absent(),
+          Value<String?> thumbnailUrl = const Value.absent(),
+          Value<String?> streamUrl = const Value.absent(),
+          int? syncedAt,
+          int? isDirty}) =>
+      CloudAsset(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        filename: filename ?? this.filename,
+        type: type ?? this.type,
+        createdAt: createdAt ?? this.createdAt,
+        sizeBytes: sizeBytes ?? this.sizeBytes,
+        hash: hash.present ? hash.value : this.hash,
+        width: width.present ? width.value : this.width,
+        height: height.present ? height.value : this.height,
+        source: source.present ? source.value : this.source,
+        title: title.present ? title.value : this.title,
+        tags: tags ?? this.tags,
+        colors: colors ?? this.colors,
+        lat: lat.present ? lat.value : this.lat,
+        lng: lng.present ? lng.value : this.lng,
+        place: place.present ? place.value : this.place,
+        thumbnailUrl:
+            thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+        streamUrl: streamUrl.present ? streamUrl.value : this.streamUrl,
+        syncedAt: syncedAt ?? this.syncedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  CloudAsset copyWithCompanion(CloudAssetsCompanion data) {
+    return CloudAsset(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      type: data.type.present ? data.type.value : this.type,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      width: data.width.present ? data.width.value : this.width,
+      height: data.height.present ? data.height.value : this.height,
+      source: data.source.present ? data.source.value : this.source,
+      title: data.title.present ? data.title.value : this.title,
+      tags: data.tags.present ? data.tags.value : this.tags,
+      colors: data.colors.present ? data.colors.value : this.colors,
+      lat: data.lat.present ? data.lat.value : this.lat,
+      lng: data.lng.present ? data.lng.value : this.lng,
+      place: data.place.present ? data.place.value : this.place,
+      thumbnailUrl: data.thumbnailUrl.present
+          ? data.thumbnailUrl.value
+          : this.thumbnailUrl,
+      streamUrl: data.streamUrl.present ? data.streamUrl.value : this.streamUrl,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CloudAsset(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('filename: $filename, ')
+          ..write('type: $type, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('hash: $hash, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('source: $source, ')
+          ..write('title: $title, ')
+          ..write('tags: $tags, ')
+          ..write('colors: $colors, ')
+          ..write('lat: $lat, ')
+          ..write('lng: $lng, ')
+          ..write('place: $place, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('streamUrl: $streamUrl, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      userId,
+      filename,
+      type,
+      createdAt,
+      sizeBytes,
+      hash,
+      width,
+      height,
+      source,
+      title,
+      tags,
+      colors,
+      lat,
+      lng,
+      place,
+      thumbnailUrl,
+      streamUrl,
+      syncedAt,
+      isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CloudAsset &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.filename == this.filename &&
+          other.type == this.type &&
+          other.createdAt == this.createdAt &&
+          other.sizeBytes == this.sizeBytes &&
+          other.hash == this.hash &&
+          other.width == this.width &&
+          other.height == this.height &&
+          other.source == this.source &&
+          other.title == this.title &&
+          other.tags == this.tags &&
+          other.colors == this.colors &&
+          other.lat == this.lat &&
+          other.lng == this.lng &&
+          other.place == this.place &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.streamUrl == this.streamUrl &&
+          other.syncedAt == this.syncedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class CloudAssetsCompanion extends UpdateCompanion<CloudAsset> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> filename;
+  final Value<String> type;
+  final Value<String> createdAt;
+  final Value<int> sizeBytes;
+  final Value<String?> hash;
+  final Value<int?> width;
+  final Value<int?> height;
+  final Value<String?> source;
+  final Value<String?> title;
+  final Value<String> tags;
+  final Value<String> colors;
+  final Value<double?> lat;
+  final Value<double?> lng;
+  final Value<String?> place;
+  final Value<String?> thumbnailUrl;
+  final Value<String?> streamUrl;
+  final Value<int> syncedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const CloudAssetsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.type = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.source = const Value.absent(),
+    this.title = const Value.absent(),
+    this.tags = const Value.absent(),
+    this.colors = const Value.absent(),
+    this.lat = const Value.absent(),
+    this.lng = const Value.absent(),
+    this.place = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.streamUrl = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CloudAssetsCompanion.insert({
+    required String id,
+    required String userId,
+    required String filename,
+    required String type,
+    required String createdAt,
+    required int sizeBytes,
+    this.hash = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.source = const Value.absent(),
+    this.title = const Value.absent(),
+    this.tags = const Value.absent(),
+    this.colors = const Value.absent(),
+    this.lat = const Value.absent(),
+    this.lng = const Value.absent(),
+    this.place = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.streamUrl = const Value.absent(),
+    required int syncedAt,
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userId = Value(userId),
+        filename = Value(filename),
+        type = Value(type),
+        createdAt = Value(createdAt),
+        sizeBytes = Value(sizeBytes),
+        syncedAt = Value(syncedAt);
+  static Insertable<CloudAsset> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? filename,
+    Expression<String>? type,
+    Expression<String>? createdAt,
+    Expression<int>? sizeBytes,
+    Expression<String>? hash,
+    Expression<int>? width,
+    Expression<int>? height,
+    Expression<String>? source,
+    Expression<String>? title,
+    Expression<String>? tags,
+    Expression<String>? colors,
+    Expression<double>? lat,
+    Expression<double>? lng,
+    Expression<String>? place,
+    Expression<String>? thumbnailUrl,
+    Expression<String>? streamUrl,
+    Expression<int>? syncedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (filename != null) 'filename': filename,
+      if (type != null) 'type': type,
+      if (createdAt != null) 'created_at': createdAt,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (hash != null) 'hash': hash,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
+      if (source != null) 'source': source,
+      if (title != null) 'title': title,
+      if (tags != null) 'tags': tags,
+      if (colors != null) 'colors': colors,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+      if (place != null) 'place': place,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (streamUrl != null) 'stream_url': streamUrl,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CloudAssetsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userId,
+      Value<String>? filename,
+      Value<String>? type,
+      Value<String>? createdAt,
+      Value<int>? sizeBytes,
+      Value<String?>? hash,
+      Value<int?>? width,
+      Value<int?>? height,
+      Value<String?>? source,
+      Value<String?>? title,
+      Value<String>? tags,
+      Value<String>? colors,
+      Value<double?>? lat,
+      Value<double?>? lng,
+      Value<String?>? place,
+      Value<String?>? thumbnailUrl,
+      Value<String?>? streamUrl,
+      Value<int>? syncedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return CloudAssetsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      filename: filename ?? this.filename,
+      type: type ?? this.type,
+      createdAt: createdAt ?? this.createdAt,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      hash: hash ?? this.hash,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      source: source ?? this.source,
+      title: title ?? this.title,
+      tags: tags ?? this.tags,
+      colors: colors ?? this.colors,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      place: place ?? this.place,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      streamUrl: streamUrl ?? this.streamUrl,
+      syncedAt: syncedAt ?? this.syncedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (hash.present) {
+      map['hash'] = Variable<String>(hash.value);
+    }
+    if (width.present) {
+      map['width'] = Variable<int>(width.value);
+    }
+    if (height.present) {
+      map['height'] = Variable<int>(height.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
+    if (colors.present) {
+      map['colors'] = Variable<String>(colors.value);
+    }
+    if (lat.present) {
+      map['lat'] = Variable<double>(lat.value);
+    }
+    if (lng.present) {
+      map['lng'] = Variable<double>(lng.value);
+    }
+    if (place.present) {
+      map['place'] = Variable<String>(place.value);
+    }
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
+    }
+    if (streamUrl.present) {
+      map['stream_url'] = Variable<String>(streamUrl.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<int>(syncedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CloudAssetsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('filename: $filename, ')
+          ..write('type: $type, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('hash: $hash, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('source: $source, ')
+          ..write('title: $title, ')
+          ..write('tags: $tags, ')
+          ..write('colors: $colors, ')
+          ..write('lat: $lat, ')
+          ..write('lng: $lng, ')
+          ..write('place: $place, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('streamUrl: $streamUrl, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FileTransfersTable extends FileTransfers
+    with TableInfo<$FileTransfersTable, FileTransfer> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FileTransfersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _transferIdMeta =
+      const VerificationMeta('transferId');
+  @override
+  late final GeneratedColumn<String> transferId = GeneratedColumn<String>(
+      'transfer_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fileIdMeta = const VerificationMeta('fileId');
+  @override
+  late final GeneratedColumn<String> fileId = GeneratedColumn<String>(
+      'file_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fileNameMeta =
+      const VerificationMeta('fileName');
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+      'file_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fileSizeMeta =
+      const VerificationMeta('fileSize');
+  @override
+  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
+      'file_size', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _fileHashMeta =
+      const VerificationMeta('fileHash');
+  @override
+  late final GeneratedColumn<String> fileHash = GeneratedColumn<String>(
+      'file_hash', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _chunkSizeMeta =
+      const VerificationMeta('chunkSize');
+  @override
+  late final GeneratedColumn<int> chunkSize = GeneratedColumn<int>(
+      'chunk_size', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _totalChunksMeta =
+      const VerificationMeta('totalChunks');
+  @override
+  late final GeneratedColumn<int> totalChunks = GeneratedColumn<int>(
+      'total_chunks', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _receivedChunksMeta =
+      const VerificationMeta('receivedChunks');
+  @override
+  late final GeneratedColumn<String> receivedChunks = GeneratedColumn<String>(
+      'received_chunks', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _verifiedChunksMeta =
+      const VerificationMeta('verifiedChunks');
+  @override
+  late final GeneratedColumn<String> verifiedChunks = GeneratedColumn<String>(
+      'verified_chunks', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+      'state', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('CREATED'));
+  static const VerificationMeta _mimeTypeMeta =
+      const VerificationMeta('mimeType');
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+      'mime_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _metadataMeta =
+      const VerificationMeta('metadata');
+  @override
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+      'metadata', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _localFilePathMeta =
+      const VerificationMeta('localFilePath');
+  @override
+  late final GeneratedColumn<String> localFilePath = GeneratedColumn<String>(
+      'local_file_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remoteFilePathMeta =
+      const VerificationMeta('remoteFilePath');
+  @override
+  late final GeneratedColumn<String> remoteFilePath = GeneratedColumn<String>(
+      'remote_file_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        transferId,
+        fileId,
+        fileName,
+        fileSize,
+        fileHash,
+        chunkSize,
+        totalChunks,
+        receivedChunks,
+        verifiedChunks,
+        state,
+        mimeType,
+        metadata,
+        localFilePath,
+        remoteFilePath,
+        createdAt,
+        updatedAt,
+        isDirty
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'file_transfers';
+  @override
+  VerificationContext validateIntegrity(Insertable<FileTransfer> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('transfer_id')) {
+      context.handle(
+          _transferIdMeta,
+          transferId.isAcceptableOrUnknown(
+              data['transfer_id']!, _transferIdMeta));
+    } else if (isInserting) {
+      context.missing(_transferIdMeta);
+    }
+    if (data.containsKey('file_id')) {
+      context.handle(_fileIdMeta,
+          fileId.isAcceptableOrUnknown(data['file_id']!, _fileIdMeta));
+    } else if (isInserting) {
+      context.missing(_fileIdMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(_fileNameMeta,
+          fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta));
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    if (data.containsKey('file_size')) {
+      context.handle(_fileSizeMeta,
+          fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta));
+    } else if (isInserting) {
+      context.missing(_fileSizeMeta);
+    }
+    if (data.containsKey('file_hash')) {
+      context.handle(_fileHashMeta,
+          fileHash.isAcceptableOrUnknown(data['file_hash']!, _fileHashMeta));
+    } else if (isInserting) {
+      context.missing(_fileHashMeta);
+    }
+    if (data.containsKey('chunk_size')) {
+      context.handle(_chunkSizeMeta,
+          chunkSize.isAcceptableOrUnknown(data['chunk_size']!, _chunkSizeMeta));
+    } else if (isInserting) {
+      context.missing(_chunkSizeMeta);
+    }
+    if (data.containsKey('total_chunks')) {
+      context.handle(
+          _totalChunksMeta,
+          totalChunks.isAcceptableOrUnknown(
+              data['total_chunks']!, _totalChunksMeta));
+    } else if (isInserting) {
+      context.missing(_totalChunksMeta);
+    }
+    if (data.containsKey('received_chunks')) {
+      context.handle(
+          _receivedChunksMeta,
+          receivedChunks.isAcceptableOrUnknown(
+              data['received_chunks']!, _receivedChunksMeta));
+    }
+    if (data.containsKey('verified_chunks')) {
+      context.handle(
+          _verifiedChunksMeta,
+          verifiedChunks.isAcceptableOrUnknown(
+              data['verified_chunks']!, _verifiedChunksMeta));
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+          _stateMeta, state.isAcceptableOrUnknown(data['state']!, _stateMeta));
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(_mimeTypeMeta,
+          mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta));
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(_metadataMeta,
+          metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta));
+    }
+    if (data.containsKey('local_file_path')) {
+      context.handle(
+          _localFilePathMeta,
+          localFilePath.isAcceptableOrUnknown(
+              data['local_file_path']!, _localFilePathMeta));
+    }
+    if (data.containsKey('remote_file_path')) {
+      context.handle(
+          _remoteFilePathMeta,
+          remoteFilePath.isAcceptableOrUnknown(
+              data['remote_file_path']!, _remoteFilePathMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {transferId};
+  @override
+  FileTransfer map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FileTransfer(
+      transferId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transfer_id'])!,
+      fileId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_id'])!,
+      fileName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_name'])!,
+      fileSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}file_size'])!,
+      fileHash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_hash'])!,
+      chunkSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}chunk_size'])!,
+      totalChunks: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_chunks'])!,
+      receivedChunks: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}received_chunks'])!,
+      verifiedChunks: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}verified_chunks'])!,
+      state: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}state'])!,
+      mimeType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mime_type']),
+      metadata: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}metadata']),
+      localFilePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}local_file_path']),
+      remoteFilePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}remote_file_path']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $FileTransfersTable createAlias(String alias) {
+    return $FileTransfersTable(attachedDatabase, alias);
+  }
+}
+
+class FileTransfer extends DataClass implements Insertable<FileTransfer> {
+  final String transferId;
+  final String fileId;
+  final String fileName;
+  final int fileSize;
+  final String fileHash;
+  final int chunkSize;
+  final int totalChunks;
+  final String receivedChunks;
+  final String verifiedChunks;
+  final String state;
+  final String? mimeType;
+  final String? metadata;
+  final String? localFilePath;
+  final String? remoteFilePath;
+  final int createdAt;
+  final int updatedAt;
+  final int isDirty;
+  const FileTransfer(
+      {required this.transferId,
+      required this.fileId,
+      required this.fileName,
+      required this.fileSize,
+      required this.fileHash,
+      required this.chunkSize,
+      required this.totalChunks,
+      required this.receivedChunks,
+      required this.verifiedChunks,
+      required this.state,
+      this.mimeType,
+      this.metadata,
+      this.localFilePath,
+      this.remoteFilePath,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['transfer_id'] = Variable<String>(transferId);
+    map['file_id'] = Variable<String>(fileId);
+    map['file_name'] = Variable<String>(fileName);
+    map['file_size'] = Variable<int>(fileSize);
+    map['file_hash'] = Variable<String>(fileHash);
+    map['chunk_size'] = Variable<int>(chunkSize);
+    map['total_chunks'] = Variable<int>(totalChunks);
+    map['received_chunks'] = Variable<String>(receivedChunks);
+    map['verified_chunks'] = Variable<String>(verifiedChunks);
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || mimeType != null) {
+      map['mime_type'] = Variable<String>(mimeType);
+    }
+    if (!nullToAbsent || metadata != null) {
+      map['metadata'] = Variable<String>(metadata);
+    }
+    if (!nullToAbsent || localFilePath != null) {
+      map['local_file_path'] = Variable<String>(localFilePath);
+    }
+    if (!nullToAbsent || remoteFilePath != null) {
+      map['remote_file_path'] = Variable<String>(remoteFilePath);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  FileTransfersCompanion toCompanion(bool nullToAbsent) {
+    return FileTransfersCompanion(
+      transferId: Value(transferId),
+      fileId: Value(fileId),
+      fileName: Value(fileName),
+      fileSize: Value(fileSize),
+      fileHash: Value(fileHash),
+      chunkSize: Value(chunkSize),
+      totalChunks: Value(totalChunks),
+      receivedChunks: Value(receivedChunks),
+      verifiedChunks: Value(verifiedChunks),
+      state: Value(state),
+      mimeType: mimeType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mimeType),
+      metadata: metadata == null && nullToAbsent
+          ? const Value.absent()
+          : Value(metadata),
+      localFilePath: localFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localFilePath),
+      remoteFilePath: remoteFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteFilePath),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory FileTransfer.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FileTransfer(
+      transferId: serializer.fromJson<String>(json['transferId']),
+      fileId: serializer.fromJson<String>(json['fileId']),
+      fileName: serializer.fromJson<String>(json['fileName']),
+      fileSize: serializer.fromJson<int>(json['fileSize']),
+      fileHash: serializer.fromJson<String>(json['fileHash']),
+      chunkSize: serializer.fromJson<int>(json['chunkSize']),
+      totalChunks: serializer.fromJson<int>(json['totalChunks']),
+      receivedChunks: serializer.fromJson<String>(json['receivedChunks']),
+      verifiedChunks: serializer.fromJson<String>(json['verifiedChunks']),
+      state: serializer.fromJson<String>(json['state']),
+      mimeType: serializer.fromJson<String?>(json['mimeType']),
+      metadata: serializer.fromJson<String?>(json['metadata']),
+      localFilePath: serializer.fromJson<String?>(json['localFilePath']),
+      remoteFilePath: serializer.fromJson<String?>(json['remoteFilePath']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'transferId': serializer.toJson<String>(transferId),
+      'fileId': serializer.toJson<String>(fileId),
+      'fileName': serializer.toJson<String>(fileName),
+      'fileSize': serializer.toJson<int>(fileSize),
+      'fileHash': serializer.toJson<String>(fileHash),
+      'chunkSize': serializer.toJson<int>(chunkSize),
+      'totalChunks': serializer.toJson<int>(totalChunks),
+      'receivedChunks': serializer.toJson<String>(receivedChunks),
+      'verifiedChunks': serializer.toJson<String>(verifiedChunks),
+      'state': serializer.toJson<String>(state),
+      'mimeType': serializer.toJson<String?>(mimeType),
+      'metadata': serializer.toJson<String?>(metadata),
+      'localFilePath': serializer.toJson<String?>(localFilePath),
+      'remoteFilePath': serializer.toJson<String?>(remoteFilePath),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  FileTransfer copyWith(
+          {String? transferId,
+          String? fileId,
+          String? fileName,
+          int? fileSize,
+          String? fileHash,
+          int? chunkSize,
+          int? totalChunks,
+          String? receivedChunks,
+          String? verifiedChunks,
+          String? state,
+          Value<String?> mimeType = const Value.absent(),
+          Value<String?> metadata = const Value.absent(),
+          Value<String?> localFilePath = const Value.absent(),
+          Value<String?> remoteFilePath = const Value.absent(),
+          int? createdAt,
+          int? updatedAt,
+          int? isDirty}) =>
+      FileTransfer(
+        transferId: transferId ?? this.transferId,
+        fileId: fileId ?? this.fileId,
+        fileName: fileName ?? this.fileName,
+        fileSize: fileSize ?? this.fileSize,
+        fileHash: fileHash ?? this.fileHash,
+        chunkSize: chunkSize ?? this.chunkSize,
+        totalChunks: totalChunks ?? this.totalChunks,
+        receivedChunks: receivedChunks ?? this.receivedChunks,
+        verifiedChunks: verifiedChunks ?? this.verifiedChunks,
+        state: state ?? this.state,
+        mimeType: mimeType.present ? mimeType.value : this.mimeType,
+        metadata: metadata.present ? metadata.value : this.metadata,
+        localFilePath:
+            localFilePath.present ? localFilePath.value : this.localFilePath,
+        remoteFilePath:
+            remoteFilePath.present ? remoteFilePath.value : this.remoteFilePath,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  FileTransfer copyWithCompanion(FileTransfersCompanion data) {
+    return FileTransfer(
+      transferId:
+          data.transferId.present ? data.transferId.value : this.transferId,
+      fileId: data.fileId.present ? data.fileId.value : this.fileId,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+      fileHash: data.fileHash.present ? data.fileHash.value : this.fileHash,
+      chunkSize: data.chunkSize.present ? data.chunkSize.value : this.chunkSize,
+      totalChunks:
+          data.totalChunks.present ? data.totalChunks.value : this.totalChunks,
+      receivedChunks: data.receivedChunks.present
+          ? data.receivedChunks.value
+          : this.receivedChunks,
+      verifiedChunks: data.verifiedChunks.present
+          ? data.verifiedChunks.value
+          : this.verifiedChunks,
+      state: data.state.present ? data.state.value : this.state,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
+      localFilePath: data.localFilePath.present
+          ? data.localFilePath.value
+          : this.localFilePath,
+      remoteFilePath: data.remoteFilePath.present
+          ? data.remoteFilePath.value
+          : this.remoteFilePath,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FileTransfer(')
+          ..write('transferId: $transferId, ')
+          ..write('fileId: $fileId, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('fileHash: $fileHash, ')
+          ..write('chunkSize: $chunkSize, ')
+          ..write('totalChunks: $totalChunks, ')
+          ..write('receivedChunks: $receivedChunks, ')
+          ..write('verifiedChunks: $verifiedChunks, ')
+          ..write('state: $state, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('metadata: $metadata, ')
+          ..write('localFilePath: $localFilePath, ')
+          ..write('remoteFilePath: $remoteFilePath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      transferId,
+      fileId,
+      fileName,
+      fileSize,
+      fileHash,
+      chunkSize,
+      totalChunks,
+      receivedChunks,
+      verifiedChunks,
+      state,
+      mimeType,
+      metadata,
+      localFilePath,
+      remoteFilePath,
+      createdAt,
+      updatedAt,
+      isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FileTransfer &&
+          other.transferId == this.transferId &&
+          other.fileId == this.fileId &&
+          other.fileName == this.fileName &&
+          other.fileSize == this.fileSize &&
+          other.fileHash == this.fileHash &&
+          other.chunkSize == this.chunkSize &&
+          other.totalChunks == this.totalChunks &&
+          other.receivedChunks == this.receivedChunks &&
+          other.verifiedChunks == this.verifiedChunks &&
+          other.state == this.state &&
+          other.mimeType == this.mimeType &&
+          other.metadata == this.metadata &&
+          other.localFilePath == this.localFilePath &&
+          other.remoteFilePath == this.remoteFilePath &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.isDirty == this.isDirty);
+}
+
+class FileTransfersCompanion extends UpdateCompanion<FileTransfer> {
+  final Value<String> transferId;
+  final Value<String> fileId;
+  final Value<String> fileName;
+  final Value<int> fileSize;
+  final Value<String> fileHash;
+  final Value<int> chunkSize;
+  final Value<int> totalChunks;
+  final Value<String> receivedChunks;
+  final Value<String> verifiedChunks;
+  final Value<String> state;
+  final Value<String?> mimeType;
+  final Value<String?> metadata;
+  final Value<String?> localFilePath;
+  final Value<String?> remoteFilePath;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const FileTransfersCompanion({
+    this.transferId = const Value.absent(),
+    this.fileId = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.fileSize = const Value.absent(),
+    this.fileHash = const Value.absent(),
+    this.chunkSize = const Value.absent(),
+    this.totalChunks = const Value.absent(),
+    this.receivedChunks = const Value.absent(),
+    this.verifiedChunks = const Value.absent(),
+    this.state = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.localFilePath = const Value.absent(),
+    this.remoteFilePath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FileTransfersCompanion.insert({
+    required String transferId,
+    required String fileId,
+    required String fileName,
+    required int fileSize,
+    required String fileHash,
+    required int chunkSize,
+    required int totalChunks,
+    this.receivedChunks = const Value.absent(),
+    this.verifiedChunks = const Value.absent(),
+    this.state = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.localFilePath = const Value.absent(),
+    this.remoteFilePath = const Value.absent(),
+    required int createdAt,
+    required int updatedAt,
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : transferId = Value(transferId),
+        fileId = Value(fileId),
+        fileName = Value(fileName),
+        fileSize = Value(fileSize),
+        fileHash = Value(fileHash),
+        chunkSize = Value(chunkSize),
+        totalChunks = Value(totalChunks),
+        createdAt = Value(createdAt),
+        updatedAt = Value(updatedAt);
+  static Insertable<FileTransfer> custom({
+    Expression<String>? transferId,
+    Expression<String>? fileId,
+    Expression<String>? fileName,
+    Expression<int>? fileSize,
+    Expression<String>? fileHash,
+    Expression<int>? chunkSize,
+    Expression<int>? totalChunks,
+    Expression<String>? receivedChunks,
+    Expression<String>? verifiedChunks,
+    Expression<String>? state,
+    Expression<String>? mimeType,
+    Expression<String>? metadata,
+    Expression<String>? localFilePath,
+    Expression<String>? remoteFilePath,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (transferId != null) 'transfer_id': transferId,
+      if (fileId != null) 'file_id': fileId,
+      if (fileName != null) 'file_name': fileName,
+      if (fileSize != null) 'file_size': fileSize,
+      if (fileHash != null) 'file_hash': fileHash,
+      if (chunkSize != null) 'chunk_size': chunkSize,
+      if (totalChunks != null) 'total_chunks': totalChunks,
+      if (receivedChunks != null) 'received_chunks': receivedChunks,
+      if (verifiedChunks != null) 'verified_chunks': verifiedChunks,
+      if (state != null) 'state': state,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (metadata != null) 'metadata': metadata,
+      if (localFilePath != null) 'local_file_path': localFilePath,
+      if (remoteFilePath != null) 'remote_file_path': remoteFilePath,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FileTransfersCompanion copyWith(
+      {Value<String>? transferId,
+      Value<String>? fileId,
+      Value<String>? fileName,
+      Value<int>? fileSize,
+      Value<String>? fileHash,
+      Value<int>? chunkSize,
+      Value<int>? totalChunks,
+      Value<String>? receivedChunks,
+      Value<String>? verifiedChunks,
+      Value<String>? state,
+      Value<String?>? mimeType,
+      Value<String?>? metadata,
+      Value<String?>? localFilePath,
+      Value<String?>? remoteFilePath,
+      Value<int>? createdAt,
+      Value<int>? updatedAt,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return FileTransfersCompanion(
+      transferId: transferId ?? this.transferId,
+      fileId: fileId ?? this.fileId,
+      fileName: fileName ?? this.fileName,
+      fileSize: fileSize ?? this.fileSize,
+      fileHash: fileHash ?? this.fileHash,
+      chunkSize: chunkSize ?? this.chunkSize,
+      totalChunks: totalChunks ?? this.totalChunks,
+      receivedChunks: receivedChunks ?? this.receivedChunks,
+      verifiedChunks: verifiedChunks ?? this.verifiedChunks,
+      state: state ?? this.state,
+      mimeType: mimeType ?? this.mimeType,
+      metadata: metadata ?? this.metadata,
+      localFilePath: localFilePath ?? this.localFilePath,
+      remoteFilePath: remoteFilePath ?? this.remoteFilePath,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (transferId.present) {
+      map['transfer_id'] = Variable<String>(transferId.value);
+    }
+    if (fileId.present) {
+      map['file_id'] = Variable<String>(fileId.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (fileSize.present) {
+      map['file_size'] = Variable<int>(fileSize.value);
+    }
+    if (fileHash.present) {
+      map['file_hash'] = Variable<String>(fileHash.value);
+    }
+    if (chunkSize.present) {
+      map['chunk_size'] = Variable<int>(chunkSize.value);
+    }
+    if (totalChunks.present) {
+      map['total_chunks'] = Variable<int>(totalChunks.value);
+    }
+    if (receivedChunks.present) {
+      map['received_chunks'] = Variable<String>(receivedChunks.value);
+    }
+    if (verifiedChunks.present) {
+      map['verified_chunks'] = Variable<String>(verifiedChunks.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
+    if (localFilePath.present) {
+      map['local_file_path'] = Variable<String>(localFilePath.value);
+    }
+    if (remoteFilePath.present) {
+      map['remote_file_path'] = Variable<String>(remoteFilePath.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FileTransfersCompanion(')
+          ..write('transferId: $transferId, ')
+          ..write('fileId: $fileId, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('fileHash: $fileHash, ')
+          ..write('chunkSize: $chunkSize, ')
+          ..write('totalChunks: $totalChunks, ')
+          ..write('receivedChunks: $receivedChunks, ')
+          ..write('verifiedChunks: $verifiedChunks, ')
+          ..write('state: $state, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('metadata: $metadata, ')
+          ..write('localFilePath: $localFilePath, ')
+          ..write('remoteFilePath: $remoteFilePath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDirty: $isDirty, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TransferChunksTable extends TransferChunks
+    with TableInfo<$TransferChunksTable, TransferChunk> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransferChunksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _transferIdMeta =
+      const VerificationMeta('transferId');
+  @override
+  late final GeneratedColumn<String> transferId = GeneratedColumn<String>(
+      'transfer_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'NOT NULL REFERENCES file_transfers(transfer_id) ON DELETE CASCADE');
+  static const VerificationMeta _chunkIndexMeta =
+      const VerificationMeta('chunkIndex');
+  @override
+  late final GeneratedColumn<int> chunkIndex = GeneratedColumn<int>(
+      'chunk_index', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _offsetMeta = const VerificationMeta('offset');
+  @override
+  late final GeneratedColumn<int> offset = GeneratedColumn<int>(
+      'offset', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _lengthMeta = const VerificationMeta('length');
+  @override
+  late final GeneratedColumn<int> length = GeneratedColumn<int>(
+      'length', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _hashMeta = const VerificationMeta('hash');
+  @override
+  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
+      'hash', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+      'state', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('PENDING'));
+  static const VerificationMeta _localPathMeta =
+      const VerificationMeta('localPath');
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+      'local_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _uploadedAtMeta =
+      const VerificationMeta('uploadedAt');
+  @override
+  late final GeneratedColumn<int> uploadedAt = GeneratedColumn<int>(
+      'uploaded_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _verifiedAtMeta =
+      const VerificationMeta('verifiedAt');
+  @override
+  late final GeneratedColumn<int> verifiedAt = GeneratedColumn<int>(
+      'verified_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _retryCountMeta =
+      const VerificationMeta('retryCount');
+  @override
+  late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
+      'retry_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _isDirtyMeta =
+      const VerificationMeta('isDirty');
+  @override
+  late final GeneratedColumn<int> isDirty = GeneratedColumn<int>(
+      'is_dirty', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        transferId,
+        chunkIndex,
+        offset,
+        length,
+        hash,
+        state,
+        localPath,
+        uploadedAt,
+        verifiedAt,
+        retryCount,
+        isDirty
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transfer_chunks';
+  @override
+  VerificationContext validateIntegrity(Insertable<TransferChunk> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('transfer_id')) {
+      context.handle(
+          _transferIdMeta,
+          transferId.isAcceptableOrUnknown(
+              data['transfer_id']!, _transferIdMeta));
+    } else if (isInserting) {
+      context.missing(_transferIdMeta);
+    }
+    if (data.containsKey('chunk_index')) {
+      context.handle(
+          _chunkIndexMeta,
+          chunkIndex.isAcceptableOrUnknown(
+              data['chunk_index']!, _chunkIndexMeta));
+    } else if (isInserting) {
+      context.missing(_chunkIndexMeta);
+    }
+    if (data.containsKey('offset')) {
+      context.handle(_offsetMeta,
+          offset.isAcceptableOrUnknown(data['offset']!, _offsetMeta));
+    } else if (isInserting) {
+      context.missing(_offsetMeta);
+    }
+    if (data.containsKey('length')) {
+      context.handle(_lengthMeta,
+          length.isAcceptableOrUnknown(data['length']!, _lengthMeta));
+    } else if (isInserting) {
+      context.missing(_lengthMeta);
+    }
+    if (data.containsKey('hash')) {
+      context.handle(
+          _hashMeta, hash.isAcceptableOrUnknown(data['hash']!, _hashMeta));
+    } else if (isInserting) {
+      context.missing(_hashMeta);
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+          _stateMeta, state.isAcceptableOrUnknown(data['state']!, _stateMeta));
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(_localPathMeta,
+          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
+    }
+    if (data.containsKey('uploaded_at')) {
+      context.handle(
+          _uploadedAtMeta,
+          uploadedAt.isAcceptableOrUnknown(
+              data['uploaded_at']!, _uploadedAtMeta));
+    }
+    if (data.containsKey('verified_at')) {
+      context.handle(
+          _verifiedAtMeta,
+          verifiedAt.isAcceptableOrUnknown(
+              data['verified_at']!, _verifiedAtMeta));
+    }
+    if (data.containsKey('retry_count')) {
+      context.handle(
+          _retryCountMeta,
+          retryCount.isAcceptableOrUnknown(
+              data['retry_count']!, _retryCountMeta));
+    }
+    if (data.containsKey('is_dirty')) {
+      context.handle(_isDirtyMeta,
+          isDirty.isAcceptableOrUnknown(data['is_dirty']!, _isDirtyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {transferId, chunkIndex};
+  @override
+  TransferChunk map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransferChunk(
+      transferId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transfer_id'])!,
+      chunkIndex: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}chunk_index'])!,
+      offset: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}offset'])!,
+      length: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}length'])!,
+      hash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}hash'])!,
+      state: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}state'])!,
+      localPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
+      uploadedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uploaded_at']),
+      verifiedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}verified_at']),
+      retryCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}retry_count'])!,
+      isDirty: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}is_dirty'])!,
+    );
+  }
+
+  @override
+  $TransferChunksTable createAlias(String alias) {
+    return $TransferChunksTable(attachedDatabase, alias);
+  }
+}
+
+class TransferChunk extends DataClass implements Insertable<TransferChunk> {
+  final String transferId;
+  final int chunkIndex;
+  final int offset;
+  final int length;
+  final String hash;
+  final String state;
+  final String? localPath;
+  final int? uploadedAt;
+  final int? verifiedAt;
+  final int retryCount;
+  final int isDirty;
+  const TransferChunk(
+      {required this.transferId,
+      required this.chunkIndex,
+      required this.offset,
+      required this.length,
+      required this.hash,
+      required this.state,
+      this.localPath,
+      this.uploadedAt,
+      this.verifiedAt,
+      required this.retryCount,
+      required this.isDirty});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['transfer_id'] = Variable<String>(transferId);
+    map['chunk_index'] = Variable<int>(chunkIndex);
+    map['offset'] = Variable<int>(offset);
+    map['length'] = Variable<int>(length);
+    map['hash'] = Variable<String>(hash);
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    if (!nullToAbsent || uploadedAt != null) {
+      map['uploaded_at'] = Variable<int>(uploadedAt);
+    }
+    if (!nullToAbsent || verifiedAt != null) {
+      map['verified_at'] = Variable<int>(verifiedAt);
+    }
+    map['retry_count'] = Variable<int>(retryCount);
+    map['is_dirty'] = Variable<int>(isDirty);
+    return map;
+  }
+
+  TransferChunksCompanion toCompanion(bool nullToAbsent) {
+    return TransferChunksCompanion(
+      transferId: Value(transferId),
+      chunkIndex: Value(chunkIndex),
+      offset: Value(offset),
+      length: Value(length),
+      hash: Value(hash),
+      state: Value(state),
+      localPath: localPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localPath),
+      uploadedAt: uploadedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(uploadedAt),
+      verifiedAt: verifiedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(verifiedAt),
+      retryCount: Value(retryCount),
+      isDirty: Value(isDirty),
+    );
+  }
+
+  factory TransferChunk.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransferChunk(
+      transferId: serializer.fromJson<String>(json['transferId']),
+      chunkIndex: serializer.fromJson<int>(json['chunkIndex']),
+      offset: serializer.fromJson<int>(json['offset']),
+      length: serializer.fromJson<int>(json['length']),
+      hash: serializer.fromJson<String>(json['hash']),
+      state: serializer.fromJson<String>(json['state']),
+      localPath: serializer.fromJson<String?>(json['localPath']),
+      uploadedAt: serializer.fromJson<int?>(json['uploadedAt']),
+      verifiedAt: serializer.fromJson<int?>(json['verifiedAt']),
+      retryCount: serializer.fromJson<int>(json['retryCount']),
+      isDirty: serializer.fromJson<int>(json['isDirty']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'transferId': serializer.toJson<String>(transferId),
+      'chunkIndex': serializer.toJson<int>(chunkIndex),
+      'offset': serializer.toJson<int>(offset),
+      'length': serializer.toJson<int>(length),
+      'hash': serializer.toJson<String>(hash),
+      'state': serializer.toJson<String>(state),
+      'localPath': serializer.toJson<String?>(localPath),
+      'uploadedAt': serializer.toJson<int?>(uploadedAt),
+      'verifiedAt': serializer.toJson<int?>(verifiedAt),
+      'retryCount': serializer.toJson<int>(retryCount),
+      'isDirty': serializer.toJson<int>(isDirty),
+    };
+  }
+
+  TransferChunk copyWith(
+          {String? transferId,
+          int? chunkIndex,
+          int? offset,
+          int? length,
+          String? hash,
+          String? state,
+          Value<String?> localPath = const Value.absent(),
+          Value<int?> uploadedAt = const Value.absent(),
+          Value<int?> verifiedAt = const Value.absent(),
+          int? retryCount,
+          int? isDirty}) =>
+      TransferChunk(
+        transferId: transferId ?? this.transferId,
+        chunkIndex: chunkIndex ?? this.chunkIndex,
+        offset: offset ?? this.offset,
+        length: length ?? this.length,
+        hash: hash ?? this.hash,
+        state: state ?? this.state,
+        localPath: localPath.present ? localPath.value : this.localPath,
+        uploadedAt: uploadedAt.present ? uploadedAt.value : this.uploadedAt,
+        verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+        retryCount: retryCount ?? this.retryCount,
+        isDirty: isDirty ?? this.isDirty,
+      );
+  TransferChunk copyWithCompanion(TransferChunksCompanion data) {
+    return TransferChunk(
+      transferId:
+          data.transferId.present ? data.transferId.value : this.transferId,
+      chunkIndex:
+          data.chunkIndex.present ? data.chunkIndex.value : this.chunkIndex,
+      offset: data.offset.present ? data.offset.value : this.offset,
+      length: data.length.present ? data.length.value : this.length,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      state: data.state.present ? data.state.value : this.state,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      uploadedAt:
+          data.uploadedAt.present ? data.uploadedAt.value : this.uploadedAt,
+      verifiedAt:
+          data.verifiedAt.present ? data.verifiedAt.value : this.verifiedAt,
+      retryCount:
+          data.retryCount.present ? data.retryCount.value : this.retryCount,
+      isDirty: data.isDirty.present ? data.isDirty.value : this.isDirty,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransferChunk(')
+          ..write('transferId: $transferId, ')
+          ..write('chunkIndex: $chunkIndex, ')
+          ..write('offset: $offset, ')
+          ..write('length: $length, ')
+          ..write('hash: $hash, ')
+          ..write('state: $state, ')
+          ..write('localPath: $localPath, ')
+          ..write('uploadedAt: $uploadedAt, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('retryCount: $retryCount, ')
+          ..write('isDirty: $isDirty')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(transferId, chunkIndex, offset, length, hash,
+      state, localPath, uploadedAt, verifiedAt, retryCount, isDirty);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransferChunk &&
+          other.transferId == this.transferId &&
+          other.chunkIndex == this.chunkIndex &&
+          other.offset == this.offset &&
+          other.length == this.length &&
+          other.hash == this.hash &&
+          other.state == this.state &&
+          other.localPath == this.localPath &&
+          other.uploadedAt == this.uploadedAt &&
+          other.verifiedAt == this.verifiedAt &&
+          other.retryCount == this.retryCount &&
+          other.isDirty == this.isDirty);
+}
+
+class TransferChunksCompanion extends UpdateCompanion<TransferChunk> {
+  final Value<String> transferId;
+  final Value<int> chunkIndex;
+  final Value<int> offset;
+  final Value<int> length;
+  final Value<String> hash;
+  final Value<String> state;
+  final Value<String?> localPath;
+  final Value<int?> uploadedAt;
+  final Value<int?> verifiedAt;
+  final Value<int> retryCount;
+  final Value<int> isDirty;
+  final Value<int> rowid;
+  const TransferChunksCompanion({
+    this.transferId = const Value.absent(),
+    this.chunkIndex = const Value.absent(),
+    this.offset = const Value.absent(),
+    this.length = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.state = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.uploadedAt = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TransferChunksCompanion.insert({
+    required String transferId,
+    required int chunkIndex,
+    required int offset,
+    required int length,
+    required String hash,
+    this.state = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.uploadedAt = const Value.absent(),
+    this.verifiedAt = const Value.absent(),
+    this.retryCount = const Value.absent(),
+    this.isDirty = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : transferId = Value(transferId),
+        chunkIndex = Value(chunkIndex),
+        offset = Value(offset),
+        length = Value(length),
+        hash = Value(hash);
+  static Insertable<TransferChunk> custom({
+    Expression<String>? transferId,
+    Expression<int>? chunkIndex,
+    Expression<int>? offset,
+    Expression<int>? length,
+    Expression<String>? hash,
+    Expression<String>? state,
+    Expression<String>? localPath,
+    Expression<int>? uploadedAt,
+    Expression<int>? verifiedAt,
+    Expression<int>? retryCount,
+    Expression<int>? isDirty,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (transferId != null) 'transfer_id': transferId,
+      if (chunkIndex != null) 'chunk_index': chunkIndex,
+      if (offset != null) 'offset': offset,
+      if (length != null) 'length': length,
+      if (hash != null) 'hash': hash,
+      if (state != null) 'state': state,
+      if (localPath != null) 'local_path': localPath,
+      if (uploadedAt != null) 'uploaded_at': uploadedAt,
+      if (verifiedAt != null) 'verified_at': verifiedAt,
+      if (retryCount != null) 'retry_count': retryCount,
+      if (isDirty != null) 'is_dirty': isDirty,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TransferChunksCompanion copyWith(
+      {Value<String>? transferId,
+      Value<int>? chunkIndex,
+      Value<int>? offset,
+      Value<int>? length,
+      Value<String>? hash,
+      Value<String>? state,
+      Value<String?>? localPath,
+      Value<int?>? uploadedAt,
+      Value<int?>? verifiedAt,
+      Value<int>? retryCount,
+      Value<int>? isDirty,
+      Value<int>? rowid}) {
+    return TransferChunksCompanion(
+      transferId: transferId ?? this.transferId,
+      chunkIndex: chunkIndex ?? this.chunkIndex,
+      offset: offset ?? this.offset,
+      length: length ?? this.length,
+      hash: hash ?? this.hash,
+      state: state ?? this.state,
+      localPath: localPath ?? this.localPath,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
+      verifiedAt: verifiedAt ?? this.verifiedAt,
+      retryCount: retryCount ?? this.retryCount,
+      isDirty: isDirty ?? this.isDirty,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (transferId.present) {
+      map['transfer_id'] = Variable<String>(transferId.value);
+    }
+    if (chunkIndex.present) {
+      map['chunk_index'] = Variable<int>(chunkIndex.value);
+    }
+    if (offset.present) {
+      map['offset'] = Variable<int>(offset.value);
+    }
+    if (length.present) {
+      map['length'] = Variable<int>(length.value);
+    }
+    if (hash.present) {
+      map['hash'] = Variable<String>(hash.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (uploadedAt.present) {
+      map['uploaded_at'] = Variable<int>(uploadedAt.value);
+    }
+    if (verifiedAt.present) {
+      map['verified_at'] = Variable<int>(verifiedAt.value);
+    }
+    if (retryCount.present) {
+      map['retry_count'] = Variable<int>(retryCount.value);
+    }
+    if (isDirty.present) {
+      map['is_dirty'] = Variable<int>(isDirty.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransferChunksCompanion(')
+          ..write('transferId: $transferId, ')
+          ..write('chunkIndex: $chunkIndex, ')
+          ..write('offset: $offset, ')
+          ..write('length: $length, ')
+          ..write('hash: $hash, ')
+          ..write('state: $state, ')
+          ..write('localPath: $localPath, ')
+          ..write('uploadedAt: $uploadedAt, ')
+          ..write('verifiedAt: $verifiedAt, ')
+          ..write('retryCount: $retryCount, ')
           ..write('isDirty: $isDirty, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -23246,8 +28053,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PlaylistTracksTable playlistTracks = $PlaylistTracksTable(this);
   late final $OfflineMusicTracksTable offlineMusicTracks =
       $OfflineMusicTracksTable(this);
+  late final $LikedSongsTable likedSongs = $LikedSongsTable(this);
+  late final $DownloadQueueTable downloadQueue = $DownloadQueueTable(this);
+  late final $ListeningHistoryTable listeningHistory =
+      $ListeningHistoryTable(this);
   late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
   late final $MediaTagsTable mediaTags = $MediaTagsTable(this);
+  late final $CloudAssetsTable cloudAssets = $CloudAssetsTable(this);
+  late final $FileTransfersTable fileTransfers = $FileTransfersTable(this);
+  late final $TransferChunksTable transferChunks = $TransferChunksTable(this);
   late final $PointRulesTable pointRules = $PointRulesTable(this);
   late final $PointsLedgersTable pointsLedgers = $PointsLedgersTable(this);
   late final $VouchersTable vouchers = $VouchersTable(this);
@@ -23278,7 +28092,6 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       KnowledgeBaseDao(this as AppDatabase);
   late final MapsDao mapsDao = MapsDao(this as AppDatabase);
   late final MoviesDao moviesDao = MoviesDao(this as AppDatabase);
-  late final MusicDao musicDao = MusicDao(this as AppDatabase);
   late final GalleryDao galleryDao = GalleryDao(this as AppDatabase);
   late final PointsDao pointsDao = PointsDao(this as AppDatabase);
   late final SystemDao systemDao = SystemDao(this as AppDatabase);
@@ -23339,8 +28152,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         playlists,
         playlistTracks,
         offlineMusicTracks,
+        likedSongs,
+        downloadQueue,
+        listeningHistory,
         mediaAssets,
         mediaTags,
+        cloudAssets,
+        fileTransfers,
+        transferChunks,
         pointRules,
         pointsLedgers,
         vouchers,
@@ -23476,10 +28295,38 @@ abstract class _$AppDatabase extends GeneratedDatabase {
             ],
           ),
           WritePropagation(
+            on: TableUpdateQuery.onTableName('music_tracks',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('liked_songs', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('music_tracks',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('download_queue', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('music_tracks',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('listening_history', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
             on: TableUpdateQuery.onTableName('media_assets',
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('media_tags', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('file_transfers',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('transfer_chunks', kind: UpdateKind.delete),
             ],
           ),
           WritePropagation(
@@ -35008,9 +39855,23 @@ typedef $$MusicTracksTableCreateCompanionBuilder = MusicTracksCompanion
   required String title,
   Value<String?> artist,
   Value<String?> album,
+  Value<String?> albumArtist,
   Value<int?> trackNumber,
+  Value<int?> discNumber,
+  Value<int?> year,
+  Value<String?> genre,
   required String filePath,
   Value<String?> lyricsPath,
+  Value<String?> thumbnailUrl,
+  Value<String?> ytDlpId,
+  Value<int> duration,
+  Value<int?> bitrate,
+  Value<String?> codec,
+  Value<double?> replayGainTrack,
+  Value<double?> replayGainAlbum,
+  Value<int> playCount,
+  Value<int?> lastPlayedAt,
+  required int addedAt,
   required int updatedAt,
   Value<int> isDirty,
   Value<int> rowid,
@@ -35021,9 +39882,23 @@ typedef $$MusicTracksTableUpdateCompanionBuilder = MusicTracksCompanion
   Value<String> title,
   Value<String?> artist,
   Value<String?> album,
+  Value<String?> albumArtist,
   Value<int?> trackNumber,
+  Value<int?> discNumber,
+  Value<int?> year,
+  Value<String?> genre,
   Value<String> filePath,
   Value<String?> lyricsPath,
+  Value<String?> thumbnailUrl,
+  Value<String?> ytDlpId,
+  Value<int> duration,
+  Value<int?> bitrate,
+  Value<String?> codec,
+  Value<double?> replayGainTrack,
+  Value<double?> replayGainAlbum,
+  Value<int> playCount,
+  Value<int?> lastPlayedAt,
+  Value<int> addedAt,
   Value<int> updatedAt,
   Value<int> isDirty,
   Value<int> rowid,
@@ -35043,6 +39918,50 @@ final class $$MusicTracksTableReferences
         .filter((f) => f.trackId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_playlistTracksRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$LikedSongsTable, List<LikedSong>>
+      _likedSongsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.likedSongs,
+              aliasName: 'music_tracks__id__liked_songs__id');
+
+  $$LikedSongsTableProcessedTableManager get likedSongsRefs {
+    final manager = $$LikedSongsTableTableManager($_db, $_db.likedSongs)
+        .filter((f) => f.id.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_likedSongsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$DownloadQueueTable, List<DownloadQueueItem>>
+      _downloadQueueRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.downloadQueue,
+              aliasName: 'music_tracks__id__download_queue__track_id');
+
+  $$DownloadQueueTableProcessedTableManager get downloadQueueRefs {
+    final manager = $$DownloadQueueTableTableManager($_db, $_db.downloadQueue)
+        .filter((f) => f.trackId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_downloadQueueRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$ListeningHistoryTable, List<ListeningEvent>>
+      _listeningHistoryRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.listeningHistory,
+              aliasName: 'music_tracks__id__listening_history__track_id');
+
+  $$ListeningHistoryTableProcessedTableManager get listeningHistoryRefs {
+    final manager =
+        $$ListeningHistoryTableTableManager($_db, $_db.listeningHistory)
+            .filter((f) => f.trackId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_listeningHistoryRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -35069,14 +39988,58 @@ class $$MusicTracksTableFilterComposer
   ColumnFilters<String> get album => $composableBuilder(
       column: $table.album, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get albumArtist => $composableBuilder(
+      column: $table.albumArtist, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get trackNumber => $composableBuilder(
       column: $table.trackNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get discNumber => $composableBuilder(
+      column: $table.discNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get year => $composableBuilder(
+      column: $table.year, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get genre => $composableBuilder(
+      column: $table.genre, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get filePath => $composableBuilder(
       column: $table.filePath, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get lyricsPath => $composableBuilder(
       column: $table.lyricsPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get ytDlpId => $composableBuilder(
+      column: $table.ytDlpId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get bitrate => $composableBuilder(
+      column: $table.bitrate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get codec => $composableBuilder(
+      column: $table.codec, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get replayGainTrack => $composableBuilder(
+      column: $table.replayGainTrack,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get replayGainAlbum => $composableBuilder(
+      column: $table.replayGainAlbum,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get playCount => $composableBuilder(
+      column: $table.playCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lastPlayedAt => $composableBuilder(
+      column: $table.lastPlayedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -35097,6 +40060,69 @@ class $$MusicTracksTableFilterComposer
             $$PlaylistTracksTableFilterComposer(
               $db: $db,
               $table: $db.playlistTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> likedSongsRefs(
+      Expression<bool> Function($$LikedSongsTableFilterComposer f) f) {
+    final $$LikedSongsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.likedSongs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LikedSongsTableFilterComposer(
+              $db: $db,
+              $table: $db.likedSongs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> downloadQueueRefs(
+      Expression<bool> Function($$DownloadQueueTableFilterComposer f) f) {
+    final $$DownloadQueueTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.downloadQueue,
+        getReferencedColumn: (t) => t.trackId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DownloadQueueTableFilterComposer(
+              $db: $db,
+              $table: $db.downloadQueue,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> listeningHistoryRefs(
+      Expression<bool> Function($$ListeningHistoryTableFilterComposer f) f) {
+    final $$ListeningHistoryTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.listeningHistory,
+        getReferencedColumn: (t) => t.trackId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListeningHistoryTableFilterComposer(
+              $db: $db,
+              $table: $db.listeningHistory,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -35127,14 +40153,60 @@ class $$MusicTracksTableOrderingComposer
   ColumnOrderings<String> get album => $composableBuilder(
       column: $table.album, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get albumArtist => $composableBuilder(
+      column: $table.albumArtist, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get trackNumber => $composableBuilder(
       column: $table.trackNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get discNumber => $composableBuilder(
+      column: $table.discNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get year => $composableBuilder(
+      column: $table.year, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get genre => $composableBuilder(
+      column: $table.genre, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get filePath => $composableBuilder(
       column: $table.filePath, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get lyricsPath => $composableBuilder(
       column: $table.lyricsPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get ytDlpId => $composableBuilder(
+      column: $table.ytDlpId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get duration => $composableBuilder(
+      column: $table.duration, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get bitrate => $composableBuilder(
+      column: $table.bitrate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get codec => $composableBuilder(
+      column: $table.codec, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get replayGainTrack => $composableBuilder(
+      column: $table.replayGainTrack,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get replayGainAlbum => $composableBuilder(
+      column: $table.replayGainAlbum,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get playCount => $composableBuilder(
+      column: $table.playCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lastPlayedAt => $composableBuilder(
+      column: $table.lastPlayedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
@@ -35164,14 +40236,56 @@ class $$MusicTracksTableAnnotationComposer
   GeneratedColumn<String> get album =>
       $composableBuilder(column: $table.album, builder: (column) => column);
 
+  GeneratedColumn<String> get albumArtist => $composableBuilder(
+      column: $table.albumArtist, builder: (column) => column);
+
   GeneratedColumn<int> get trackNumber => $composableBuilder(
       column: $table.trackNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get discNumber => $composableBuilder(
+      column: $table.discNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get year =>
+      $composableBuilder(column: $table.year, builder: (column) => column);
+
+  GeneratedColumn<String> get genre =>
+      $composableBuilder(column: $table.genre, builder: (column) => column);
 
   GeneratedColumn<String> get filePath =>
       $composableBuilder(column: $table.filePath, builder: (column) => column);
 
   GeneratedColumn<String> get lyricsPath => $composableBuilder(
       column: $table.lyricsPath, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get ytDlpId =>
+      $composableBuilder(column: $table.ytDlpId, builder: (column) => column);
+
+  GeneratedColumn<int> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<int> get bitrate =>
+      $composableBuilder(column: $table.bitrate, builder: (column) => column);
+
+  GeneratedColumn<String> get codec =>
+      $composableBuilder(column: $table.codec, builder: (column) => column);
+
+  GeneratedColumn<double> get replayGainTrack => $composableBuilder(
+      column: $table.replayGainTrack, builder: (column) => column);
+
+  GeneratedColumn<double> get replayGainAlbum => $composableBuilder(
+      column: $table.replayGainAlbum, builder: (column) => column);
+
+  GeneratedColumn<int> get playCount =>
+      $composableBuilder(column: $table.playCount, builder: (column) => column);
+
+  GeneratedColumn<int> get lastPlayedAt => $composableBuilder(
+      column: $table.lastPlayedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -35199,6 +40313,69 @@ class $$MusicTracksTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> likedSongsRefs<T extends Object>(
+      Expression<T> Function($$LikedSongsTableAnnotationComposer a) f) {
+    final $$LikedSongsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.likedSongs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LikedSongsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.likedSongs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> downloadQueueRefs<T extends Object>(
+      Expression<T> Function($$DownloadQueueTableAnnotationComposer a) f) {
+    final $$DownloadQueueTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.downloadQueue,
+        getReferencedColumn: (t) => t.trackId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$DownloadQueueTableAnnotationComposer(
+              $db: $db,
+              $table: $db.downloadQueue,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> listeningHistoryRefs<T extends Object>(
+      Expression<T> Function($$ListeningHistoryTableAnnotationComposer a) f) {
+    final $$ListeningHistoryTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.listeningHistory,
+        getReferencedColumn: (t) => t.trackId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListeningHistoryTableAnnotationComposer(
+              $db: $db,
+              $table: $db.listeningHistory,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$MusicTracksTableTableManager extends RootTableManager<
@@ -35212,7 +40389,11 @@ class $$MusicTracksTableTableManager extends RootTableManager<
     $$MusicTracksTableUpdateCompanionBuilder,
     (MusicTrack, $$MusicTracksTableReferences),
     MusicTrack,
-    PrefetchHooks Function({bool playlistTracksRefs})> {
+    PrefetchHooks Function(
+        {bool playlistTracksRefs,
+        bool likedSongsRefs,
+        bool downloadQueueRefs,
+        bool listeningHistoryRefs})> {
   $$MusicTracksTableTableManager(_$AppDatabase db, $MusicTracksTable table)
       : super(TableManagerState(
           db: db,
@@ -35228,9 +40409,23 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             Value<String> title = const Value.absent(),
             Value<String?> artist = const Value.absent(),
             Value<String?> album = const Value.absent(),
+            Value<String?> albumArtist = const Value.absent(),
             Value<int?> trackNumber = const Value.absent(),
+            Value<int?> discNumber = const Value.absent(),
+            Value<int?> year = const Value.absent(),
+            Value<String?> genre = const Value.absent(),
             Value<String> filePath = const Value.absent(),
             Value<String?> lyricsPath = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> ytDlpId = const Value.absent(),
+            Value<int> duration = const Value.absent(),
+            Value<int?> bitrate = const Value.absent(),
+            Value<String?> codec = const Value.absent(),
+            Value<double?> replayGainTrack = const Value.absent(),
+            Value<double?> replayGainAlbum = const Value.absent(),
+            Value<int> playCount = const Value.absent(),
+            Value<int?> lastPlayedAt = const Value.absent(),
+            Value<int> addedAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -35240,9 +40435,23 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             title: title,
             artist: artist,
             album: album,
+            albumArtist: albumArtist,
             trackNumber: trackNumber,
+            discNumber: discNumber,
+            year: year,
+            genre: genre,
             filePath: filePath,
             lyricsPath: lyricsPath,
+            thumbnailUrl: thumbnailUrl,
+            ytDlpId: ytDlpId,
+            duration: duration,
+            bitrate: bitrate,
+            codec: codec,
+            replayGainTrack: replayGainTrack,
+            replayGainAlbum: replayGainAlbum,
+            playCount: playCount,
+            lastPlayedAt: lastPlayedAt,
+            addedAt: addedAt,
             updatedAt: updatedAt,
             isDirty: isDirty,
             rowid: rowid,
@@ -35252,9 +40461,23 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             required String title,
             Value<String?> artist = const Value.absent(),
             Value<String?> album = const Value.absent(),
+            Value<String?> albumArtist = const Value.absent(),
             Value<int?> trackNumber = const Value.absent(),
+            Value<int?> discNumber = const Value.absent(),
+            Value<int?> year = const Value.absent(),
+            Value<String?> genre = const Value.absent(),
             required String filePath,
             Value<String?> lyricsPath = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> ytDlpId = const Value.absent(),
+            Value<int> duration = const Value.absent(),
+            Value<int?> bitrate = const Value.absent(),
+            Value<String?> codec = const Value.absent(),
+            Value<double?> replayGainTrack = const Value.absent(),
+            Value<double?> replayGainAlbum = const Value.absent(),
+            Value<int> playCount = const Value.absent(),
+            Value<int?> lastPlayedAt = const Value.absent(),
+            required int addedAt,
             required int updatedAt,
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -35264,9 +40487,23 @@ class $$MusicTracksTableTableManager extends RootTableManager<
             title: title,
             artist: artist,
             album: album,
+            albumArtist: albumArtist,
             trackNumber: trackNumber,
+            discNumber: discNumber,
+            year: year,
+            genre: genre,
             filePath: filePath,
             lyricsPath: lyricsPath,
+            thumbnailUrl: thumbnailUrl,
+            ytDlpId: ytDlpId,
+            duration: duration,
+            bitrate: bitrate,
+            codec: codec,
+            replayGainTrack: replayGainTrack,
+            replayGainAlbum: replayGainAlbum,
+            playCount: playCount,
+            lastPlayedAt: lastPlayedAt,
+            addedAt: addedAt,
             updatedAt: updatedAt,
             isDirty: isDirty,
             rowid: rowid,
@@ -35277,11 +40514,18 @@ class $$MusicTracksTableTableManager extends RootTableManager<
                     $$MusicTracksTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({playlistTracksRefs = false}) {
+          prefetchHooksCallback: (
+              {playlistTracksRefs = false,
+              likedSongsRefs = false,
+              downloadQueueRefs = false,
+              listeningHistoryRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (playlistTracksRefs) db.playlistTracks
+                if (playlistTracksRefs) db.playlistTracks,
+                if (likedSongsRefs) db.likedSongs,
+                if (downloadQueueRefs) db.downloadQueue,
+                if (listeningHistoryRefs) db.listeningHistory
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -35295,6 +40539,45 @@ class $$MusicTracksTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$MusicTracksTableReferences(db, table, p0)
                                 .playlistTracksRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.trackId == item.id),
+                        typedResults: items),
+                  if (likedSongsRefs)
+                    await $_getPrefetchedData<MusicTrack, $MusicTracksTable,
+                            LikedSong>(
+                        currentTable: table,
+                        referencedTable: $$MusicTracksTableReferences
+                            ._likedSongsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MusicTracksTableReferences(db, table, p0)
+                                .likedSongsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) =>
+                                referencedItems.where((e) => e.id == item.id),
+                        typedResults: items),
+                  if (downloadQueueRefs)
+                    await $_getPrefetchedData<MusicTrack, $MusicTracksTable,
+                            DownloadQueueItem>(
+                        currentTable: table,
+                        referencedTable: $$MusicTracksTableReferences
+                            ._downloadQueueRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MusicTracksTableReferences(db, table, p0)
+                                .downloadQueueRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.trackId == item.id),
+                        typedResults: items),
+                  if (listeningHistoryRefs)
+                    await $_getPrefetchedData<MusicTrack, $MusicTracksTable,
+                            ListeningEvent>(
+                        currentTable: table,
+                        referencedTable: $$MusicTracksTableReferences
+                            ._listeningHistoryRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MusicTracksTableReferences(db, table, p0)
+                                .listeningHistoryRefs,
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.trackId == item.id),
@@ -35317,18 +40600,38 @@ typedef $$MusicTracksTableProcessedTableManager = ProcessedTableManager<
     $$MusicTracksTableUpdateCompanionBuilder,
     (MusicTrack, $$MusicTracksTableReferences),
     MusicTrack,
-    PrefetchHooks Function({bool playlistTracksRefs})>;
+    PrefetchHooks Function(
+        {bool playlistTracksRefs,
+        bool likedSongsRefs,
+        bool downloadQueueRefs,
+        bool listeningHistoryRefs})>;
 typedef $$PlaylistsTableCreateCompanionBuilder = PlaylistsCompanion Function({
   required String id,
   required String name,
+  Value<String?> description,
+  Value<String?> coverArtUrl,
+  Value<bool> isSmart,
+  Value<String?> smartType,
+  Value<String?> smartConfig,
+  Value<int> trackCount,
+  Value<int> totalDuration,
   required int createdAt,
+  required int updatedAt,
   Value<int> isDirty,
   Value<int> rowid,
 });
 typedef $$PlaylistsTableUpdateCompanionBuilder = PlaylistsCompanion Function({
   Value<String> id,
   Value<String> name,
+  Value<String?> description,
+  Value<String?> coverArtUrl,
+  Value<bool> isSmart,
+  Value<String?> smartType,
+  Value<String?> smartConfig,
+  Value<int> trackCount,
+  Value<int> totalDuration,
   Value<int> createdAt,
+  Value<int> updatedAt,
   Value<int> isDirty,
   Value<int> rowid,
 });
@@ -35367,8 +40670,32 @@ class $$PlaylistsTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get coverArtUrl => $composableBuilder(
+      column: $table.coverArtUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isSmart => $composableBuilder(
+      column: $table.isSmart, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get smartType => $composableBuilder(
+      column: $table.smartType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get smartConfig => $composableBuilder(
+      column: $table.smartConfig, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get trackCount => $composableBuilder(
+      column: $table.trackCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalDuration => $composableBuilder(
+      column: $table.totalDuration, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnFilters(column));
@@ -35410,8 +40737,33 @@ class $$PlaylistsTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get coverArtUrl => $composableBuilder(
+      column: $table.coverArtUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isSmart => $composableBuilder(
+      column: $table.isSmart, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get smartType => $composableBuilder(
+      column: $table.smartType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get smartConfig => $composableBuilder(
+      column: $table.smartConfig, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get trackCount => $composableBuilder(
+      column: $table.trackCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalDuration => $composableBuilder(
+      column: $table.totalDuration,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnOrderings(column));
@@ -35432,8 +40784,32 @@ class $$PlaylistsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get coverArtUrl => $composableBuilder(
+      column: $table.coverArtUrl, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSmart =>
+      $composableBuilder(column: $table.isSmart, builder: (column) => column);
+
+  GeneratedColumn<String> get smartType =>
+      $composableBuilder(column: $table.smartType, builder: (column) => column);
+
+  GeneratedColumn<String> get smartConfig => $composableBuilder(
+      column: $table.smartConfig, builder: (column) => column);
+
+  GeneratedColumn<int> get trackCount => $composableBuilder(
+      column: $table.trackCount, builder: (column) => column);
+
+  GeneratedColumn<int> get totalDuration => $composableBuilder(
+      column: $table.totalDuration, builder: (column) => column);
+
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<int> get isDirty =>
       $composableBuilder(column: $table.isDirty, builder: (column) => column);
@@ -35485,28 +40861,60 @@ class $$PlaylistsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> coverArtUrl = const Value.absent(),
+            Value<bool> isSmart = const Value.absent(),
+            Value<String?> smartType = const Value.absent(),
+            Value<String?> smartConfig = const Value.absent(),
+            Value<int> trackCount = const Value.absent(),
+            Value<int> totalDuration = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
+            Value<int> updatedAt = const Value.absent(),
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PlaylistsCompanion(
             id: id,
             name: name,
+            description: description,
+            coverArtUrl: coverArtUrl,
+            isSmart: isSmart,
+            smartType: smartType,
+            smartConfig: smartConfig,
+            trackCount: trackCount,
+            totalDuration: totalDuration,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             isDirty: isDirty,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             required String name,
+            Value<String?> description = const Value.absent(),
+            Value<String?> coverArtUrl = const Value.absent(),
+            Value<bool> isSmart = const Value.absent(),
+            Value<String?> smartType = const Value.absent(),
+            Value<String?> smartConfig = const Value.absent(),
+            Value<int> trackCount = const Value.absent(),
+            Value<int> totalDuration = const Value.absent(),
             required int createdAt,
+            required int updatedAt,
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PlaylistsCompanion.insert(
             id: id,
             name: name,
+            description: description,
+            coverArtUrl: coverArtUrl,
+            isSmart: isSmart,
+            smartType: smartType,
+            smartConfig: smartConfig,
+            trackCount: trackCount,
+            totalDuration: totalDuration,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             isDirty: isDirty,
             rowid: rowid,
           ),
@@ -35562,6 +40970,8 @@ typedef $$PlaylistTracksTableCreateCompanionBuilder = PlaylistTracksCompanion
   required String id,
   required String playlistId,
   required String trackId,
+  required int position,
+  required int addedAt,
   Value<int> isDirty,
   Value<int> rowid,
 });
@@ -35570,6 +40980,8 @@ typedef $$PlaylistTracksTableUpdateCompanionBuilder = PlaylistTracksCompanion
   Value<String> id,
   Value<String> playlistId,
   Value<String> trackId,
+  Value<int> position,
+  Value<int> addedAt,
   Value<int> isDirty,
   Value<int> rowid,
 });
@@ -35619,6 +41031,12 @@ class $$PlaylistTracksTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnFilters(column));
@@ -35676,6 +41094,12 @@ class $$PlaylistTracksTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get isDirty => $composableBuilder(
       column: $table.isDirty, builder: (column) => ColumnOrderings(column));
 
@@ -35731,6 +41155,12 @@ class $$PlaylistTracksTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<int> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
 
   GeneratedColumn<int> get isDirty =>
       $composableBuilder(column: $table.isDirty, builder: (column) => column);
@@ -35803,6 +41233,8 @@ class $$PlaylistTracksTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> playlistId = const Value.absent(),
             Value<String> trackId = const Value.absent(),
+            Value<int> position = const Value.absent(),
+            Value<int> addedAt = const Value.absent(),
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -35810,6 +41242,8 @@ class $$PlaylistTracksTableTableManager extends RootTableManager<
             id: id,
             playlistId: playlistId,
             trackId: trackId,
+            position: position,
+            addedAt: addedAt,
             isDirty: isDirty,
             rowid: rowid,
           ),
@@ -35817,6 +41251,8 @@ class $$PlaylistTracksTableTableManager extends RootTableManager<
             required String id,
             required String playlistId,
             required String trackId,
+            required int position,
+            required int addedAt,
             Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -35824,6 +41260,8 @@ class $$PlaylistTracksTableTableManager extends RootTableManager<
             id: id,
             playlistId: playlistId,
             trackId: trackId,
+            position: position,
+            addedAt: addedAt,
             isDirty: isDirty,
             rowid: rowid,
           ),
@@ -35903,6 +41341,7 @@ typedef $$OfflineMusicTracksTableCreateCompanionBuilder
   required String filePath,
   Value<double> duration,
   required int downloadedAt,
+  Value<int> isDirty,
   Value<int> rowid,
 });
 typedef $$OfflineMusicTracksTableUpdateCompanionBuilder
@@ -35915,6 +41354,7 @@ typedef $$OfflineMusicTracksTableUpdateCompanionBuilder
   Value<String> filePath,
   Value<double> duration,
   Value<int> downloadedAt,
+  Value<int> isDirty,
   Value<int> rowid,
 });
 
@@ -35950,6 +41390,9 @@ class $$OfflineMusicTracksTableFilterComposer
 
   ColumnFilters<int> get downloadedAt => $composableBuilder(
       column: $table.downloadedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
 }
 
 class $$OfflineMusicTracksTableOrderingComposer
@@ -35985,6 +41428,9 @@ class $$OfflineMusicTracksTableOrderingComposer
   ColumnOrderings<int> get downloadedAt => $composableBuilder(
       column: $table.downloadedAt,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
 }
 
 class $$OfflineMusicTracksTableAnnotationComposer
@@ -36019,6 +41465,9 @@ class $$OfflineMusicTracksTableAnnotationComposer
 
   GeneratedColumn<int> get downloadedAt => $composableBuilder(
       column: $table.downloadedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
 }
 
 class $$OfflineMusicTracksTableTableManager extends RootTableManager<
@@ -36057,6 +41506,7 @@ class $$OfflineMusicTracksTableTableManager extends RootTableManager<
             Value<String> filePath = const Value.absent(),
             Value<double> duration = const Value.absent(),
             Value<int> downloadedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               OfflineMusicTracksCompanion(
@@ -36068,6 +41518,7 @@ class $$OfflineMusicTracksTableTableManager extends RootTableManager<
             filePath: filePath,
             duration: duration,
             downloadedAt: downloadedAt,
+            isDirty: isDirty,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -36079,6 +41530,7 @@ class $$OfflineMusicTracksTableTableManager extends RootTableManager<
             required String filePath,
             Value<double> duration = const Value.absent(),
             required int downloadedAt,
+            Value<int> isDirty = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               OfflineMusicTracksCompanion.insert(
@@ -36090,6 +41542,7 @@ class $$OfflineMusicTracksTableTableManager extends RootTableManager<
             filePath: filePath,
             duration: duration,
             downloadedAt: downloadedAt,
+            isDirty: isDirty,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -36114,6 +41567,1031 @@ typedef $$OfflineMusicTracksTableProcessedTableManager = ProcessedTableManager<
     ),
     OfflineMusicTrack,
     PrefetchHooks Function()>;
+typedef $$LikedSongsTableCreateCompanionBuilder = LikedSongsCompanion Function({
+  required String id,
+  required int likedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$LikedSongsTableUpdateCompanionBuilder = LikedSongsCompanion Function({
+  Value<String> id,
+  Value<int> likedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+final class $$LikedSongsTableReferences
+    extends BaseReferences<_$AppDatabase, $LikedSongsTable, LikedSong> {
+  $$LikedSongsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $MusicTracksTable _idTable(_$AppDatabase db) =>
+      db.musicTracks.createAlias('liked_songs__id__music_tracks__id');
+
+  $$MusicTracksTableProcessedTableManager get id {
+    final $_column = $_itemColumn<String>('id')!;
+
+    final manager = $$MusicTracksTableTableManager($_db, $_db.musicTracks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_idTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$LikedSongsTableFilterComposer
+    extends Composer<_$AppDatabase, $LikedSongsTable> {
+  $$LikedSongsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get likedAt => $composableBuilder(
+      column: $table.likedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  $$MusicTracksTableFilterComposer get id {
+    final $$MusicTracksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableFilterComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$LikedSongsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LikedSongsTable> {
+  $$LikedSongsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get likedAt => $composableBuilder(
+      column: $table.likedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+
+  $$MusicTracksTableOrderingComposer get id {
+    final $$MusicTracksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableOrderingComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$LikedSongsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LikedSongsTable> {
+  $$LikedSongsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get likedAt =>
+      $composableBuilder(column: $table.likedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  $$MusicTracksTableAnnotationComposer get id {
+    final $$MusicTracksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$LikedSongsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $LikedSongsTable,
+    LikedSong,
+    $$LikedSongsTableFilterComposer,
+    $$LikedSongsTableOrderingComposer,
+    $$LikedSongsTableAnnotationComposer,
+    $$LikedSongsTableCreateCompanionBuilder,
+    $$LikedSongsTableUpdateCompanionBuilder,
+    (LikedSong, $$LikedSongsTableReferences),
+    LikedSong,
+    PrefetchHooks Function({bool id})> {
+  $$LikedSongsTableTableManager(_$AppDatabase db, $LikedSongsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LikedSongsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LikedSongsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LikedSongsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<int> likedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LikedSongsCompanion(
+            id: id,
+            likedAt: likedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required int likedAt,
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LikedSongsCompanion.insert(
+            id: id,
+            likedAt: likedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$LikedSongsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({id = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (id) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.id,
+                    referencedTable: $$LikedSongsTableReferences._idTable(db),
+                    referencedColumn:
+                        $$LikedSongsTableReferences._idTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$LikedSongsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $LikedSongsTable,
+    LikedSong,
+    $$LikedSongsTableFilterComposer,
+    $$LikedSongsTableOrderingComposer,
+    $$LikedSongsTableAnnotationComposer,
+    $$LikedSongsTableCreateCompanionBuilder,
+    $$LikedSongsTableUpdateCompanionBuilder,
+    (LikedSong, $$LikedSongsTableReferences),
+    LikedSong,
+    PrefetchHooks Function({bool id})>;
+typedef $$DownloadQueueTableCreateCompanionBuilder = DownloadQueueCompanion
+    Function({
+  required String id,
+  required String trackId,
+  required String url,
+  Value<String?> destinationPath,
+  Value<String> status,
+  Value<int> priority,
+  Value<int> retryCount,
+  Value<int?> totalBytes,
+  Value<int> downloadedBytes,
+  Value<String?> errorMessage,
+  Value<bool> wifiOnly,
+  Value<bool> chargingOnly,
+  required int createdAt,
+  Value<int?> startedAt,
+  Value<int?> completedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$DownloadQueueTableUpdateCompanionBuilder = DownloadQueueCompanion
+    Function({
+  Value<String> id,
+  Value<String> trackId,
+  Value<String> url,
+  Value<String?> destinationPath,
+  Value<String> status,
+  Value<int> priority,
+  Value<int> retryCount,
+  Value<int?> totalBytes,
+  Value<int> downloadedBytes,
+  Value<String?> errorMessage,
+  Value<bool> wifiOnly,
+  Value<bool> chargingOnly,
+  Value<int> createdAt,
+  Value<int?> startedAt,
+  Value<int?> completedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+final class $$DownloadQueueTableReferences extends BaseReferences<_$AppDatabase,
+    $DownloadQueueTable, DownloadQueueItem> {
+  $$DownloadQueueTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $MusicTracksTable _trackIdTable(_$AppDatabase db) =>
+      db.musicTracks.createAlias('download_queue__track_id__music_tracks__id');
+
+  $$MusicTracksTableProcessedTableManager get trackId {
+    final $_column = $_itemColumn<String>('track_id')!;
+
+    final manager = $$MusicTracksTableTableManager($_db, $_db.musicTracks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_trackIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$DownloadQueueTableFilterComposer
+    extends Composer<_$AppDatabase, $DownloadQueueTable> {
+  $$DownloadQueueTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get destinationPath => $composableBuilder(
+      column: $table.destinationPath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalBytes => $composableBuilder(
+      column: $table.totalBytes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get downloadedBytes => $composableBuilder(
+      column: $table.downloadedBytes,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get wifiOnly => $composableBuilder(
+      column: $table.wifiOnly, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get chargingOnly => $composableBuilder(
+      column: $table.chargingOnly, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get startedAt => $composableBuilder(
+      column: $table.startedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  $$MusicTracksTableFilterComposer get trackId {
+    final $$MusicTracksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableFilterComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DownloadQueueTableOrderingComposer
+    extends Composer<_$AppDatabase, $DownloadQueueTable> {
+  $$DownloadQueueTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get destinationPath => $composableBuilder(
+      column: $table.destinationPath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalBytes => $composableBuilder(
+      column: $table.totalBytes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get downloadedBytes => $composableBuilder(
+      column: $table.downloadedBytes,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get wifiOnly => $composableBuilder(
+      column: $table.wifiOnly, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get chargingOnly => $composableBuilder(
+      column: $table.chargingOnly,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get startedAt => $composableBuilder(
+      column: $table.startedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+
+  $$MusicTracksTableOrderingComposer get trackId {
+    final $$MusicTracksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableOrderingComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DownloadQueueTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DownloadQueueTable> {
+  $$DownloadQueueTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get url =>
+      $composableBuilder(column: $table.url, builder: (column) => column);
+
+  GeneratedColumn<String> get destinationPath => $composableBuilder(
+      column: $table.destinationPath, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => column);
+
+  GeneratedColumn<int> get totalBytes => $composableBuilder(
+      column: $table.totalBytes, builder: (column) => column);
+
+  GeneratedColumn<int> get downloadedBytes => $composableBuilder(
+      column: $table.downloadedBytes, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+      column: $table.errorMessage, builder: (column) => column);
+
+  GeneratedColumn<bool> get wifiOnly =>
+      $composableBuilder(column: $table.wifiOnly, builder: (column) => column);
+
+  GeneratedColumn<bool> get chargingOnly => $composableBuilder(
+      column: $table.chargingOnly, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  $$MusicTracksTableAnnotationComposer get trackId {
+    final $$MusicTracksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$DownloadQueueTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DownloadQueueTable,
+    DownloadQueueItem,
+    $$DownloadQueueTableFilterComposer,
+    $$DownloadQueueTableOrderingComposer,
+    $$DownloadQueueTableAnnotationComposer,
+    $$DownloadQueueTableCreateCompanionBuilder,
+    $$DownloadQueueTableUpdateCompanionBuilder,
+    (DownloadQueueItem, $$DownloadQueueTableReferences),
+    DownloadQueueItem,
+    PrefetchHooks Function({bool trackId})> {
+  $$DownloadQueueTableTableManager(_$AppDatabase db, $DownloadQueueTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DownloadQueueTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DownloadQueueTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DownloadQueueTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> trackId = const Value.absent(),
+            Value<String> url = const Value.absent(),
+            Value<String?> destinationPath = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<int> priority = const Value.absent(),
+            Value<int> retryCount = const Value.absent(),
+            Value<int?> totalBytes = const Value.absent(),
+            Value<int> downloadedBytes = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<bool> wifiOnly = const Value.absent(),
+            Value<bool> chargingOnly = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int?> startedAt = const Value.absent(),
+            Value<int?> completedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DownloadQueueCompanion(
+            id: id,
+            trackId: trackId,
+            url: url,
+            destinationPath: destinationPath,
+            status: status,
+            priority: priority,
+            retryCount: retryCount,
+            totalBytes: totalBytes,
+            downloadedBytes: downloadedBytes,
+            errorMessage: errorMessage,
+            wifiOnly: wifiOnly,
+            chargingOnly: chargingOnly,
+            createdAt: createdAt,
+            startedAt: startedAt,
+            completedAt: completedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String trackId,
+            required String url,
+            Value<String?> destinationPath = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<int> priority = const Value.absent(),
+            Value<int> retryCount = const Value.absent(),
+            Value<int?> totalBytes = const Value.absent(),
+            Value<int> downloadedBytes = const Value.absent(),
+            Value<String?> errorMessage = const Value.absent(),
+            Value<bool> wifiOnly = const Value.absent(),
+            Value<bool> chargingOnly = const Value.absent(),
+            required int createdAt,
+            Value<int?> startedAt = const Value.absent(),
+            Value<int?> completedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              DownloadQueueCompanion.insert(
+            id: id,
+            trackId: trackId,
+            url: url,
+            destinationPath: destinationPath,
+            status: status,
+            priority: priority,
+            retryCount: retryCount,
+            totalBytes: totalBytes,
+            downloadedBytes: downloadedBytes,
+            errorMessage: errorMessage,
+            wifiOnly: wifiOnly,
+            chargingOnly: chargingOnly,
+            createdAt: createdAt,
+            startedAt: startedAt,
+            completedAt: completedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$DownloadQueueTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({trackId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (trackId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.trackId,
+                    referencedTable:
+                        $$DownloadQueueTableReferences._trackIdTable(db),
+                    referencedColumn:
+                        $$DownloadQueueTableReferences._trackIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$DownloadQueueTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DownloadQueueTable,
+    DownloadQueueItem,
+    $$DownloadQueueTableFilterComposer,
+    $$DownloadQueueTableOrderingComposer,
+    $$DownloadQueueTableAnnotationComposer,
+    $$DownloadQueueTableCreateCompanionBuilder,
+    $$DownloadQueueTableUpdateCompanionBuilder,
+    (DownloadQueueItem, $$DownloadQueueTableReferences),
+    DownloadQueueItem,
+    PrefetchHooks Function({bool trackId})>;
+typedef $$ListeningHistoryTableCreateCompanionBuilder
+    = ListeningHistoryCompanion Function({
+  required String id,
+  required String trackId,
+  required int playedAt,
+  Value<int> positionMs,
+  Value<int?> durationMs,
+  Value<double?> completionRate,
+  Value<bool> skipped,
+  Value<String?> source,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$ListeningHistoryTableUpdateCompanionBuilder
+    = ListeningHistoryCompanion Function({
+  Value<String> id,
+  Value<String> trackId,
+  Value<int> playedAt,
+  Value<int> positionMs,
+  Value<int?> durationMs,
+  Value<double?> completionRate,
+  Value<bool> skipped,
+  Value<String?> source,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+final class $$ListeningHistoryTableReferences extends BaseReferences<
+    _$AppDatabase, $ListeningHistoryTable, ListeningEvent> {
+  $$ListeningHistoryTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $MusicTracksTable _trackIdTable(_$AppDatabase db) => db.musicTracks
+      .createAlias('listening_history__track_id__music_tracks__id');
+
+  $$MusicTracksTableProcessedTableManager get trackId {
+    final $_column = $_itemColumn<String>('track_id')!;
+
+    final manager = $$MusicTracksTableTableManager($_db, $_db.musicTracks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_trackIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ListeningHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $ListeningHistoryTable> {
+  $$ListeningHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get playedAt => $composableBuilder(
+      column: $table.playedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get positionMs => $composableBuilder(
+      column: $table.positionMs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+      column: $table.durationMs, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get completionRate => $composableBuilder(
+      column: $table.completionRate,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get skipped => $composableBuilder(
+      column: $table.skipped, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  $$MusicTracksTableFilterComposer get trackId {
+    final $$MusicTracksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableFilterComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListeningHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $ListeningHistoryTable> {
+  $$ListeningHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get playedAt => $composableBuilder(
+      column: $table.playedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get positionMs => $composableBuilder(
+      column: $table.positionMs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+      column: $table.durationMs, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get completionRate => $composableBuilder(
+      column: $table.completionRate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get skipped => $composableBuilder(
+      column: $table.skipped, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+
+  $$MusicTracksTableOrderingComposer get trackId {
+    final $$MusicTracksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableOrderingComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListeningHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ListeningHistoryTable> {
+  $$ListeningHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get playedAt =>
+      $composableBuilder(column: $table.playedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get positionMs => $composableBuilder(
+      column: $table.positionMs, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+      column: $table.durationMs, builder: (column) => column);
+
+  GeneratedColumn<double> get completionRate => $composableBuilder(
+      column: $table.completionRate, builder: (column) => column);
+
+  GeneratedColumn<bool> get skipped =>
+      $composableBuilder(column: $table.skipped, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  $$MusicTracksTableAnnotationComposer get trackId {
+    final $$MusicTracksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.trackId,
+        referencedTable: $db.musicTracks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MusicTracksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.musicTracks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListeningHistoryTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ListeningHistoryTable,
+    ListeningEvent,
+    $$ListeningHistoryTableFilterComposer,
+    $$ListeningHistoryTableOrderingComposer,
+    $$ListeningHistoryTableAnnotationComposer,
+    $$ListeningHistoryTableCreateCompanionBuilder,
+    $$ListeningHistoryTableUpdateCompanionBuilder,
+    (ListeningEvent, $$ListeningHistoryTableReferences),
+    ListeningEvent,
+    PrefetchHooks Function({bool trackId})> {
+  $$ListeningHistoryTableTableManager(
+      _$AppDatabase db, $ListeningHistoryTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ListeningHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ListeningHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ListeningHistoryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> trackId = const Value.absent(),
+            Value<int> playedAt = const Value.absent(),
+            Value<int> positionMs = const Value.absent(),
+            Value<int?> durationMs = const Value.absent(),
+            Value<double?> completionRate = const Value.absent(),
+            Value<bool> skipped = const Value.absent(),
+            Value<String?> source = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ListeningHistoryCompanion(
+            id: id,
+            trackId: trackId,
+            playedAt: playedAt,
+            positionMs: positionMs,
+            durationMs: durationMs,
+            completionRate: completionRate,
+            skipped: skipped,
+            source: source,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String trackId,
+            required int playedAt,
+            Value<int> positionMs = const Value.absent(),
+            Value<int?> durationMs = const Value.absent(),
+            Value<double?> completionRate = const Value.absent(),
+            Value<bool> skipped = const Value.absent(),
+            Value<String?> source = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ListeningHistoryCompanion.insert(
+            id: id,
+            trackId: trackId,
+            playedAt: playedAt,
+            positionMs: positionMs,
+            durationMs: durationMs,
+            completionRate: completionRate,
+            skipped: skipped,
+            source: source,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ListeningHistoryTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({trackId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (trackId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.trackId,
+                    referencedTable:
+                        $$ListeningHistoryTableReferences._trackIdTable(db),
+                    referencedColumn:
+                        $$ListeningHistoryTableReferences._trackIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ListeningHistoryTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ListeningHistoryTable,
+    ListeningEvent,
+    $$ListeningHistoryTableFilterComposer,
+    $$ListeningHistoryTableOrderingComposer,
+    $$ListeningHistoryTableAnnotationComposer,
+    $$ListeningHistoryTableCreateCompanionBuilder,
+    $$ListeningHistoryTableUpdateCompanionBuilder,
+    (ListeningEvent, $$ListeningHistoryTableReferences),
+    ListeningEvent,
+    PrefetchHooks Function({bool trackId})>;
 typedef $$MediaAssetsTableCreateCompanionBuilder = MediaAssetsCompanion
     Function({
   required String id,
@@ -36745,6 +43223,1213 @@ typedef $$MediaTagsTableProcessedTableManager = ProcessedTableManager<
     (MediaTag, $$MediaTagsTableReferences),
     MediaTag,
     PrefetchHooks Function({bool assetId})>;
+typedef $$CloudAssetsTableCreateCompanionBuilder = CloudAssetsCompanion
+    Function({
+  required String id,
+  required String userId,
+  required String filename,
+  required String type,
+  required String createdAt,
+  required int sizeBytes,
+  Value<String?> hash,
+  Value<int?> width,
+  Value<int?> height,
+  Value<String?> source,
+  Value<String?> title,
+  Value<String> tags,
+  Value<String> colors,
+  Value<double?> lat,
+  Value<double?> lng,
+  Value<String?> place,
+  Value<String?> thumbnailUrl,
+  Value<String?> streamUrl,
+  required int syncedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$CloudAssetsTableUpdateCompanionBuilder = CloudAssetsCompanion
+    Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> filename,
+  Value<String> type,
+  Value<String> createdAt,
+  Value<int> sizeBytes,
+  Value<String?> hash,
+  Value<int?> width,
+  Value<int?> height,
+  Value<String?> source,
+  Value<String?> title,
+  Value<String> tags,
+  Value<String> colors,
+  Value<double?> lat,
+  Value<double?> lng,
+  Value<String?> place,
+  Value<String?> thumbnailUrl,
+  Value<String?> streamUrl,
+  Value<int> syncedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+class $$CloudAssetsTableFilterComposer
+    extends Composer<_$AppDatabase, $CloudAssetsTable> {
+  $$CloudAssetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sizeBytes => $composableBuilder(
+      column: $table.sizeBytes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get hash => $composableBuilder(
+      column: $table.hash, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get width => $composableBuilder(
+      column: $table.width, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get height => $composableBuilder(
+      column: $table.height, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tags => $composableBuilder(
+      column: $table.tags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get colors => $composableBuilder(
+      column: $table.colors, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get lat => $composableBuilder(
+      column: $table.lat, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get lng => $composableBuilder(
+      column: $table.lng, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get place => $composableBuilder(
+      column: $table.place, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get streamUrl => $composableBuilder(
+      column: $table.streamUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncedAt => $composableBuilder(
+      column: $table.syncedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+}
+
+class $$CloudAssetsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CloudAssetsTable> {
+  $$CloudAssetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sizeBytes => $composableBuilder(
+      column: $table.sizeBytes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get hash => $composableBuilder(
+      column: $table.hash, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get width => $composableBuilder(
+      column: $table.width, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get height => $composableBuilder(
+      column: $table.height, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tags => $composableBuilder(
+      column: $table.tags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get colors => $composableBuilder(
+      column: $table.colors, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get lat => $composableBuilder(
+      column: $table.lat, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get lng => $composableBuilder(
+      column: $table.lng, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get place => $composableBuilder(
+      column: $table.place, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get streamUrl => $composableBuilder(
+      column: $table.streamUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncedAt => $composableBuilder(
+      column: $table.syncedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CloudAssetsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CloudAssetsTable> {
+  $$CloudAssetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get sizeBytes =>
+      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<String> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<int> get width =>
+      $composableBuilder(column: $table.width, builder: (column) => column);
+
+  GeneratedColumn<int> get height =>
+      $composableBuilder(column: $table.height, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
+
+  GeneratedColumn<String> get colors =>
+      $composableBuilder(column: $table.colors, builder: (column) => column);
+
+  GeneratedColumn<double> get lat =>
+      $composableBuilder(column: $table.lat, builder: (column) => column);
+
+  GeneratedColumn<double> get lng =>
+      $composableBuilder(column: $table.lng, builder: (column) => column);
+
+  GeneratedColumn<String> get place =>
+      $composableBuilder(column: $table.place, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get streamUrl =>
+      $composableBuilder(column: $table.streamUrl, builder: (column) => column);
+
+  GeneratedColumn<int> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+}
+
+class $$CloudAssetsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CloudAssetsTable,
+    CloudAsset,
+    $$CloudAssetsTableFilterComposer,
+    $$CloudAssetsTableOrderingComposer,
+    $$CloudAssetsTableAnnotationComposer,
+    $$CloudAssetsTableCreateCompanionBuilder,
+    $$CloudAssetsTableUpdateCompanionBuilder,
+    (CloudAsset, BaseReferences<_$AppDatabase, $CloudAssetsTable, CloudAsset>),
+    CloudAsset,
+    PrefetchHooks Function()> {
+  $$CloudAssetsTableTableManager(_$AppDatabase db, $CloudAssetsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CloudAssetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CloudAssetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CloudAssetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> filename = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String> createdAt = const Value.absent(),
+            Value<int> sizeBytes = const Value.absent(),
+            Value<String?> hash = const Value.absent(),
+            Value<int?> width = const Value.absent(),
+            Value<int?> height = const Value.absent(),
+            Value<String?> source = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            Value<String> tags = const Value.absent(),
+            Value<String> colors = const Value.absent(),
+            Value<double?> lat = const Value.absent(),
+            Value<double?> lng = const Value.absent(),
+            Value<String?> place = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> streamUrl = const Value.absent(),
+            Value<int> syncedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CloudAssetsCompanion(
+            id: id,
+            userId: userId,
+            filename: filename,
+            type: type,
+            createdAt: createdAt,
+            sizeBytes: sizeBytes,
+            hash: hash,
+            width: width,
+            height: height,
+            source: source,
+            title: title,
+            tags: tags,
+            colors: colors,
+            lat: lat,
+            lng: lng,
+            place: place,
+            thumbnailUrl: thumbnailUrl,
+            streamUrl: streamUrl,
+            syncedAt: syncedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userId,
+            required String filename,
+            required String type,
+            required String createdAt,
+            required int sizeBytes,
+            Value<String?> hash = const Value.absent(),
+            Value<int?> width = const Value.absent(),
+            Value<int?> height = const Value.absent(),
+            Value<String?> source = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            Value<String> tags = const Value.absent(),
+            Value<String> colors = const Value.absent(),
+            Value<double?> lat = const Value.absent(),
+            Value<double?> lng = const Value.absent(),
+            Value<String?> place = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> streamUrl = const Value.absent(),
+            required int syncedAt,
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CloudAssetsCompanion.insert(
+            id: id,
+            userId: userId,
+            filename: filename,
+            type: type,
+            createdAt: createdAt,
+            sizeBytes: sizeBytes,
+            hash: hash,
+            width: width,
+            height: height,
+            source: source,
+            title: title,
+            tags: tags,
+            colors: colors,
+            lat: lat,
+            lng: lng,
+            place: place,
+            thumbnailUrl: thumbnailUrl,
+            streamUrl: streamUrl,
+            syncedAt: syncedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CloudAssetsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CloudAssetsTable,
+    CloudAsset,
+    $$CloudAssetsTableFilterComposer,
+    $$CloudAssetsTableOrderingComposer,
+    $$CloudAssetsTableAnnotationComposer,
+    $$CloudAssetsTableCreateCompanionBuilder,
+    $$CloudAssetsTableUpdateCompanionBuilder,
+    (CloudAsset, BaseReferences<_$AppDatabase, $CloudAssetsTable, CloudAsset>),
+    CloudAsset,
+    PrefetchHooks Function()>;
+typedef $$FileTransfersTableCreateCompanionBuilder = FileTransfersCompanion
+    Function({
+  required String transferId,
+  required String fileId,
+  required String fileName,
+  required int fileSize,
+  required String fileHash,
+  required int chunkSize,
+  required int totalChunks,
+  Value<String> receivedChunks,
+  Value<String> verifiedChunks,
+  Value<String> state,
+  Value<String?> mimeType,
+  Value<String?> metadata,
+  Value<String?> localFilePath,
+  Value<String?> remoteFilePath,
+  required int createdAt,
+  required int updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$FileTransfersTableUpdateCompanionBuilder = FileTransfersCompanion
+    Function({
+  Value<String> transferId,
+  Value<String> fileId,
+  Value<String> fileName,
+  Value<int> fileSize,
+  Value<String> fileHash,
+  Value<int> chunkSize,
+  Value<int> totalChunks,
+  Value<String> receivedChunks,
+  Value<String> verifiedChunks,
+  Value<String> state,
+  Value<String?> mimeType,
+  Value<String?> metadata,
+  Value<String?> localFilePath,
+  Value<String?> remoteFilePath,
+  Value<int> createdAt,
+  Value<int> updatedAt,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+final class $$FileTransfersTableReferences
+    extends BaseReferences<_$AppDatabase, $FileTransfersTable, FileTransfer> {
+  $$FileTransfersTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TransferChunksTable, List<TransferChunk>>
+      _transferChunksRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transferChunks,
+              aliasName:
+                  'file_transfers__transfer_id__transfer_chunks__transfer_id');
+
+  $$TransferChunksTableProcessedTableManager get transferChunksRefs {
+    final manager = $$TransferChunksTableTableManager($_db, $_db.transferChunks)
+        .filter((f) => f.transferId.transferId
+            .sqlEquals($_itemColumn<String>('transfer_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_transferChunksRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$FileTransfersTableFilterComposer
+    extends Composer<_$AppDatabase, $FileTransfersTable> {
+  $$FileTransfersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fileId => $composableBuilder(
+      column: $table.fileId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+      column: $table.fileName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fileHash => $composableBuilder(
+      column: $table.fileHash, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get chunkSize => $composableBuilder(
+      column: $table.chunkSize, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalChunks => $composableBuilder(
+      column: $table.totalChunks, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get receivedChunks => $composableBuilder(
+      column: $table.receivedChunks,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get verifiedChunks => $composableBuilder(
+      column: $table.verifiedChunks,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+      column: $table.mimeType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+      column: $table.metadata, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get localFilePath => $composableBuilder(
+      column: $table.localFilePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remoteFilePath => $composableBuilder(
+      column: $table.remoteFilePath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> transferChunksRefs(
+      Expression<bool> Function($$TransferChunksTableFilterComposer f) f) {
+    final $$TransferChunksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.transferChunks,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferChunksTableFilterComposer(
+              $db: $db,
+              $table: $db.transferChunks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$FileTransfersTableOrderingComposer
+    extends Composer<_$AppDatabase, $FileTransfersTable> {
+  $$FileTransfersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fileId => $composableBuilder(
+      column: $table.fileId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+      column: $table.fileName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fileHash => $composableBuilder(
+      column: $table.fileHash, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get chunkSize => $composableBuilder(
+      column: $table.chunkSize, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalChunks => $composableBuilder(
+      column: $table.totalChunks, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get receivedChunks => $composableBuilder(
+      column: $table.receivedChunks,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get verifiedChunks => $composableBuilder(
+      column: $table.verifiedChunks,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+      column: $table.mimeType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+      column: $table.metadata, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get localFilePath => $composableBuilder(
+      column: $table.localFilePath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remoteFilePath => $composableBuilder(
+      column: $table.remoteFilePath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+}
+
+class $$FileTransfersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FileTransfersTable> {
+  $$FileTransfersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => column);
+
+  GeneratedColumn<String> get fileId =>
+      $composableBuilder(column: $table.fileId, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<int> get fileSize =>
+      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+
+  GeneratedColumn<String> get fileHash =>
+      $composableBuilder(column: $table.fileHash, builder: (column) => column);
+
+  GeneratedColumn<int> get chunkSize =>
+      $composableBuilder(column: $table.chunkSize, builder: (column) => column);
+
+  GeneratedColumn<int> get totalChunks => $composableBuilder(
+      column: $table.totalChunks, builder: (column) => column);
+
+  GeneratedColumn<String> get receivedChunks => $composableBuilder(
+      column: $table.receivedChunks, builder: (column) => column);
+
+  GeneratedColumn<String> get verifiedChunks => $composableBuilder(
+      column: $table.verifiedChunks, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  GeneratedColumn<String> get localFilePath => $composableBuilder(
+      column: $table.localFilePath, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteFilePath => $composableBuilder(
+      column: $table.remoteFilePath, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  Expression<T> transferChunksRefs<T extends Object>(
+      Expression<T> Function($$TransferChunksTableAnnotationComposer a) f) {
+    final $$TransferChunksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.transferChunks,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferChunksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transferChunks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$FileTransfersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $FileTransfersTable,
+    FileTransfer,
+    $$FileTransfersTableFilterComposer,
+    $$FileTransfersTableOrderingComposer,
+    $$FileTransfersTableAnnotationComposer,
+    $$FileTransfersTableCreateCompanionBuilder,
+    $$FileTransfersTableUpdateCompanionBuilder,
+    (FileTransfer, $$FileTransfersTableReferences),
+    FileTransfer,
+    PrefetchHooks Function({bool transferChunksRefs})> {
+  $$FileTransfersTableTableManager(_$AppDatabase db, $FileTransfersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FileTransfersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FileTransfersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FileTransfersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> transferId = const Value.absent(),
+            Value<String> fileId = const Value.absent(),
+            Value<String> fileName = const Value.absent(),
+            Value<int> fileSize = const Value.absent(),
+            Value<String> fileHash = const Value.absent(),
+            Value<int> chunkSize = const Value.absent(),
+            Value<int> totalChunks = const Value.absent(),
+            Value<String> receivedChunks = const Value.absent(),
+            Value<String> verifiedChunks = const Value.absent(),
+            Value<String> state = const Value.absent(),
+            Value<String?> mimeType = const Value.absent(),
+            Value<String?> metadata = const Value.absent(),
+            Value<String?> localFilePath = const Value.absent(),
+            Value<String?> remoteFilePath = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int> updatedAt = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              FileTransfersCompanion(
+            transferId: transferId,
+            fileId: fileId,
+            fileName: fileName,
+            fileSize: fileSize,
+            fileHash: fileHash,
+            chunkSize: chunkSize,
+            totalChunks: totalChunks,
+            receivedChunks: receivedChunks,
+            verifiedChunks: verifiedChunks,
+            state: state,
+            mimeType: mimeType,
+            metadata: metadata,
+            localFilePath: localFilePath,
+            remoteFilePath: remoteFilePath,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String transferId,
+            required String fileId,
+            required String fileName,
+            required int fileSize,
+            required String fileHash,
+            required int chunkSize,
+            required int totalChunks,
+            Value<String> receivedChunks = const Value.absent(),
+            Value<String> verifiedChunks = const Value.absent(),
+            Value<String> state = const Value.absent(),
+            Value<String?> mimeType = const Value.absent(),
+            Value<String?> metadata = const Value.absent(),
+            Value<String?> localFilePath = const Value.absent(),
+            Value<String?> remoteFilePath = const Value.absent(),
+            required int createdAt,
+            required int updatedAt,
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              FileTransfersCompanion.insert(
+            transferId: transferId,
+            fileId: fileId,
+            fileName: fileName,
+            fileSize: fileSize,
+            fileHash: fileHash,
+            chunkSize: chunkSize,
+            totalChunks: totalChunks,
+            receivedChunks: receivedChunks,
+            verifiedChunks: verifiedChunks,
+            state: state,
+            mimeType: mimeType,
+            metadata: metadata,
+            localFilePath: localFilePath,
+            remoteFilePath: remoteFilePath,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$FileTransfersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({transferChunksRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (transferChunksRefs) db.transferChunks
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (transferChunksRefs)
+                    await $_getPrefetchedData<FileTransfer, $FileTransfersTable,
+                            TransferChunk>(
+                        currentTable: table,
+                        referencedTable: $$FileTransfersTableReferences
+                            ._transferChunksRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$FileTransfersTableReferences(db, table, p0)
+                                .transferChunksRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.transferId == item.transferId),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$FileTransfersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $FileTransfersTable,
+    FileTransfer,
+    $$FileTransfersTableFilterComposer,
+    $$FileTransfersTableOrderingComposer,
+    $$FileTransfersTableAnnotationComposer,
+    $$FileTransfersTableCreateCompanionBuilder,
+    $$FileTransfersTableUpdateCompanionBuilder,
+    (FileTransfer, $$FileTransfersTableReferences),
+    FileTransfer,
+    PrefetchHooks Function({bool transferChunksRefs})>;
+typedef $$TransferChunksTableCreateCompanionBuilder = TransferChunksCompanion
+    Function({
+  required String transferId,
+  required int chunkIndex,
+  required int offset,
+  required int length,
+  required String hash,
+  Value<String> state,
+  Value<String?> localPath,
+  Value<int?> uploadedAt,
+  Value<int?> verifiedAt,
+  Value<int> retryCount,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+typedef $$TransferChunksTableUpdateCompanionBuilder = TransferChunksCompanion
+    Function({
+  Value<String> transferId,
+  Value<int> chunkIndex,
+  Value<int> offset,
+  Value<int> length,
+  Value<String> hash,
+  Value<String> state,
+  Value<String?> localPath,
+  Value<int?> uploadedAt,
+  Value<int?> verifiedAt,
+  Value<int> retryCount,
+  Value<int> isDirty,
+  Value<int> rowid,
+});
+
+final class $$TransferChunksTableReferences
+    extends BaseReferences<_$AppDatabase, $TransferChunksTable, TransferChunk> {
+  $$TransferChunksTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $FileTransfersTable _transferIdTable(_$AppDatabase db) => db
+      .fileTransfers
+      .createAlias('transfer_chunks__transfer_id__file_transfers__transfer_id');
+
+  $$FileTransfersTableProcessedTableManager get transferId {
+    final $_column = $_itemColumn<String>('transfer_id')!;
+
+    final manager = $$FileTransfersTableTableManager($_db, $_db.fileTransfers)
+        .filter((f) => f.transferId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transferIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$TransferChunksTableFilterComposer
+    extends Composer<_$AppDatabase, $TransferChunksTable> {
+  $$TransferChunksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get chunkIndex => $composableBuilder(
+      column: $table.chunkIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get offset => $composableBuilder(
+      column: $table.offset, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get length => $composableBuilder(
+      column: $table.length, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get hash => $composableBuilder(
+      column: $table.hash, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+      column: $table.localPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get uploadedAt => $composableBuilder(
+      column: $table.uploadedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get verifiedAt => $composableBuilder(
+      column: $table.verifiedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnFilters(column));
+
+  $$FileTransfersTableFilterComposer get transferId {
+    final $$FileTransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.fileTransfers,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$FileTransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.fileTransfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferChunksTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransferChunksTable> {
+  $$TransferChunksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get chunkIndex => $composableBuilder(
+      column: $table.chunkIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get offset => $composableBuilder(
+      column: $table.offset, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get length => $composableBuilder(
+      column: $table.length, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get hash => $composableBuilder(
+      column: $table.hash, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+      column: $table.localPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get uploadedAt => $composableBuilder(
+      column: $table.uploadedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get verifiedAt => $composableBuilder(
+      column: $table.verifiedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get isDirty => $composableBuilder(
+      column: $table.isDirty, builder: (column) => ColumnOrderings(column));
+
+  $$FileTransfersTableOrderingComposer get transferId {
+    final $$FileTransfersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.fileTransfers,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$FileTransfersTableOrderingComposer(
+              $db: $db,
+              $table: $db.fileTransfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferChunksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransferChunksTable> {
+  $$TransferChunksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get chunkIndex => $composableBuilder(
+      column: $table.chunkIndex, builder: (column) => column);
+
+  GeneratedColumn<int> get offset =>
+      $composableBuilder(column: $table.offset, builder: (column) => column);
+
+  GeneratedColumn<int> get length =>
+      $composableBuilder(column: $table.length, builder: (column) => column);
+
+  GeneratedColumn<String> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<int> get uploadedAt => $composableBuilder(
+      column: $table.uploadedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get verifiedAt => $composableBuilder(
+      column: $table.verifiedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get retryCount => $composableBuilder(
+      column: $table.retryCount, builder: (column) => column);
+
+  GeneratedColumn<int> get isDirty =>
+      $composableBuilder(column: $table.isDirty, builder: (column) => column);
+
+  $$FileTransfersTableAnnotationComposer get transferId {
+    final $$FileTransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.fileTransfers,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$FileTransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.fileTransfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferChunksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TransferChunksTable,
+    TransferChunk,
+    $$TransferChunksTableFilterComposer,
+    $$TransferChunksTableOrderingComposer,
+    $$TransferChunksTableAnnotationComposer,
+    $$TransferChunksTableCreateCompanionBuilder,
+    $$TransferChunksTableUpdateCompanionBuilder,
+    (TransferChunk, $$TransferChunksTableReferences),
+    TransferChunk,
+    PrefetchHooks Function({bool transferId})> {
+  $$TransferChunksTableTableManager(
+      _$AppDatabase db, $TransferChunksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransferChunksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransferChunksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransferChunksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> transferId = const Value.absent(),
+            Value<int> chunkIndex = const Value.absent(),
+            Value<int> offset = const Value.absent(),
+            Value<int> length = const Value.absent(),
+            Value<String> hash = const Value.absent(),
+            Value<String> state = const Value.absent(),
+            Value<String?> localPath = const Value.absent(),
+            Value<int?> uploadedAt = const Value.absent(),
+            Value<int?> verifiedAt = const Value.absent(),
+            Value<int> retryCount = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransferChunksCompanion(
+            transferId: transferId,
+            chunkIndex: chunkIndex,
+            offset: offset,
+            length: length,
+            hash: hash,
+            state: state,
+            localPath: localPath,
+            uploadedAt: uploadedAt,
+            verifiedAt: verifiedAt,
+            retryCount: retryCount,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String transferId,
+            required int chunkIndex,
+            required int offset,
+            required int length,
+            required String hash,
+            Value<String> state = const Value.absent(),
+            Value<String?> localPath = const Value.absent(),
+            Value<int?> uploadedAt = const Value.absent(),
+            Value<int?> verifiedAt = const Value.absent(),
+            Value<int> retryCount = const Value.absent(),
+            Value<int> isDirty = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransferChunksCompanion.insert(
+            transferId: transferId,
+            chunkIndex: chunkIndex,
+            offset: offset,
+            length: length,
+            hash: hash,
+            state: state,
+            localPath: localPath,
+            uploadedAt: uploadedAt,
+            verifiedAt: verifiedAt,
+            retryCount: retryCount,
+            isDirty: isDirty,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$TransferChunksTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({transferId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (transferId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.transferId,
+                    referencedTable:
+                        $$TransferChunksTableReferences._transferIdTable(db),
+                    referencedColumn: $$TransferChunksTableReferences
+                        ._transferIdTable(db)
+                        .transferId,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TransferChunksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TransferChunksTable,
+    TransferChunk,
+    $$TransferChunksTableFilterComposer,
+    $$TransferChunksTableOrderingComposer,
+    $$TransferChunksTableAnnotationComposer,
+    $$TransferChunksTableCreateCompanionBuilder,
+    $$TransferChunksTableUpdateCompanionBuilder,
+    (TransferChunk, $$TransferChunksTableReferences),
+    TransferChunk,
+    PrefetchHooks Function({bool transferId})>;
 typedef $$PointRulesTableCreateCompanionBuilder = PointRulesCompanion Function({
   required String id,
   required String name,
@@ -39141,10 +46826,22 @@ class $AppDatabaseManager {
       $$PlaylistTracksTableTableManager(_db, _db.playlistTracks);
   $$OfflineMusicTracksTableTableManager get offlineMusicTracks =>
       $$OfflineMusicTracksTableTableManager(_db, _db.offlineMusicTracks);
+  $$LikedSongsTableTableManager get likedSongs =>
+      $$LikedSongsTableTableManager(_db, _db.likedSongs);
+  $$DownloadQueueTableTableManager get downloadQueue =>
+      $$DownloadQueueTableTableManager(_db, _db.downloadQueue);
+  $$ListeningHistoryTableTableManager get listeningHistory =>
+      $$ListeningHistoryTableTableManager(_db, _db.listeningHistory);
   $$MediaAssetsTableTableManager get mediaAssets =>
       $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
   $$MediaTagsTableTableManager get mediaTags =>
       $$MediaTagsTableTableManager(_db, _db.mediaTags);
+  $$CloudAssetsTableTableManager get cloudAssets =>
+      $$CloudAssetsTableTableManager(_db, _db.cloudAssets);
+  $$FileTransfersTableTableManager get fileTransfers =>
+      $$FileTransfersTableTableManager(_db, _db.fileTransfers);
+  $$TransferChunksTableTableManager get transferChunks =>
+      $$TransferChunksTableTableManager(_db, _db.transferChunks);
   $$PointRulesTableTableManager get pointRules =>
       $$PointRulesTableTableManager(_db, _db.pointRules);
   $$PointsLedgersTableTableManager get pointsLedgers =>

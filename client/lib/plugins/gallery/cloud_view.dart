@@ -16,36 +16,89 @@ class CloudView extends StatefulWidget {
 
 class _CloudViewState extends State<CloudView> {
   final GallerySyncEngine _syncEngine = GallerySyncEngine.instance;
+  final ScrollController _scrollController = ScrollController();
+  
   List<GalleryItem> _cloudItems = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _offset = 0;
+  static const int _pageSize = 50;
 
   @override
   void initState() {
     super.initState();
     _fetchCloudData();
     _syncEngine.isSyncing.addListener(_onSyncStateChanged);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _syncEngine.isSyncing.removeListener(_onSyncStateChanged);
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _onSyncStateChanged() {
     if (!_syncEngine.isSyncing.value) {
-      _fetchCloudData();
+      _refreshData();
     }
     setState(() {});
   }
 
-  Future<void> _fetchCloudData() async {
-    setState(() => _isLoading = true);
-    final items = await CloudGalleryService.fetchCloudAssets();
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoadingMore &&
+        _hasMore) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _refreshData() async {
     setState(() {
-      _cloudItems = items;
-      _isLoading = false;
+      _cloudItems.clear();
+      _offset = 0;
+      _hasMore = true;
+      _isLoading = true;
     });
+    await _fetchCloudData();
+  }
+
+  Future<void> _fetchCloudData() async {
+    try {
+      final items = await CloudGalleryService.fetchCloudAssets(limit: _pageSize, offset: _offset);
+      setState(() {
+        if (items.length < _pageSize) {
+          _hasMore = false;
+        }
+        _cloudItems.addAll(items);
+        _offset += items.length;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (!_hasMore || _isLoadingMore) return;
+    
+    setState(() => _isLoadingMore = true);
+    try {
+      final items = await CloudGalleryService.fetchCloudAssets(limit: _pageSize, offset: _offset);
+      setState(() {
+        if (items.length < _pageSize) {
+          _hasMore = false;
+        }
+        _cloudItems.addAll(items);
+        _offset += items.length;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingMore = false);
+    }
   }
 
   @override
@@ -108,21 +161,30 @@ class _CloudViewState extends State<CloudView> {
   }
 
   Widget _buildTimelineView() {
-    if (_isLoading) {
+    if (_isLoading && _cloudItems.isEmpty) {
       return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
     if (_cloudItems.isEmpty) {
       return const Center(child: Text('No media in the cloud.', style: TextStyle(color: EverforestColors.fg)));
     }
     return GridView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
       ),
-      itemCount: _cloudItems.length,
+      itemCount: _cloudItems.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index >= _cloudItems.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(color: EverforestColors.green, strokeWidth: 2),
+            ),
+          );
+        }
         final item = _cloudItems[index];
         return GestureDetector(
           onTap: () => Navigator.push(context, PageRouteBuilder(

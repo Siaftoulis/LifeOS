@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../../theme/everforest_colors.dart';
-import '../../../database/database.dart';
 import '../../../core/general_engine/engine_repository.dart';
+import '../../../database/database.dart';
+import '../../../theme/everforest_colors.dart';
+import 'calendar/calendar_header.dart';
+import 'calendar/month_grid_view.dart';
+import 'calendar/timetable_view.dart';
+import 'calendar/year_grid_view.dart';
+
+export 'calendar/calendar_header.dart';
+export 'calendar/calendar_utils.dart';
+export 'calendar/month_grid_view.dart';
+export 'calendar/timetable_view.dart';
+export 'calendar/year_grid_view.dart';
 
 class CHTMFullCalendar extends StatefulWidget {
   final Stream<List<CalendarEvent>> eventsStream;
@@ -33,7 +43,8 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
   @override
   void initState() {
     super.initState();
-    _currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month, 1);
+    _currentMonth =
+        DateTime(widget.initialDate.year, widget.initialDate.month, 1);
     _selectedDate = widget.initialDate;
     _currentYear = widget.initialDate.year;
     _threeDayAnchor = DateTime.now();
@@ -46,7 +57,8 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
       } else if (_calendarView == 'THREE_DAY') {
         _threeDayAnchor = _threeDayAnchor.subtract(const Duration(days: 3));
       } else {
-        _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
+        _currentMonth =
+            DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
       }
     });
   }
@@ -58,7 +70,8 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
       } else if (_calendarView == 'THREE_DAY') {
         _threeDayAnchor = _threeDayAnchor.add(const Duration(days: 3));
       } else {
-        _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+        _currentMonth =
+            DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
       }
     });
   }
@@ -94,24 +107,75 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
     });
   }
 
-  int _daysInMonth(int year, int month) {
-    return DateTime(year, month + 1, 0).day;
-  }
-
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return EverforestColors.blue;
-    try {
-      final code = hex.replaceAll('#', '');
-      return Color(int.parse('FF$code', radix: 16));
-    } catch (_) {
-      return EverforestColors.blue;
+  Widget _buildCurrentView(List<CalendarEvent> events, List<UserTask> tasks,
+      List<HabitLog> logs) {
+    switch (_calendarView) {
+      case 'YEAR':
+        return YearGridView(
+          currentYear: _currentYear,
+          onSelectMonth: (month) {
+            setState(() {
+              _currentMonth = DateTime(_currentYear, month, 1);
+              _calendarView = 'MONTH';
+            });
+          },
+        );
+      case 'MONTH':
+        return MonthGridView(
+          currentMonth: _currentMonth,
+          selectedDate: _selectedDate,
+          events: events,
+          tasks: tasks,
+          logs: logs,
+          onSelectDate: _selectDate,
+        );
+      case 'WEEK':
+        return WeeklyTimetable(
+          events: events,
+          columnsCount: 7,
+          selectedDate: _selectedDate,
+          threeDayAnchor: _threeDayAnchor,
+          onSelectDate: _selectDate,
+        );
+      case 'THREE_DAY':
+        return WeeklyTimetable(
+          events: events,
+          columnsCount: 3,
+          selectedDate: _selectedDate,
+          threeDayAnchor: _threeDayAnchor,
+          onSelectDate: _selectDate,
+        );
+      case 'DAY':
+        return WeeklyTimetable(
+          events: events,
+          columnsCount: 1,
+          selectedDate: _selectedDate,
+          threeDayAnchor: _threeDayAnchor,
+          onSelectDate: _selectDate,
+        );
+      default:
+        return Container();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final headerMonth = _calendarView == 'THREE_DAY' ? _threeDayAnchor : _currentMonth;
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final headerMonth =
+        _calendarView == 'THREE_DAY' ? _threeDayAnchor : _currentMonth;
     final monthStr = '${months[headerMonth.month - 1]} ${headerMonth.year}';
     final headerStr = _calendarView == 'YEAR' ? '$_currentYear' : monthStr;
 
@@ -127,15 +191,17 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                 return StreamBuilder<List<HabitLog>>(
                   stream: widget.habitLogsStream,
                   builder: (context, logSnapshot) {
-                    final events = List<CalendarEvent>.from(eventSnapshot.data ?? []);
+                    final events = List<CalendarEvent>.from(
+                        eventSnapshot.data ?? []);
                     final tasks = taskSnapshot.data ?? [];
                     final logs = logSnapshot.data ?? [];
 
-                    // Convert GeneralEngine entities (events) to CalendarEvent objects
                     final engineEvents = EngineRepository.instance.events;
                     for (var ee in engineEvents) {
-                      final start = DateTime.tryParse(ee.payload['start_time'] ?? '');
-                      final end = DateTime.tryParse(ee.payload['end_time'] ?? '');
+                      final start =
+                          DateTime.tryParse(ee.payload['start_time'] ?? '');
+                      final end =
+                          DateTime.tryParse(ee.payload['end_time'] ?? '');
                       if (start != null && end != null) {
                         events.add(CalendarEvent(
                           id: ee.id,
@@ -156,59 +222,22 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(color: EverforestColors.bg2),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // View Selection Controls
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  if (_calendarView != 'YEAR')
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.arrow_upward, color: EverforestColors.green, size: 20),
-                                        onPressed: _zoomOut,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        tooltip: 'Zoom Out',
-                                      ),
-                                    ),
-                                  Text(
-                                    headerStr,
-                                    style: const TextStyle(
-                                      color: EverforestColors.fg,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.chevron_left, color: EverforestColors.fg, size: 20),
-                                    onPressed: _previousPeriod,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  IconButton(
-                                    icon: const Icon(Icons.chevron_right, color: EverforestColors.fg, size: 20),
-                                    onPressed: _nextPeriod,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                              // Premium view toggles dropdown/selector
-                              _buildViewSelector(),
-                            ],
+                          CalendarHeaderView(
+                            headerTitle: headerStr,
+                            calendarView: _calendarView,
+                            onZoomOut: _zoomOut,
+                            onPrevious: _previousPeriod,
+                            onNext: _nextPeriod,
+                            onViewChanged: (view) =>
+                                setState(() => _calendarView = view),
                           ),
                           const SizedBox(height: 16),
-                          // Animated switch of views
                           _buildCurrentView(events, tasks, logs),
                         ],
                       ),
@@ -222,480 +251,4 @@ class _CHTMFullCalendarState extends State<CHTMFullCalendar> {
       },
     );
   }
-
-  Widget _buildViewSelector() {
-    return PopupMenuButton<String>(
-      icon: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: EverforestColors.bg2,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: EverforestColors.green.withValues(alpha: 0.3)),
-        ),
-        child: const Icon(Icons.calendar_view_week, color: EverforestColors.green, size: 18),
-      ),
-      color: EverforestColors.bg1,
-      elevation: 8,
-      offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: EverforestColors.bg2),
-      ),
-      onSelected: (view) => setState(() => _calendarView = view),
-      itemBuilder: (context) {
-        PopupMenuItem<String> buildItem(String value, String label, IconData icon) {
-          final isSelected = _calendarView == value;
-          return PopupMenuItem(
-            value: value,
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected ? EverforestColors.green : EverforestColors.grey,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? EverforestColors.green : EverforestColors.fg,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                if (isSelected) ...[
-                  const Spacer(),
-                  const Icon(Icons.check, color: EverforestColors.green, size: 18),
-                ],
-              ],
-            ),
-          );
-        }
-
-        return [
-          buildItem('YEAR', 'Yearly View', Icons.calendar_view_month),
-          buildItem('MONTH', 'Monthly View', Icons.calendar_month),
-          buildItem('WEEK', 'Weekly View', Icons.view_week),
-          buildItem('THREE_DAY', '3-Day View', Icons.view_day),
-          buildItem('DAY', 'Daily View', Icons.calendar_today),
-        ];
-      },
-    );
-  }
-
-  Widget _buildCurrentView(List<CalendarEvent> events, List<UserTask> tasks, List<HabitLog> logs) {
-    switch (_calendarView) {
-      case 'YEAR':
-        return _buildYearGrid();
-      case 'MONTH':
-        return Column(
-          children: [
-            _buildDaysOfWeek(),
-            const SizedBox(height: 8),
-            _buildCalendarGrid(events, tasks, logs),
-          ],
-        );
-      case 'WEEK':
-        return _buildWeeklyTimetable(events, 7);
-      case 'THREE_DAY':
-        return _buildWeeklyTimetable(events, 3);
-      case 'DAY':
-        return _buildWeeklyTimetable(events, 1);
-      default:
-        return Container();
-    }
-  }
-
-  Widget _buildYearGrid() {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: 12,
-      itemBuilder: (context, index) {
-        final isCurrentMonth = DateTime.now().month == (index + 1) && DateTime.now().year == _currentYear;
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _currentMonth = DateTime(_currentYear, index + 1, 1);
-              _calendarView = 'MONTH';
-            });
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: isCurrentMonth ? EverforestColors.green.withValues(alpha: 0.2) : EverforestColors.bg0,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isCurrentMonth ? EverforestColors.green : EverforestColors.bg2),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              months[index],
-              style: TextStyle(
-                color: isCurrentMonth ? EverforestColors.green : EverforestColors.fg,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDaysOfWeek() {
-    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: days
-          .map((d) => Expanded(
-                child: Center(
-                  child: Text(
-                    d,
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ))
-          .toList(),
-    );
-  }
-
-  Widget _buildCalendarGrid(List<CalendarEvent> events, List<UserTask> tasks, List<HabitLog> logs) {
-    final int daysInMonth = _daysInMonth(_currentMonth.year, _currentMonth.month);
-    final int firstWeekday = _currentMonth.weekday; // 1 = Monday, 7 = Sunday
-    
-    final List<Widget> cells = [];
-    for (int i = 1; i < firstWeekday; i++) {
-      cells.add(const SizedBox.shrink());
-    }
-    
-    final today = DateTime.now();
-
-    for (int i = 1; i <= daysInMonth; i++) {
-      final date = DateTime(_currentMonth.year, _currentMonth.month, i);
-      final isSelected = date.year == _selectedDate.year && date.month == _selectedDate.month && date.day == _selectedDate.day;
-      final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
-      
-      // Calculate daily activity count (for GitHub contribution color style)
-      final completedTasksCount = tasks.where((t) {
-        if (t.status != 'DONE' || t.completedAt == null) return false;
-        final compDate = DateTime.fromMillisecondsSinceEpoch(t.completedAt!);
-        return compDate.year == date.year && compDate.month == date.month && compDate.day == date.day;
-      }).length;
-
-      final completedHabitsCount = logs.where((l) {
-        final checkin = DateTime.fromMillisecondsSinceEpoch(l.checkinDate);
-        return checkin.year == date.year && checkin.month == date.month && checkin.day == date.day;
-      }).length;
-
-      final totalCompleted = completedTasksCount + completedHabitsCount;
-
-      Color contributionColor = Colors.transparent;
-      if (totalCompleted == 1) contributionColor = EverforestColors.green.withValues(alpha: 0.15);
-      else if (totalCompleted == 2) contributionColor = EverforestColors.green.withValues(alpha: 0.35);
-      else if (totalCompleted == 3) contributionColor = EverforestColors.green.withValues(alpha: 0.6);
-      else if (totalCompleted >= 4) contributionColor = EverforestColors.green;
-
-      // Filter events for indicators
-      final cellEvents = events.where((e) {
-        final start = DateTime.fromMillisecondsSinceEpoch(e.startTime);
-        return start.year == date.year && start.month == date.month && start.day == date.day;
-      }).toList();
-
-      cells.add(
-        GestureDetector(
-          onTap: () => _selectDate(date),
-          child: Container(
-            decoration: BoxDecoration(
-              color: contributionColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: EverforestColors.bg2.withValues(alpha: 0.2), width: 0.5),
-            ),
-            padding: const EdgeInsets.all(2),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isSelected ? EverforestColors.green : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: isToday && !isSelected ? Border.all(color: EverforestColors.green.withValues(alpha: 0.6), width: 1.5) : null,
-                    ),
-                    child: Text(
-                      '$i',
-                      style: TextStyle(
-                        color: isSelected ? EverforestColors.bg0 : (totalCompleted >= 3 ? EverforestColors.bg0 : EverforestColors.fg),
-                        fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: cellEvents.take(3).map((e) {
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: totalCompleted >= 3 ? EverforestColors.bg0 : _parseColor(e.colorCode),
-                          shape: BoxShape.circle,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return GridView.count(
-      crossAxisCount: 7,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 0.95,
-      children: cells,
-    );
-  }
-
-  String _dayRelationLabel(DateTime date) {
-    final today = DateTime.now();
-    final diff = DateTime(date.year, date.month, date.day)
-        .difference(DateTime(today.year, today.month, today.day))
-        .inDays;
-    if (diff == 0) return 'Today';
-    if (diff == -1) return 'Yesterday';
-    if (diff == 1) return 'Tomorrow';
-    return '${date.day}/${date.month}';
-  }
-
-  Widget _buildWeeklyTimetable(List<CalendarEvent> events, int columnsCount) {
-    DateTime startOfWeek;
-    if (columnsCount == 7) {
-      final int weekday = _selectedDate.weekday;
-      startOfWeek = _selectedDate.subtract(Duration(days: weekday - 1));
-    } else if (columnsCount == 3) {
-      startOfWeek = _threeDayAnchor.subtract(const Duration(days: 1));
-    } else {
-      startOfWeek = _selectedDate;
-    }
-
-    final endOfWeek = startOfWeek.add(Duration(days: columnsCount));
-
-    // Get events for the selected week/period
-    final periodEvents = events.where((e) {
-      final start = DateTime.fromMillisecondsSinceEpoch(e.startTime);
-      return start.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
-          start.isBefore(endOfWeek);
-    }).toList();
-
-    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double width = constraints.maxWidth;
-        const double hourColWidth = 50;
-        final double dayColWidth = (width - hourColWidth) / columnsCount;
-        const double rowHeight = 60;
-        const int startHour = 0;
-        const int endHour = 24;
-        const int totalHours = endHour - startHour;
-
-        // Assign each event a non-overlapping lane (side-by-side columns for overlaps)
-        final (laneOf, laneCountPerDay) = computeEventLanes(events, startOfWeek, columnsCount);
-
-        return Column(
-          children: [
-            // Days of the week header with dates
-            Row(
-              children: [
-                const SizedBox(width: hourColWidth),
-                ...List.generate(columnsCount, (index) {
-                  final date = startOfWeek.add(Duration(days: index));
-                  final isToday = date.day == DateTime.now().day && date.month == DateTime.now().month;
-                  final String dayLabel = columnsCount == 7
-                      ? days[date.weekday - 1]
-                      : (columnsCount == 3 ? _dayRelationLabel(date) : '${date.day}/${date.month}');
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => _selectDate(date),
-                      child: Column(
-                        children: [
-                          Text(
-                            dayLabel,
-                            style: const TextStyle(color: EverforestColors.grey, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: isToday ? EverforestColors.green : Colors.transparent,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${date.day}',
-                              style: TextStyle(
-                                color: isToday ? EverforestColors.bg0 : EverforestColors.fg,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Scrollable Timetable Grid
-            SizedBox(
-              height: 380,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Stack(
-                  children: [
-                    // Horizontal Grid Lines & Hour Labels
-                    Column(
-                      children: List.generate(totalHours, (index) {
-                        final hour = startHour + index;
-                        final period = (hour >= 12 && hour < 24) ? 'PM' : 'AM';
-                        int displayHour = hour % 12;
-                        if (displayHour == 0) displayHour = 12;
-
-                        return SizedBox(
-                          height: rowHeight,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: hourColWidth,
-                                child: Text(
-                                  '$displayHour $period',
-                                  style: const TextStyle(color: EverforestColors.grey, fontSize: 10, fontWeight: FontWeight.bold),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(color: EverforestColors.bg2, width: 0.5),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                    // Assign each event a non-overlapping lane (side-by-side columns for overlaps)
-                    ...periodEvents.map((e) {
-                      final start = DateTime.fromMillisecondsSinceEpoch(e.startTime);
-                      final end = DateTime.fromMillisecondsSinceEpoch(e.endTime);
-
-                      // Skip if event is outside timetable hours
-                      if (start.hour < startHour || start.hour >= endHour) return const SizedBox.shrink();
-
-                      final int dayIndex = start.difference(startOfWeek).inDays;
-                      if (dayIndex < 0 || dayIndex >= columnsCount) return const SizedBox.shrink();
-
-                      final int lane = laneOf[e.id] ?? 0;
-                      final double laneWidth = dayColWidth / (laneCountPerDay[dayIndex] ?? 1);
-
-                      final double left = hourColWidth + (dayIndex * dayColWidth) + lane * laneWidth;
-                      final double top = (start.hour - startHour) * rowHeight + (start.minute / 60) * rowHeight;
-                      final double durationHours = end.difference(start).inMinutes / 60;
-                      final double height = durationHours * rowHeight;
-                      final color = _parseColor(e.colorCode);
-
-                      return Positioned(
-                        left: left + 2,
-                        top: top + 2,
-                        width: laneWidth - 4,
-                        height: height - 4,
-                        child: GestureDetector(
-                          onTap: () => _selectDate(start),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.2),
-                              border: Border(left: BorderSide(color: color, width: 4)),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            child: Text(
-                              e.title,
-                              style: const TextStyle(
-                                color: EverforestColors.fg,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// Greedy interval-partitioning: assigns each event a lane index (0-based)
-/// so overlapping events sit side-by-side, and returns the lane count per day.
-/// Events outside [startOfWeek, startOfWeek + columnsCount) are ignored.
-(Map<String, int> laneOf, Map<int, int> laneCountPerDay) computeEventLanes(
-  List<CalendarEvent> events,
-  DateTime startOfWeek,
-  int columnsCount,
-) {
-  final laneOf = <String, int>{};
-  final laneCountPerDay = <int, int>{};
-  final byDay = <int, List<CalendarEvent>>{};
-
-  for (final e in events) {
-    final dayIndex =
-        DateTime.fromMillisecondsSinceEpoch(e.startTime).difference(startOfWeek).inDays;
-    if (dayIndex < 0 || dayIndex >= columnsCount) continue;
-    byDay.putIfAbsent(dayIndex, () => []).add(e);
-  }
-
-  byDay.forEach((dayIndex, dayEvents) {
-    dayEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
-    final laneEnds = <int>[];
-    for (final e in dayEvents) {
-      int lane = laneEnds.indexWhere((end) => end <= e.startTime);
-      if (lane == -1) {
-        lane = laneEnds.length;
-        laneEnds.add(e.endTime);
-      } else {
-        laneEnds[lane] = e.endTime;
-      }
-      laneOf[e.id] = lane;
-    }
-    laneCountPerDay[dayIndex] = laneEnds.length;
-  });
-
-  return (laneOf, laneCountPerDay);
 }

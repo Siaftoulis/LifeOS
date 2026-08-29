@@ -140,6 +140,15 @@ class ApiClient {
     return headers;
   }
 
+  Map<String, String> get transferHeaders {
+    final headers = <String, String>{};
+    final token = AuthService.instance.token;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
     try {
       final res = await _http.post(Uri.parse('$baseUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 2));
@@ -162,6 +171,12 @@ class ApiClient {
 
   Future<dynamic> putDaemon(String endpoint, Map<String, dynamic> body) async {
     final res = await _http.put(Uri.parse('$daemonUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 5));
+    if (res.statusCode == 200) return jsonDecode(res.body);
+    throw Exception();
+  }
+
+  Future<dynamic> patchDaemon(String endpoint, Map<String, dynamic> body) async {
+    final res = await _http.patch(Uri.parse('$daemonUrl$endpoint'), headers: _headers, body: jsonEncode(body)).timeout(const Duration(seconds: 5));
     if (res.statusCode == 200) return jsonDecode(res.body);
     throw Exception();
   }

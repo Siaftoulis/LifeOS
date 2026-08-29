@@ -1,18 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
-
-typedef QueueTrackItem = ({
-  String id,
-  String url,
-  String title,
-  String artist,
-  String thumbnail,
-  String album,
-});
+import '../../../../core/music_playback/playback_models.dart';
 
 class PowerampQueueSheet extends StatefulWidget {
-  final List<QueueTrackItem> queue;
+  final List<PlaybackItem> queue;
   final int currentIndex;
   final ValueChanged<int> onPlayIndex;
   final void Function(int oldIndex, int newIndex) onReorder;
@@ -31,7 +23,7 @@ class PowerampQueueSheet extends StatefulWidget {
 
   static void show(
     BuildContext context, {
-    required List<QueueTrackItem> queue,
+    required List<PlaybackItem> queue,
     required int currentIndex,
     required ValueChanged<int> onPlayIndex,
     required void Function(int oldIndex, int newIndex) onReorder,

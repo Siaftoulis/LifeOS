@@ -1,24 +1,14 @@
-import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
 import '../../../../core/audio_dsp_service.dart';
+import '../../../../theme/everforest_colors.dart';
+import 'equalizer/eq_not_supported_sheet.dart';
+import 'equalizer/eq_painters.dart';
+import 'equalizer/eq_presets.dart';
 
-/// Preset configurations for Poweramp Equalizer
-class EqPreset {
-  final String name;
-  final List<double> bands; // 10 bands from 31Hz to 16kHz (-12.0 to +12.0 dB)
-  final double preamp;
-  final double bassBoost;
-  final double trebleBoost;
-
-  const EqPreset({
-    required this.name,
-    required this.bands,
-    this.preamp = 0.0,
-    this.bassBoost = 0.0,
-    this.trebleBoost = 0.0,
-  });
-}
+export 'equalizer/eq_not_supported_sheet.dart';
+export 'equalizer/eq_painters.dart';
+export 'equalizer/eq_presets.dart';
 
 class PowerampEqualizerModal extends StatefulWidget {
   final bool isEmbedded;
@@ -26,6 +16,16 @@ class PowerampEqualizerModal extends StatefulWidget {
   const PowerampEqualizerModal({super.key, this.isEmbedded = false});
 
   static void show(BuildContext context) {
+    final dsp = AudioDspService.instance;
+    if (!dsp.isSupportedOnPlatform) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const EqNotSupportedSheet(),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -47,64 +47,6 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
   late List<double> _bands;
   String _selectedPreset = 'Custom';
 
-  static const List<String> _bandFrequencies = [
-    '31',
-    '62',
-    '125',
-    '250',
-    '500',
-    '1k',
-    '2k',
-    '4k',
-    '8k',
-    '16k',
-  ];
-
-  final List<EqPreset> _presets = const [
-    EqPreset(
-      name: 'Flat',
-      bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      preamp: 0.0,
-      bassBoost: 0.0,
-      trebleBoost: 0.0,
-    ),
-    EqPreset(
-      name: 'Bass Boost / EDM',
-      bands: [8.5, 7.0, 5.0, 2.0, 0.0, -1.0, 1.5, 3.0, 5.5, 6.0],
-      preamp: -2.0,
-      bassBoost: 0.7,
-      trebleBoost: 0.2,
-    ),
-    EqPreset(
-      name: 'Rock & Metal',
-      bands: [5.0, 3.5, 2.0, 0.5, -1.0, 1.0, 3.0, 5.0, 6.5, 7.0],
-      preamp: -1.5,
-      bassBoost: 0.4,
-      trebleBoost: 0.4,
-    ),
-    EqPreset(
-      name: 'Vocal & Clarity',
-      bands: [-2.0, -1.0, 0.5, 2.0, 4.5, 5.0, 4.0, 2.5, 1.0, 0.0],
-      preamp: 0.0,
-      bassBoost: 0.1,
-      trebleBoost: 0.3,
-    ),
-    EqPreset(
-      name: 'Audiophile Reference',
-      bands: [1.5, 1.0, 0.5, 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
-      preamp: 0.0,
-      bassBoost: 0.15,
-      trebleBoost: 0.15,
-    ),
-    EqPreset(
-      name: 'Electronic / Club',
-      bands: [7.0, 5.5, 3.0, 0.0, -1.5, 2.0, 4.0, 6.0, 7.0, 7.5],
-      preamp: -2.0,
-      bassBoost: 0.6,
-      trebleBoost: 0.5,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -115,6 +57,27 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
     _trebleBoost = dsp.trebleBoost;
     _stereoExpansion = dsp.spatial3d;
     _bands = List.from(dsp.bands);
+    _selectedPreset = _matchPreset(_bands, _preamp, _bassBoost, _trebleBoost);
+  }
+
+  String _matchPreset(
+      List<double> bands, double preamp, double bass, double treble) {
+    for (final p in kEqDefaultPresets) {
+      var matches = true;
+      for (int i = 0; i < bands.length; i++) {
+        if ((p.bands[i] - bands[i]).abs() > 0.15) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches &&
+          (p.preamp - preamp).abs() < 0.3 &&
+          (p.bassBoost - bass).abs() < 0.1 &&
+          (p.trebleBoost - treble).abs() < 0.1) {
+        return p.name;
+      }
+    }
+    return 'Custom';
   }
 
   void _syncDsp() {
@@ -151,6 +114,24 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
     _syncDsp();
   }
 
+  String _platformName() {
+    if (kIsWeb) return 'Web';
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.windows:
+        return 'Windows';
+      case TargetPlatform.linux:
+        return 'Linux';
+      case TargetPlatform.macOS:
+        return 'macOS';
+      case TargetPlatform.android:
+        return 'Android';
+      case TargetPlatform.iOS:
+        return 'iOS';
+      default:
+        return 'Unknown';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -159,7 +140,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
       height: widget.isEmbedded ? null : size.height * 0.88,
       decoration: BoxDecoration(
         color: EverforestColors.bg0,
-        borderRadius: widget.isEmbedded ? BorderRadius.circular(24) : const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: widget.isEmbedded
+            ? BorderRadius.circular(24)
+            : const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: widget.isEmbedded
             ? null
@@ -206,7 +189,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                   ),
                   child: Icon(
                     Icons.equalizer_rounded,
-                    color: _eqEnabled ? EverforestColors.green : EverforestColors.grey,
+                    color: _eqEnabled
+                        ? EverforestColors.green
+                        : EverforestColors.grey,
                     size: 22,
                   ),
                 ),
@@ -225,10 +210,27 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                         ),
                       ),
                       Text(
-                        _eqEnabled ? '10-Band Studio DSP Active' : 'DSP Bypass Mode',
+                        _eqEnabled
+                            ? '10-Band Studio DSP Active'
+                            : 'DSP Bypass Mode',
                         style: TextStyle(
-                          color: _eqEnabled ? EverforestColors.green : EverforestColors.grey,
+                          color: _eqEnabled
+                              ? EverforestColors.green
+                              : EverforestColors.grey,
                           fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        AudioDspService.instance.isSupportedOnPlatform
+                            ? 'Platform: ${_platformName()} · DSP Active'
+                            : 'Platform: ${_platformName()} · EQ Not Supported',
+                        style: TextStyle(
+                          color: AudioDspService.instance.isSupportedOnPlatform
+                              ? EverforestColors.green
+                              : EverforestColors.orange,
+                          fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -244,7 +246,8 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.refresh_rounded, color: EverforestColors.grey, size: 20),
+                  icon: const Icon(Icons.refresh_rounded,
+                      color: EverforestColors.grey, size: 20),
                   tooltip: 'Reset EQ',
                   onPressed: _resetEq,
                 ),
@@ -260,10 +263,10 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
-              itemCount: _presets.length,
+              itemCount: kEqDefaultPresets.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
-                final p = _presets[i];
+                final p = kEqDefaultPresets[i];
                 final isSelected = _selectedPreset == p.name;
                 return ChoiceChip(
                   label: Text(p.name),
@@ -272,8 +275,10 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                     if (selected) _applyPreset(p);
                   },
                   labelStyle: TextStyle(
-                    color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color:
+                        isSelected ? EverforestColors.bg0 : EverforestColors.fg,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 11,
                   ),
                   selectedColor: EverforestColors.green,
@@ -281,7 +286,8 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
-                      color: isSelected ? EverforestColors.green : Colors.white12,
+                      color:
+                          isSelected ? EverforestColors.green : Colors.white12,
                     ),
                   ),
                 );
@@ -303,7 +309,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: CustomPaint(
-                painter: _EqCurvePainter(
+                painter: EqCurvePainter(
                   bands: _bands,
                   enabled: _eqEnabled,
                 ),
@@ -316,7 +322,10 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
           // 10-Band Vertical Sliders Grid
           Expanded(
             child: Opacity(
-              opacity: _eqEnabled ? 1.0 : 0.4,
+              opacity:
+                  (_eqEnabled && AudioDspService.instance.isSupportedOnPlatform)
+                      ? 1.0
+                      : 0.4,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
@@ -336,7 +345,8 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
             decoration: BoxDecoration(
               color: EverforestColors.bg1,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(widget.isEmbedded ? 0 : 24)),
+              borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(widget.isEmbedded ? 0 : 24)),
               border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Row(
@@ -399,7 +409,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
         Text(
           '${value >= 0 ? '+' : ''}${value.toStringAsFixed(1)}',
           style: TextStyle(
-            color: value.abs() > 0.1 ? EverforestColors.green : EverforestColors.grey,
+            color: value.abs() > 0.1
+                ? EverforestColors.green
+                : EverforestColors.grey,
             fontSize: 9,
             fontFamily: 'monospace',
             fontWeight: FontWeight.bold,
@@ -411,7 +423,8 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 3.0,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
+                thumbShape:
+                    const RoundSliderThumbShape(enabledThumbRadius: 5.5),
                 overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
                 activeTrackColor: EverforestColors.green,
                 inactiveTrackColor: Colors.white12,
@@ -435,7 +448,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
           ),
         ),
         Text(
-          _bandFrequencies[index],
+          kEqBandFrequencies[index],
           style: const TextStyle(
             color: EverforestColors.grey,
             fontSize: 9.5,
@@ -483,7 +496,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               children: [
                 CustomPaint(
                   size: const Size(52, 52),
-                  painter: _KnobDialPainter(
+                  painter: KnobDialPainter(
                     fraction: value,
                     color: activeColor,
                   ),
@@ -513,114 +526,5 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
         ),
       ],
     );
-  }
-}
-
-class _EqCurvePainter extends CustomPainter {
-  final List<double> bands;
-  final bool enabled;
-
-  _EqCurvePainter({required this.bands, required this.enabled});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (bands.isEmpty) return;
-
-    final centerY = size.height / 2;
-    const maxGain = 12.0;
-
-    final refPaint = Paint()
-      ..color = Colors.white10
-      ..strokeWidth = 1;
-    canvas.drawLine(Offset(0, centerY), Offset(size.width, centerY), refPaint);
-
-    final path = Path();
-    final step = size.width / (bands.length - 1);
-
-    for (int i = 0; i < bands.length; i++) {
-      final x = i * step;
-      final gainRatio = (bands[i] / maxGain).clamp(-1.0, 1.0);
-      final y = centerY - (gainRatio * (size.height * 0.42));
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        final prevX = (i - 1) * step;
-        final prevGainRatio = (bands[i - 1] / maxGain).clamp(-1.0, 1.0);
-        final prevY = centerY - (prevGainRatio * (size.height * 0.42));
-        final cX = (prevX + x) / 2;
-        path.cubicTo(cX, prevY, cX, y, x, y);
-      }
-    }
-
-    final curvePaint = Paint()
-      ..color = enabled ? EverforestColors.green : EverforestColors.grey
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
-
-    final glowPaint = Paint()
-      ..color = enabled ? EverforestColors.green.withValues(alpha: 0.4) : Colors.transparent
-      ..strokeWidth = 5
-      ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-
-    canvas.drawPath(path, glowPaint);
-    canvas.drawPath(path, curvePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _EqCurvePainter oldDelegate) {
-    return oldDelegate.bands != bands || oldDelegate.enabled != enabled;
-  }
-}
-
-class _KnobDialPainter extends CustomPainter {
-  final double fraction;
-  final Color color;
-
-  _KnobDialPainter({required this.fraction, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width / 2) - 4;
-
-    const startAngle = 0.75 * math.pi;
-    const sweepTotal = 1.5 * math.pi;
-
-    final trackPaint = Paint()
-      ..color = Colors.white12
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    final activePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepTotal,
-      false,
-      trackPaint,
-    );
-
-    if (fraction > 0) {
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepTotal * fraction,
-        false,
-        activePaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _KnobDialPainter oldDelegate) {
-    return oldDelegate.fraction != fraction || oldDelegate.color != color;
   }
 }

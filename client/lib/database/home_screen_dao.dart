@@ -9,6 +9,7 @@ class HomeScreenDao extends DatabaseAccessor<AppDatabase> with _$HomeScreenDaoMi
   HomeScreenDao(AppDatabase db) : super(db);
 
   Stream<SystemUser?> watchCurrentUser() => select(systemUsers).watchSingleOrNull();
+  Stream<List<SystemUser>> watchAllUsers() => select(systemUsers).watch();
   Stream<List<LocalNotification>> watchUnreadNotifications() =>
       (select(localNotifications)..where((t) => t.readAt.isNull())).watch();
 

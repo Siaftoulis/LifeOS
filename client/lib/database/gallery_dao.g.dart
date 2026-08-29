@@ -6,6 +6,7 @@ part of 'gallery_dao.dart';
 mixin _$GalleryDaoMixin on DatabaseAccessor<AppDatabase> {
   $MediaAssetsTable get mediaAssets => attachedDatabase.mediaAssets;
   $MediaTagsTable get mediaTags => attachedDatabase.mediaTags;
+  $CloudAssetsTable get cloudAssets => attachedDatabase.cloudAssets;
   GalleryDaoManager get managers => GalleryDaoManager(this);
 }
 
@@ -16,4 +17,6 @@ class GalleryDaoManager {
       $$MediaAssetsTableTableManager(_db.attachedDatabase, _db.mediaAssets);
   $$MediaTagsTableTableManager get mediaTags =>
       $$MediaTagsTableTableManager(_db.attachedDatabase, _db.mediaTags);
+  $$CloudAssetsTableTableManager get cloudAssets =>
+      $$CloudAssetsTableTableManager(_db.attachedDatabase, _db.cloudAssets);
 }

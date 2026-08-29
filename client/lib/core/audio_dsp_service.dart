@@ -1,14 +1,25 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'audio_dsp_native.dart'
     if (dart.library.js_interop) 'audio_dsp_web.dart'
     if (dart.library.html) 'audio_dsp_web.dart';
 
 /// Manages audiophile DSP audio processing, 10-Band EQ, Preamp, Bass/Treble boost, and 3D Spatial Audio.
+///
+/// Platform support:
+/// - Windows / Linux: mpv `af` filter chain applied to the media_kit player.
+/// - Android: `AndroidEqualizer` (5 hardware bands) wired via the just_audio
+///   AudioPipeline, gains mapped from our 10-band model.
+/// - macOS / iOS: no EQ API in just_audio 0.10.x — settings are kept for
+///   when the pipeline supports Darwin effects.
+/// - Web: no-op (playback is native-only).
 class AudioDspService {
   AudioDspService._();
   static final AudioDspService instance = AudioDspService._();
+
+  static const String _prefsKey = 'music_dsp_settings_v1';
 
   bool _enabled = true;
   double _preamp = 0.0; // -12.0 to +12.0 dB
@@ -19,6 +30,7 @@ class AudioDspService {
 
   AndroidEqualizer? _androidEqualizer;
   AudioPlayer? _activePlayer;
+  bool _prefsLoaded = false;
 
   final _changeController = StreamController<void>.broadcast();
   Stream<void> get onDspChanged => _changeController.stream;
@@ -30,20 +42,65 @@ class AudioDspService {
   double get spatial3d => _spatial3d;
   List<double> get bands => List.unmodifiable(_bands);
 
-  void attachPlayer(AudioPlayer player) {
-    _activePlayer = player;
-    _initNativeEffects();
+  /// Whether this platform can actually apply DSP to the audio output.
+  bool get isSupportedOnPlatform {
+    if (kIsWeb) return false;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.android:
+        return true;
+      default:
+        return false;
+    }
   }
 
-  Future<void> _initNativeEffects() async {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android && _activePlayer != null) {
-      try {
-        _androidEqualizer ??= AndroidEqualizer();
-        await _androidEqualizer?.setEnabled(_enabled);
-      } catch (e) {
-        debugPrint('AndroidEqualizer init note: $e');
-      }
+  /// Builds the just_audio [AudioPipeline] for the platform. MUST be called
+  /// once before the [AudioPlayer] is constructed so EQ effects attach.
+  AudioPipeline buildAudioPipeline() {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      _androidEqualizer = AndroidEqualizer();
+      return AudioPipeline(androidAudioEffects: [_androidEqualizer!]);
     }
+    return AudioPipeline();
+  }
+
+  /// Loads persisted DSP settings (called once at app start).
+  Future<void> init() async {
+    if (_prefsLoaded) return;
+    _prefsLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_prefsKey);
+      if (raw == null) return;
+      final map = Map<String, dynamic>.from(
+          (raw.split('|').map((kv) => kv.split('='))).fold<Map<String, dynamic>>(
+              {}, (acc, kv) {
+        if (kv.length == 2) acc[kv[0]] = double.tryParse(kv[1]);
+        return acc;
+      }));
+      _enabled = (map['enabled'] as double?)?.round() == 1;
+      _preamp = map['preamp'] as double? ?? 0.0;
+      _bassBoost = map['bass'] as double? ?? 0.25;
+      _trebleBoost = map['treble'] as double? ?? 0.15;
+      _spatial3d = map['spatial'] as double? ?? 0.30;
+      final bands = (map['bands'] as double?) ?? 0.0;
+      if (bands > 0 && bands <= 10) {
+        _bands.clear();
+        for (int i = 0; i < bands.round(); i++) {
+          _bands.add(map['b$i'] as double? ?? 0.0);
+        }
+        while (_bands.length < 10) {
+          _bands.add(0.0);
+        }
+      }
+    } catch (e) {
+      debugPrint('AudioDspService load error: $e');
+    }
+  }
+
+  void attachPlayer(AudioPlayer player) {
+    _activePlayer = player;
     _applyToNative();
   }
 
@@ -63,12 +120,33 @@ class AudioDspService {
     if (bands != null) _bands = List.from(bands);
 
     _applyToNative();
+    _persist();
     _changeController.add(null);
   }
 
   /// Reapplies current DSP filters to all active native players (e.g. after track changes)
   void reapply() {
     _applyToNative();
+  }
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final parts = <String>[
+        'enabled=${_enabled ? 1 : 0}',
+        'preamp=$_preamp',
+        'bass=$_bassBoost',
+        'treble=$_trebleBoost',
+        'spatial=$_spatial3d',
+        'bands=${_bands.length}',
+      ];
+      for (int i = 0; i < _bands.length; i++) {
+        parts.add('b$i=${_bands[i]}');
+      }
+      await prefs.setString(_prefsKey, parts.join('|'));
+    } catch (e) {
+      debugPrint('AudioDspService persist error: $e');
+    }
   }
 
   String _buildMpvFilterString() {
@@ -111,15 +189,60 @@ class AudioDspService {
     return 'lavfi=[${filters.join(',')}]';
   }
 
-  void _applyToNative() {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
-      final afString = _buildMpvFilterString();
-      NativeAudioDspEngine.applyMpvFilters(afString);
-    }
+  /// Maps our 10 bands (31–16k) onto the Android 5-band hardware EQ
+  /// (60/230/910/3600/14000 Hz), folding the preamp into each gain so boosted
+  /// presets don't clip the output stage.
+  List<double> _mappedAndroidGains() {
+    final pairs = <(double, double)>[
+      (_bands[0], _bands[1]), // → 60 Hz
+      (_bands[2], _bands[3]), // → 230 Hz
+      (_bands[4], _bands[5]), // → 910 Hz
+      (_bands[6], _bands[7]), // → 3.6 kHz
+      (_bands[8], _bands[9]), // → 14 kHz
+    ];
+    return pairs
+        .map((p) => (p.$1 + p.$2) / 2.0 + _preamp)
+        .map((g) => g.clamp(-12.0, 12.0))
+        .toList();
+  }
 
-    // Android Equalizer fallback
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android && _androidEqualizer != null) {
-      _androidEqualizer?.setEnabled(_enabled);
+  Future<void> _applyAndroidEq() async {
+    final eq = _androidEqualizer;
+    if (eq == null || _activePlayer == null) return;
+    try {
+      await eq.setEnabled(_enabled);
+      if (!_enabled) return;
+      var params = await eq.parameters
+          .timeout(const Duration(seconds: 3))
+          .catchError((_) => AndroidEqualizerParameters(
+                minDecibels: -15,
+                maxDecibels: 15,
+                bands: const [],
+              ));
+      final gains = _mappedAndroidGains();
+      final minDb = params.minDecibels;
+      final maxDb = params.maxDecibels;
+      for (int i = 0; i < params.bands.length && i < gains.length; i++) {
+        final g = gains[i].clamp(minDb, maxDb);
+        await params.bands[i].setGain(g);
+      }
+    } catch (e) {
+      debugPrint('AndroidEqualizer apply note: $e');
+    }
+  }
+
+  void _applyToNative() {
+    if (kIsWeb) return;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+        NativeAudioDspEngine.applyMpvFilters(_buildMpvFilterString());
+        break;
+      case TargetPlatform.android:
+        unawaited(_applyAndroidEq());
+        break;
+      default:
+        break; // macOS / iOS / others: no EQ API in just_audio 0.10.x
     }
   }
 }

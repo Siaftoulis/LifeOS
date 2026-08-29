@@ -21,6 +21,40 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/music/download", HandleDownload)
 	mux.HandleFunc("/api/v1/music/resolve", HandleResolveStreamURL)
 	mux.HandleFunc("/api/v1/music/ytstream/", HandleYTStream)
+
+	// Liked Songs
+	mux.HandleFunc("GET /api/v1/music/liked", HandleGetLiked)
+	mux.HandleFunc("POST /api/v1/music/liked", HandleToggleLiked)
+	mux.HandleFunc("DELETE /api/v1/music/liked/{id}", HandleRemoveLiked)
+
+	// Playlists
+	mux.HandleFunc("GET /api/v1/music/playlists", HandleGetPlaylists)
+	mux.HandleFunc("POST /api/v1/music/playlists", HandleCreatePlaylist)
+	mux.HandleFunc("GET /api/v1/music/playlists/{id}", HandleGetPlaylist)
+	mux.HandleFunc("PATCH /api/v1/music/playlists/{id}", HandleUpdatePlaylist)
+	mux.HandleFunc("DELETE /api/v1/music/playlists/{id}", HandleDeletePlaylist)
+	mux.HandleFunc("GET /api/v1/music/playlists/{id}/tracks", HandleGetPlaylistTracks)
+	mux.HandleFunc("POST /api/v1/music/playlists/{id}/tracks", HandleAddPlaylistTrack)
+	mux.HandleFunc("DELETE /api/v1/music/playlists/{id}/tracks/{trackId}", HandleRemovePlaylistTrack)
+	mux.HandleFunc("PATCH /api/v1/music/playlists/{id}/tracks/reorder", HandleReorderPlaylistTracks)
+
+	// Download Queue
+	mux.HandleFunc("GET /api/v1/music/downloads", HandleGetDownloadQueue)
+	mux.HandleFunc("POST /api/v1/music/downloads", HandleEnqueueDownload)
+	mux.HandleFunc("PATCH /api/v1/music/downloads/{id}", HandleUpdateDownload)
+	mux.HandleFunc("DELETE /api/v1/music/downloads/{id}", HandleCancelDownload)
+	mux.HandleFunc("DELETE /api/v1/music/downloads", HandleClearCompletedDownloads)
+
+	// Listening History
+	mux.HandleFunc("POST /api/v1/music/history", HandleRecordHistory)
+	mux.HandleFunc("GET /api/v1/music/history", HandleGetHistory)
+	mux.HandleFunc("GET /api/v1/music/stats", HandleGetStats)
+
+	// Smart Playlists
+	mux.HandleFunc("GET /api/v1/music/smart/discovery-weekly", HandleDiscoveryWeekly)
+	mux.HandleFunc("GET /api/v1/music/smart/daily-mix", HandleDailyMix)
+	mux.HandleFunc("GET /api/v1/music/smart/release-radar", HandleReleaseRadar)
+	mux.HandleFunc("GET /api/v1/music/smart/recommendations", HandleRecommendations)
 }
 
 type Track struct {

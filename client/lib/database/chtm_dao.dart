@@ -62,4 +62,20 @@ class ChtmDao extends DatabaseAccessor<AppDatabase> with _$ChtmDaoMixin {
     }
     return streak;
   }
+
+  /// Get today's completed value for a habit (for STEPS/DISTANCE progress)
+  Future<double> getTodayProgress(String habitId) async {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+    final todayEnd = todayStart + 86400000; // +24h in ms
+
+    final log = await (select(habitLogs)
+      ..where((t) => t.habitId.equals(habitId) & 
+                     t.checkinDate.isBiggerOrEqualValue(todayStart) & 
+                     t.checkinDate.isSmallerThanValue(todayEnd))
+      ..orderBy([(t) => OrderingTerm.desc(t.checkinDate)]))
+      .getSingleOrNull();
+
+    return log?.completedValue ?? 0.0;
+  }
 }

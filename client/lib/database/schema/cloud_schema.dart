@@ -83,3 +83,45 @@ class SharedFiles extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('FileTransfer')
+class FileTransfers extends Table {
+  TextColumn get transferId => text()();
+  TextColumn get fileId => text()();
+  TextColumn get fileName => text()();
+  IntColumn get fileSize => integer()();
+  TextColumn get fileHash => text()();
+  IntColumn get chunkSize => integer()();
+  IntColumn get totalChunks => integer()();
+  TextColumn get receivedChunks => text().withDefault(const Constant('[]'))();
+  TextColumn get verifiedChunks => text().withDefault(const Constant('[]'))();
+  TextColumn get state => text().withDefault(const Constant('CREATED'))();
+  TextColumn get mimeType => text().nullable()();
+  TextColumn get metadata => text().nullable()();
+  TextColumn get localFilePath => text().nullable()();
+  TextColumn get remoteFilePath => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {transferId};
+}
+
+@DataClassName('TransferChunk')
+class TransferChunks extends Table {
+  TextColumn get transferId => text().customConstraint('NOT NULL REFERENCES file_transfers(transfer_id) ON DELETE CASCADE')();
+  IntColumn get chunkIndex => integer()();
+  IntColumn get offset => integer()();
+  IntColumn get length => integer()();
+  TextColumn get hash => text()();
+  TextColumn get state => text().withDefault(const Constant('PENDING'))();
+  TextColumn get localPath => text().nullable()();
+  IntColumn get uploadedAt => integer().nullable()();
+  IntColumn get verifiedAt => integer().nullable()();
+  IntColumn get retryCount => integer().withDefault(const Constant(0))();
+  IntColumn get isDirty => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {transferId, chunkIndex};
+}
+

@@ -255,23 +255,29 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
         ),
       );
     } else if (habit.type == 'STEPS' || habit.type == 'DISTANCE') {
-      return Row(
-        children: [
-          Expanded(
-            child: LinearProgressIndicator(
-              value: 0.4, // Mock progress for now
-              backgroundColor: EverforestColors.bg2,
-              color: habit.type == 'STEPS' ? EverforestColors.green : EverforestColors.blue,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: EverforestColors.green),
-            onPressed: () => _completeHabit(habit, habit.goalValue), // Mock full completion
-          ),
-        ],
+      return FutureBuilder<double>(
+        future: dao.getTodayProgress(habit.id),
+        builder: (context, snapshot) {
+          final progress = (snapshot.data ?? 0.0).clamp(0.0, habit.goalValue) / habit.goalValue;
+          return Row(
+            children: [
+              Expanded(
+                child: LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  backgroundColor: EverforestColors.bg2,
+                  color: habit.type == 'STEPS' ? EverforestColors.green : EverforestColors.blue,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 16),
+              IconButton(
+                icon: const Icon(Icons.add_circle, color: EverforestColors.green),
+                onPressed: () => _completeHabit(habit, habit.goalValue),
+              ),
+            ],
+          );
+        },
       );
     } else if (habit.type == 'TIMER') {
       return Row(

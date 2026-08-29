@@ -34,9 +34,80 @@ func createTables() error {
 		title TEXT NOT NULL,
 		artist TEXT NOT NULL,
 		album TEXT NOT NULL,
+		album_artist TEXT DEFAULT '',
+		track_number INTEGER,
+		disc_number INTEGER,
+		year INTEGER,
+		genre TEXT DEFAULT '',
 		file_path TEXT NOT NULL DEFAULT '',
-		duration REAL NOT NULL DEFAULT 0,
-		thumbnail TEXT NOT NULL DEFAULT ''
+		lyrics_path TEXT DEFAULT '',
+		thumbnail_url TEXT DEFAULT '',
+		yt_dlp_id TEXT DEFAULT '',
+		duration INTEGER NOT NULL DEFAULT 0,
+		bitrate INTEGER,
+		codec TEXT DEFAULT '',
+		replay_gain_track REAL,
+		replay_gain_album REAL,
+		play_count INTEGER NOT NULL DEFAULT 0,
+		last_played_at INTEGER,
+		added_at INTEGER NOT NULL DEFAULT 0
+	);
+	
+	CREATE TABLE IF NOT EXISTS liked_songs (
+		id TEXT PRIMARY KEY REFERENCES music_tracks(id) ON DELETE CASCADE,
+		liked_at INTEGER NOT NULL
+	);
+	
+	CREATE TABLE IF NOT EXISTS playlists (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		description TEXT DEFAULT '',
+		cover_art_url TEXT DEFAULT '',
+		is_smart BOOLEAN NOT NULL DEFAULT 0,
+		smart_type TEXT DEFAULT '',
+		smart_config TEXT DEFAULT '',
+		track_count INTEGER NOT NULL DEFAULT 0,
+		total_duration INTEGER NOT NULL DEFAULT 0,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
+	
+	CREATE TABLE IF NOT EXISTS playlist_tracks (
+		id TEXT NOT NULL,
+		playlist_id TEXT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+		track_id TEXT NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE,
+		position INTEGER NOT NULL,
+		added_at INTEGER NOT NULL,
+		PRIMARY KEY (id, playlist_id, track_id)
+	);
+	
+	CREATE TABLE IF NOT EXISTS download_queue (
+		id TEXT PRIMARY KEY,
+		track_id TEXT NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE,
+		url TEXT NOT NULL,
+		destination_path TEXT DEFAULT '',
+		status TEXT NOT NULL DEFAULT 'pending',
+		priority INTEGER NOT NULL DEFAULT 0,
+		retry_count INTEGER NOT NULL DEFAULT 0,
+		total_bytes INTEGER,
+		downloaded_bytes INTEGER NOT NULL DEFAULT 0,
+		error_message TEXT DEFAULT '',
+		wifi_only BOOLEAN NOT NULL DEFAULT 1,
+		charging_only BOOLEAN NOT NULL DEFAULT 0,
+		created_at INTEGER NOT NULL,
+		started_at INTEGER,
+		completed_at INTEGER
+	);
+	
+	CREATE TABLE IF NOT EXISTS listening_history (
+		id TEXT PRIMARY KEY,
+		track_id TEXT NOT NULL REFERENCES music_tracks(id) ON DELETE CASCADE,
+		played_at INTEGER NOT NULL,
+		position_ms INTEGER NOT NULL DEFAULT 0,
+		duration_ms INTEGER,
+		completion_rate REAL,
+		skipped BOOLEAN NOT NULL DEFAULT 0,
+		source TEXT DEFAULT ''
 	);
 	
 	CREATE TABLE IF NOT EXISTS photos (

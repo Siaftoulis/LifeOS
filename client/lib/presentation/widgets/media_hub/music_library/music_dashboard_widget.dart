@@ -1,19 +1,32 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
-import '../../../../theme/everforest_colors.dart';
-import '../../../../core/domain_repositories.dart';
 import '../../../../api_client.dart';
-import '../../../../database/database.dart' hide MusicTrack;
+import '../../../../core/audio_dsp_service.dart';
+import '../../../../core/domain_repositories.dart';
+import '../../../../core/music_playback/playback_controller.dart';
+import '../../../../core/music_playback/playback_models.dart';
 import '../../../../core/telemetry/telemetry_reporter.dart';
+import '../../../../database/database.dart' hide MusicTrack;
+import '../../../../theme/everforest_colors.dart';
+import 'components/music_mini_player.dart';
+import 'components/music_search_bar.dart';
 import 'lyrics_sync_viewer.dart';
 import 'poweramp_now_playing_sheet.dart';
 import 'poweramp_queue_sheet.dart';
-import '../../../../core/audio_dsp_service.dart';
+import 'tabs/all_tracks_sliver.dart';
+import 'tabs/artists_and_genres_slivers.dart';
+import 'tabs/offline_tracks_sliver.dart';
+import 'tabs/smart_mixes_sliver.dart';
+
+export 'components/music_mini_player.dart';
+export 'components/music_search_bar.dart';
+export 'tabs/all_tracks_sliver.dart';
+export 'tabs/artists_and_genres_slivers.dart';
+export 'tabs/offline_tracks_sliver.dart';
+export 'tabs/smart_mixes_sliver.dart';
 
 class MusicDashboardWidget extends StatefulWidget {
   const MusicDashboardWidget({super.key});
@@ -23,7 +36,6 @@ class MusicDashboardWidget extends StatefulWidget {
 }
 
 class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
-  final AudioPlayer _player = AudioPlayer();
   final OnAudioQuery _audioQuery = OnAudioQuery();
   final TextEditingController _searchCtrl = TextEditingController();
 
@@ -41,17 +53,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   String _currentStreamUrl = '';
   String _currentThumbnail = '';
 
-  final List<({String id, String url, String title, String artist, String thumbnail, String album})> _queue = [];
-  int _queueIndex = -1;
   final Set<String> _downloading = {};
   final Set<String> _offlineDownloading = {};
-  Timer? _playbackWatchdogTimer;
 
-  // Track playback state intent to prevent aggressive watchdog unpausing
-  bool _userWantsPlay = false;
-  bool _isLoadingTrack = false;
+  bool get _canPlay => !kIsWeb;
+  PlaybackController get _pc => PlaybackController.instance;
 
-  // Library Navigation: 0 = All Tracks, 1 = Artists, 2 = Genres & Styles, 3 = Smart Mixes
   int _libraryTab = 0;
   String? _selectedArtist;
   String? _selectedGenre;
@@ -59,35 +66,29 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   @override
   void initState() {
     super.initState();
-    AudioDspService.instance.attachPlayer(_player);
+    unawaited(AudioDspService.instance.init());
+    unawaited(_pc.ensureInitialized());
     _loadPhoneSongs();
     MusicRepository.instance.refresh();
     MusicRepository.instance.loadOffline();
-
-    _player.processingStateStream.listen((state) {
-      if (state == ProcessingState.completed &&
-          _queue.length > 1 &&
-          _queueIndex < _queue.length - 1) {
-        _playNext();
-      }
-    });
-
-    _player.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.ready &&
-          !state.playing &&
-          _userWantsPlay &&
-          _isLoadingTrack &&
-          _currentTrackId.isNotEmpty &&
-          _player.position < const Duration(milliseconds: 500)) {
-        _player.play().catchError((e) => debugPrint('stateStream play note: $e'));
-      }
-      if (state.playing) {
-        _isLoadingTrack = false;
-        _playbackWatchdogTimer?.cancel();
-      }
-    });
-
     MusicRepository.instance.tracks.addListener(_tracksChanged);
+    _pc.addListener(_playbackChanged);
+    _playbackChanged();
+  }
+
+  void _playbackChanged() {
+    final item = _pc.currentItem;
+    if (!mounted || item == null || item.id == _currentTrackId) return;
+    setState(() {
+      _currentTrackId = item.id;
+      _currentStreamUrl = item.url;
+      _currentTitle = item.title;
+      _currentArtist = item.artist;
+      _currentAlbum = item.album;
+      _currentThumbnail = item.thumbnail;
+    });
+    TelemetryReporter.instance
+        .track('music', 'track_streamed', {'track_id': item.id});
   }
 
   void _tracksChanged() {
@@ -99,35 +100,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
   }
 
-  void _startPlaybackWatchdog() {
-    _playbackWatchdogTimer?.cancel();
-    int ticks = 0;
-    _playbackWatchdogTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      ticks++;
-      if (!mounted || !_userWantsPlay || !_isLoadingTrack) {
-        timer.cancel();
-        return;
-      }
-      if (!_player.playing) {
-        _player.play().catchError((e) => debugPrint('watchdog play note: $e'));
-      }
-      if ((_player.playing && _player.position > const Duration(milliseconds: 300)) || ticks > 10) {
-        _isLoadingTrack = false;
-        timer.cancel();
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _userWantsPlay = false;
-    _isLoadingTrack = false;
-    _playbackWatchdogTimer?.cancel();
     _debounceTimer?.cancel();
     MusicRepository.instance.tracks.removeListener(_tracksChanged);
+    _pc.removeListener(_playbackChanged);
     _searchCtrl.dispose();
-    _player.stop();
-    _player.dispose();
     super.dispose();
   }
 
@@ -151,7 +129,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       }
     });
     if (q.trim().isNotEmpty) {
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () => _search(q.trim()));
+      _debounceTimer = Timer(
+          const Duration(milliseconds: 500), () => _search(q.trim()));
     }
   }
 
@@ -168,9 +147,6 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _results = results;
           _isSearching = false;
         });
-        for (final t in results.take(2)) {
-          _precacheTrack(t.id);
-        }
       }
     } catch (e) {
       if (mounted && _query.trim() == q) {
@@ -182,29 +158,30 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
   }
 
-  void _precacheTrack(String id) {
-    if (id.isEmpty) return;
-    ApiClient.instance
-        .getDaemonSlow('/api/v1/music/resolve?id=$id')
-        .catchError((_) => null);
-  }
-
   void _openNowPlaying() {
+    if (!_canPlay) {
+      _webPlaybackNotice();
+      return;
+    }
+    final player = _pc.player;
+    if (player == null) return;
     if (_currentTrackId.isEmpty && _currentTitle == 'Nothing playing') return;
-    final isDownloaded = MusicRepository.instance.tracks.value.any((t) => t.id == _currentTrackId);
-    final isOfflineLocal = MusicRepository.instance.isOffline(_currentTrackId);
+    final isDownloaded = MusicRepository.instance.tracks.value
+        .any((t) => t.id == _currentTrackId);
+    final isOfflineLocal =
+        MusicRepository.instance.isOffline(_currentTrackId);
 
     PowerampNowPlayingSheet.show(
       context,
-      player: _player,
+      player: player,
       title: _currentTitle,
       artist: _currentArtist,
       album: _currentAlbum,
       trackId: _currentTrackId,
       streamUrl: _currentStreamUrl,
       thumbnailUrl: _currentThumbnail,
-      onNext: _playNext,
-      onPrev: _playPrev,
+      onNext: _pc.next,
+      onPrev: _pc.previous,
       onOpenQueue: _openQueue,
       isDownloaded: isDownloaded,
       isOfflineLocal: isOfflineLocal,
@@ -215,287 +192,149 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           artist: _currentArtist,
           album: _currentAlbum,
           thumbnail: _currentThumbnail,
-          duration: _player.duration?.inSeconds.toDouble() ?? 0,
+          duration: player.duration?.inSeconds.toDouble() ?? 0,
         );
         _downloadOffline(track);
       },
-      queue: _queue,
-      currentIndex: _queueIndex,
-      onPlayIndex: (idx) => _playAt(idx),
-      onReorder: (oldIdx, newIdx) {
-        setState(() {
-          if (oldIdx < newIdx) newIdx -= 1;
-          final item = _queue.removeAt(oldIdx);
-          _queue.insert(newIdx, item);
-          if (_queueIndex == oldIdx) {
-            _queueIndex = newIdx;
-          } else if (_queueIndex > oldIdx && _queueIndex <= newIdx) {
-            _queueIndex -= 1;
-          } else if (_queueIndex < oldIdx && _queueIndex >= newIdx) {
-            _queueIndex += 1;
-          }
-        });
+      queue: _pc.queue,
+      currentIndex: _pc.currentIndex,
+      repeat: _pc.repeat,
+      shuffle: _pc.shuffle,
+      onRepeatChanged: (mode) => _pc.setRepeat(mode),
+      onShuffleChanged: (enabled) {
+        if (enabled != _pc.shuffle) _pc.toggleShuffle();
       },
+      onPlayIndex: (idx) => _pc.playAt(idx),
+      onReorder: (oldIdx, newIdx) => _pc.reorder(oldIdx, newIdx),
       onRemove: (idx) {
-        setState(() {
-          _queue.removeAt(idx);
-          if (_queueIndex == idx) {
-            if (_queue.isNotEmpty) {
-              _playAt(idx.clamp(0, _queue.length - 1));
-            }
-          } else if (_queueIndex > idx) {
-            _queueIndex -= 1;
-          }
-        });
+        _pc.queue.removeAt(idx);
+        setState(() {});
       },
       onClearQueue: () {
-        setState(() {
-          _queue.clear();
-          _queueIndex = -1;
-        });
-      },
-      onDownload: () {
-        final track = MusicTrack(
-          id: _currentTrackId,
-          title: _currentTitle,
-          artist: _currentArtist,
-          album: _currentAlbum,
-          thumbnail: _currentThumbnail,
-          duration: _player.duration?.inSeconds.toDouble() ?? 0,
-        );
-        _download(track);
-      },
-      onDelete: () {
-        final match = MusicRepository.instance.tracks.value
-            .where((t) => t.id == _currentTrackId)
-            .firstOrNull;
-        if (match != null) {
-          _confirmDeleteTrack(match);
-        }
+        _pc.queue.clear();
+        setState(() {});
       },
     );
   }
 
   void _openQueue() {
-    PowerampQueueSheet.show(
-      context,
-      queue: _queue,
-      currentIndex: _queueIndex,
-      onPlayIndex: (idx) => _playAt(idx),
-      onReorder: (oldIdx, newIdx) {
-        setState(() {
-          if (oldIdx < newIdx) newIdx -= 1;
-          final item = _queue.removeAt(oldIdx);
-          _queue.insert(newIdx, item);
-          if (_queueIndex == oldIdx) {
-            _queueIndex = newIdx;
-          } else if (_queueIndex > oldIdx && _queueIndex <= newIdx) {
-            _queueIndex -= 1;
-          } else if (_queueIndex < oldIdx && _queueIndex >= newIdx) {
-            _queueIndex += 1;
-          }
-        });
-      },
-      onRemove: (idx) {
-        setState(() {
-          _queue.removeAt(idx);
-          if (_queueIndex == idx) {
-            if (_queue.isNotEmpty) {
-              _playAt(idx.clamp(0, _queue.length - 1));
-            }
-          } else if (_queueIndex > idx) {
-            _queueIndex -= 1;
-          }
-        });
-      },
-      onClear: () {
-        setState(() {
-          _queue.clear();
-          _queueIndex = -1;
-        });
-      },
-    );
-  }
-
-  void _openLyrics() {
-    if (_currentTitle == 'Nothing playing') return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => LyricsSyncViewer(
-        title: _currentTitle,
-        artist: _currentArtist,
-        player: _player,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PowerampQueueSheet(
+        queue: _pc.queue,
+        currentIndex: _pc.currentIndex,
+        onPlayIndex: (idx) {
+          Navigator.pop(context);
+          _pc.playAt(idx);
+        },
+        onReorder: (oldIdx, newIdx) => _pc.reorder(oldIdx, newIdx),
+        onRemove: (idx) {
+          _pc.queue.removeAt(idx);
+          setState(() {});
+        },
+        onClear: () {
+          _pc.queue.clear();
+          setState(() {});
+        },
       ),
     );
   }
 
-  Future<void> _playAt(int i) async {
-    if (i < 0 || i >= _queue.length) return;
-    _userWantsPlay = true;
-    _isLoadingTrack = true;
-    _queueIndex = i;
-    final item = _queue[i];
-    final sanitizedUrl = _sanitizeStreamUrl(item.url, item.id);
-    final sanitizedThumb = _sanitizeThumbnailUrl(item.thumbnail);
-    setState(() {
-      _currentTrackId = item.id;
-      _currentStreamUrl = sanitizedUrl;
-      _currentTitle = item.title;
-      _currentArtist = item.artist;
-      _currentAlbum = item.album;
-      _currentThumbnail = sanitizedThumb;
-    });
-    TelemetryReporter.instance
-        .track('music', 'track_streamed', {'track_id': item.id});
-
-    if (i + 1 < _queue.length) {
-      _precacheTrack(_queue[i + 1].id);
-    }
-
-    try {
-      String playUrl = sanitizedUrl;
-      debugPrint('Music player playing url: $playUrl');
-      await _player.setUrl(playUrl);
-      if (_userWantsPlay) {
-        try {
-          await _player.play();
-        } catch (playErr) {
-          debugPrint('Music playback play() note: $playErr');
-        }
-        _startPlaybackWatchdog();
-        // Reapply audiophile EQ and DSP filters to newly loaded audio stream
-        Future.delayed(const Duration(milliseconds: 150), () {
-          AudioDspService.instance.reapply();
-        });
-      }
-    } catch (e) {
-      debugPrint('Music playback setUrl failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not play "${item.title}"'),
-            backgroundColor: EverforestColors.red,
-          ),
-        );
-      }
-    }
+  void _openLyrics() {
+    final player = _pc.player;
+    if (player == null) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LyricsSyncViewer(
+        title: _currentTitle,
+        artist: _currentArtist,
+        player: player,
+      ),
+    );
   }
 
-  String _sanitizeStreamUrl(String url, String trackId) {
-    String playUrl = url.trim();
-    final daemon = ApiClient.instance.daemonUrl.replaceAll(RegExp(r'/+$'), '');
+  void _webPlaybackNotice() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.phonelink_lock_rounded,
+                color: EverforestColors.orange, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Music playback, offline caching & DSP equalizer are native-app only. '
+                'Open LifeOS on Windows or Android to listen.',
+                style: TextStyle(color: EverforestColors.fg),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: EverforestColors.bg1,
+        duration: Duration(seconds: 4),
+      ),
+    );
+  }
 
-    if (playUrl.isEmpty) {
-      playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=$trackId';
-    } else if (playUrl.startsWith('/')) {
-      playUrl = '$daemon$playUrl';
-    } else if (!playUrl.startsWith('file:') &&
-        !playUrl.startsWith('http://') &&
-        !playUrl.startsWith('https://') &&
-        !playUrl.startsWith('blob:')) {
-      playUrl = '$daemon/api/v1/music/ytstream/stream.m4a?id=$trackId';
+  String _streamUrlFor(String id) {
+    final base = ApiClient.instance.baseUrl;
+    return '$base/api/v1/music/stream?id=$id';
+  }
+
+  Future<void> _playTrackList(List<MusicTrack> list, int index) async {
+    if (!_canPlay) {
+      _webPlaybackNotice();
+      return;
     }
-
-    // Encrypted HTTPS upgrade for Web Browser & Secure Contexts
-    if (kIsWeb) {
-      if (Uri.base.origin.isNotEmpty && !playUrl.startsWith('blob:')) {
-        final originUri = Uri.parse(Uri.base.origin);
-        final uri = Uri.tryParse(playUrl);
-        if (uri != null) {
-          final isLocalOrPrivate = uri.host == 'localhost' ||
-              uri.host == '127.0.0.1' ||
-              uri.host == '0.0.0.0' ||
-              uri.host.startsWith('192.168.') ||
-              uri.host.startsWith('10.') ||
-              uri.host.startsWith('172.16.');
-
-          if (isLocalOrPrivate || (originUri.scheme == 'https' && uri.scheme == 'http')) {
-            playUrl = originUri.replace(
-              path: uri.path,
-              query: uri.hasQuery ? uri.query : null,
-            ).toString();
-          }
-        }
-      }
-    }
-
-    return playUrl;
-  }
-
-  Future<void> _playQueueAt(
-      List<({String id, String url, String title, String artist, String thumbnail, String album})> items,
-      int i) async {
-    _queue
-      ..clear()
-      ..addAll(items);
-    await _playAt(i);
-  }
-
-  Future<void> _playNext() async {
-    if (_queueIndex < _queue.length - 1) await _playAt(_queueIndex + 1);
-  }
-
-  Future<void> _playPrev() async {
-    if (_queueIndex > 0) await _playAt(_queueIndex - 1);
-  }
-
-  void _togglePlayPause() {
-    if (_player.playing) {
-      _userWantsPlay = false;
-      _isLoadingTrack = false;
-      _playbackWatchdogTimer?.cancel();
-      _player.pause();
-    } else {
-      _userWantsPlay = true;
-      _player.play();
-    }
+    final queue = list
+        .map((t) => PlaybackItem(
+              id: t.id,
+              url: _streamUrlFor(t.id),
+              title: t.title,
+              artist: t.artist,
+              thumbnail: t.thumbnail,
+              album: t.album,
+            ))
+        .toList();
+    await _pc.playQueue(queue, startIndex: index);
   }
 
   void _download(MusicTrack t) {
     setState(() => _downloading.add(t.id));
     MusicRepository.instance.download(t);
-
-    Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (!mounted || !_downloading.contains(t.id)) {
-        timer.cancel();
-        return;
-      }
-      MusicRepository.instance.refresh();
-      if (timer.tick > 30) {
-        timer.cancel();
-        if (mounted && _downloading.remove(t.id)) setState(() {});
-      }
-    });
-
+    TelemetryReporter.instance
+        .track('music', 'track_download_queued', {'track_id': t.id});
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Downloading "${t.title}" (+5 stars when done)...'),
+        content: Text('Downloading "${t.title}" to server library...'),
         backgroundColor: EverforestColors.bg1,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  /// Download the track to THIS device for offline playback.
   Future<void> _downloadOffline(MusicTrack t) async {
-    if (_offlineDownloading.contains(t.id)) return;
     setState(() => _offlineDownloading.add(t.id));
-    final ok = await MusicRepository.instance.downloadOffline(t);
-    if (!mounted) return;
-    setState(() => _offlineDownloading.remove(t.id));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          ok
-              ? kIsWeb
-                  ? 'Saving "${t.title}" via browser download...'
-                  : 'Saved "${t.title}" to this device — playable offline'
-              : 'Could not save "${t.title}" to this device',
+    try {
+      final ok = await MusicRepository.instance.downloadOffline(t);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ok
+              ? 'Saved "${t.title}" to this device for offline play'
+              : 'Could not download "${t.title}" for offline play'),
+          backgroundColor:
+              ok ? EverforestColors.bg1 : EverforestColors.red,
+          duration: const Duration(seconds: 3),
         ),
-        backgroundColor: ok ? EverforestColors.bg1 : EverforestColors.red,
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _offlineDownloading.remove(t.id));
+    }
   }
 
   void _confirmDeleteOffline(OfflineMusicTrack o) {
@@ -503,22 +342,27 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 24),
+            Icon(Icons.delete_outline_rounded,
+                color: EverforestColors.red, size: 24),
             SizedBox(width: 8),
-            Text('Remove Offline Copy', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Remove from Device',
+                style: TextStyle(
+                    color: EverforestColors.fg,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
         content: Text(
-          'Remove "${o.title}" from this device? The server library copy stays intact.',
+          'Remove "${o.title}" from this device? The song stays in your server library.',
           style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: const Text('Cancel',
+                style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -528,12 +372,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
             ),
             onPressed: () async {
               Navigator.pop(ctx);
-              final ok = await MusicRepository.instance.deleteOffline(o.id);
+              await MusicRepository.instance.deleteOffline(o.id);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(ok ? 'Removed "${o.title}" from this device' : 'Could not remove "${o.title}"'),
-                    backgroundColor: ok ? EverforestColors.bg1 : EverforestColors.red,
+                    content: Text('Removed "${o.title}" from this device'),
+                    backgroundColor: EverforestColors.bg1,
                   ),
                 );
               }
@@ -550,12 +394,16 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 24),
+            Icon(Icons.delete_outline_rounded,
+                color: EverforestColors.red, size: 24),
             SizedBox(width: 8),
-            Text('Delete Song', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Delete Song',
+                style: TextStyle(
+                    color: EverforestColors.fg,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
         content: Text(
@@ -565,7 +413,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: const Text('Cancel',
+                style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -579,8 +428,11 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(ok ? 'Deleted "${t.title}" from library' : 'Could not delete "${t.title}"'),
-                    backgroundColor: ok ? EverforestColors.bg1 : EverforestColors.red,
+                    content: Text(ok
+                        ? 'Deleted "${t.title}" from library'
+                        : 'Could not delete "${t.title}"'),
+                    backgroundColor:
+                        ok ? EverforestColors.bg1 : EverforestColors.red,
                   ),
                 );
               }
@@ -592,7 +444,6 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     );
   }
 
-  // --- Smart Playlists Engine ---
   Map<String, List<MusicTrack>> _groupTracksByGenre(List<MusicTrack> tracks) {
     final Map<String, List<MusicTrack>> genreMap = {
       '🏛️ Greek / Ελληνικά': [],
@@ -609,43 +460,73 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     for (final t in tracks) {
       final combined = '${t.title} ${t.artist} ${t.album}'.toLowerCase();
 
-      if (greekRegex.hasMatch(t.title) || greekRegex.hasMatch(t.artist) ||
-          combined.contains('parios') || combined.contains('mitropanos') ||
-          combined.contains('sfakianakis') || combined.contains('remos') ||
-          combined.contains('argiros') || combined.contains('vertis') ||
-          combined.contains('pantelidis') || combined.contains('papakonstantinou') ||
-          combined.contains('laiko') || combined.contains('zeimbekiko')) {
+      if (greekRegex.hasMatch(t.title) ||
+          greekRegex.hasMatch(t.artist) ||
+          combined.contains('parios') ||
+          combined.contains('mitropanos') ||
+          combined.contains('sfakianakis') ||
+          combined.contains('remos') ||
+          combined.contains('argiros') ||
+          combined.contains('vertis') ||
+          combined.contains('pantelidis') ||
+          combined.contains('papakonstantinou') ||
+          combined.contains('laiko') ||
+          combined.contains('zeimbekiko')) {
         genreMap['🏛️ Greek / Ελληνικά']!.add(t);
-      } else if (combined.contains('rock') || combined.contains('metal') ||
-          combined.contains('queen') || combined.contains('metallica') ||
-          combined.contains('nirvana') || combined.contains('scorpions') ||
-          combined.contains('pink floyd') || combined.contains('guitar') ||
-          combined.contains('punk') || combined.contains('linkin park')) {
+      } else if (combined.contains('rock') ||
+          combined.contains('metal') ||
+          combined.contains('queen') ||
+          combined.contains('metallica') ||
+          combined.contains('nirvana') ||
+          combined.contains('scorpions') ||
+          combined.contains('pink floyd') ||
+          combined.contains('guitar') ||
+          combined.contains('punk') ||
+          combined.contains('linkin park')) {
         genreMap['🎸 Rock & Metal']!.add(t);
-      } else if (combined.contains('rap') || combined.contains('hip hop') ||
-          combined.contains('hip-hop') || combined.contains('trap') ||
-          combined.contains('eminem') || combined.contains('drake') ||
-          combined.contains('kanye') || combined.contains('tupac') ||
-          combined.contains('snoop') || combined.contains('kendrick') ||
-          combined.contains('light') || combined.contains('snik') ||
-          combined.contains('toquel') || combined.contains('trannos')) {
+      } else if (combined.contains('rap') ||
+          combined.contains('hip hop') ||
+          combined.contains('hip-hop') ||
+          combined.contains('trap') ||
+          combined.contains('eminem') ||
+          combined.contains('drake') ||
+          combined.contains('kanye') ||
+          combined.contains('tupac') ||
+          combined.contains('snoop') ||
+          combined.contains('kendrick') ||
+          combined.contains('light') ||
+          combined.contains('snik') ||
+          combined.contains('toquel') ||
+          combined.contains('trannos')) {
         genreMap['🎤 Hip-Hop & Rap']!.add(t);
-      } else if (combined.contains('edm') || combined.contains('house') ||
-          combined.contains('dance') || combined.contains('techno') ||
-          combined.contains('club') || combined.contains('remix') ||
-          combined.contains('tiesto') || combined.contains('guetta') ||
-          combined.contains('avicii') || combined.contains('calvin') ||
+      } else if (combined.contains('edm') ||
+          combined.contains('house') ||
+          combined.contains('dance') ||
+          combined.contains('techno') ||
+          combined.contains('club') ||
+          combined.contains('remix') ||
+          combined.contains('tiesto') ||
+          combined.contains('guetta') ||
+          combined.contains('avicii') ||
+          combined.contains('calvin') ||
           combined.contains('garrix')) {
         genreMap['⚡ Electronic & Club']!.add(t);
-      } else if (combined.contains('acoustic') || combined.contains('ballad') ||
-          combined.contains('unplugged') || combined.contains('piano') ||
-          combined.contains('slow') || combined.contains('love') ||
+      } else if (combined.contains('acoustic') ||
+          combined.contains('ballad') ||
+          combined.contains('unplugged') ||
+          combined.contains('piano') ||
+          combined.contains('slow') ||
+          combined.contains('love') ||
           combined.contains('romantic')) {
         genreMap['🌙 Acoustic & Ballads']!.add(t);
-      } else if (combined.contains('chill') || combined.contains('lofi') ||
-          combined.contains('lo-fi') || combined.contains('ambient') ||
-          combined.contains('jazz') || combined.contains('relax') ||
-          combined.contains('focus') || combined.contains('blues')) {
+      } else if (combined.contains('chill') ||
+          combined.contains('lofi') ||
+          combined.contains('lo-fi') ||
+          combined.contains('ambient') ||
+          combined.contains('jazz') ||
+          combined.contains('relax') ||
+          combined.contains('focus') ||
+          combined.contains('blues')) {
         genreMap['☕ Chill & Relax']!.add(t);
       } else {
         genreMap['✨ Pop & Chart Hits']!.add(t);
@@ -659,14 +540,16 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   Map<String, List<MusicTrack>> _groupTracksByArtist(List<MusicTrack> tracks) {
     final Map<String, List<MusicTrack>> artistMap = {};
     for (final t in tracks) {
-      final name = t.artist.trim().isNotEmpty ? t.artist.trim() : 'Various Artists';
+      final name =
+          t.artist.trim().isNotEmpty ? t.artist.trim() : 'Various Artists';
       artistMap.putIfAbsent(name, () => []).add(t);
     }
     return artistMap;
   }
 
-  Map<String, ({String desc, IconData icon, Color color, List<MusicTrack> list})> _generateSmartMixes(List<MusicTrack> tracks) {
-    final quickHits = tracks.where((t) => t.duration > 0 && t.duration <= 240).toList();
+  Map<String, SmartMixEntry> _generateSmartMixes(List<MusicTrack> tracks) {
+    final quickHits =
+        tracks.where((t) => t.duration > 0 && t.duration <= 240).toList();
     final deepEpics = tracks.where((t) => t.duration >= 270).toList();
     final shuffled = List<MusicTrack>.from(tracks)..shuffle();
     final recent = List<MusicTrack>.from(tracks.reversed);
@@ -699,288 +582,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     };
   }
 
-  String _fmt(double sec) {
-    final m = (sec / 60).floor();
-    final s = (sec % 60).floor();
-    return '$m:${s.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final searching = _query.trim().isNotEmpty;
-    return Scaffold(
-      backgroundColor: EverforestColors.bg0,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              _buildSearchBar(),
-              Expanded(
-                child: searching ? _buildResults() : _buildLibrary(),
-              ),
-            ],
-          ),
-          Positioned(
-            left: 14,
-            right: 14,
-            bottom: 18,
-            child: _buildPlayer(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: TextField(
-        controller: _searchCtrl,
-        onChanged: _onSearchChanged,
-        onSubmitted: (val) {
-          _debounceTimer?.cancel();
-          _search(val.trim());
-        },
-        textInputAction: TextInputAction.search,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
-        decoration: InputDecoration(
-          hintText: 'Search YouTube Music...',
-          hintStyle: const TextStyle(color: EverforestColors.grey),
-          prefixIcon: const Icon(Icons.search, color: EverforestColors.green),
-          suffixIcon: _isSearching
-              ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: EverforestColors.green,
-                    ),
-                  ),
-                )
-              : _query.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear, color: EverforestColors.grey),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        _onSearchChanged('');
-                      },
-                    ),
-          filled: true,
-          fillColor: EverforestColors.bg1,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResults() {
-    if (_isSearching) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: EverforestColors.green),
-            SizedBox(height: 16),
-            Text(
-              'Searching YouTube Music...',
-              style: TextStyle(
-                color: EverforestColors.fg,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    if (_searchError != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded, color: EverforestColors.red, size: 40),
-            const SizedBox(height: 12),
-            Text(_searchError!, style: const TextStyle(color: EverforestColors.grey, fontSize: 14)),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () => _search(_query.trim()),
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: EverforestColors.bg1,
-                foregroundColor: EverforestColors.fg,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    if (_results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.music_off_rounded, color: EverforestColors.grey, size: 40),
-            const SizedBox(height: 12),
-            Text('No results found for "$_query"', style: const TextStyle(color: EverforestColors.grey, fontSize: 15)),
-          ],
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 120),
-      itemCount: _results.length,
-      itemBuilder: (context, i) {
-        final t = _results[i];
-        final alreadyDownloaded = MusicRepository
-            .instance.tracks.value
-            .any((track) => track.id == t.id);
-        return ListTile(
-          leading: _thumbnail(t.thumbnail, 48),
-          title: Text(t.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
-          subtitle: Text(
-            '${t.artist}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (alreadyDownloaded)
-                const Icon(Icons.check_circle_rounded, color: EverforestColors.green)
-              else if (_downloading.contains(t.id))
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: EverforestColors.green),
-                  ),
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.download_rounded, color: EverforestColors.green),
-                  onPressed: () => _download(t),
-                ),
-              IconButton(
-                icon: const Icon(Icons.play_circle_fill_rounded,
-                    color: EverforestColors.fg, size: 32),
-                onPressed: () => _playQueueAt(
-                    _results
-                        .map((r) => (
-                              id: r.id,
-                              url:
-                                  '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}',
-                              title: r.title,
-                              artist: r.artist,
-                              thumbnail: r.thumbnail,
-                              album: r.album,
-                            ))
-                        .toList(),
-                    i),
-              ),
-            ],
-          ),
-          onTap: () => _playQueueAt(
-              _results
-                  .map((r) => (
-                        id: r.id,
-                        url: '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}',
-                        title: r.title,
-                        artist: r.artist,
-                        thumbnail: r.thumbnail,
-                        album: r.album,
-                      ))
-                  .toList(),
-              i),
-        );
-      },
-    );
-  }
-
-  Widget _buildLibrary() {
-    return ValueListenableBuilder<List<MusicTrack>>(
-      valueListenable: MusicRepository.instance.tracks,
-      builder: (context, tracks, _) {
-        final downloaded =
-            tracks.where((t) => t.album.isNotEmpty || t.duration > 0).toList();
-        final list = downloaded.isNotEmpty ? downloaded : tracks;
-
-        final artistGroups = _groupTracksByArtist(list);
-        final genreGroups = _groupTracksByGenre(list);
-        final smartMixes = _generateSmartMixes(list);
-
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLibraryHeader(list.length, artistGroups.length, genreGroups.length),
-                  _buildLibraryTabs(list.length, artistGroups.length, genreGroups.length, smartMixes.length),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-            if (_libraryTab == 0)
-              _buildAllTracksSliver(list)
-            else if (_libraryTab == 1)
-              _buildArtistsSliver(artistGroups, list)
-            else if (_libraryTab == 2)
-              _buildGenresSliver(genreGroups, list)
-            else if (_libraryTab == 3)
-              _buildSmartMixesSliver(smartMixes, list)
-            else
-              _buildOfflineSliver(),
-
-            if (!kIsWeb && Platform.isAndroid && _phoneSongs.isNotEmpty)
-              _buildPhoneSongsSliver(),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 130)),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildLibraryHeader(int trackCount, int artistCount, int genreCount) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-      child: Row(
-        children: [
-          const Icon(Icons.library_music_rounded, color: EverforestColors.green, size: 24),
-          const SizedBox(width: 10),
-          const Text(
-            'Music Vault',
-            style: TextStyle(
-              color: EverforestColors.fg,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.4,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: EverforestColors.grey, size: 20),
-            tooltip: 'Refresh Library',
-            onPressed: () => MusicRepository.instance.refresh(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLibraryTabs(int trackCount, int artistCount, int genreCount, int mixCount) {
-    final offlineCount = MusicRepository.instance.offlineTracks.value.length;
+  Widget _buildLibraryTabs(
+      int trackCount, int artistCount, int genreCount, int mixCount) {
+    final offlineCount =
+        MusicRepository.instance.offlineTracks.value.length;
     final tabs = [
       ('All Songs ($trackCount)', Icons.audiotrack_rounded, 0),
       ('Artists ($artistCount)', Icons.person_rounded, 1),
@@ -998,7 +603,11 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
-              avatar: Icon(t.$2, size: 16, color: isSelected ? EverforestColors.bg0 : EverforestColors.grey),
+              avatar: Icon(t.$2,
+                  size: 16,
+                  color: isSelected
+                      ? EverforestColors.bg0
+                      : EverforestColors.grey),
               label: Text(t.$1),
               selected: isSelected,
               onSelected: (_) {
@@ -1011,11 +620,14 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
               selectedColor: EverforestColors.green,
               backgroundColor: EverforestColors.bg1,
               labelStyle: TextStyle(
-                color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
+                color: isSelected
+                    ? EverforestColors.bg0
+                    : EverforestColors.fg,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 13,
               ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               side: BorderSide.none,
             ),
           );
@@ -1024,773 +636,183 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     );
   }
 
-  // --- Sliver Views for Tabs ---
+  Widget _buildLibrary() {
+    return ValueListenableBuilder<List<MusicTrack>>(
+      valueListenable: MusicRepository.instance.tracks,
+      builder: (context, tracks, _) {
+        final downloaded = tracks
+            .where((t) => t.album.isNotEmpty || t.duration > 0)
+            .toList();
+        final list = downloaded.isNotEmpty ? downloaded : tracks;
 
-  Widget _buildAllTracksSliver(List<MusicTrack> list) {
-    if (list.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-          child: Center(
-            child: Text(
-              'No downloaded songs yet.\nSearch YouTube Music above to download!',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: EverforestColors.grey, fontSize: 15),
-            ),
-          ),
-        ),
-      );
-    }
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, i) {
-          final t = list[i];
-          return _buildTrackTile(t, list, i);
-        },
-        childCount: list.length,
-      ),
-    );
-  }
+        final artistGroups = _groupTracksByArtist(list);
+        final genreGroups = _groupTracksByGenre(list);
+        final smartMixes = _generateSmartMixes(list);
 
-  Widget _buildArtistsSliver(Map<String, List<MusicTrack>> artistGroups, List<MusicTrack> allTracks) {
-    if (artistGroups.isEmpty) {
-      return const SliverToBoxAdapter(child: SizedBox());
-    }
-
-    if (_selectedArtist != null && artistGroups.containsKey(_selectedArtist)) {
-      final artistTracks = artistGroups[_selectedArtist]!;
-      return SliverMainAxisGroup(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: Row(
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
-                    onPressed: () => setState(() => _selectedArtist = null),
-                  ),
-                  Text(
-                    _selectedArtist!,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () => _playTrackList(artistTracks, 0),
-                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                    label: const Text('Play All'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: EverforestColors.green,
-                      foregroundColor: EverforestColors.bg0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) => _buildTrackTile(artistTracks[i], artistTracks, i),
-              childCount: artistTracks.length,
-            ),
-          ),
-        ],
-      );
-    }
-
-    final artists = artistGroups.keys.toList();
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, i) {
-          final artist = artists[i];
-          final tracks = artistGroups[artist]!;
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: EverforestColors.bg2,
-              child: const Icon(Icons.person_rounded, color: EverforestColors.aqua),
-            ),
-            title: Text(
-              artist,
-              style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            subtitle: Text(
-              '${tracks.length} song${tracks.length > 1 ? 's' : ''}',
-              style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.green, size: 34),
-              tooltip: 'Play $artist',
-              onPressed: () => _playTrackList(tracks, 0),
-            ),
-            onTap: () => setState(() => _selectedArtist = artist),
-          );
-        },
-        childCount: artists.length,
-      ),
-    );
-  }
-
-  Widget _buildGenresSliver(Map<String, List<MusicTrack>> genreGroups, List<MusicTrack> allTracks) {
-    if (genreGroups.isEmpty) {
-      return const SliverToBoxAdapter(child: SizedBox());
-    }
-
-    if (_selectedGenre != null && genreGroups.containsKey(_selectedGenre)) {
-      final genreTracks = genreGroups[_selectedGenre]!;
-      return SliverMainAxisGroup(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
-                    onPressed: () => setState(() => _selectedGenre = null),
-                  ),
-                  Text(
-                    _selectedGenre!,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () => _playTrackList(genreTracks, 0),
-                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                    label: const Text('Play Genre'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: EverforestColors.green,
-                      foregroundColor: EverforestColors.bg0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, i) => _buildTrackTile(genreTracks[i], genreTracks, i),
-              childCount: genreTracks.length,
-            ),
-          ),
-        ],
-      );
-    }
-
-    final genres = genreGroups.keys.toList();
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 280,
-          mainAxisExtent: 100,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, i) {
-            final genre = genres[i];
-            final tracks = genreGroups[genre]!;
-            return InkWell(
-              onTap: () => setState(() => _selectedGenre = genre),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: EverforestColors.bg1,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            genre,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: EverforestColors.fg,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${tracks.length} tracks',
-                            style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.green, size: 34),
-                      tooltip: 'Play Mix',
-                      onPressed: () => _playTrackList(tracks, 0),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-          childCount: genres.length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSmartMixesSliver(
-      Map<String, ({String desc, IconData icon, Color color, List<MusicTrack> list})> smartMixes,
-      List<MusicTrack> allTracks) {
-    final keys = smartMixes.keys.toList();
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 320,
-          mainAxisExtent: 110,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, i) {
-            final key = keys[i];
-            final mix = smartMixes[key]!;
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: EverforestColors.bg1,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: mix.color.withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: mix.color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(mix.icon, color: mix.color, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                    child: Row(
                       children: [
-                        Text(
-                          key,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                        const Icon(Icons.library_music_rounded,
+                            color: EverforestColors.green, size: 24),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Music Vault',
+                          style: TextStyle(
                             color: EverforestColors.fg,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14.5,
+                            letterSpacing: -0.4,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${mix.list.length} tracks · ${mix.desc}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 11.5),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded,
+                              color: EverforestColors.grey, size: 20),
+                          tooltip: 'Refresh Library',
+                          onPressed: () =>
+                              MusicRepository.instance.refresh(),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.play_circle_fill_rounded, color: mix.color, size: 34),
-                    tooltip: 'Play Mix',
-                    onPressed: () => _playTrackList(mix.list, 0),
-                  ),
+                  _buildLibraryTabs(list.length, artistGroups.length,
+                      genreGroups.length, smartMixes.length),
+                  const SizedBox(height: 12),
                 ],
               ),
-            );
-          },
-          childCount: keys.length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhoneSongsSliver() {
-    return SliverMainAxisGroup(
-      slivers: [
-        SliverToBoxAdapter(
-          child: _sectionTitle('On This Phone'),
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, i) {
-              final s = _phoneSongs[i];
-              return ListTile(
-                leading: const Icon(Icons.music_note_rounded, color: EverforestColors.blue, size: 40),
-                title: Text(s.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  '${s.artist} · ${_fmt((s.duration ?? 0).toDouble())}',
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
-                  onPressed: () => _playQueueAt(
-                      _phoneSongs
-                          .map((x) => (
-                                id: x.uri ?? x.id.toString(),
-                                url: x.uri ?? '',
-                                title: x.title,
-                                artist: x.artist ?? '',
-                                thumbnail: '',
-                                album: x.album ?? '',
-                              ))
-                          .toList(),
-                      i),
-                ),
-                onTap: () => _playQueueAt(
-                    _phoneSongs
-                        .map((x) => (
-                              id: x.uri ?? x.id.toString(),
-                              url: x.uri ?? '',
-                              title: x.title,
-                              artist: x.artist ?? '',
-                              thumbnail: '',
-                              album: x.album ?? '',
-                            ))
-                        .toList(),
-                    i),
-              );
-            },
-            childCount: _phoneSongs.length,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTrackTile(MusicTrack t, List<MusicTrack> currentList, int index) {
-    final isOfflineLocal = MusicRepository.instance.isOffline(t.id);
-    return ListTile(
-      leading: _thumbnail(t.thumbnail, 48),
-      title: Text(t.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
-      subtitle: Text(
-        '${t.artist}${t.album.isNotEmpty ? ' · ${t.album}' : ''}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}${isOfflineLocal ? ' · 📱 On device' : ''}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isOfflineLocal)
-            const Icon(Icons.download_done_rounded, color: EverforestColors.green, size: 20)
-          else if (_offlineDownloading.contains(t.id))
-            const Padding(
-              padding: EdgeInsets.all(10),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: EverforestColors.aqua),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.download_for_offline_rounded,
-                  color: EverforestColors.aqua, size: 20),
-              tooltip: 'Save to this device (offline)',
-              onPressed: () => _downloadOffline(t),
             ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 20),
-            tooltip: 'Delete Song',
-            onPressed: () => _confirmDeleteTrack(t),
-          ),
-          IconButton(
-            icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
-            onPressed: () => _playTrackList(currentList, index),
-          ),
-        ],
-      ),
-      onTap: () => _playTrackList(currentList, index),
-    );
-  }
-
-  /// Device-local offline tracks — plays straight from disk, no server needed.
-  Widget _buildOfflineSliver() {
-    return ValueListenableBuilder<List<OfflineMusicTrack>>(
-      valueListenable: MusicRepository.instance.offlineTracks,
-      builder: (context, list, _) {
-        if (list.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-              child: Center(
-                child: Text(
-                  'Nothing saved to this device yet.\nTap the download icon on any song to make it\nplayable offline — no internet needed.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: EverforestColors.grey, fontSize: 15, height: 1.5),
-                ),
+            if (_libraryTab == 0)
+              AllTracksSliver(
+                tracks: list,
+                offlineDownloading: _offlineDownloading,
+                canPlay: _canPlay,
+                onDownloadOffline: _downloadOffline,
+                onDeleteTrack: _confirmDeleteTrack,
+                onPlay: _playTrackList,
+                onWebNotice: _webPlaybackNotice,
+              )
+            else if (_libraryTab == 1)
+              ArtistsSliver(
+                artistGroups: artistGroups,
+                selectedArtist: _selectedArtist,
+                canPlay: _canPlay,
+                offlineDownloading: _offlineDownloading,
+                onSelectArtist: (artist) =>
+                    setState(() => _selectedArtist = artist),
+                onClearArtist: () =>
+                    setState(() => _selectedArtist = null),
+                onPlayTrackList: _playTrackList,
+                onDownloadOffline: _downloadOffline,
+                onDeleteTrack: _confirmDeleteTrack,
+                onWebNotice: _webPlaybackNotice,
+              )
+            else if (_libraryTab == 2)
+              GenresSliver(
+                genreGroups: genreGroups,
+                selectedGenre: _selectedGenre,
+                canPlay: _canPlay,
+                offlineDownloading: _offlineDownloading,
+                onSelectGenre: (genre) =>
+                    setState(() => _selectedGenre = genre),
+                onClearGenre: () =>
+                    setState(() => _selectedGenre = null),
+                onPlayTrackList: _playTrackList,
+                onDownloadOffline: _downloadOffline,
+                onDeleteTrack: _confirmDeleteTrack,
+                onWebNotice: _webPlaybackNotice,
+              )
+            else if (_libraryTab == 3)
+              SmartMixesSliver(
+                smartMixes: smartMixes,
+                canPlay: _canPlay,
+                onPlayTrackList: _playTrackList,
+              )
+            else
+              OfflineTracksSliver(
+                currentTrackId: _currentTrackId,
+                canPlay: _canPlay,
+                playbackController: _pc,
+                onDeleteOffline: _confirmDeleteOffline,
+                onWebNotice: _webPlaybackNotice,
+                streamUrlFor: _streamUrlFor,
               ),
-            ),
-          );
-        }
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, i) {
-              final o = list[i];
-              final isPlaying = _currentTrackId == o.id;
-              final playQueue = list
-                  .map((x) => (
-                        id: x.id,
-                        url: x.filePath.isNotEmpty
-                            ? Uri.file(x.filePath).toString()
-                            : '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${x.id}',
-                        title: x.title,
-                        artist: x.artist ?? '',
-                        thumbnail: x.thumbnail ?? '',
-                        album: x.album ?? '',
-                      ))
-                  .toList();
-              return ListTile(
-                leading: Stack(
-                  children: [
-                    _thumbnail(o.thumbnail ?? '', 48),
-                    if (isPlaying)
-                      const Positioned(
-                        right: 2,
-                        bottom: 2,
-                        child: Icon(Icons.graphic_eq_rounded,
-                            color: EverforestColors.green, size: 16),
-                      ),
-                  ],
-                ),
-                title: Text(o.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: isPlaying ? EverforestColors.green : EverforestColors.fg,
-                      fontWeight: FontWeight.w600,
-                    )),
-                subtitle: Text(
-                  '${o.artist ?? 'Unknown'}${o.duration > 0 ? ' · ${_fmt(o.duration)}' : ''} · 📱 On this device',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 20),
-                      tooltip: 'Remove from this device',
-                      onPressed: () => _confirmDeleteOffline(o),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
-                      onPressed: () => _playQueueAt(playQueue, i),
-                    ),
-                  ],
-                ),
-                onTap: () => _playQueueAt(playQueue, i),
-              );
-            },
-            childCount: list.length,
-          ),
+            if (!kIsWeb && Platform.isAndroid && _phoneSongs.isNotEmpty)
+              PhoneSongsSliver(
+                phoneSongs: _phoneSongs,
+                playbackController: _pc,
+              ),
+            SliverToBoxAdapter(
+                child: SizedBox(height: _canPlay ? 130 : 24)),
+          ],
         );
       },
     );
   }
 
-  void _playTrackList(List<MusicTrack> list, int index) {
-    _playQueueAt(
-      list
-          .map((x) => (
-                id: x.id,
-                url: '${ApiClient.instance.daemonUrl}/api/v1/music/stream/stream.m4a?id=${x.id}',
-                title: x.title,
-                artist: x.artist,
-                thumbnail: x.thumbnail,
-                album: x.album,
-              ))
-          .toList(),
-      index,
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: EverforestColors.fg,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  String _sanitizeThumbnailUrl(String url) {
-    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
-      return url.replaceFirst('http://', 'https://');
-    }
-    return url;
-  }
-
-  Widget _thumbnail(String url, double size) {
-    final secureUrl = _sanitizeThumbnailUrl(url);
-    if (secureUrl.isEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: EverforestColors.bg1,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(Icons.music_note_rounded, color: EverforestColors.blue),
-      );
-    }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(secureUrl, width: size, height: size, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-                width: size,
-                height: size,
-                color: EverforestColors.bg1,
-                child: const Icon(Icons.music_note_rounded,
-                    color: EverforestColors.blue),
-              )),
-    );
-  }
-
-  /// Poweramp v3 Mini-Player Dock
-  Widget _buildPlayer() {
-    return GestureDetector(
-      onTap: _openNowPlaying,
-      onVerticalDragEnd: (details) {
-        if (details.primaryVelocity != null && details.primaryVelocity! < -150) {
-          _openNowPlaying();
-        }
-      },
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity != null) {
-          if (details.primaryVelocity! < -200) {
-            _playNext();
-          } else if (details.primaryVelocity! > 200) {
-            _playPrev();
-          }
-        }
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-          child: Container(
-            decoration: BoxDecoration(
-              color: EverforestColors.bg1.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black45,
-                  blurRadius: 20,
-                  offset: Offset(0, 8),
-                )
-              ],
-            ),
-            child: StreamBuilder<PlayerState>(
-              stream: _player.playerStateStream,
-              builder: (context, snapshot) {
-                final state = snapshot.data;
-                final playing = state?.playing ?? false;
-                final loading = state?.processingState == ProcessingState.loading ||
-                    state?.processingState == ProcessingState.buffering;
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Top Micro-Progress Bar
-                    StreamBuilder<Duration>(
-                      stream: _player.positionStream,
-                      builder: (context, posSnap) {
-                        final pos = posSnap.data ?? Duration.zero;
-                        final dur = _player.duration ?? Duration.zero;
-                        final progress = (dur.inMilliseconds > 0)
-                            ? (pos.inMilliseconds / dur.inMilliseconds).clamp(0.0, 1.0)
-                            : 0.0;
-                        return ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 2.5,
-                            backgroundColor: Colors.transparent,
-                            valueColor: const AlwaysStoppedAnimation<Color>(EverforestColors.green),
-                          ),
-                        );
-                      },
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      child: Row(
-                        children: [
-                          // Track Artwork with Glow
-                          Hero(
-                            tag: 'now_playing_artwork_${_currentTrackId.isEmpty ? "empty" : _currentTrackId}',
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: EverforestColors.green.withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  )
-                                ],
-                              ),
-                              child: _currentThumbnail.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        _sanitizeThumbnailUrl(_currentThumbnail),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => _buildMiniPlaceholder(),
-                                      ),
-                                    )
-                                  : _buildMiniPlaceholder(),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-
-                          // Title and Artist with Audiophile Quality Tag
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _currentTitle,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: EverforestColors.fg,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14.5,
-                                    letterSpacing: -0.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.5, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: EverforestColors.green.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Text(
-                                        'DSP 32-BIT',
-                                        style: TextStyle(
-                                          color: EverforestColors.green,
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        _currentArtist.isNotEmpty ? _currentArtist : 'LifeOS Audio',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: EverforestColors.grey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Lyrics Quick Action
-                          IconButton(
-                            icon: const Icon(Icons.lyrics_rounded),
-                            color: EverforestColors.grey,
-                            iconSize: 22,
-                            tooltip: 'Live Lyrics',
-                            onPressed: _openLyrics,
-                          ),
-
-                          // Play / Pause Button with Reactive Feedback
-                          IconButton(
-                            iconSize: 38,
-                            tooltip: playing ? 'Pause' : 'Play',
-                            icon: loading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: EverforestColors.green,
-                                    ),
-                                  )
-                                : Icon(
-                                    playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                    color: EverforestColors.fg,
-                                    size: 32,
-                                  ),
-                            onPressed: loading ? null : _togglePlayPause,
-                          ),
-
-                          // Skip Next Button
-                          IconButton(
-                            icon: const Icon(Icons.skip_next_rounded),
-                            color: EverforestColors.fg,
-                            iconSize: 28,
-                            tooltip: 'Next Track',
-                            onPressed: _playNext,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+  @override
+  Widget build(BuildContext context) {
+    final searching = _query.trim().isNotEmpty;
+    return Scaffold(
+      backgroundColor: EverforestColors.bg0,
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              MusicSearchBar(
+                controller: _searchCtrl,
+                isSearching: _isSearching,
+                query: _query,
+                onChanged: _onSearchChanged,
+                onSubmitted: (val) {
+                  _debounceTimer?.cancel();
+                  _search(val.trim());
+                },
+                onClear: () {
+                  _searchCtrl.clear();
+                  _onSearchChanged('');
+                },
+              ),
+              Expanded(
+                child: searching
+                    ? MusicSearchResults(
+                        isSearching: _isSearching,
+                        searchError: _searchError,
+                        query: _query,
+                        results: _results,
+                        downloading: _downloading,
+                        canPlay: _canPlay,
+                        playbackController: _pc,
+                        onRetry: () => _search(_query.trim()),
+                        onDownload: _download,
+                        onWebNotice: _webPlaybackNotice,
+                      )
+                    : _buildLibrary(),
+              ),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMiniPlaceholder() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: EverforestColors.bg2,
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      child: const Icon(
-        Icons.graphic_eq_rounded,
-        color: EverforestColors.green,
-        size: 26,
+          if (_canPlay)
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 18,
+              child: MusicMiniPlayer(
+                playbackController: _pc,
+                currentTrackId: _currentTrackId,
+                currentTitle: _currentTitle,
+                currentArtist: _currentArtist,
+                currentThumbnail: _currentThumbnail,
+                onTap: _openNowPlaying,
+                onOpenLyrics: _openLyrics,
+              ),
+            ),
+        ],
       ),
     );
   }
