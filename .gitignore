@@ -79,3 +79,5 @@ client/appflowy_repo/
 client/prefs.json
 client/vault/
 *.exe~
+*.bak
+*.zip
