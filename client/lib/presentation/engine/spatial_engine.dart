@@ -246,6 +246,19 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     }
   }
 
+  bool navigateToModule(String moduleId) {
+    for (int r = 0; r < widget.layout.length; r++) {
+      for (int c = 0; c < widget.layout[r].length; c++) {
+        if (widget.layout[r][c] == moduleId) {
+          _animCtrl.stop();
+          navigateTo(c, r);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   void _handlePanEnd(DragEndDetails d) {
     if (_animCtrl.isAnimating) return;
     

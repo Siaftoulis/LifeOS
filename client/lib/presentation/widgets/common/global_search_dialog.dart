@@ -9,7 +9,7 @@ class GlobalSearchDialog extends StatefulWidget {
   static Future<void> show(BuildContext context) {
     return showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.65),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (_) => const GlobalSearchDialog(),
     );
   }
@@ -83,20 +83,16 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   }
 
   void _selectItem(SearchResultItem item) {
-    Navigator.pop(context);
-    if (item.onSelect != null) {
-      item.onSelect!();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: EverforestColors.bg1,
-          content: Text(
-            'Opened ${item.title} (${item.subtitle})',
-            style: const TextStyle(color: EverforestColors.fg),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    // Capture navigator and context before popping dialog
+    final nav = Navigator.of(context);
+    nav.pop();
+
+    if (item.onAction != null) {
+      // Small delay to ensure dialog unmounts cleanly
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final currentContext = nav.context;
+        item.onAction!(currentContext);
+      });
     }
   }
 
@@ -109,17 +105,17 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Container(
-          width: 680,
-          constraints: const BoxConstraints(maxHeight: 560),
+          width: 720,
+          constraints: const BoxConstraints(maxHeight: 600),
           decoration: BoxDecoration(
             color: EverforestColors.bg1.withValues(alpha: 0.98),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: EverforestColors.green.withValues(alpha: 0.35), width: 1.5),
+            border: Border.all(color: EverforestColors.green.withValues(alpha: 0.4), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 28,
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(alpha: 0.6),
+                blurRadius: 32,
+                offset: const Offset(0, 12),
               ),
             ],
           ),
@@ -140,7 +136,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                         autofocus: true,
                         style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500),
                         decoration: const InputDecoration(
-                          hintText: 'Search songs, notes, photos, tasks, settings... (Ctrl+K)',
+                          hintText: 'Αναζήτηση καρτελών, ακολουθιών, μουσικής, σημειώσεων... (Ctrl+K)',
                           hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 14),
                           border: InputBorder.none,
                           isDense: true,
@@ -150,8 +146,8 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                     ),
                     if (_isLoading)
                       const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.green),
                       )
                     else if (_controller.text.isNotEmpty)
@@ -174,12 +170,13 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Row(
                   children: [
-                    _buildFilterChip('All', SearchCategory.all),
-                    _buildFilterChip('Music', SearchCategory.music),
-                    _buildFilterChip('Notes', SearchCategory.notes),
+                    _buildFilterChip('Όλα (All)', SearchCategory.all),
+                    _buildFilterChip('Καρτέλες (Tabs)', SearchCategory.modules),
+                    _buildFilterChip('Προσευχητάρι (Prayers)', SearchCategory.prayers),
+                    _buildFilterChip('Μουσική (Music)', SearchCategory.music),
+                    _buildFilterChip('Σημειώσεις (Notes)', SearchCategory.notes),
                     _buildFilterChip('Gallery', SearchCategory.gallery),
-                    _buildFilterChip('Tasks', SearchCategory.tasks),
-                    _buildFilterChip('Settings', SearchCategory.settings),
+                    _buildFilterChip('Ρυθμίσεις (Settings)', SearchCategory.settings),
                   ],
                 ),
               ),
@@ -188,9 +185,12 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
               Expanded(
                 child: _results.isEmpty && !_isLoading
                     ? const Center(
-                        child: Text(
-                          'No matching items found',
-                          style: TextStyle(color: EverforestColors.grey, fontSize: 13),
+                        child: Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: Text(
+                            'Δεν βρέθηκαν αποτελέσματα για την αναζήτησή σας',
+                            style: TextStyle(color: EverforestColors.grey, fontSize: 14),
+                          ),
                         ),
                       )
                     : ListView.separated(
@@ -232,17 +232,43 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          item.title,
-                                          style: const TextStyle(
-                                            color: EverforestColors.fg,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                item.title,
+                                                style: const TextStyle(
+                                                  color: EverforestColors.fg,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: item.accentColor.withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: item.accentColor.withValues(alpha: 0.3),
+                                                  width: 0.8,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                item.badgeLabel,
+                                                style: TextStyle(
+                                                  color: item.accentColor,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.3,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: 3),
                                         Text(
                                           item.subtitle,
                                           style: const TextStyle(
@@ -255,6 +281,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   if (isSelected)
                                     const Icon(
                                       Icons.keyboard_return_rounded,
@@ -280,13 +307,13 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 ),
                 child: const Row(
                   children: [
-                    Text('↑↓ to navigate', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                    Text('↑↓ Πλοήγηση', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                     SizedBox(width: 14),
-                    Text('↵ to open', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                    Text('↵ Άνοιγμα / Μετάβαση', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                     SizedBox(width: 14),
-                    Text('esc to dismiss', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                    Text('esc Κλείσιμο', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                     Spacer(),
-                    Text('LifeOS Spotlight', style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text('LifeOS Command Palette', style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
