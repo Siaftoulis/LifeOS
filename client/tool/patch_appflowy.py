@@ -1,33 +1,49 @@
 import os
 import sys
+import re
 
 print("=== Patching appflowy_editor & Windows CMake for Flutter 3.44+ ===")
 
-scan_roots = [
-    os.path.expanduser("~"),
-    os.environ.get("LOCALAPPDATA", ""),
-    os.environ.get("APPDATA", ""),
-    os.environ.get("USERPROFILE", ""),
-    os.environ.get("PUB_CACHE", ""),
-    r"C:\Users\runneradmin",
-    r"C:\Users",
+client_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
+
+candidate_roots = [
+    os.environ.get("PUB_CACHE"),
+    os.path.join(os.environ.get("LOCALAPPDATA", ""), "Pub", "Cache"),
+    os.path.join(os.environ.get("APPDATA", ""), "Pub", "Cache"),
+    os.path.expanduser("~/.pub-cache"),
+    os.path.join(os.environ.get("USERPROFILE", ""), ".pub-cache"),
+    os.path.join(os.environ.get("USERPROFILE", ""), "AppData", "Local", "Pub", "Cache"),
+    r"C:\Users\runneradmin\.pub-cache",
+    r"C:\Users\runneradmin\AppData\Local\Pub\Cache",
     r"C:\hostedtoolcache",
     "/opt/hostedtoolcache",
+    os.path.join(client_dir, "..", "appflowy_repo"),
 ]
+
+scan_dirs = []
+for r in candidate_roots:
+    if not r or not os.path.exists(r):
+        continue
+    # Check pub.dev hosted directory first if it exists
+    pub_dev = os.path.join(r, "hosted", "pub.dev")
+    if os.path.exists(pub_dev):
+        scan_dirs.append(pub_dev)
+    pub_dartlang = os.path.join(r, "hosted", "pub.dartlang.org")
+    if os.path.exists(pub_dartlang):
+        scan_dirs.append(pub_dartlang)
+    scan_dirs.append(r)
 
 patched = 0
 visited = set()
 
-for sr in scan_roots:
-    if not sr or not os.path.exists(sr):
+for sdir in scan_dirs:
+    sdir_real = os.path.realpath(sdir)
+    if sdir_real in visited or not os.path.exists(sdir_real):
         continue
-    sr_real = os.path.realpath(sr)
-    if sr_real in visited:
-        continue
-    visited.add(sr_real)
-    print(f"Scanning: {sr_real}")
+    visited.add(sdir_real)
+    print(f"Scanning: {sdir_real}")
 
-    for root, dirs, files in os.walk(sr_real):
+    for root, dirs, files in os.walk(sdir_real):
         if "appflowy_editor" in root:
             for f in files:
                 p = os.path.join(root, f)
@@ -67,36 +83,56 @@ for sr in scan_roots:
                     except Exception as e:
                         print(f"  [ERROR] {p}: {e}")
 
-# Patch Windows CMake if needed
-client_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
+# Patch Windows CMake to make plugin loading robust
 cmake_file = os.path.join(client_dir, "windows", "flutter", "generated_plugins.cmake")
 if os.path.exists(cmake_file):
     try:
         c = open(cmake_file, encoding="utf-8").read()
-        c = c.replace("  rich_clipboard_windows\n", "")
-        c = c.replace("  rich_clipboard_windows", "")
-        c = c.replace(
-            "add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/windows plugins/${plugin})",
-            "set(pdir \"flutter/ephemeral/.plugin_symlinks/${plugin}/windows\")\n  if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/${pdir}\")\n    add_subdirectory(${pdir} plugins/${plugin})"
+
+        plugin_loop_pattern = re.compile(
+            r"foreach\(plugin \$\{FLUTTER_PLUGIN_LIST\}\).*?endforeach\(plugin\)",
+            re.DOTALL
         )
-        c = c.replace(
-            "add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows plugins/${ffi_plugin})",
-            "set(fdir \"flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows\")\n  if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/${fdir}\")\n    add_subdirectory(${fdir} plugins/${ffi_plugin})"
+        plugin_loop_replacement = """foreach(plugin ${FLUTTER_PLUGIN_LIST})
+  set(plugin_dir "flutter/ephemeral/.plugin_symlinks/${plugin}/windows")
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${plugin_dir}")
+    add_subdirectory(${plugin_dir} plugins/${plugin})
+    target_link_libraries(${BINARY_NAME} PRIVATE ${plugin}_plugin)
+    list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:${plugin}_plugin>)
+    list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${plugin}_bundled_libraries})
+  endif()
+endforeach(plugin)"""
+
+        ffi_loop_pattern = re.compile(
+            r"foreach\(ffi_plugin \$\{FLUTTER_FFI_PLUGIN_LIST\}\).*?endforeach\(ffi_plugin\)",
+            re.DOTALL
         )
+        ffi_loop_replacement = """foreach(ffi_plugin ${FLUTTER_FFI_PLUGIN_LIST})
+  set(ffi_dir "flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows")
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${ffi_dir}")
+    add_subdirectory(${ffi_dir} plugins/${ffi_plugin})
+    list(APPEND PLUGIN_BUNDLED_LIBRARIES ${${ffi_plugin}_bundled_libraries})
+  endif()
+endforeach(ffi_plugin)"""
+
+        c = plugin_loop_pattern.sub(plugin_loop_replacement, c)
+        c = ffi_loop_pattern.sub(ffi_loop_replacement, c)
+
         open(cmake_file, "w", encoding="utf-8").write(c)
         print(f"  [PATCHED] {cmake_file}")
     except Exception as e:
         print(f"  [ERROR] {cmake_file}: {e}")
 
-# Ensure dummy CMakeLists for rich_clipboard_windows in ephemeral plugin symlinks
+# Ensure dummy CMakeLists for rich_clipboard_windows in ephemeral plugin symlinks if needed
 dummy_dir = os.path.join(client_dir, "windows", "flutter", "ephemeral", ".plugin_symlinks", "rich_clipboard_windows", "windows")
 try:
-    os.makedirs(dummy_dir, exist_ok=True)
-    dummy_cmake = os.path.join(dummy_dir, "CMakeLists.txt")
-    if not os.path.exists(dummy_cmake):
-        with open(dummy_cmake, "w", encoding="utf-8") as f:
-            f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin INTERFACE)\n")
-        print(f"  [CREATED] {dummy_cmake}")
+    if os.path.exists(os.path.dirname(dummy_dir)):
+        os.makedirs(dummy_dir, exist_ok=True)
+        dummy_cmake = os.path.join(dummy_dir, "CMakeLists.txt")
+        if not os.path.exists(dummy_cmake):
+            with open(dummy_cmake, "w", encoding="utf-8") as f:
+                f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin INTERFACE)\n")
+            print(f"  [CREATED] {dummy_cmake}")
 except Exception as e:
     print(f"  [ERROR] Creating dummy cmake: {e}")
 

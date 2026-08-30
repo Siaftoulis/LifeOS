@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_libs_windows_audio
   nsd_windows
   permission_handler_windows
+  rich_clipboard_windows
   screen_retriever_windows
   share_plus
   url_launcher_windows
