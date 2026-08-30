@@ -147,9 +147,10 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          BUILD_NUM=$(jq '.build_number' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.0"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 37' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## Release Build #$BUILD_NUM — LifeOS Supercharged Search & Offline Vault
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Universal Search & Offline Vault
 
           ### Highlights & What's New
           - **Universal Spotlight Search & Command Palette (Ctrl+K)**:
@@ -171,6 +172,7 @@ jobs:
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
+          name: LifeOS ${{ github.ref_name }}
           body_path: release_notes.md
           files: |
             release-artifacts/app-release.apk
