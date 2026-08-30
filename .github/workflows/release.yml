@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.44.9'
@@ -33,12 +33,28 @@ jobs:
         working-directory: ./client
         run: flutter pub get
 
+      - name: Patch Dependencies Compatibility
+        run: |
+          python3 -c "
+          import glob, os
+
+          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/plugins/markdown/decoder/delta_markdown_decoder.dart')):
+              c = open(f).read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
+              open(f, 'w').write(c)
+
+          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/editor/editor_component/service/ime/delta_input_service.dart')):
+              c = open(f).read()
+              if 'onFocusReceived' not in c:
+                  c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
+                  open(f, 'w').write(c)
+          "
+
       - name: Build APK
         working-directory: ./client
         run: flutter build apk --release
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: client/build/app/outputs/flutter-apk/app-release.apk
@@ -47,11 +63,14 @@ jobs:
     name: Build Windows Executable
     runs-on: windows-latest
     steps:
+      - name: Enable long paths in Git
+        run: git config --system core.longpaths true
+
       - name: Checkout Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.44.9'
@@ -59,6 +78,30 @@ jobs:
       - name: Install Dependencies
         working-directory: ./client
         run: flutter pub get
+
+      - name: Patch Dependencies Compatibility
+        shell: python
+        run: |
+          import glob, os
+
+          cache_dirs = [
+              os.path.expanduser('~/.pub-cache/hosted/pub.dev'),
+              os.path.expandvars(r'%LOCALAPPDATA%\Pub\Cache\hosted\pub.dev'),
+              os.path.expandvars(r'%PUB_CACHE%\hosted\pub.dev')
+          ]
+
+          for base in cache_dirs:
+              if not os.path.exists(base):
+                  continue
+              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'plugins', 'markdown', 'decoder', 'delta_markdown_decoder.dart')):
+                  c = open(f).read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
+                  open(f, 'w').write(c)
+
+              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'editor', 'editor_component', 'service', 'ime', 'delta_input_service.dart')):
+                  c = open(f).read()
+                  if 'onFocusReceived' not in c:
+                      c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
+                      open(f, 'w').write(c)
 
       - name: Build Windows
         working-directory: ./client
@@ -68,7 +111,7 @@ jobs:
         run: Compress-Archive -Path client\build\windows\x64\runner\Release\* -DestinationPath lifeos-windows-release.zip
 
       - name: Upload Windows Artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@v4
         with:
           name: lifeos-windows-zip
           path: lifeos-windows-release.zip
@@ -81,16 +124,16 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@v4
 
       - name: Download APK Artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@v4
         with:
           name: app-release-apk
           path: release-artifacts
 
       - name: Download Windows Artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@v4
         with:
           name: lifeos-windows-zip
           path: release-artifacts
@@ -99,29 +142,27 @@ jobs:
         run: |
           BUILD_NUM=$(jq '.build_number' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## Release Build #$BUILD_NUM — LifeOS Audiophile Studio & Offline Music Vault
+          ## Release Build #$BUILD_NUM — LifeOS Supercharged Search & Offline Vault
 
           ### Highlights & What's New
-          - **Offline Music Downloads (v1.5)**:
-            - Save any song from your server music vault directly to your device (Android/Windows) and play it back with zero internet — the audio file lives inside the app.
-            - New "Offline" tab in the Music Vault listing everything stored on this device, with per-track remove (the server library copy stays intact).
-            - Save-to-device button on every library track and in the Poweramp Now-Playing sheet ("Download for Offline").
-            - On web, "Save to this device" triggers a native browser download of the high-quality MP3.
-            - Local offline files play through the full DSP pipeline: 10-band EQ, bass/treble, 3D spatial and preamp.
-          - **Audiophile Music Studio & Poweramp UI**:
-            - Live Poweramp v3 Now Playing Sheet, Mini-Player Dock, and Real-Time Waveform Visualizer.
-            - Native libmpv DSP Audio Pipeline: 10-Band Graphic Equalizer, Bass Boost, Treble Boost, 3D Spatial Audio (\`stereotools\`), and Preamp Gain.
-            - Smart Auto-Generated Playlists: Dynamic Artist Collections, Genre & Mood Mixes (Greek Classics, Rock & Metal, Pop Hits, Hip-Hop, EDM Club, Acoustic Ballads, Chill & Relax), and Smart Mixes (Quick Hits, Deep Sessions, Discovery Shuffle).
-            - Track Management: Direct track deletion from disk, stream cache, and SQLite vault.
-            - Instant Stream Resolver (\`/api/v1/music/resolve\`) with direct CDN handoff.
-          - **YouTube Media Hub**:
-            - Integrated NewPipe bridge for fast audio/video stream extraction and background caching.
-          - **Host Daemon & Embedded Web App**:
-            - Unified Go backend daemon (\`/api/v1/...\`) serving local-first SQLite and embedded Flutter web application.
+          - **Universal Spotlight Search & Command Palette (Ctrl+K)**:
+            - Instant keyboard navigation to all LifeOS modules/tabs (Prayers, Music, Notes, Gallery, Movies, Finance, Maps, Tasks, Settings).
+            - Direct launcher for all Orthodox liturgical services, David's Psalter, New/Old Testament Scriptures, and Synaxarion.
+            - Filter chips by category and rich Everforest badges.
+          - **Complete Orthodox Hymnography & Canons**:
+            - Full Canons across all 8 Tones (St. John of Damascus).
+            - Small & Great Paraklesis to the Theotokos, Great Compline, and Holy Communion Canon.
+            - Canonical Hours (1st, 3rd, 6th, 9th) and Midnight Office (Amomos Ps. 118, Bridegroom Troparia).
+            - Strictly authentic Greek liturgical texts with zero English interpolations.
+          - **Audiophile Studio & Offline Music Vault**:
+            - Save music from server vault to device for 100% offline playback.
+            - 10-band EQ, bass/treble boost, 3D spatial audio, and preamp gain.
+          - **OTA Background Updates**:
+            - Automatic background update checks and one-tap install for Android APK & Windows.
           EOF
 
       - name: Publish Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
           files: |
