@@ -18,7 +18,7 @@ func GetAllCategories() []PrayerCategory {
 			ID:       "daily_office",
 			Title:    "Καθημερινές Ακολουθίες",
 			Icon:     "church",
-			Services: []string{"morning_prayer", "small_compline", "great_compline", "matins", "vespers"},
+			Services: []string{"midnight_office", "matins", "hour_first", "hour_third", "hour_sixth", "hour_ninth", "vespers", "small_compline", "great_compline", "morning_prayer"},
 		},
 		{
 			ID:       "holy_communion",
@@ -58,6 +58,16 @@ func BuildService(serviceID string, date time.Time) (*PrayerService, error) {
 		return BuildMatinsDynamic(date), nil
 	case "vespers":
 		return BuildVespersDynamic(date), nil
+	case "midnight_office":
+		return BuildMidnightOfficeService(), nil
+	case "hour_first", "first_hour":
+		return BuildFirstHourService(), nil
+	case "hour_third", "third_hour":
+		return BuildThirdHourService(), nil
+	case "hour_sixth", "sixth_hour":
+		return BuildSixthHourService(), nil
+	case "hour_ninth", "ninth_hour":
+		return BuildNinthHourService(), nil
 	case "paraklesis_small", "paraklesis":
 		return BuildMikrosParakletikosKanon(), nil
 	case "paraklesis_great":

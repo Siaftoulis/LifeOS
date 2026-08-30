@@ -757,11 +757,20 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       ),
       _PrayerEntry(
         id: 'paraklesis',
-        title: 'Παράκλησις Παναγίας',
-        subtitle: 'Μικρά Παράκλησις Θεοτόκου',
+        title: 'Μικρά Παράκλησις',
+        subtitle: 'Ικετήριος Κανών Θεοτόκου',
         icon: Icons.front_hand_rounded,
         color: EverforestColors.purple,
         estMin: 25,
+        category: 'paraklesis',
+      ),
+      _PrayerEntry(
+        id: 'paraklesis_great',
+        title: 'Μεγάλη Παράκλησις',
+        subtitle: 'Θεοδώρου Βασιλέως του Δούκα',
+        icon: Icons.auto_stories_rounded,
+        color: EverforestColors.orange,
+        estMin: 35,
         category: 'paraklesis',
       ),
       _PrayerEntry(
