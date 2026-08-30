@@ -47,6 +47,10 @@ jobs:
               if 'onFocusReceived' not in c:
                   c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
                   open(f, 'w').write(c)
+
+          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/editor/util/file_picker/file_picker_impl.dart')):
+              c = open(f).read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
+              open(f, 'w').write(c)
           "
 
       - name: Build APK
@@ -106,6 +110,10 @@ jobs:
                   if 'onFocusReceived' not in c:
                       c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
                       open(f, 'w').write(c)
+
+              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'editor', 'util', 'file_picker', 'file_picker_impl.dart')):
+                  c = open(f).read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
+                  open(f, 'w').write(c)
 
       - name: Build Windows
         working-directory: ./client
