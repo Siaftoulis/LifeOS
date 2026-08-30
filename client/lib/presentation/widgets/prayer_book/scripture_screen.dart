@@ -100,24 +100,12 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
   }
 
   void _openSearchResult(ScriptureSearchResult result) {
-    // Find the book summary
-    final book = _books.firstWhere(
-      (b) => b.number == result.bookNumber,
-      orElse: () => BookSummary(
-        number: result.bookNumber,
-        nameGreek: result.bookGreek,
-        nameEnglish: result.bookEnglish,
-        chapterCount: 0,
-        verseCount: 0,
-      ),
-    );
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PrayerReaderScreen(
           serviceId: 'scripture_${result.bookNumber}_${result.chapter}',
-          serviceTitle: '${result.bookEnglish} ${result.chapter}',
+          serviceTitle: '${result.bookGreek} ${result.chapter}',
         ),
       ),
     );

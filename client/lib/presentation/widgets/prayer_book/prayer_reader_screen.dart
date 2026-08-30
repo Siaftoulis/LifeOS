@@ -276,7 +276,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                         ),
                         Switch(
                           value: _isParchmentMode,
-                          activeColor: EverforestColors.yellow,
+                          activeThumbColor: EverforestColors.yellow,
                           onChanged: (val) {
                             setState(() => _isParchmentMode = val);
                             setSheetState(() {});
@@ -960,7 +960,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
 
           final lines = trimmed.split('\n');
           final isSubHeader = lines.length == 1 &&
-              trimmed.length < 60 &&
+              trimmed.length < 75 &&
               !trimmed.endsWith('.') &&
               !trimmed.endsWith('·') &&
               !trimmed.endsWith(')');
@@ -972,23 +972,86 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                 TextSpan(
                   text: trimmed,
                   style: TextStyle(
-                    color: textColor,
-                    fontSize: _fontSize * 0.92,
+                    color: EverforestColors.yellow,
+                    fontSize: _fontSize * 0.94,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'serif',
                     height: 1.5,
-                    letterSpacing: 0.2,
+                    letterSpacing: 0.3,
                   ),
                 ),
-                const TextSpan(text: '\n'),
+                const TextSpan(text: '\n\n'),
               ],
             );
           }
 
-          return TextSpan(
-            children: [
-              TextSpan(
-                text: trimmed,
+          // Parse lines within paragraph to highlight speakers and verse numbers
+          final lineSpans = <InlineSpan>[];
+          for (int li = 0; li < lines.length; li++) {
+            final line = lines[li];
+            final tline = line.trim();
+
+            if (li > 0) {
+              lineSpans.add(const TextSpan(text: '\n'));
+            }
+
+            final speakerMatch = RegExp(r'^(ΙΕΡΕΥΣ|ΔΙΑΚΟΝΟΣ|ΧΟΡΟΣ|ΑΝΑΓΝΩΣΤΗΣ|ΛΑΟΣ)(\s*\([^)]+\))?:').firstMatch(tline);
+            final verseMatch = RegExp(r"^(Στίχ\.\s*[^:\n]+:|Στίχοι[^:\n]*:|Δόξα\s*Πατρί\.\.\.|Καὶ\s*νῦν\.\.\.|Δόξα\.\.\.|ΣΤΙΧΟΛΟΓΙΑ\s*[^:\n]+:|Η\s*ΥΠΑΚΟΗ:|ΟΙ\s*ΑΝΑΒΑΘΜΟΙ|ΤΟ\s*ΠΡΟΚΕΙΜΕΝΟΝ|ΑΠΟΛΥΤΙΚΙ[ΑΟ]Ν[^:\n]*:|ΚΟΝΤΑΚΙΟΝ[^:\n]*:|Ο\s*ΟΙΚΟΣ:|ΕΞΑΠΟΣΤΕΙΛΑΡΙΟΝ[^:\n]*:|ΘΕΟΤΟΚΙΟΝ:|Ὁ\s*Εἱρμός:|Ὁ\s*Ειρμός:|ΚΑΘΙΣΜΑ\s*[^:\n]+:|Ὠδὴ\s*[^:\n]+:)").firstMatch(tline);
+
+            if (speakerMatch != null) {
+              final spk = speakerMatch.group(0)!;
+              final rest = tline.substring(spk.length);
+              lineSpans.add(TextSpan(
+                text: spk,
+                style: TextStyle(
+                  color: rubricColor,
+                  fontSize: _fontSize * 0.88,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'serif',
+                  letterSpacing: 0.4,
+                ),
+              ));
+              if (rest.isNotEmpty) {
+                lineSpans.add(TextSpan(
+                  text: rest,
+                  style: TextStyle(
+                    color: isRubric ? rubricColor : textColor,
+                    fontSize: isRubric ? _fontSize * 0.9 : _fontSize,
+                    fontStyle: isRubric ? FontStyle.italic : FontStyle.normal,
+                    fontFamily: 'serif',
+                    height: 1.7,
+                    letterSpacing: 0.2,
+                  ),
+                ));
+              }
+            } else if (verseMatch != null) {
+              final vfx = verseMatch.group(0)!;
+              final rest = tline.substring(vfx.length);
+              lineSpans.add(TextSpan(
+                text: vfx,
+                style: TextStyle(
+                  color: EverforestColors.aqua,
+                  fontSize: _fontSize * 0.92,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'serif',
+                ),
+              ));
+              if (rest.isNotEmpty) {
+                lineSpans.add(TextSpan(
+                  text: rest,
+                  style: TextStyle(
+                    color: isRubric ? rubricColor : textColor,
+                    fontSize: isRubric ? _fontSize * 0.9 : _fontSize,
+                    fontStyle: isRubric ? FontStyle.italic : FontStyle.normal,
+                    fontFamily: 'serif',
+                    height: 1.7,
+                    letterSpacing: 0.2,
+                  ),
+                ));
+              }
+            } else {
+              lineSpans.add(TextSpan(
+                text: line,
                 style: TextStyle(
                   color: isRubric ? rubricColor : textColor,
                   fontSize: isRubric ? _fontSize * 0.9 : _fontSize,
@@ -997,10 +1060,12 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                   height: 1.7,
                   letterSpacing: 0.2,
                 ),
-              ),
-              const TextSpan(text: '\n\n'),
-            ],
-          );
+              ));
+            }
+          }
+
+          lineSpans.add(const TextSpan(text: '\n\n'));
+          return TextSpan(children: lineSpans);
         }).toList(),
       ),
     );
@@ -1021,6 +1086,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
       case 'epistle':
         return 'ΑΠΟΣΤΟΛΟΣ';
       case 'gospel':
+      case 'eothinon_gospel':
         return 'ΕΥΑΓΓΕΛΙΟΝ';
       case 'megalynarion':
         return 'ΜΕΓΑΛΥΝΑΡΙΟΝ';
@@ -1028,6 +1094,22 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
         return 'ΚΟΙΝΩΝΙΚΟΝ';
       case 'ainoi':
         return 'ΑΙΝΟΙ';
+      case 'kekragaria':
+        return 'ΚΕΚΡΑΓΑΡΙΑ';
+      case 'aposticha':
+        return 'ΑΠΟΣΤΙΧΑ';
+      case 'kathismata':
+        return 'ΚΑΘΙΣΜΑΤΑ';
+      case 'anavathmoi':
+        return 'ΑΝΑΒΑΘΜΟΙ';
+      case 'exaposteilarion':
+        return 'ΕΞΑΠΟΣΤΕΙΛΑΡΙΟΝ';
+      case 'doxastikon':
+        return 'ΔΟΞΑΣΤΙΚΟΝ';
+      case 'prokeimenon':
+        return 'ΠΡΟΚΕΙΜΕΝΟΝ';
+      case 'canon':
+        return 'ΚΑΝΩΝ';
       case 'apolysis':
         return 'ΑΠΟΛΥΣΙΣ';
       default:

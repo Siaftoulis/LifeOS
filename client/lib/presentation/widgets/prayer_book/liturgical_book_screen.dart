@@ -111,8 +111,7 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
                 style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
               iconColor: EverforestColors.yellow,
-              collapsedIconColor: EverforestColors.grey,
-              children: (services as List).map<Widget>((svc) {
+              children: services.map<Widget>((svc) {
                 return _buildServiceCard(svc);
               }).toList(),
             ),
@@ -131,19 +130,6 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
         return _buildServiceCard(service);
       },
     );
-  }
-
-  String _getPrefix(dynamic service) {
-    if (widget.bookId == 'octoechos') {
-      final tone = service['_tone'] ?? '';
-      return 'oct_${tone.replaceAll(' ', '_').toLowerCase()}';
-    }
-    if (widget.bookId == 'triodion') return 'tri';
-    if (widget.bookId == 'pentecostarion') return 'pent';
-    if (widget.bookId == 'menaion') return 'men';
-    if (widget.bookId == 'euchologion') return 'euko';
-    if (widget.bookId == 'sacraments') return 'sac';
-    return widget.bookId;
   }
 
   Widget _buildServiceCard(dynamic service) {

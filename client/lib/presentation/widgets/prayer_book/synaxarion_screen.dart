@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../../theme/everforest_colors.dart';
-import 'prayer_reader_screen.dart';
 
 class SynaxarionScreen extends StatefulWidget {
   const SynaxarionScreen({super.key});

@@ -111,6 +111,33 @@ func GetOctoechosTone(date time.Time) string {
 	return "Ήχος Πλ. Δ'"
 }
 
+// GetOctoechosToneIndex returns 1-8 tone number for a given date
+func GetOctoechosToneIndex(date time.Time) int {
+	pascha := CalculateOrthodoxEaster(date.Year())
+	thomasSunday := pascha.AddDate(0, 0, 7)
+
+	if (date.After(pascha) || date.Equal(pascha)) && date.Before(thomasSunday) {
+		return 1
+	}
+
+	if !date.Before(thomasSunday) {
+		diffDays := int(date.Sub(thomasSunday).Hours() / 24)
+		weeks := diffDays / 7
+		return (weeks % 8) + 1
+	}
+
+	paschaPrev := CalculateOrthodoxEaster(date.Year() - 1)
+	thomasPrev := paschaPrev.AddDate(0, 0, 7)
+
+	if !date.Before(thomasPrev) {
+		diffDays := int(date.Sub(thomasPrev).Hours() / 24)
+		weeks := diffDays / 7
+		return (weeks % 8) + 1
+	}
+
+	return 8
+}
+
 func toneFromIndex(idx int) string {
 	tones := []string{
 		"Ήχος Α'",

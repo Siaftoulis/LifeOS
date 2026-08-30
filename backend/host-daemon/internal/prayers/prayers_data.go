@@ -18,7 +18,7 @@ func GetAllCategories() []PrayerCategory {
 			ID:       "daily_office",
 			Title:    "Καθημερινές Ακολουθίες",
 			Icon:     "church",
-			Services: []string{"morning_prayer", "small_compline", "matins", "vespers"},
+			Services: []string{"morning_prayer", "small_compline", "great_compline", "matins", "vespers"},
 		},
 		{
 			ID:       "holy_communion",
@@ -30,7 +30,7 @@ func GetAllCategories() []PrayerCategory {
 			ID:       "theotokos_hymns",
 			Title:    "Παρακλήσεις & Ύμνοι Παναγίας",
 			Icon:     "cross",
-			Services: []string{"akathist_hymn", "paraklesis"},
+			Services: []string{"paraklesis_small", "paraklesis_great", "akathist_hymn"},
 		},
 		{
 			ID:       "parakleseis_saints",
@@ -56,6 +56,16 @@ func BuildService(serviceID string, date time.Time) (*PrayerService, error) {
 		return BuildDivineLiturgyBasil(date), nil
 	case "matins":
 		return BuildMatinsDynamic(date), nil
+	case "vespers":
+		return BuildVespersDynamic(date), nil
+	case "paraklesis_small", "paraklesis":
+		return BuildMikrosParakletikosKanon(), nil
+	case "paraklesis_great":
+		return BuildMegasParakletikosKanon(), nil
+	case "great_compline":
+		return BuildGreatComplineService(), nil
+	case "communion_prep", "communion_canon":
+		return BuildCommunionCanonService(), nil
 	case "paraklesis_st_nektarios":
 		return BuildParaklesisStNektarios(), nil
 	case "paraklesis_st_paisios":

@@ -15,8 +15,6 @@ class _PsalterScreenState extends State<PsalterScreen> {
   List<Kathisma> _kathismata = [];
   bool _isLoading = true;
   String? _error;
-  int? _selectedPsalm;
-  String _searchQuery = '';
   List<SearchResult> _searchResults = [];
   bool _isSearching = false;
 

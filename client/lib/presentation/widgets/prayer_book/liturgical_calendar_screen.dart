@@ -469,11 +469,11 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                   color: EverforestColors.aqua,
                 ),
               ),
-              if (dayData!['epistle_ref']?.toString().isNotEmpty == true) ...[
+              if (dayData?['epistle_ref']?.toString().isNotEmpty == true) ...[
                 const SizedBox(height: 8),
                 _buildReadingRow('Α', dayData!['epistle_ref']),
               ],
-              if (dayData!['gospel_ref']?.toString().isNotEmpty == true) ...[
+              if (dayData?['gospel_ref']?.toString().isNotEmpty == true) ...[
                 const SizedBox(height: 8),
                 _buildReadingRow('Ε', dayData!['gospel_ref']),
               ],

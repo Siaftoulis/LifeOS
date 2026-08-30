@@ -52,6 +52,9 @@ func RegisterRoutes(mux *http.ServeMux) {
 	// Octoechos routes
 	RegisterOctoechosRoutes(mux)
 
+	// Canon routes
+	RegisterCanonRoutes(mux)
+
 	// Typikon dynamic routes
 	mux.HandleFunc("/api/v1/prayers/typikon/today", handleTypikonToday)
 	mux.HandleFunc("/api/v1/prayers/typikon/katavasies", handleTypikonKatavasies)
