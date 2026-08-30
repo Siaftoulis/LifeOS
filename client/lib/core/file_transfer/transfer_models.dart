@@ -1,5 +1,3 @@
-import 'package:drift/drift.dart';
-
 enum TransferState {
   created('CREATED'),
   preparing('PREPARING'),

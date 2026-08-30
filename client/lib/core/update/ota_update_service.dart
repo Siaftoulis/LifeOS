@@ -60,7 +60,7 @@ class OtaUpdateService {
   OtaUpdateService._internal();
 
   static const MethodChannel _channel = MethodChannel('com.lifeos.app/ota_installer');
-  static const String _githubRepo = 'PanagiotisSiaf/LifeOS';
+  static const String _githubRepo = 'Siaftoulis/LifeOS';
 
   final ValueNotifier<bool> isChecking = ValueNotifier(false);
   final ValueNotifier<bool> isDownloading = ValueNotifier(false);
