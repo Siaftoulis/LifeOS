@@ -36,21 +36,23 @@ jobs:
       - name: Patch Dependencies Compatibility
         run: |
           python3 -c "
-          import glob, os
+          import os
 
-          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/plugins/markdown/decoder/delta_markdown_decoder.dart')):
-              c = open(f).read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
-              open(f, 'w').write(c)
-
-          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/editor/editor_component/service/ime/delta_input_service.dart')):
-              c = open(f).read()
-              if 'onFocusReceived' not in c:
-                  c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
-                  open(f, 'w').write(c)
-
-          for f in glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/appflowy_editor-*/lib/src/editor/util/file_picker/file_picker_impl.dart')):
-              c = open(f).read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
-              open(f, 'w').write(c)
+          for root, dirs, files in os.walk(os.path.expanduser('~')):
+              if 'appflowy_editor' in root:
+                  for f in files:
+                      p = os.path.join(root, f)
+                      if f == 'delta_markdown_decoder.dart':
+                          c = open(p, encoding='utf-8').read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
+                          open(p, 'w', encoding='utf-8').write(c)
+                      elif f == 'delta_input_service.dart':
+                          c = open(p, encoding='utf-8').read()
+                          if 'onFocusReceived' not in c:
+                              c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
+                              open(p, 'w', encoding='utf-8').write(c)
+                      elif f == 'file_picker_impl.dart':
+                          c = open(p, encoding='utf-8').read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
+                          open(p, 'w', encoding='utf-8').write(c)
           "
 
       - name: Build APK
@@ -90,30 +92,33 @@ jobs:
       - name: Patch Dependencies Compatibility
         shell: python
         run: |
-          import glob, os
+          import os
 
-          cache_dirs = [
-              os.path.expanduser('~/.pub-cache/hosted/pub.dev'),
-              os.path.expandvars(r'%LOCALAPPDATA%\Pub\Cache\hosted\pub.dev'),
-              os.path.expandvars(r'%PUB_CACHE%\hosted\pub.dev')
+          scan_roots = [
+              os.path.expanduser('~'),
+              os.path.expandvars(r'%LOCALAPPDATA%'),
+              os.environ.get('PUB_CACHE', ''),
+              r'C:\hostedtoolcache\windows\flutter'
           ]
 
-          for base in cache_dirs:
-              if not os.path.exists(base):
+          for sr in scan_roots:
+              if not sr or not os.path.exists(sr):
                   continue
-              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'plugins', 'markdown', 'decoder', 'delta_markdown_decoder.dart')):
-                  c = open(f).read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
-                  open(f, 'w').write(c)
-
-              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'editor', 'editor_component', 'service', 'ime', 'delta_input_service.dart')):
-                  c = open(f).read()
-                  if 'onFocusReceived' not in c:
-                      c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
-                      open(f, 'w').write(c)
-
-              for f in glob.glob(os.path.join(base, 'appflowy_editor-*', 'lib', 'src', 'editor', 'util', 'file_picker', 'file_picker_impl.dart')):
-                  c = open(f).read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
-                  open(f, 'w').write(c)
+              for root, dirs, files in os.walk(sr):
+                  if 'appflowy_editor' in root:
+                      for f in files:
+                          p = os.path.join(root, f)
+                          if f == 'delta_markdown_decoder.dart':
+                              c = open(p, encoding='utf-8').read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
+                              open(p, 'w', encoding='utf-8').write(c)
+                          elif f == 'delta_input_service.dart':
+                              c = open(p, encoding='utf-8').read()
+                              if 'onFocusReceived' not in c:
+                                  c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
+                                  open(p, 'w', encoding='utf-8').write(c)
+                          elif f == 'file_picker_impl.dart':
+                              c = open(p, encoding='utf-8').read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
+                              open(p, 'w', encoding='utf-8').write(c)
 
       - name: Build Windows
         working-directory: ./client
