@@ -21,6 +21,42 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/prayers/favorites/", handleFavoriteByID)
 	mux.HandleFunc("/api/v1/prayers/rule/today", handlePrayerRuleToday)
 	mux.HandleFunc("/api/v1/prayers/rule/complete", handlePrayerRuleComplete)
+
+	// Psalter routes
+	RegisterPsalterRoutes(mux)
+
+	// Scripture routes
+	RegisterScriptureRoutes(mux)
+
+	// Synaxarion routes
+	RegisterSynaxarionRoutes(mux)
+
+	// Horologion routes
+	RegisterHorologionRoutes(mux)
+
+	// Lectionary routes
+	RegisterLectionaryRoutes(mux)
+
+	// Liturgical book routes (Triodion, Pentecostarion)
+	RegisterLiturgicalBookRoutes(mux)
+
+	// Menaion routes
+	RegisterMenaionRoutes(mux)
+
+	// Euchologion routes
+	RegisterEuchologionRoutes(mux)
+
+	// Sacraments routes
+	RegisterSacramentsRoutes(mux)
+
+	// Octoechos routes
+	RegisterOctoechosRoutes(mux)
+
+	// Typikon dynamic routes
+	mux.HandleFunc("/api/v1/prayers/typikon/today", handleTypikonToday)
+	mux.HandleFunc("/api/v1/prayers/typikon/katavasies", handleTypikonKatavasies)
+	mux.HandleFunc("/api/v1/prayers/typikon/variables", handleTypikonVariables)
+	mux.HandleFunc("/api/v1/prayers/paraklesis/saint", handleParaklesisSaint)
 }
 
 func parseDateQuery(r *http.Request) time.Time {
@@ -67,15 +103,58 @@ func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 	period, movable := GetLiturgicalPeriod(date)
 	fasting := CalculateFastingRule(date)
 
-	readings := []ScriptureReading{}
-	if menologion.Apostolos.Text != "" {
-		readings = append(readings, menologion.Apostolos)
-	}
-	if menologion.Evangelion.Text != "" {
-		readings = append(readings, menologion.Evangelion)
+	// Build readings from lectionary (preferred) or menologion fallback
+	lectionary, _ := loadLectionary()
+	dateKey := date.Format("01-02")
+	lectionaryDay, hasLectionary := lectionary.Readings[dateKey]
+
+	type ReadingRef struct {
+		Reference string `json:"reference"`
+		Text      string `json:"text"`
 	}
 
-	info := DailyLiturgicalInfo{
+	var epistleReading, gospelReading *ReadingRef
+	if hasLectionary {
+		if lectionaryDay.Epistle.Reference != "" {
+			epistleReading = &ReadingRef{
+				Reference: lectionaryDay.Epistle.Reference,
+				Text:      lectionaryDay.Epistle.Text,
+			}
+		}
+		if lectionaryDay.Gospel.Reference != "" {
+			gospelReading = &ReadingRef{
+				Reference: lectionaryDay.Gospel.Reference,
+				Text:      lectionaryDay.Gospel.Text,
+			}
+		}
+	} else if menologion.Apostolos.Text != "" {
+		epistleReading = &ReadingRef{
+			Reference: menologion.Apostolos.Reference,
+			Text:      menologion.Apostolos.Text,
+		}
+		gospelReading = &ReadingRef{
+			Reference: menologion.Evangelion.Reference,
+			Text:      menologion.Evangelion.Text,
+		}
+	}
+
+	katavasies := GetSeasonalKatavasies(date)
+
+	type DailyInfo struct {
+		Date          string        `json:"date"`
+		DateFormatted string        `json:"date_formatted"`
+		Tone          string        `json:"tone"`
+		Period        string        `json:"period"`
+		FeastName     string        `json:"feast_name"`
+		Fasting       FastingType   `json:"fasting"`
+		Saints        []Saint       `json:"saints"`
+		Epistle       *ReadingRef   `json:"epistle"`
+		Gospel        *ReadingRef   `json:"gospel"`
+		MovableCycle  string        `json:"movable_cycle"`
+		Katavasies    KatavasiaSet  `json:"katavasies"`
+	}
+
+	info := DailyInfo{
 		Date:          date.Format("2006-01-02"),
 		DateFormatted: formatGreekDate(date),
 		Tone:          tone,
@@ -83,8 +162,10 @@ func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 		FeastName:     menologion.FeastName,
 		Fasting:       fasting,
 		Saints:        menologion.Saints,
-		Readings:      readings,
+		Epistle:       epistleReading,
+		Gospel:        gospelReading,
 		MovableCycle:  movable,
+		Katavasies:    katavasies,
 	}
 
 	json.NewEncoder(w).Encode(info)
@@ -297,3 +378,47 @@ func handlePrayerRuleComplete(w http.ResponseWriter, r *http.Request) {
 		"streak_days":    streak,
 	})
 }
+
+func handleTypikonToday(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	date := parseDateQuery(r)
+	vars := ResolveLiturgicalVariables(date)
+	json.NewEncoder(w).Encode(vars)
+}
+
+func handleTypikonKatavasies(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	date := parseDateQuery(r)
+	katavasies := GetSeasonalKatavasies(date)
+	json.NewEncoder(w).Encode(katavasies)
+}
+
+func handleTypikonVariables(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	date := parseDateQuery(r)
+	vars := ResolveLiturgicalVariables(date)
+	json.NewEncoder(w).Encode(vars)
+}
+
+func handleParaklesisSaint(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	q := r.URL.Query()
+	name := q.Get("name")
+	title := q.Get("title")
+	apol := q.Get("apolytikion")
+
+	if name == "" {
+		date := parseDateQuery(r)
+		men := GetDailySaints(int(date.Month()), date.Day())
+		if len(men.Saints) > 0 {
+			name = men.Saints[0].Name
+			title = men.Saints[0].Title
+			apol = men.Saints[0].Apolytikion
+		}
+	}
+
+	svc := BuildGenericSaintParaklesis(name, title, apol)
+	json.NewEncoder(w).Encode(svc)
+}
+
+

@@ -15,6 +15,7 @@ class P2PTransferService {
 
   // Global callback hooks for transfer confirmation prompt in UI
   Function(String senderName, String fileName, int fileSize, Socket socket)? onReceiveRequest;
+  Function(Map<String, dynamic> messageData)? onChatMessageReceived;
 
   // Notifier to notify UI of file transfer progress
   final ValueNotifier<P2PProgress?> progressNotifier = ValueNotifier(null);
@@ -72,6 +73,13 @@ class P2PTransferService {
               } else {
                 declineFile(socket);
               }
+            } else if (type == 'chat_message') {
+              final msgData = header['message'] as Map<String, dynamic>? ?? {};
+              if (onChatMessageReceived != null && msgData.isNotEmpty) {
+                onChatMessageReceived!(msgData);
+              }
+              await sub?.cancel();
+              socket.close();
             } else if (type == 'cursor_sync') {
               final userId = header['userId'] ?? 'Unknown User';
               final x = (header['x'] as num?)?.toDouble() ?? 0.0;
@@ -96,6 +104,22 @@ class P2PTransferService {
       debugPrint("P2P socket receive error: $e");
       progressNotifier.value = null;
     });
+  }
+
+  Future<bool> sendDirectChatMessage(String peerAddress, int peerPort, Map<String, dynamic> messageData) async {
+    try {
+      final socket = await Socket.connect(peerAddress, peerPort, timeout: const Duration(seconds: 3));
+      socket.write(jsonEncode({
+        'type': 'chat_message',
+        'message': messageData,
+      }) + '\n');
+      await socket.flush();
+      await socket.close();
+      return true;
+    } catch (e) {
+      debugPrint("Direct P2P chat send error: $e");
+      return false;
+    }
   }
 
   void _handleCursorSync(String userId, double x, double y, String filePath) {

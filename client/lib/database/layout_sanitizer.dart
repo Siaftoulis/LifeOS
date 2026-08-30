@@ -3,11 +3,22 @@ import 'package:path_provider/path_provider.dart';
 import '../core/feature_registry.dart';
 
 Future<File> getPrefsFile(Directory? cachedDir) async {
-  if (Platform.isAndroid) {
-    final dir = cachedDir ?? await getApplicationDocumentsDirectory();
-    return File('${dir.path}/prefs.json');
+  final dir = cachedDir ?? await getApplicationDocumentsDirectory();
+  if (!await dir.exists()) {
+    await dir.create(recursive: true);
   }
-  return File('prefs.json');
+  final targetFile = File('${dir.path}/prefs.json');
+  
+  // Migration check: if old local prefs.json exists in CWD and not in targetFile, migrate it
+  if (!await targetFile.exists()) {
+    final localOld = File('prefs.json');
+    if (await localOld.exists()) {
+      try {
+        await localOld.copy(targetFile.path);
+      } catch (_) {}
+    }
+  }
+  return targetFile;
 }
 
 Future<String> getVaultPath() async {

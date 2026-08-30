@@ -55,6 +55,29 @@ class ScriptureReadingModel {
   }
 }
 
+class KatavasiaModel {
+  final String id;
+  final String name;
+  final String tone;
+  final String period;
+
+  KatavasiaModel({
+    this.id = '',
+    this.name = '',
+    this.tone = '',
+    this.period = '',
+  });
+
+  factory KatavasiaModel.fromJson(Map<String, dynamic> json) {
+    return KatavasiaModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      tone: json['tone']?.toString() ?? '',
+      period: json['period']?.toString() ?? '',
+    );
+  }
+}
+
 class DailyLiturgicalInfoModel {
   final String date;
   final String dateFormatted;
@@ -65,6 +88,7 @@ class DailyLiturgicalInfoModel {
   final List<SaintModel> saints;
   final List<ScriptureReadingModel> readings;
   final String movableCycle;
+  final KatavasiaModel? katavasies;
 
   DailyLiturgicalInfoModel({
     required this.date,
@@ -76,11 +100,13 @@ class DailyLiturgicalInfoModel {
     required this.saints,
     required this.readings,
     required this.movableCycle,
+    this.katavasies,
   });
 
   factory DailyLiturgicalInfoModel.fromJson(Map<String, dynamic> json) {
     final rawSaints = json['saints'] as List? ?? [];
     final rawReadings = json['readings'] as List? ?? [];
+    final rawKat = json['katavasies'] as Map?;
 
     return DailyLiturgicalInfoModel(
       date: json['date']?.toString() ?? '',
@@ -99,6 +125,9 @@ class DailyLiturgicalInfoModel {
               ScriptureReadingModel.fromJson(Map<String, dynamic>.from(r)))
           .toList(),
       movableCycle: json['movable_cycle']?.toString() ?? '',
+      katavasies: rawKat != null
+          ? KatavasiaModel.fromJson(Map<String, dynamic>.from(rawKat))
+          : null,
     );
   }
 }
@@ -311,8 +340,41 @@ class PrayerRepository {
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
 
     try {
-      final res = await ApiClient.instance
-          .getDaemon('/api/v1/prayers/service?id=$serviceId&date=$dateStr');
+      // Route Psalter/Scripture/Horologion/LiturgicalBook requests to specialized endpoints
+      String url;
+      if (serviceId.startsWith('psalm_')) {
+        url = '/api/v1/prayers/psalter/service?id=$serviceId';
+      } else if (serviceId.startsWith('scripture_')) {
+        // Format: scripture_BOOK_CHAPTER
+        final parts = serviceId.split('_');
+        if (parts.length >= 3) {
+          url = '/api/v1/prayers/scripture/service?book=${parts[1]}&chapter=${parts[2]}';
+        } else {
+          url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr';
+        }
+      } else if (['great_compline', 'royal_hours', 'midnight_office', 'first_hour', 'third_hour', 'sixth_hour', 'ninth_hour'].contains(serviceId)) {
+        url = '/api/v1/prayers/horologion/service?id=$serviceId';
+      } else if (serviceId.startsWith('tri_') || serviceId.startsWith('pent_')) {
+        // Triodion/Pentecostarion services
+        final prefix = serviceId.startsWith('tri_') ? 'tri' : 'pent';
+        final realId = serviceId.replaceFirst(RegExp(r'^(tri_|pent_)'), '');
+        url = '/api/v1/prayers/${prefix}odion/service?id=$realId';
+      } else if (serviceId.startsWith('men_')) {
+        // Menaion feast
+        final feastId = serviceId.replaceFirst('men_', '');
+        url = '/api/v1/prayers/menaion/service?id=$feastId';
+      } else if (serviceId.startsWith('oct_')) {
+        // Octoechos service - strip oct_ prefix to get the real service ID
+        final realId = serviceId.replaceFirst(RegExp(r'^oct_[a-z_]+_'), '');
+        url = '/api/v1/prayers/octoechos/service?id=$realId';
+      } else if (serviceId.startsWith('tone') && serviceId.contains('_')) {
+        // Direct Octoechos service ID (e.g. tone1_vespers)
+        url = '/api/v1/prayers/octoechos/service?id=$serviceId';
+      } else {
+        url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr';
+      }
+
+      final res = await ApiClient.instance.getDaemon(url);
       if (res is Map) {
         TelemetryReporter.instance.track(
             'prayers', 'service_opened', {'service_id': serviceId});

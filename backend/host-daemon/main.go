@@ -10,6 +10,7 @@ import (
 	"lifeos/host-daemon/internal/banking"
 	"lifeos/host-daemon/internal/books"
 	"lifeos/host-daemon/internal/calendar"
+	"lifeos/host-daemon/internal/chat"
 	"lifeos/host-daemon/internal/chtm"
 	"lifeos/host-daemon/internal/cloud"
 	"lifeos/host-daemon/internal/darkweb"
@@ -138,7 +139,12 @@ func main() {
 		log.Printf("Prayers DB init error: %v", err)
 	}
 
+	if err := chat.InitDB("./data"); err != nil {
+		log.Printf("Chat DB init error: %v", err)
+	}
+
 	sync.RegisterRoutes(mux)
+	chat.RegisterRoutes(mux)
 	markdown.RegisterRoutes(mux, "./data/markdown")
 	notes.RegisterRoutes(mux, "./vault")
 	media.RegisterRoutes(mux, "./data/media")

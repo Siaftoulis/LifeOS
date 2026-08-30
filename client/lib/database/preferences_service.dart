@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'layout_sanitizer.dart';
 
 class PreferencesService {
@@ -31,17 +31,32 @@ class PreferencesService {
   static final ValueNotifier<String> zenWorkspace = ValueNotifier('');
   static final ValueNotifier<double> zenScale = ValueNotifier(1.0);
 
+  // User Custom Layout & Style Presets (Never lost across updates)
+  static final ValueNotifier<Map<String, dynamic>> savedPresets = ValueNotifier({});
+  static final ValueNotifier<String> activePresetName = ValueNotifier('Default');
+
   static Directory? _prefsDir;
 
   static Future<void> load({Directory? dir}) async {
     _prefsDir = dir;
     try {
       final f = await getPrefsFile(dir);
-      if (!await f.exists()) {
+      String content = '';
+      if (await f.exists()) {
+        content = await f.readAsString();
+      } else {
+        final backup = File('${f.path}.backup');
+        if (await backup.exists()) {
+          content = await backup.readAsString();
+        }
+      }
+
+      if (content.isEmpty) {
         layout.value = sanitizeLayout(layout.value);
         return;
       }
-      final data = jsonDecode(await f.readAsString());
+
+      final data = jsonDecode(content);
       navProfile.value = data['navProfile'] ?? 'Swipe';
       bgSync.value = data['bgSync'] ?? true;
       spatialGestures.value = data['spatialGestures'] ?? true;
@@ -85,30 +100,208 @@ class PreferencesService {
       if (data['zenFavorites'] != null) zenFavorites.value = List<String>.from(data['zenFavorites']);
       zenWorkspace.value = data['zenWorkspace'] ?? '';
       zenScale.value = (data['zenScale'] as num?)?.toDouble() ?? 1.0;
+      if (data['savedPresets'] != null) {
+        savedPresets.value = Map<String, dynamic>.from(data['savedPresets']);
+      }
+      activePresetName.value = data['activePresetName'] ?? 'Default';
     } catch (_) {}
   }
 
   static Future<void> save() async {
     try {
       final f = await getPrefsFile(_prefsDir);
-      await f.writeAsString(jsonEncode({
-        'navProfile': navProfile.value, 'bgSync': bgSync.value, 'spatialGestures': spatialGestures.value,
-        'devMode': devMode.value, 'activeProfileId': activeProfileId.value, 'activeProfileRole': activeProfileRole.value,
-        'layout': layout.value, 'rememberMe': rememberMe.value, 'hashedPin': hashedPin.value,
-        'userProfileJson': userProfileJson.value, 'appCategories': appCategories.value,
-        'appDrawerFolderView': appDrawerFolderView.value, 'cachedBaseUrl': cachedBaseUrl.value,
-        'cachedDaemonUrl': cachedDaemonUrl.value, 'showPerformanceOverlay': showPerformanceOverlay.value,
+      final raw = jsonEncode({
+        'navProfile': navProfile.value,
+        'bgSync': bgSync.value,
+        'spatialGestures': spatialGestures.value,
+        'devMode': devMode.value,
+        'activeProfileId': activeProfileId.value,
+        'activeProfileRole': activeProfileRole.value,
+        'layout': layout.value,
+        'rememberMe': rememberMe.value,
+        'hashedPin': hashedPin.value,
+        'userProfileJson': userProfileJson.value,
+        'appCategories': appCategories.value,
+        'appDrawerFolderView': appDrawerFolderView.value,
+        'cachedBaseUrl': cachedBaseUrl.value,
+        'cachedDaemonUrl': cachedDaemonUrl.value,
+        'showPerformanceOverlay': showPerformanceOverlay.value,
         'showConnectionStatusOverlay': showConnectionStatusOverlay.value,
         'favoriteAssetIds': favoriteAssetIds.value,
         'zenExpanded': zenExpanded.value,
         'zenFavorites': zenFavorites.value,
         'zenWorkspace': zenWorkspace.value,
         'zenScale': zenScale.value,
-      }));
+        'savedPresets': savedPresets.value,
+        'activePresetName': activePresetName.value,
+      });
+
+      await f.writeAsString(raw);
+
+      // Write reliable auto-backup
+      try {
+        final backup = File('${f.path}.backup');
+        await backup.writeAsString(raw);
+      } catch (_) {}
+
       try {
         await _secureStorage.write(key: 'authToken', value: authToken.value).timeout(const Duration(seconds: 2));
       } catch (_) {}
     } catch (_) {}
+  }
+
+  /// Saves the current user configuration into a named preset and syncs to Host Daemon
+  static Future<void> saveCurrentAsPreset(String name) async {
+    final presetData = {
+      'layout': layout.value,
+      'appCategories': appCategories.value,
+      'appDrawerFolderView': appDrawerFolderView.value,
+      'navProfile': navProfile.value,
+      'spatialGestures': spatialGestures.value,
+      'zenWorkspace': zenWorkspace.value,
+      'zenFavorites': zenFavorites.value,
+      'zenExpanded': zenExpanded.value,
+      'zenScale': zenScale.value,
+      'savedAt': DateTime.now().toIso8601String(),
+    };
+
+    final current = Map<String, dynamic>.from(savedPresets.value);
+    current[name] = presetData;
+    savedPresets.value = current;
+    activePresetName.value = name;
+    await save();
+
+    // Background cloud sync to daemon
+    _syncPresetToCloud(name, presetData);
+  }
+
+  /// Restores a previously saved user preset seamlessly
+  static Future<bool> applyPreset(String name) async {
+    final preset = savedPresets.value[name];
+    if (preset == null || preset is! Map) return false;
+
+    if (preset['layout'] != null) {
+      layout.value = sanitizeLayout((preset['layout'] as List).map((r) => List<String>.from(r)).toList());
+    }
+    if (preset['appCategories'] != null) {
+      appCategories.value = (preset['appCategories'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()));
+    }
+    if (preset['appDrawerFolderView'] != null) {
+      appDrawerFolderView.value = preset['appDrawerFolderView'] as bool;
+    }
+    if (preset['navProfile'] != null) {
+      navProfile.value = preset['navProfile'] as String;
+    }
+    if (preset['spatialGestures'] != null) {
+      spatialGestures.value = preset['spatialGestures'] as bool;
+    }
+    if (preset['zenWorkspace'] != null) {
+      zenWorkspace.value = preset['zenWorkspace'] as String;
+    }
+    if (preset['zenFavorites'] != null) {
+      zenFavorites.value = List<String>.from(preset['zenFavorites']);
+    }
+    if (preset['zenExpanded'] != null) {
+      zenExpanded.value = List<String>.from(preset['zenExpanded']);
+    }
+    if (preset['zenScale'] != null) {
+      zenScale.value = (preset['zenScale'] as num).toDouble();
+    }
+
+    activePresetName.value = name;
+    await save();
+    return true;
+  }
+
+  /// Deletes a preset locally and from host daemon
+  static Future<void> deletePreset(String name) async {
+    final current = Map<String, dynamic>.from(savedPresets.value);
+    current.remove(name);
+    savedPresets.value = current;
+    if (activePresetName.value == name) {
+      activePresetName.value = 'Default';
+    }
+    await save();
+
+    _deletePresetFromCloud(name);
+  }
+
+  /// Cloud sync helpers
+  static Future<void> _syncPresetToCloud(String name, Map<String, dynamic> data) async {
+    try {
+      final daemonUrl = cachedDaemonUrl.value;
+      if (daemonUrl.isEmpty) return;
+      final uri = Uri.parse('$daemonUrl/api/v1/system/presets');
+      await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'name': name, 'data': data}),
+      ).timeout(const Duration(seconds: 4));
+    } catch (_) {}
+  }
+
+  static Future<void> _deletePresetFromCloud(String name) async {
+    try {
+      final daemonUrl = cachedDaemonUrl.value;
+      if (daemonUrl.isEmpty) return;
+      final uri = Uri.parse('$daemonUrl/api/v1/system/presets?name=${Uri.encodeComponent(name)}');
+      await http.delete(uri).timeout(const Duration(seconds: 4));
+    } catch (_) {}
+  }
+
+  static Future<void> syncAllPresetsToCloud() async {
+    try {
+      final daemonUrl = cachedDaemonUrl.value;
+      if (daemonUrl.isEmpty) return;
+      final uri = Uri.parse('$daemonUrl/api/v1/system/presets');
+      await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'presets': savedPresets.value}),
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {}
+  }
+
+  /// Returns complete JSON string for export
+  static String exportPresetsJson() {
+    return const JsonEncoder.withIndent('  ').convert({
+      'activePresetName': activePresetName.value,
+      'currentLayout': layout.value,
+      'savedPresets': savedPresets.value,
+      'appCategories': appCategories.value,
+      'zenWorkspace': zenWorkspace.value,
+      'zenFavorites': zenFavorites.value,
+      'exportedAt': DateTime.now().toIso8601String(),
+    });
+  }
+
+  /// Imports and applies presets from a JSON string
+  static Future<bool> importPresetsFromJson(String jsonStr) async {
+    try {
+      final data = jsonDecode(jsonStr);
+      if (data is! Map) return false;
+
+      if (data['savedPresets'] != null && data['savedPresets'] is Map) {
+        final merged = Map<String, dynamic>.from(savedPresets.value);
+        merged.addAll(Map<String, dynamic>.from(data['savedPresets']));
+        savedPresets.value = merged;
+      }
+
+      if (data['currentLayout'] != null) {
+        layout.value = sanitizeLayout((data['currentLayout'] as List).map((r) => List<String>.from(r)).toList());
+      }
+      if (data['appCategories'] != null) {
+        appCategories.value = (data['appCategories'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()));
+      }
+      if (data['activePresetName'] != null) {
+        activePresetName.value = data['activePresetName'] as String;
+      }
+      await save();
+      syncAllPresetsToCloud();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> setCachedUrls(String b, String d) async { cachedBaseUrl.value = b; cachedDaemonUrl.value = d; await save(); }

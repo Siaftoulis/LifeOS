@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/repositories/prayer_repository.dart';
 import '../../../theme/everforest_colors.dart';
+import 'prayer_reader_screen.dart';
 
 class SynaxarionDetailSheet extends StatelessWidget {
   const SynaxarionDetailSheet({
@@ -308,6 +309,35 @@ class SynaxarionDetailSheet extends StatelessWidget {
                       ),
                     ),
                   ],
+
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.church_rounded, size: 18),
+                      label: Text('Ιερά Παράκλησις ${saint.name}'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: EverforestColors.yellow,
+                        foregroundColor: EverforestColors.bg0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PrayerReaderScreen(
+                              serviceId: 'paraklesis_generic',
+                              serviceTitle: 'Παράκλησις — ${saint.name}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

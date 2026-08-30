@@ -20,7 +20,9 @@ client/.flutter-plugins-dependencies
 **/windows/x64/
 
 # Go & Backend Runtimes
+*.exe
 backend/host-daemon/host-daemon.exe
+backend/host-daemon/lifeos-daemon.exe
 backend/host-daemon/host-daemon
 backend/host-daemon/host_daemon_linux
 backend/host-daemon/data/
@@ -66,10 +68,10 @@ screen*.png
 screenshot*.png
 backend/host-daemon/lifeos.exe
 backend/host-daemon/lifeos-linux
-backend/host-daemon/daemon.exe
-backend/host-daemon/tmp.exe
 backend/host-daemon/data/
-data/
+/data/
+backend/host-daemon/internal/*/data/
+!backend/host-daemon/internal/prayers/data/
 tsnet-state/
 appflowy_repo/
 aves_repo/

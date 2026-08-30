@@ -34,6 +34,11 @@ func createTables() error {
 		status TEXT NOT NULL,
 		last_seen INTEGER NOT NULL
 	);
+	CREATE TABLE IF NOT EXISTS user_presets (
+		name TEXT PRIMARY KEY,
+		preset_json TEXT NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
 	`
 
 	_, err := DB.Exec(query)

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../theme/everforest_colors.dart';
 import 'grid_configurator_widget.dart';
+import 'system_updates_widget.dart';
+import 'preset_manager_card.dart';
 
 class PreferencesDashboardView extends StatelessWidget {
   const PreferencesDashboardView({super.key});
@@ -26,66 +28,12 @@ class PreferencesDashboardView extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 2,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: EverforestColors.bg1,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: EverforestColors.bg2),
-                    ),
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.info_outline, color: EverforestColors.green, size: 24),
-                            SizedBox(width: 12),
-                            Text(
-                              'System Notice',
-                              style: TextStyle(
-                                color: EverforestColors.fg,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Primary system and user configuration options have been relocated to the main Configurator module for centralized control.',
-                          style: TextStyle(color: EverforestColors.fg, fontSize: 13, height: 1.5),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'The App Drawer (Launcher) is now registered as a standalone module in the Spatial UI Registry, allowing you to configure and launch it directly on your spatial matrix grid.',
-                          style: TextStyle(color: EverforestColors.grey, fontSize: 12, height: 1.5),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: EverforestColors.bg2.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.hub, color: EverforestColors.blue, size: 20),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'LifeOS Spatial Engine v1.2',
-                                  style: TextStyle(
-                                    color: EverforestColors.grey,
-                                    fontSize: 11,
-                                    fontFamily: 'JetBrainsMono',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    children: const [
+                      PresetManagerCard(),
+                      SizedBox(height: 16),
+                      Expanded(child: SystemUpdatesWidget()),
+                    ],
                   ),
                 ),
               ],

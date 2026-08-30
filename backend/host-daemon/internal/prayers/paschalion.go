@@ -16,10 +16,7 @@ func CalculateOrthodoxEaster(year int) time.Time {
 	month := (d + e + 114) / 31
 	day := ((d + e + 114) % 31) + 1
 
-	// Julian Easter date
 	julianEaster := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
-	// Gregorian offset is +13 days for 1900–2099
 	gregorianEaster := julianEaster.AddDate(0, 0, 13)
 	return gregorianEaster
 }
@@ -27,25 +24,36 @@ func CalculateOrthodoxEaster(year int) time.Time {
 // MovableDates holds all dynamic feast dates for a liturgical year
 type MovableDates struct {
 	Year               int
-	PublicanAndPharisee time.Time // Κυριακή Τελώνου και Φαρισαίου (-70 days)
-	MeatfareSunday     time.Time // Κυριακή Απόκρεω (-56 days)
-	CheesefareSunday   time.Time // Κυριακή Τυρινής (-49 days)
-	CleanMonday        time.Time // Καθαρά Δευτέρα (-48 days)
-	PalmSunday         time.Time // Κυριακή των Βαΐων (-7 days)
-	HolyThursday       time.Time // Μεγάλη Πέμπτη (-3 days)
-	HolyFriday         time.Time // Μεγάλη Παρασκευή (-2 days)
-	HolySaturday       time.Time // Μέγα Σάββατον (-1 day)
-	Pascha             time.Time // Άγιον Πάσχα (0 days)
-	BrightMonday       time.Time // Δευτέρα της Διακαινησίμου (+1 day)
-	ThomasSunday       time.Time // Κυριακή του Θωμά (+7 days)
-	Ascension          time.Time // Η Ανάληψις του Κυρίου (+39 days)
-	Pentecost          time.Time // Αγία Πεντηκοστή (+49 days)
-	AllSaints          time.Time // Κυριακή των Αγίων Πάντων (+56 days)
+	PublicanAndPharisee time.Time
+	MeatfareSunday     time.Time
+	CheesefareSunday   time.Time
+	CleanMonday        time.Time
+	PalmSunday         time.Time
+	HolyThursday       time.Time
+	HolyFriday         time.Time
+	HolySaturday       time.Time
+	Pascha             time.Time
+	BrightMonday       time.Time
+	ThomasSunday       time.Time
+	Ascension          time.Time
+	Pentecost          time.Time
+	AllSaints          time.Time
+	ApostlesStart      time.Time // Monday after All Saints (start of Apostles' Fast)
+	ApostlesEnd        time.Time // 28 June (fixed end of Apostles' Fast)
 }
 
 // GetMovableDates returns the full movable cycle for a given year
 func GetMovableDates(year int) MovableDates {
 	pascha := CalculateOrthodoxEaster(year)
+	allSaints := pascha.AddDate(0, 0, 56)
+
+	// Apostles' Fast: Monday after All Saints to 28 June
+	// Find the Monday after All Saints
+	apostlesStart := allSaints
+	for apostlesStart.Weekday() != time.Monday {
+		apostlesStart = apostlesStart.AddDate(0, 0, 1)
+	}
+
 	return MovableDates{
 		Year:               year,
 		PublicanAndPharisee: pascha.AddDate(0, 0, -70),
@@ -61,30 +69,49 @@ func GetMovableDates(year int) MovableDates {
 		ThomasSunday:       pascha.AddDate(0, 0, 7),
 		Ascension:          pascha.AddDate(0, 0, 39),
 		Pentecost:          pascha.AddDate(0, 0, 49),
-		AllSaints:          pascha.AddDate(0, 0, 56),
+		AllSaints:          allSaints,
+		ApostlesStart:      apostlesStart,
+		ApostlesEnd:        time.Date(year, time.June, 28, 0, 0, 0, 0, time.UTC),
 	}
 }
 
 // GetOctoechosTone calculates the Ήχος (Tone) of the week for any date.
-// The Octoechos cycle restarts on Thomas Sunday as Tone 1 (Ήχος Α').
 func GetOctoechosTone(date time.Time) string {
 	pascha := CalculateOrthodoxEaster(date.Year())
 	thomasSunday := pascha.AddDate(0, 0, 7)
 
-	// If date is before Thomas Sunday of current year, use previous year's cycle if before Pascha
-	if date.Before(pascha) {
-		// During Great Lent and Holy Week, services use special Triodion tones
-		return "Ήχος Τριωδίου"
-	}
-	if date.Equal(pascha) || (date.After(pascha) && date.Before(thomasSunday)) {
+	// Bright Week (Pascha to Thomas Sunday): Tone 1 Διακαινήσιμος
+	if (date.After(pascha) || date.Equal(pascha)) && date.Before(thomasSunday) {
 		return "Ήχος Α' (Διακαινήσιμος)"
 	}
 
-	// Calculate weeks elapsed since Thomas Sunday
-	diffDays := int(date.Sub(thomasSunday).Hours() / 24)
-	weeks := diffDays / 7
-	toneIdx := (weeks % 8) + 1
+	// After Thomas Sunday: compute from this year's Thomas Sunday
+	if !date.Before(thomasSunday) {
+		diffDays := int(date.Sub(thomasSunday).Hours() / 24)
+		weeks := diffDays / 7
+		toneIdx := (weeks % 8) + 1
+		return toneFromIndex(toneIdx)
+	}
 
+	// Before Pascha: use previous year's Octoechos cycle
+	// Find previous year's Thomas Sunday
+	paschaPrev := CalculateOrthodoxEaster(date.Year() - 1)
+	thomasPrev := paschaPrev.AddDate(0, 0, 7)
+
+	// If we're after previous year's Thomas Sunday, compute from there
+	if !date.Before(thomasPrev) {
+		diffDays := int(date.Sub(thomasPrev).Hours() / 24)
+		weeks := diffDays / 7
+		toneIdx := (weeks % 8) + 1
+		return toneFromIndex(toneIdx)
+	}
+
+	// Before previous Thomas Sunday (very rare — Sept-Oct of year before Pascha)
+	// Use Tone 8 as fallback (previous cycle would have ended)
+	return "Ήχος Πλ. Δ'"
+}
+
+func toneFromIndex(idx int) string {
 	tones := []string{
 		"Ήχος Α'",
 		"Ήχος Β'",
@@ -95,8 +122,8 @@ func GetOctoechosTone(date time.Time) string {
 		"Ήχος Βαρύς",
 		"Ήχος Πλ. Δ'",
 	}
-	if toneIdx >= 1 && toneIdx <= 8 {
-		return tones[toneIdx-1]
+	if idx >= 1 && idx <= 8 {
+		return tones[idx-1]
 	}
 	return "Ήχος Α'"
 }
@@ -111,6 +138,8 @@ func GetLiturgicalPeriod(date time.Time) (period string, movableName string) {
 	pascha := time.Date(movable.Pascha.Year(), movable.Pascha.Month(), movable.Pascha.Day(), 0, 0, 0, 0, time.UTC)
 	pentecost := time.Date(movable.Pentecost.Year(), movable.Pentecost.Month(), movable.Pentecost.Day(), 0, 0, 0, 0, time.UTC)
 	allSaints := time.Date(movable.AllSaints.Year(), movable.AllSaints.Month(), movable.AllSaints.Day(), 0, 0, 0, 0, time.UTC)
+	apostlesStart := time.Date(movable.ApostlesStart.Year(), movable.ApostlesStart.Month(), movable.ApostlesStart.Day(), 0, 0, 0, 0, time.UTC)
+	apostlesEnd := time.Date(movable.ApostlesEnd.Year(), movable.ApostlesEnd.Month(), movable.ApostlesEnd.Day(), 0, 0, 0, 0, time.UTC)
 
 	if d.Equal(pascha) {
 		return "Πεντηκοστάριον", "Η ΑΓΙΑ ΚΑΙ ΜΕΓΑΛΗ ΚΥΡΙΑΚΗ ΤΟΥ ΠΑΣΧΑ"
@@ -128,10 +157,19 @@ func GetLiturgicalPeriod(date time.Time) (period string, movableName string) {
 		return "Πεντηκοστάριον", "Εβδομάς του Αγίου Πνεύματος"
 	}
 
-	// Standard Octoechos / Menologion period
+	// Apostles' Fast (Monday after All Saints to 28 June)
+	if (d.After(apostlesStart) || d.Equal(apostlesStart)) && (d.Before(apostlesEnd) || d.Equal(apostlesEnd)) {
+		return "Απόστολική Νηστεία", "Νηστεία Αγίων Αποστόλων"
+	}
+
+	// Standard Octoechos / Menologion period (after Apostles' Fast end to before Triodion)
+	// Week counter capped at 19 (Matthean cycle) then restarts for Lukan
 	diffFromAllSaints := int(d.Sub(allSaints).Hours() / 24)
 	if diffFromAllSaints > 0 {
 		weekNum := (diffFromAllSaints / 7) + 1
+		if weekNum > 34 {
+			weekNum = 34 // Cap at reasonable max
+		}
 		return "Οκτώηχος & Μηναίον", fmt.Sprintf("%dη Εβδομάδα Ματθαίου/Λουκά", weekNum)
 	}
 
@@ -147,13 +185,26 @@ func CalculateFastingRule(date time.Time) FastingType {
 	pascha := time.Date(movable.Pascha.Year(), movable.Pascha.Month(), movable.Pascha.Day(), 0, 0, 0, 0, time.UTC)
 	brightWeekEnd := pascha.AddDate(0, 0, 7)
 	cleanMonday := time.Date(movable.CleanMonday.Year(), movable.CleanMonday.Month(), movable.CleanMonday.Day(), 0, 0, 0, 0, time.UTC)
+	cheesefareSunday := time.Date(movable.CheesefareSunday.Year(), movable.CheesefareSunday.Month(), movable.CheesefareSunday.Day(), 0, 0, 0, 0, time.UTC)
+	meafareSunday := time.Date(movable.MeatfareSunday.Year(), movable.MeatfareSunday.Month(), movable.MeatfareSunday.Day(), 0, 0, 0, 0, time.UTC)
+	apostlesStart := time.Date(movable.ApostlesStart.Year(), movable.ApostlesStart.Month(), movable.ApostlesStart.Day(), 0, 0, 0, 0, time.UTC)
+	apostlesEnd := time.Date(movable.ApostlesEnd.Year(), movable.ApostlesEnd.Month(), movable.ApostlesEnd.Day(), 0, 0, 0, 0, time.UTC)
 
-	// Bright Week (Διακαινήσιμος): Fast-free completely
+	// Bright Week: Fast-free completely
 	if (d.After(pascha) || d.Equal(pascha)) && d.Before(brightWeekEnd) {
 		return FastNone
 	}
 
-	// Great Lent (Μεγάλη Τεσσαρακοστή)
+	// Cheesefare Week (Meatfare Sunday to Clean Monday): Dairy/eggs allowed, no meat
+	if (d.After(meafareSunday) || d.Equal(meafareSunday)) && d.Before(cleanMonday) {
+		if d.Equal(cheesefareSunday) {
+			return FastDairy // Cheesefare Sunday itself
+		}
+		// Weekdays in Cheesefare Week: dairy allowed
+		return FastDairy
+	}
+
+	// Great Lent (Clean Monday to Pascha)
 	if (d.After(cleanMonday) || d.Equal(cleanMonday)) && d.Before(pascha) {
 		// Annunciation (25 March) and Palm Sunday allow Fish
 		if (date.Month() == 3 && date.Day() == 25) || d.Equal(time.Date(movable.PalmSunday.Year(), movable.PalmSunday.Month(), movable.PalmSunday.Day(), 0, 0, 0, 0, time.UTC)) {
@@ -164,6 +215,15 @@ func CalculateFastingRule(date time.Time) FastingType {
 			return FastWineOil
 		}
 		return FastStrict
+	}
+
+	// Apostles' Fast (Monday after All Saints to 28 June)
+	if (d.After(apostlesStart) || d.Equal(apostlesStart)) && (d.Before(apostlesEnd) || d.Equal(apostlesEnd)) {
+		// Fish allowed on weekends and feast days
+		if weekday == time.Saturday || weekday == time.Sunday {
+			return FastFish
+		}
+		return FastWineOil
 	}
 
 	// Dormition Fast (1 - 14 August)
@@ -197,6 +257,16 @@ func CalculateFastingRule(date time.Time) FastingType {
 	// After Nativity to Theophany Eve (25 Dec - 4 Jan): Fast-free
 	if (date.Month() == 12 && date.Day() >= 25) || (date.Month() == 1 && date.Day() <= 4) {
 		return FastNone
+	}
+
+	// Eve of Theophany (5 January): Strict fast
+	if date.Month() == 1 && date.Day() == 5 {
+		return FastStrict
+	}
+
+	// Exaltation of the Cross (14 September): Strict fast
+	if date.Month() == 9 && date.Day() == 14 {
+		return FastStrict
 	}
 
 	// Standard Wednesday & Friday fasts

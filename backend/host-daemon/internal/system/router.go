@@ -119,4 +119,76 @@ func RegisterRoutes(mux *http.ServeMux) {
 			"categories": categories,
 		})
 	})
+
+	mux.HandleFunc("/api/v1/system/presets", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.Method == http.MethodGet {
+			presets, err := GetAllPresets()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"presets": presets,
+			})
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			var payload struct {
+				Name    string                 `json:"name"`
+				Data    map[string]interface{} `json:"data"`
+				Presets map[string]interface{} `json:"presets"`
+			}
+
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+				return
+			}
+
+			// Batch presets backup
+			if len(payload.Presets) > 0 {
+				for name, pData := range payload.Presets {
+					if mapData, ok := pData.(map[string]interface{}); ok {
+						_ = SavePreset(name, mapData)
+					}
+				}
+				json.NewEncoder(w).Encode(map[string]string{"status": "success", "message": "Presets synced to cloud"})
+				return
+			}
+
+			// Single preset save
+			if payload.Name == "" || payload.Data == nil {
+				http.Error(w, "Missing name or data", http.StatusBadRequest)
+				return
+			}
+
+			if err := SavePreset(payload.Name, payload.Data); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			json.NewEncoder(w).Encode(map[string]string{"status": "success", "message": "Preset saved"})
+			return
+		}
+
+		if r.Method == http.MethodDelete {
+			name := r.URL.Query().Get("name")
+			if name == "" {
+				http.Error(w, "Missing name query parameter", http.StatusBadRequest)
+				return
+			}
+
+			if err := DeletePreset(name); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			json.NewEncoder(w).Encode(map[string]string{"status": "success", "message": "Preset deleted"})
+			return
+		}
+
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	})
 }

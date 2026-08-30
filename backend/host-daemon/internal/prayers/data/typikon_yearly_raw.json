@@ -1,0 +1,5849 @@
+{
+  "year": 2026,
+  "generated_at": "2026-08-30T18:43:32.049533",
+  "pascha": "2026-04-12",
+  "clean_monday": "2026-02-23",
+  "pentecost": "2026-05-31",
+  "days": {
+    "2026-01-01": {
+      "date": "2026-01-01",
+      "mm_dd": "01-01",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-02": {
+      "date": "2026-01-02",
+      "mm_dd": "01-02",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-03": {
+      "date": "2026-01-03",
+      "mm_dd": "01-03",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-04": {
+      "date": "2026-01-04",
+      "mm_dd": "01-04",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-01-05": {
+      "date": "2026-01-05",
+      "mm_dd": "01-05",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-06": {
+      "date": "2026-01-06",
+      "mm_dd": "01-06",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-07": {
+      "date": "2026-01-07",
+      "mm_dd": "01-07",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-08": {
+      "date": "2026-01-08",
+      "mm_dd": "01-08",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-09": {
+      "date": "2026-01-09",
+      "mm_dd": "01-09",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-10": {
+      "date": "2026-01-10",
+      "mm_dd": "01-10",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-11": {
+      "date": "2026-01-11",
+      "mm_dd": "01-11",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-01-12": {
+      "date": "2026-01-12",
+      "mm_dd": "01-12",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-13": {
+      "date": "2026-01-13",
+      "mm_dd": "01-13",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-14": {
+      "date": "2026-01-14",
+      "mm_dd": "01-14",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theophany",
+        "name": "Καταβασίαι των Θεοφανείων («Βυθού ανεκάλυψε»)",
+        "tone": "Ήχος Β'",
+        "period": "Θεοφάνεια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-15": {
+      "date": "2026-01-15",
+      "mm_dd": "01-15",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-16": {
+      "date": "2026-01-16",
+      "mm_dd": "01-16",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-17": {
+      "date": "2026-01-17",
+      "mm_dd": "01-17",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-18": {
+      "date": "2026-01-18",
+      "mm_dd": "01-18",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-01-19": {
+      "date": "2026-01-19",
+      "mm_dd": "01-19",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-20": {
+      "date": "2026-01-20",
+      "mm_dd": "01-20",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-21": {
+      "date": "2026-01-21",
+      "mm_dd": "01-21",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-22": {
+      "date": "2026-01-22",
+      "mm_dd": "01-22",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-23": {
+      "date": "2026-01-23",
+      "mm_dd": "01-23",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-24": {
+      "date": "2026-01-24",
+      "mm_dd": "01-24",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-25": {
+      "date": "2026-01-25",
+      "mm_dd": "01-25",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-01-26": {
+      "date": "2026-01-26",
+      "mm_dd": "01-26",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-27": {
+      "date": "2026-01-27",
+      "mm_dd": "01-27",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-28": {
+      "date": "2026-01-28",
+      "mm_dd": "01-28",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-29": {
+      "date": "2026-01-29",
+      "mm_dd": "01-29",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-01-30": {
+      "date": "2026-01-30",
+      "mm_dd": "01-30",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-01-31": {
+      "date": "2026-01-31",
+      "mm_dd": "01-31",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-01": {
+      "date": "2026-02-01",
+      "mm_dd": "02-01",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-02-02": {
+      "date": "2026-02-02",
+      "mm_dd": "02-02",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-03": {
+      "date": "2026-02-03",
+      "mm_dd": "02-03",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-04": {
+      "date": "2026-02-04",
+      "mm_dd": "02-04",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-05": {
+      "date": "2026-02-05",
+      "mm_dd": "02-05",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-06": {
+      "date": "2026-02-06",
+      "mm_dd": "02-06",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-07": {
+      "date": "2026-02-07",
+      "mm_dd": "02-07",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-08": {
+      "date": "2026-02-08",
+      "mm_dd": "02-08",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-02-09": {
+      "date": "2026-02-09",
+      "mm_dd": "02-09",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "hypapante",
+        "name": "Καταβασίαι της Υπαπαντής («Χέρσον αβυσσοτόκον»)",
+        "tone": "Ήχος Γ'",
+        "period": "Υπαπαντή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-10": {
+      "date": "2026-02-10",
+      "mm_dd": "02-10",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-11": {
+      "date": "2026-02-11",
+      "mm_dd": "02-11",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-12": {
+      "date": "2026-02-12",
+      "mm_dd": "02-12",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-13": {
+      "date": "2026-02-13",
+      "mm_dd": "02-13",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-14": {
+      "date": "2026-02-14",
+      "mm_dd": "02-14",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-02-15": {
+      "date": "2026-02-15",
+      "mm_dd": "02-15",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-02-16": {
+      "date": "2026-02-16",
+      "mm_dd": "02-16",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-17": {
+      "date": "2026-02-17",
+      "mm_dd": "02-17",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-18": {
+      "date": "2026-02-18",
+      "mm_dd": "02-18",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-19": {
+      "date": "2026-02-19",
+      "mm_dd": "02-19",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-20": {
+      "date": "2026-02-20",
+      "mm_dd": "02-20",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-21": {
+      "date": "2026-02-21",
+      "mm_dd": "02-21",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": false
+    },
+    "2026-02-22": {
+      "date": "2026-02-22",
+      "mm_dd": "02-22",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Τυρού και Ωών",
+      "is_sunday": true
+    },
+    "2026-02-23": {
+      "date": "2026-02-23",
+      "mm_dd": "02-23",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-24": {
+      "date": "2026-02-24",
+      "mm_dd": "02-24",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-25": {
+      "date": "2026-02-25",
+      "mm_dd": "02-25",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-26": {
+      "date": "2026-02-26",
+      "mm_dd": "02-26",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-27": {
+      "date": "2026-02-27",
+      "mm_dd": "02-27",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-02-28": {
+      "date": "2026-02-28",
+      "mm_dd": "02-28",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-03-01": {
+      "date": "2026-03-01",
+      "mm_dd": "03-01",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-03-02": {
+      "date": "2026-03-02",
+      "mm_dd": "03-02",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-03": {
+      "date": "2026-03-03",
+      "mm_dd": "03-03",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-04": {
+      "date": "2026-03-04",
+      "mm_dd": "03-04",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-05": {
+      "date": "2026-03-05",
+      "mm_dd": "03-05",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-06": {
+      "date": "2026-03-06",
+      "mm_dd": "03-06",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-07": {
+      "date": "2026-03-07",
+      "mm_dd": "03-07",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-03-08": {
+      "date": "2026-03-08",
+      "mm_dd": "03-08",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-03-09": {
+      "date": "2026-03-09",
+      "mm_dd": "03-09",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-10": {
+      "date": "2026-03-10",
+      "mm_dd": "03-10",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-11": {
+      "date": "2026-03-11",
+      "mm_dd": "03-11",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-12": {
+      "date": "2026-03-12",
+      "mm_dd": "03-12",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-13": {
+      "date": "2026-03-13",
+      "mm_dd": "03-13",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-14": {
+      "date": "2026-03-14",
+      "mm_dd": "03-14",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-03-15": {
+      "date": "2026-03-15",
+      "mm_dd": "03-15",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-03-16": {
+      "date": "2026-03-16",
+      "mm_dd": "03-16",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-17": {
+      "date": "2026-03-17",
+      "mm_dd": "03-17",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-18": {
+      "date": "2026-03-18",
+      "mm_dd": "03-18",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-19": {
+      "date": "2026-03-19",
+      "mm_dd": "03-19",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-20": {
+      "date": "2026-03-20",
+      "mm_dd": "03-20",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-21": {
+      "date": "2026-03-21",
+      "mm_dd": "03-21",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-03-22": {
+      "date": "2026-03-22",
+      "mm_dd": "03-22",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-03-23": {
+      "date": "2026-03-23",
+      "mm_dd": "03-23",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-24": {
+      "date": "2026-03-24",
+      "mm_dd": "03-24",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-25": {
+      "date": "2026-03-25",
+      "mm_dd": "03-25",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Ιχθύος",
+      "is_sunday": false
+    },
+    "2026-03-26": {
+      "date": "2026-03-26",
+      "mm_dd": "03-26",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-27": {
+      "date": "2026-03-27",
+      "mm_dd": "03-27",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-28": {
+      "date": "2026-03-28",
+      "mm_dd": "03-28",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-03-29": {
+      "date": "2026-03-29",
+      "mm_dd": "03-29",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-03-30": {
+      "date": "2026-03-30",
+      "mm_dd": "03-30",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-03-31": {
+      "date": "2026-03-31",
+      "mm_dd": "03-31",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-01": {
+      "date": "2026-04-01",
+      "mm_dd": "04-01",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-02": {
+      "date": "2026-04-02",
+      "mm_dd": "04-02",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-03": {
+      "date": "2026-04-03",
+      "mm_dd": "04-03",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-04": {
+      "date": "2026-04-04",
+      "mm_dd": "04-04",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-04-05": {
+      "date": "2026-04-05",
+      "mm_dd": "04-05",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-04-06": {
+      "date": "2026-04-06",
+      "mm_dd": "04-06",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-07": {
+      "date": "2026-04-07",
+      "mm_dd": "04-07",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-08": {
+      "date": "2026-04-08",
+      "mm_dd": "04-08",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-09": {
+      "date": "2026-04-09",
+      "mm_dd": "04-09",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-10": {
+      "date": "2026-04-10",
+      "mm_dd": "04-10",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-11": {
+      "date": "2026-04-11",
+      "mm_dd": "04-11",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-04-12": {
+      "date": "2026-04-12",
+      "mm_dd": "04-12",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-04-13": {
+      "date": "2026-04-13",
+      "mm_dd": "04-13",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-14": {
+      "date": "2026-04-14",
+      "mm_dd": "04-14",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-15": {
+      "date": "2026-04-15",
+      "mm_dd": "04-15",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-16": {
+      "date": "2026-04-16",
+      "mm_dd": "04-16",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-17": {
+      "date": "2026-04-17",
+      "mm_dd": "04-17",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-18": {
+      "date": "2026-04-18",
+      "mm_dd": "04-18",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α' (Διακαινήσιμος)",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-19": {
+      "date": "2026-04-19",
+      "mm_dd": "04-19",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-04-20": {
+      "date": "2026-04-20",
+      "mm_dd": "04-20",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-21": {
+      "date": "2026-04-21",
+      "mm_dd": "04-21",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-22": {
+      "date": "2026-04-22",
+      "mm_dd": "04-22",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-23": {
+      "date": "2026-04-23",
+      "mm_dd": "04-23",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-24": {
+      "date": "2026-04-24",
+      "mm_dd": "04-24",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-25": {
+      "date": "2026-04-25",
+      "mm_dd": "04-25",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-26": {
+      "date": "2026-04-26",
+      "mm_dd": "04-26",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-04-27": {
+      "date": "2026-04-27",
+      "mm_dd": "04-27",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-28": {
+      "date": "2026-04-28",
+      "mm_dd": "04-28",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-04-29": {
+      "date": "2026-04-29",
+      "mm_dd": "04-29",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-04-30": {
+      "date": "2026-04-30",
+      "mm_dd": "04-30",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-01": {
+      "date": "2026-05-01",
+      "mm_dd": "05-01",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-02": {
+      "date": "2026-05-02",
+      "mm_dd": "05-02",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-03": {
+      "date": "2026-05-03",
+      "mm_dd": "05-03",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-05-04": {
+      "date": "2026-05-04",
+      "mm_dd": "05-04",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-05": {
+      "date": "2026-05-05",
+      "mm_dd": "05-05",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-06": {
+      "date": "2026-05-06",
+      "mm_dd": "05-06",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-07": {
+      "date": "2026-05-07",
+      "mm_dd": "05-07",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-08": {
+      "date": "2026-05-08",
+      "mm_dd": "05-08",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-09": {
+      "date": "2026-05-09",
+      "mm_dd": "05-09",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-10": {
+      "date": "2026-05-10",
+      "mm_dd": "05-10",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-05-11": {
+      "date": "2026-05-11",
+      "mm_dd": "05-11",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-12": {
+      "date": "2026-05-12",
+      "mm_dd": "05-12",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-13": {
+      "date": "2026-05-13",
+      "mm_dd": "05-13",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-14": {
+      "date": "2026-05-14",
+      "mm_dd": "05-14",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-15": {
+      "date": "2026-05-15",
+      "mm_dd": "05-15",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-16": {
+      "date": "2026-05-16",
+      "mm_dd": "05-16",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-17": {
+      "date": "2026-05-17",
+      "mm_dd": "05-17",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-05-18": {
+      "date": "2026-05-18",
+      "mm_dd": "05-18",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-19": {
+      "date": "2026-05-19",
+      "mm_dd": "05-19",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-20": {
+      "date": "2026-05-20",
+      "mm_dd": "05-20",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "pascha",
+        "name": "Καταβασίαι του Πάσχα («Αναστάσεως ημέρα»)",
+        "tone": "Ήχος Α'",
+        "period": "Διακαινήσιμος & Πασχάλιος Περίοδος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-21": {
+      "date": "2026-05-21",
+      "mm_dd": "05-21",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-22": {
+      "date": "2026-05-22",
+      "mm_dd": "05-22",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-23": {
+      "date": "2026-05-23",
+      "mm_dd": "05-23",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-24": {
+      "date": "2026-05-24",
+      "mm_dd": "05-24",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-05-25": {
+      "date": "2026-05-25",
+      "mm_dd": "05-25",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-26": {
+      "date": "2026-05-26",
+      "mm_dd": "05-26",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-27": {
+      "date": "2026-05-27",
+      "mm_dd": "05-27",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-28": {
+      "date": "2026-05-28",
+      "mm_dd": "05-28",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-29": {
+      "date": "2026-05-29",
+      "mm_dd": "05-29",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-05-30": {
+      "date": "2026-05-30",
+      "mm_dd": "05-30",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "ascension_pentecost",
+        "name": "Καταβασίαι της Αναλήψεως («Θείω καλυφθείς»)",
+        "tone": "Ήχος Δ'",
+        "period": "Ανάληψις & Πεντηκοστή"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-05-31": {
+      "date": "2026-05-31",
+      "mm_dd": "05-31",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-06-01": {
+      "date": "2026-06-01",
+      "mm_dd": "06-01",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-02": {
+      "date": "2026-06-02",
+      "mm_dd": "06-02",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-03": {
+      "date": "2026-06-03",
+      "mm_dd": "06-03",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-04": {
+      "date": "2026-06-04",
+      "mm_dd": "06-04",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-05": {
+      "date": "2026-06-05",
+      "mm_dd": "06-05",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-06": {
+      "date": "2026-06-06",
+      "mm_dd": "06-06",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-07": {
+      "date": "2026-06-07",
+      "mm_dd": "06-07",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "pentecost",
+        "name": "Καταβασίαι της Πεντηκοστής («Πόντω εκάλυψε»)",
+        "tone": "Ήχος Δ'",
+        "period": "Εβδομάς Αγίου Πνεύματος"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-06-08": {
+      "date": "2026-06-08",
+      "mm_dd": "06-08",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-09": {
+      "date": "2026-06-09",
+      "mm_dd": "06-09",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-10": {
+      "date": "2026-06-10",
+      "mm_dd": "06-10",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-11": {
+      "date": "2026-06-11",
+      "mm_dd": "06-11",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-12": {
+      "date": "2026-06-12",
+      "mm_dd": "06-12",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-13": {
+      "date": "2026-06-13",
+      "mm_dd": "06-13",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-14": {
+      "date": "2026-06-14",
+      "mm_dd": "06-14",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-06-15": {
+      "date": "2026-06-15",
+      "mm_dd": "06-15",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-16": {
+      "date": "2026-06-16",
+      "mm_dd": "06-16",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-17": {
+      "date": "2026-06-17",
+      "mm_dd": "06-17",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-18": {
+      "date": "2026-06-18",
+      "mm_dd": "06-18",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-19": {
+      "date": "2026-06-19",
+      "mm_dd": "06-19",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-20": {
+      "date": "2026-06-20",
+      "mm_dd": "06-20",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-21": {
+      "date": "2026-06-21",
+      "mm_dd": "06-21",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-06-22": {
+      "date": "2026-06-22",
+      "mm_dd": "06-22",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-23": {
+      "date": "2026-06-23",
+      "mm_dd": "06-23",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-24": {
+      "date": "2026-06-24",
+      "mm_dd": "06-24",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-25": {
+      "date": "2026-06-25",
+      "mm_dd": "06-25",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-26": {
+      "date": "2026-06-26",
+      "mm_dd": "06-26",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-06-27": {
+      "date": "2026-06-27",
+      "mm_dd": "06-27",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-28": {
+      "date": "2026-06-28",
+      "mm_dd": "06-28",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-06-29": {
+      "date": "2026-06-29",
+      "mm_dd": "06-29",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-06-30": {
+      "date": "2026-06-30",
+      "mm_dd": "06-30",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-01": {
+      "date": "2026-07-01",
+      "mm_dd": "07-01",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-02": {
+      "date": "2026-07-02",
+      "mm_dd": "07-02",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-03": {
+      "date": "2026-07-03",
+      "mm_dd": "07-03",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-04": {
+      "date": "2026-07-04",
+      "mm_dd": "07-04",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-05": {
+      "date": "2026-07-05",
+      "mm_dd": "07-05",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-07-06": {
+      "date": "2026-07-06",
+      "mm_dd": "07-06",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-07": {
+      "date": "2026-07-07",
+      "mm_dd": "07-07",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-08": {
+      "date": "2026-07-08",
+      "mm_dd": "07-08",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-09": {
+      "date": "2026-07-09",
+      "mm_dd": "07-09",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-10": {
+      "date": "2026-07-10",
+      "mm_dd": "07-10",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-11": {
+      "date": "2026-07-11",
+      "mm_dd": "07-11",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-12": {
+      "date": "2026-07-12",
+      "mm_dd": "07-12",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-07-13": {
+      "date": "2026-07-13",
+      "mm_dd": "07-13",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-14": {
+      "date": "2026-07-14",
+      "mm_dd": "07-14",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-15": {
+      "date": "2026-07-15",
+      "mm_dd": "07-15",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-16": {
+      "date": "2026-07-16",
+      "mm_dd": "07-16",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-17": {
+      "date": "2026-07-17",
+      "mm_dd": "07-17",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-18": {
+      "date": "2026-07-18",
+      "mm_dd": "07-18",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-19": {
+      "date": "2026-07-19",
+      "mm_dd": "07-19",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-07-20": {
+      "date": "2026-07-20",
+      "mm_dd": "07-20",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-21": {
+      "date": "2026-07-21",
+      "mm_dd": "07-21",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-22": {
+      "date": "2026-07-22",
+      "mm_dd": "07-22",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-23": {
+      "date": "2026-07-23",
+      "mm_dd": "07-23",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-24": {
+      "date": "2026-07-24",
+      "mm_dd": "07-24",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-25": {
+      "date": "2026-07-25",
+      "mm_dd": "07-25",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-26": {
+      "date": "2026-07-26",
+      "mm_dd": "07-26",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-07-27": {
+      "date": "2026-07-27",
+      "mm_dd": "07-27",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-28": {
+      "date": "2026-07-28",
+      "mm_dd": "07-28",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-29": {
+      "date": "2026-07-29",
+      "mm_dd": "07-29",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-07-30": {
+      "date": "2026-07-30",
+      "mm_dd": "07-30",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-07-31": {
+      "date": "2026-07-31",
+      "mm_dd": "07-31",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-01": {
+      "date": "2026-08-01",
+      "mm_dd": "08-01",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-08-02": {
+      "date": "2026-08-02",
+      "mm_dd": "08-02",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-08-03": {
+      "date": "2026-08-03",
+      "mm_dd": "08-03",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-04": {
+      "date": "2026-08-04",
+      "mm_dd": "08-04",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-05": {
+      "date": "2026-08-05",
+      "mm_dd": "08-05",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-06": {
+      "date": "2026-08-06",
+      "mm_dd": "08-06",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Κατάλυσις Ιχθύος",
+      "is_sunday": false
+    },
+    "2026-08-07": {
+      "date": "2026-08-07",
+      "mm_dd": "08-07",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-08": {
+      "date": "2026-08-08",
+      "mm_dd": "08-08",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": false
+    },
+    "2026-08-09": {
+      "date": "2026-08-09",
+      "mm_dd": "08-09",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Κατάλυσις Οίνου και Ελαίου",
+      "is_sunday": true
+    },
+    "2026-08-10": {
+      "date": "2026-08-10",
+      "mm_dd": "08-10",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-11": {
+      "date": "2026-08-11",
+      "mm_dd": "08-11",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-12": {
+      "date": "2026-08-12",
+      "mm_dd": "08-12",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-13": {
+      "date": "2026-08-13",
+      "mm_dd": "08-13",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-14": {
+      "date": "2026-08-14",
+      "mm_dd": "08-14",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-15": {
+      "date": "2026-08-15",
+      "mm_dd": "08-15",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-16": {
+      "date": "2026-08-16",
+      "mm_dd": "08-16",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-08-17": {
+      "date": "2026-08-17",
+      "mm_dd": "08-17",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-18": {
+      "date": "2026-08-18",
+      "mm_dd": "08-18",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-19": {
+      "date": "2026-08-19",
+      "mm_dd": "08-19",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-20": {
+      "date": "2026-08-20",
+      "mm_dd": "08-20",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-21": {
+      "date": "2026-08-21",
+      "mm_dd": "08-21",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-22": {
+      "date": "2026-08-22",
+      "mm_dd": "08-22",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-23": {
+      "date": "2026-08-23",
+      "mm_dd": "08-23",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-08-24": {
+      "date": "2026-08-24",
+      "mm_dd": "08-24",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-25": {
+      "date": "2026-08-25",
+      "mm_dd": "08-25",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-26": {
+      "date": "2026-08-26",
+      "mm_dd": "08-26",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-27": {
+      "date": "2026-08-27",
+      "mm_dd": "08-27",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-08-28": {
+      "date": "2026-08-28",
+      "mm_dd": "08-28",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-29": {
+      "date": "2026-08-29",
+      "mm_dd": "08-29",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-08-30": {
+      "date": "2026-08-30",
+      "mm_dd": "08-30",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-08-31": {
+      "date": "2026-08-31",
+      "mm_dd": "08-31",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-01": {
+      "date": "2026-09-01",
+      "mm_dd": "09-01",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-02": {
+      "date": "2026-09-02",
+      "mm_dd": "09-02",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-03": {
+      "date": "2026-09-03",
+      "mm_dd": "09-03",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-04": {
+      "date": "2026-09-04",
+      "mm_dd": "09-04",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-05": {
+      "date": "2026-09-05",
+      "mm_dd": "09-05",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-06": {
+      "date": "2026-09-06",
+      "mm_dd": "09-06",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-09-07": {
+      "date": "2026-09-07",
+      "mm_dd": "09-07",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-08": {
+      "date": "2026-09-08",
+      "mm_dd": "09-08",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-09": {
+      "date": "2026-09-09",
+      "mm_dd": "09-09",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-10": {
+      "date": "2026-09-10",
+      "mm_dd": "09-10",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-11": {
+      "date": "2026-09-11",
+      "mm_dd": "09-11",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-12": {
+      "date": "2026-09-12",
+      "mm_dd": "09-12",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-13": {
+      "date": "2026-09-13",
+      "mm_dd": "09-13",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-09-14": {
+      "date": "2026-09-14",
+      "mm_dd": "09-14",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-15": {
+      "date": "2026-09-15",
+      "mm_dd": "09-15",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-16": {
+      "date": "2026-09-16",
+      "mm_dd": "09-16",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-17": {
+      "date": "2026-09-17",
+      "mm_dd": "09-17",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-18": {
+      "date": "2026-09-18",
+      "mm_dd": "09-18",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-19": {
+      "date": "2026-09-19",
+      "mm_dd": "09-19",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-20": {
+      "date": "2026-09-20",
+      "mm_dd": "09-20",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-09-21": {
+      "date": "2026-09-21",
+      "mm_dd": "09-21",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "holy_cross",
+        "name": "Καταβασίαι του Τιμίου Σταυρού («Σταυρόν χαράξας»)",
+        "tone": "Ήχος Πλ. Δ'",
+        "period": "Ύψωσις Τιμίου Σταυρού"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-22": {
+      "date": "2026-09-22",
+      "mm_dd": "09-22",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-23": {
+      "date": "2026-09-23",
+      "mm_dd": "09-23",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-24": {
+      "date": "2026-09-24",
+      "mm_dd": "09-24",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-25": {
+      "date": "2026-09-25",
+      "mm_dd": "09-25",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-09-26": {
+      "date": "2026-09-26",
+      "mm_dd": "09-26",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-27": {
+      "date": "2026-09-27",
+      "mm_dd": "09-27",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-09-28": {
+      "date": "2026-09-28",
+      "mm_dd": "09-28",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-29": {
+      "date": "2026-09-29",
+      "mm_dd": "09-29",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-09-30": {
+      "date": "2026-09-30",
+      "mm_dd": "09-30",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-01": {
+      "date": "2026-10-01",
+      "mm_dd": "10-01",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-02": {
+      "date": "2026-10-02",
+      "mm_dd": "10-02",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-03": {
+      "date": "2026-10-03",
+      "mm_dd": "10-03",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-04": {
+      "date": "2026-10-04",
+      "mm_dd": "10-04",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-10-05": {
+      "date": "2026-10-05",
+      "mm_dd": "10-05",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-06": {
+      "date": "2026-10-06",
+      "mm_dd": "10-06",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-07": {
+      "date": "2026-10-07",
+      "mm_dd": "10-07",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-08": {
+      "date": "2026-10-08",
+      "mm_dd": "10-08",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-09": {
+      "date": "2026-10-09",
+      "mm_dd": "10-09",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-10": {
+      "date": "2026-10-10",
+      "mm_dd": "10-10",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-11": {
+      "date": "2026-10-11",
+      "mm_dd": "10-11",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-10-12": {
+      "date": "2026-10-12",
+      "mm_dd": "10-12",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-13": {
+      "date": "2026-10-13",
+      "mm_dd": "10-13",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-14": {
+      "date": "2026-10-14",
+      "mm_dd": "10-14",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-15": {
+      "date": "2026-10-15",
+      "mm_dd": "10-15",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-16": {
+      "date": "2026-10-16",
+      "mm_dd": "10-16",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-17": {
+      "date": "2026-10-17",
+      "mm_dd": "10-17",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-18": {
+      "date": "2026-10-18",
+      "mm_dd": "10-18",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-10-19": {
+      "date": "2026-10-19",
+      "mm_dd": "10-19",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-20": {
+      "date": "2026-10-20",
+      "mm_dd": "10-20",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-21": {
+      "date": "2026-10-21",
+      "mm_dd": "10-21",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-22": {
+      "date": "2026-10-22",
+      "mm_dd": "10-22",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-23": {
+      "date": "2026-10-23",
+      "mm_dd": "10-23",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-24": {
+      "date": "2026-10-24",
+      "mm_dd": "10-24",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-25": {
+      "date": "2026-10-25",
+      "mm_dd": "10-25",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-10-26": {
+      "date": "2026-10-26",
+      "mm_dd": "10-26",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-27": {
+      "date": "2026-10-27",
+      "mm_dd": "10-27",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-28": {
+      "date": "2026-10-28",
+      "mm_dd": "10-28",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-29": {
+      "date": "2026-10-29",
+      "mm_dd": "10-29",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-10-30": {
+      "date": "2026-10-30",
+      "mm_dd": "10-30",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-10-31": {
+      "date": "2026-10-31",
+      "mm_dd": "10-31",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-01": {
+      "date": "2026-11-01",
+      "mm_dd": "11-01",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-11-02": {
+      "date": "2026-11-02",
+      "mm_dd": "11-02",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-03": {
+      "date": "2026-11-03",
+      "mm_dd": "11-03",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-04": {
+      "date": "2026-11-04",
+      "mm_dd": "11-04",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-05": {
+      "date": "2026-11-05",
+      "mm_dd": "11-05",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-06": {
+      "date": "2026-11-06",
+      "mm_dd": "11-06",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-07": {
+      "date": "2026-11-07",
+      "mm_dd": "11-07",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-08": {
+      "date": "2026-11-08",
+      "mm_dd": "11-08",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-11-09": {
+      "date": "2026-11-09",
+      "mm_dd": "11-09",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-10": {
+      "date": "2026-11-10",
+      "mm_dd": "11-10",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-11": {
+      "date": "2026-11-11",
+      "mm_dd": "11-11",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-12": {
+      "date": "2026-11-12",
+      "mm_dd": "11-12",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-13": {
+      "date": "2026-11-13",
+      "mm_dd": "11-13",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-14": {
+      "date": "2026-11-14",
+      "mm_dd": "11-14",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Β'",
+      "tone_num": 6,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-15": {
+      "date": "2026-11-15",
+      "mm_dd": "11-15",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-11-16": {
+      "date": "2026-11-16",
+      "mm_dd": "11-16",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-17": {
+      "date": "2026-11-17",
+      "mm_dd": "11-17",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-18": {
+      "date": "2026-11-18",
+      "mm_dd": "11-18",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-19": {
+      "date": "2026-11-19",
+      "mm_dd": "11-19",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-20": {
+      "date": "2026-11-20",
+      "mm_dd": "11-20",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "theotokos_standard",
+        "name": "Καταβασίαι της Θεοτόκου («Ανοίξω το στόμα μου»)",
+        "tone": "Ήχος Δ'",
+        "period": "Κοινός Κανών"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-21": {
+      "date": "2026-11-21",
+      "mm_dd": "11-21",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Βαρύς",
+      "tone_num": 7,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-22": {
+      "date": "2026-11-22",
+      "mm_dd": "11-22",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-11-23": {
+      "date": "2026-11-23",
+      "mm_dd": "11-23",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-24": {
+      "date": "2026-11-24",
+      "mm_dd": "11-24",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-25": {
+      "date": "2026-11-25",
+      "mm_dd": "11-25",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-26": {
+      "date": "2026-11-26",
+      "mm_dd": "11-26",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-27": {
+      "date": "2026-11-27",
+      "mm_dd": "11-27",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-11-28": {
+      "date": "2026-11-28",
+      "mm_dd": "11-28",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Πλ. Δ'",
+      "tone_num": 8,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-11-29": {
+      "date": "2026-11-29",
+      "mm_dd": "11-29",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-11-30": {
+      "date": "2026-11-30",
+      "mm_dd": "11-30",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-01": {
+      "date": "2026-12-01",
+      "mm_dd": "12-01",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-02": {
+      "date": "2026-12-02",
+      "mm_dd": "12-02",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-03": {
+      "date": "2026-12-03",
+      "mm_dd": "12-03",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-04": {
+      "date": "2026-12-04",
+      "mm_dd": "12-04",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-05": {
+      "date": "2026-12-05",
+      "mm_dd": "12-05",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Α'",
+      "tone_num": 1,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-06": {
+      "date": "2026-12-06",
+      "mm_dd": "12-06",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-12-07": {
+      "date": "2026-12-07",
+      "mm_dd": "12-07",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-08": {
+      "date": "2026-12-08",
+      "mm_dd": "12-08",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-09": {
+      "date": "2026-12-09",
+      "mm_dd": "12-09",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-10": {
+      "date": "2026-12-10",
+      "mm_dd": "12-10",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-11": {
+      "date": "2026-12-11",
+      "mm_dd": "12-11",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-12": {
+      "date": "2026-12-12",
+      "mm_dd": "12-12",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Β'",
+      "tone_num": 2,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-13": {
+      "date": "2026-12-13",
+      "mm_dd": "12-13",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-12-14": {
+      "date": "2026-12-14",
+      "mm_dd": "12-14",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-15": {
+      "date": "2026-12-15",
+      "mm_dd": "12-15",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-16": {
+      "date": "2026-12-16",
+      "mm_dd": "12-16",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-17": {
+      "date": "2026-12-17",
+      "mm_dd": "12-17",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-18": {
+      "date": "2026-12-18",
+      "mm_dd": "12-18",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-19": {
+      "date": "2026-12-19",
+      "mm_dd": "12-19",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Γ'",
+      "tone_num": 3,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-20": {
+      "date": "2026-12-20",
+      "mm_dd": "12-20",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-12-21": {
+      "date": "2026-12-21",
+      "mm_dd": "12-21",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-22": {
+      "date": "2026-12-22",
+      "mm_dd": "12-22",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-23": {
+      "date": "2026-12-23",
+      "mm_dd": "12-23",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Νηστεία (Άνευ Ελαίου & Οίνου)",
+      "is_sunday": false
+    },
+    "2026-12-24": {
+      "date": "2026-12-24",
+      "mm_dd": "12-24",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-25": {
+      "date": "2026-12-25",
+      "mm_dd": "12-25",
+      "weekday": "Friday",
+      "weekday_num": 4,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-26": {
+      "date": "2026-12-26",
+      "mm_dd": "12-26",
+      "weekday": "Saturday",
+      "weekday_num": 5,
+      "tone": "Ήχος Δ'",
+      "tone_num": 4,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-27": {
+      "date": "2026-12-27",
+      "mm_dd": "12-27",
+      "weekday": "Sunday",
+      "weekday_num": 6,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": true
+    },
+    "2026-12-28": {
+      "date": "2026-12-28",
+      "mm_dd": "12-28",
+      "weekday": "Monday",
+      "weekday_num": 0,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-29": {
+      "date": "2026-12-29",
+      "mm_dd": "12-29",
+      "weekday": "Tuesday",
+      "weekday_num": 1,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-30": {
+      "date": "2026-12-30",
+      "mm_dd": "12-30",
+      "weekday": "Wednesday",
+      "weekday_num": 2,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    },
+    "2026-12-31": {
+      "date": "2026-12-31",
+      "mm_dd": "12-31",
+      "weekday": "Thursday",
+      "weekday_num": 3,
+      "tone": "Ήχος Πλ. Α'",
+      "tone_num": 5,
+      "katavasies": {
+        "id": "nativity",
+        "name": "Καταβασίαι των Χριστουγέννων («Χριστός γεννάται»)",
+        "tone": "Ήχος Α'",
+        "period": "Χριστούγεννα & Προεόρτια"
+      },
+      "fasting": "Ανηστεία",
+      "is_sunday": false
+    }
+  }
+}

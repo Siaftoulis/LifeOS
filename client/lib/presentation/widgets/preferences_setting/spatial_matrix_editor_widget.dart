@@ -178,6 +178,9 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
         {'id': 'app_drawer', 'name': 'App Drawer'},
         {'id': 'void', 'name': 'Void / Empty'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Communications & Social': [
+        {'id': 'chat_hub', 'name': 'Messenger & P2P Chat'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Productivity & Knowledge': [
         {'id': 'knowledge_hub', 'name': 'Knowledge Hub'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
@@ -190,6 +193,9 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Finance': [
         {'id': 'finance', 'name': 'Finance Hub'},
+      ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
+      'Faith & Spirituality': [
+        {'id': 'prayer_book', 'name': 'Prayer Book (Προσευχολόγιο)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Infrastructure & Utils': [
         {'id': 'infra', 'name': 'Infrastructure Hub'},
