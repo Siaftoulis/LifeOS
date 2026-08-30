@@ -140,19 +140,37 @@ endforeach(ffi_plugin)"""
     except Exception as e:
         print(f"  [ERROR] {cmake_file}: {e}")
 
-# Ensure dummy static library for rich_clipboard_windows in ephemeral plugin symlinks if needed
+# Patch Windows generated_plugin_registrant.cc to strip rich_clipboard_windows dummy references
+registrant_file = os.path.join(client_dir, "windows", "flutter", "generated_plugin_registrant.cc")
+if os.path.exists(registrant_file):
+    try:
+        c = open(registrant_file, encoding="utf-8").read()
+        c = re.sub(r'#include\s*<rich_clipboard_windows/[^>]+>\s*\n?', '', c)
+        c = re.sub(r'\s*noneRegisterWithRegistrar[\s\S]*?\);\n?', '\n', c)
+        open(registrant_file, "w", encoding="utf-8").write(c)
+        print(f"  [PATCHED] {registrant_file}")
+    except Exception as e:
+        print(f"  [ERROR] {registrant_file}: {e}")
+
+# Ensure dummy static library and header for rich_clipboard_windows in ephemeral plugin symlinks if needed
 dummy_dir = os.path.join(client_dir, "windows", "flutter", "ephemeral", ".plugin_symlinks", "rich_clipboard_windows", "windows")
 try:
     if os.path.exists(os.path.dirname(dummy_dir)):
         os.makedirs(dummy_dir, exist_ok=True)
+        dummy_inc = os.path.join(dummy_dir, "include", "rich_clipboard_windows")
+        os.makedirs(dummy_inc, exist_ok=True)
+        none_h = os.path.join(dummy_inc, "none.h")
+        with open(none_h, "w", encoding="utf-8") as f:
+            f.write("#pragma once\n#include <flutter/plugin_registrar_windows.h>\ninline void noneRegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar) {}\n")
+
         dummy_cpp = os.path.join(dummy_dir, "dummy.cpp")
-        if not os.path.exists(dummy_cpp):
-            with open(dummy_cpp, "w", encoding="utf-8") as f:
-                f.write("void rich_clipboard_dummy() {}\n")
+        with open(dummy_cpp, "w", encoding="utf-8") as f:
+            f.write("void rich_clipboard_dummy() {}\n")
+
         dummy_cmake = os.path.join(dummy_dir, "CMakeLists.txt")
         with open(dummy_cmake, "w", encoding="utf-8") as f:
-            f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin STATIC dummy.cpp)\n")
-        print(f"  [CREATED/UPDATED] {dummy_cmake}")
+            f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin STATIC dummy.cpp)\ntarget_include_directories(rich_clipboard_windows_plugin PUBLIC include)\n")
+        print(f"  [CREATED/UPDATED] {dummy_cmake} & {none_h}")
 except Exception as e:
     print(f"  [ERROR] Creating dummy cmake: {e}")
 
