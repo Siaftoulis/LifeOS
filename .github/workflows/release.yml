@@ -34,26 +34,8 @@ jobs:
         run: flutter pub get
 
       - name: Patch Dependencies Compatibility
-        run: |
-          python3 -c "
-          import os
-
-          for root, dirs, files in os.walk(os.path.expanduser('~')):
-              if 'appflowy_editor' in root:
-                  for f in files:
-                      p = os.path.join(root, f)
-                      if f == 'delta_markdown_decoder.dart':
-                          c = open(p, encoding='utf-8').read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
-                          open(p, 'w', encoding='utf-8').write(c)
-                      elif f == 'delta_input_service.dart':
-                          c = open(p, encoding='utf-8').read()
-                          if 'onFocusReceived' not in c:
-                              c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
-                              open(p, 'w', encoding='utf-8').write(c)
-                      elif f == 'file_picker_impl.dart':
-                          c = open(p, encoding='utf-8').read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
-                          open(p, 'w', encoding='utf-8').write(c)
-          "
+        working-directory: ./client
+        run: python3 tool/patch_appflowy.py
 
       - name: Build APK
         working-directory: ./client
@@ -90,35 +72,8 @@ jobs:
         run: flutter pub get
 
       - name: Patch Dependencies Compatibility
-        shell: python
-        run: |
-          import os
-
-          scan_roots = [
-              os.path.expanduser('~'),
-              os.path.expandvars(r'%LOCALAPPDATA%'),
-              os.environ.get('PUB_CACHE', ''),
-              r'C:\hostedtoolcache\windows\flutter'
-          ]
-
-          for sr in scan_roots:
-              if not sr or not os.path.exists(sr):
-                  continue
-              for root, dirs, files in os.walk(sr):
-                  if 'appflowy_editor' in root:
-                      for f in files:
-                          p = os.path.join(root, f)
-                          if f == 'delta_markdown_decoder.dart':
-                              c = open(p, encoding='utf-8').read().replace('with md.NodeVisitor', 'implements md.NodeVisitor')
-                              open(p, 'w', encoding='utf-8').write(c)
-                          elif f == 'delta_input_service.dart':
-                              c = open(p, encoding='utf-8').read()
-                              if 'onFocusReceived' not in c:
-                                  c = c.replace('class DeltaTextInputService extends TextInputService with DeltaTextInputClient {', 'class DeltaTextInputService extends TextInputService with DeltaTextInputClient {\n  @override\n  bool onFocusReceived() => false;\n')
-                                  open(p, 'w', encoding='utf-8').write(c)
-                          elif f == 'file_picker_impl.dart':
-                              c = open(p, encoding='utf-8').read().replace('fp.FilePicker.getDirectoryPath', 'fp.FilePicker.platform.getDirectoryPath').replace('fp.FilePicker.pickFiles', 'fp.FilePicker.platform.pickFiles').replace('fp.FilePicker.saveFile', 'fp.FilePicker.platform.saveFile')
-                              open(p, 'w', encoding='utf-8').write(c)
+        working-directory: ./client
+        run: python tool/patch_appflowy.py
 
       - name: Build Windows
         working-directory: ./client
