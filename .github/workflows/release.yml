@@ -72,6 +72,7 @@ jobs:
         run: flutter pub get
 
       - name: Patch Dependencies Compatibility
+        shell: powershell
         working-directory: ./client
         run: python tool/patch_appflowy.py
 
