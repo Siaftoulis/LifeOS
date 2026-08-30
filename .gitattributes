@@ -1,0 +1,30 @@
+# GitHub Linguist Language Detection Configuration
+# Exclude compiled Web bundles, generated code, and vendored libraries so GitHub language stats reflect pure authored code (Dart, Go, Python)
+
+# 1. Compiled Flutter Web Distribution Assets (main.dart.js, canvaskit, etc.)
+backend/host-daemon/web/** linguist-generated=true
+backend/host-daemon/web/*.js linguist-generated=true
+client/web/*.js linguist-generated=true
+*.js linguist-generated=true
+*.wasm linguist-generated=true
+*.min.js linguist-generated=true
+
+# 2. Generated Code (Drift DB codegen, mocks, etc.)
+client/lib/database/database.g.dart linguist-generated=true
+*.g.dart linguist-generated=true
+*.freezed.dart linguist-generated=true
+
+# 3. Vendored Third-Party Upstream Repositories
+appflowy_repo/** linguist-vendored=true
+aves_repo/** linguist-vendored=true
+native_yrs/** linguist-vendored=true
+backend/newpipe-bridge/** linguist-vendored=true
+vault/.obsidian/** linguist-vendored=true
+
+# 4. Vault Markdown & Docs
+vault/** linguist-documentation=true
+data/** linguist-data=true
+*.sql linguist-data=true
+*.json linguist-data=true
+*.yaml linguist-data=true
+*.xml linguist-data=true
