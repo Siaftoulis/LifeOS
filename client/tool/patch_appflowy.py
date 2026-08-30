@@ -1,7 +1,7 @@
 import os
 import sys
 
-print("=== Patching appflowy_editor compatibility for Flutter 3.44+ ===")
+print("=== Patching appflowy_editor & Windows CMake for Flutter 3.44+ ===")
 
 scan_roots = [
     os.path.expanduser("~"),
@@ -66,5 +66,38 @@ for sr in scan_roots:
                             patched += 1
                     except Exception as e:
                         print(f"  [ERROR] {p}: {e}")
+
+# Patch Windows CMake if needed
+client_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
+cmake_file = os.path.join(client_dir, "windows", "flutter", "generated_plugins.cmake")
+if os.path.exists(cmake_file):
+    try:
+        c = open(cmake_file, encoding="utf-8").read()
+        c = c.replace("  rich_clipboard_windows\n", "")
+        c = c.replace("  rich_clipboard_windows", "")
+        c = c.replace(
+            "add_subdirectory(flutter/ephemeral/.plugin_symlinks/${plugin}/windows plugins/${plugin})",
+            "set(pdir \"flutter/ephemeral/.plugin_symlinks/${plugin}/windows\")\n  if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/${pdir}\")\n    add_subdirectory(${pdir} plugins/${plugin})"
+        )
+        c = c.replace(
+            "add_subdirectory(flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows plugins/${ffi_plugin})",
+            "set(fdir \"flutter/ephemeral/.plugin_symlinks/${ffi_plugin}/windows\")\n  if(EXISTS \"${CMAKE_CURRENT_SOURCE_DIR}/${fdir}\")\n    add_subdirectory(${fdir} plugins/${ffi_plugin})"
+        )
+        open(cmake_file, "w", encoding="utf-8").write(c)
+        print(f"  [PATCHED] {cmake_file}")
+    except Exception as e:
+        print(f"  [ERROR] {cmake_file}: {e}")
+
+# Ensure dummy CMakeLists for rich_clipboard_windows in ephemeral plugin symlinks
+dummy_dir = os.path.join(client_dir, "windows", "flutter", "ephemeral", ".plugin_symlinks", "rich_clipboard_windows", "windows")
+try:
+    os.makedirs(dummy_dir, exist_ok=True)
+    dummy_cmake = os.path.join(dummy_dir, "CMakeLists.txt")
+    if not os.path.exists(dummy_cmake):
+        with open(dummy_cmake, "w", encoding="utf-8") as f:
+            f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin INTERFACE)\n")
+        print(f"  [CREATED] {dummy_cmake}")
+except Exception as e:
+    print(f"  [ERROR] Creating dummy cmake: {e}")
 
 print(f"=== Total patched files: {patched} ===")

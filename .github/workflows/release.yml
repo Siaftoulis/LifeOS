@@ -39,7 +39,7 @@ jobs:
 
       - name: Build APK
         working-directory: ./client
-        run: flutter build apk --release
+        run: flutter build apk --release --no-pub
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -78,7 +78,7 @@ jobs:
 
       - name: Build Windows
         working-directory: ./client
-        run: flutter build windows --release
+        run: flutter build windows --release --no-pub
 
       - name: Zip Windows Build
         run: Compress-Archive -Path client\build\windows\x64\runner\Release\* -DestinationPath lifeos-windows-release.zip
