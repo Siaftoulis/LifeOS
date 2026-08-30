@@ -44,6 +44,20 @@ for sdir in scan_dirs:
     print(f"Scanning: {sdir_real}")
 
     for root, dirs, files in os.walk(sdir_real):
+        if "file_picker" in root:
+            internal_web = os.path.join(root, "lib", "_internal", "file_picker_web.dart")
+            platform_web_dir = os.path.join(root, "lib", "src", "platform", "web")
+            platform_web = os.path.join(platform_web_dir, "file_picker_web.dart")
+            if os.path.exists(internal_web) and not os.path.exists(platform_web):
+                try:
+                    os.makedirs(platform_web_dir, exist_ok=True)
+                    with open(platform_web, "w", encoding="utf-8") as f:
+                        f.write("export '../../../_internal/file_picker_web.dart';\n")
+                    print(f"  [CREATED] {platform_web}")
+                    patched += 1
+                except Exception as e:
+                    print(f"  [ERROR] {platform_web}: {e}")
+
         if "appflowy_editor" in root:
             for f in files:
                 p = os.path.join(root, f)
@@ -89,6 +103,9 @@ if os.path.exists(cmake_file):
     try:
         c = open(cmake_file, encoding="utf-8").read()
 
+        # Remove rich_clipboard_windows from plugin list as it lacks native windows implementation
+        c = re.sub(r'^\s*rich_clipboard_windows\s*$\n?', '', c, flags=re.MULTILINE)
+
         plugin_loop_pattern = re.compile(
             r"foreach\(plugin \$\{FLUTTER_PLUGIN_LIST\}\).*?endforeach\(plugin\)",
             re.DOTALL
@@ -123,16 +140,19 @@ endforeach(ffi_plugin)"""
     except Exception as e:
         print(f"  [ERROR] {cmake_file}: {e}")
 
-# Ensure dummy CMakeLists for rich_clipboard_windows in ephemeral plugin symlinks if needed
+# Ensure dummy static library for rich_clipboard_windows in ephemeral plugin symlinks if needed
 dummy_dir = os.path.join(client_dir, "windows", "flutter", "ephemeral", ".plugin_symlinks", "rich_clipboard_windows", "windows")
 try:
     if os.path.exists(os.path.dirname(dummy_dir)):
         os.makedirs(dummy_dir, exist_ok=True)
+        dummy_cpp = os.path.join(dummy_dir, "dummy.cpp")
+        if not os.path.exists(dummy_cpp):
+            with open(dummy_cpp, "w", encoding="utf-8") as f:
+                f.write("void rich_clipboard_dummy() {}\n")
         dummy_cmake = os.path.join(dummy_dir, "CMakeLists.txt")
-        if not os.path.exists(dummy_cmake):
-            with open(dummy_cmake, "w", encoding="utf-8") as f:
-                f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin INTERFACE)\n")
-            print(f"  [CREATED] {dummy_cmake}")
+        with open(dummy_cmake, "w", encoding="utf-8") as f:
+            f.write("cmake_minimum_required(VERSION 3.14)\nproject(rich_clipboard_windows_plugin LANGUAGES CXX)\nadd_library(rich_clipboard_windows_plugin STATIC dummy.cpp)\n")
+        print(f"  [CREATED/UPDATED] {dummy_cmake}")
 except Exception as e:
     print(f"  [ERROR] Creating dummy cmake: {e}")
 
