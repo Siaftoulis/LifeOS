@@ -28,10 +28,13 @@ class MainActivity : FlutterActivity() {
                     if (filePath != null) {
                         try {
                             val file = File(filePath)
-                            if (!file.exists()) {
-                                result.error("FILE_NOT_FOUND", "APK file not found at $filePath", null)
+                            if (!file.exists() || file.length() < 1000000) {
+                                result.error("FILE_NOT_FOUND", "APK file not found or incomplete at $filePath", null)
                                 return@setMethodCallHandler
                             }
+
+                            // Ensure file is readable by external package installer
+                            file.setReadable(true, false)
 
                             val contentUri: Uri = FileProvider.getUriForFile(
                                 applicationContext,
@@ -44,6 +47,14 @@ class MainActivity : FlutterActivity() {
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
+
+                            // Explicitly grant read permissions to all potential installer activities
+                            val resInfoList = packageManager.queryIntentActivities(intent, 0)
+                            for (resolveInfo in resInfoList) {
+                                val packageName = resolveInfo.activityInfo.packageName
+                                grantUriPermission(packageName, contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+
                             startActivity(intent)
                             result.success(true)
                         } catch (e: Exception) {

@@ -219,14 +219,20 @@ class OtaUpdateService {
 
       final ext = Platform.isAndroid ? 'apk' : 'zip';
       final saveFile = File('${updatesDir.path}/lifeos-${release.tagName}.$ext');
+      final partFile = File('${updatesDir.path}/lifeos-${release.tagName}.$ext.part');
 
-      // If already cached and valid size
-      if (await saveFile.exists() && await saveFile.length() > 5000000) {
+      // If already cached and valid size (> 20MB for APK or > 10MB for zip)
+      final minExpectedSize = Platform.isAndroid ? 20000000 : 10000000;
+      if (await saveFile.exists() && await saveFile.length() > minExpectedSize) {
         downloadedFilePath.value = saveFile.path;
         updateReadyRelease.value = release;
         downloadProgress.value = 1.0;
         statusMessage.value = 'Ready to install ${release.tagName}';
         return true;
+      }
+
+      if (await partFile.exists()) {
+        await partFile.delete().catchError((_) => partFile);
       }
 
       final client = http.Client();
@@ -236,7 +242,7 @@ class OtaUpdateService {
       if (response.statusCode == 200) {
         final totalBytes = response.contentLength ?? 0;
         int receivedBytes = 0;
-        final sink = saveFile.openWrite();
+        final sink = partFile.openWrite();
 
         await response.stream.listen((chunk) {
           sink.add(chunk);
@@ -249,13 +255,24 @@ class OtaUpdateService {
         await sink.flush();
         await sink.close();
 
-        if (await saveFile.exists() && await saveFile.length() > 1000000) {
+        final partLength = await partFile.length();
+        if (await partFile.exists() && partLength > minExpectedSize) {
+          if (await saveFile.exists()) {
+            await saveFile.delete().catchError((_) => saveFile);
+          }
+          await partFile.rename(saveFile.path);
+
           downloadedFilePath.value = saveFile.path;
           updateReadyRelease.value = release;
           downloadProgress.value = 1.0;
           statusMessage.value = 'Ready to install ${release.tagName}';
-          debugPrint('[OTA] Download complete: ${saveFile.path}');
+          debugPrint('[OTA] Download complete and verified: ${saveFile.path} ($partLength bytes)');
           return true;
+        } else {
+          debugPrint('[OTA] Downloaded file too small: $partLength bytes');
+          if (await partFile.exists()) {
+            await partFile.delete().catchError((_) => partFile);
+          }
         }
       }
     } catch (e) {

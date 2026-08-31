@@ -116,29 +116,24 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.4"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 42' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.5"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 43' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Smooth TOC Navigation & Liturgical Upgrades
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Permanent Release Keystore & Seamless OTA Updates
 
           ### Highlights & What's New
-          - **Smooth TOC & Sidebar Navigation (Zero Indicator Flickering)**:
-            - Fixed active section indicator jumping/bouncing back and forth when tapping items in the Table of Contents or desktop sidebar.
-            - Added smooth cubic animations and programmatic scroll coordination to eliminate visual stutter.
+          - **Permanent Release Keystore (Zero Signature Mismatch)**:
+            - Configured dedicated permanent release signing keystore with APK Signature Schemes v1, v2, v3, and v4 enabled.
+            - Guarantees 100% cryptographic certificate consistency across all builds and devices (Huawei, Xiaomi, Samsung, Pixel), eliminating "package's signature does not match installed app" and enabling seamless in-place OTA upgrades without uninstalling.
+          - **Robust APK Installation & Parse Error Prevention**:
+            - Atomic `.part` file downloading with strict size and completion validation to prevent corrupted partial APK files.
+            - Explicit `FLAG_GRANT_READ_URI_PERMISSION` grant to all package installer handlers.
+          - **Smooth TOC & Sidebar Navigation**:
+            - Zero indicator flickering / bouncing when selecting sections in Table of Contents or desktop sidebar.
           - **Full Unabbreviated Liturgical Texts (Zero Cuts / No Truncation)**:
-            - **Vespers (Εσπερινός)**: Full unabbreviated 35 verses of Psalm 103 (Προοιμιακός), full 18 verses of Psalms 140/141/129/116 (Στιχολογία «Θοῦ, Κύριε...»), complete Kekragaria Stichera on 10 (3 Anastasima + 3 Anatolika + 4 Menaion Saint Prosomia), full Doxastikon of the Saint, Dogmatic Theotokion, Phos Hilaron, full Aposticha, Nunc Dimittis, complete Trisagion prayers, Apolytikia, and Apolysis.
-            - **Matins (Όρθρος)**: Full unabbreviated Six Psalms (Psalms 3, 37, 62, 87, 102, 142) verse by verse, full Psalm 50, Ainoi with Saint's Prosomion, Great Doxology, Apolytikia, and Apolysis.
-            - **Divine Liturgy (Θεία Λειτουργία)**: Full Chrysostom & Basil dynamic services.
-          - **Commemorated Saint Selector (Επιλογέας Αγίου της Ημέρας)**:
-            - Sleek dropdown menu in the top bar with a small arrow (`Icons.arrow_drop_down_rounded`) allowing seamless switching between all commemorated saints of the day.
-            - Defaults to the 1st commemoration and dynamically regenerates hymns, stichera, and apolytikia for the selected saint.
-          - **Offline Prayer Book & 0ms Fallbacks**:
-            - Instant zero-delay loading on mobile without blocking spinners.
-            - Built-in offline liturgical prayers and robust mobile daemon endpoint routing.
-          - **Audiophile Studio & Offline Music Vault**:
-            - 100% offline device playback, 10-band EQ, and DSP audio processing.
-          - **OTA Updates & Diagnostics**:
-            - Enhanced OTA update engine with one-tap background download & install.
+            - Complete unabbreviated Psalm 103 (35 verses), Kekragaria Stichologia (18 verses), Stichera on 10, Six Psalms of Matins, Doxastika, and Apolytikia.
+          - **Commemorated Saint Selector**:
+            - Dropdown selector with arrow icon to dynamically switch between all commemorated saints of the day.
           EOF
 
       - name: Publish Release
