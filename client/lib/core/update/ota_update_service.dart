@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 class LifeOSRelease {
@@ -90,25 +91,42 @@ class OtaUpdateService {
   final ValueNotifier<String?> downloadedFilePath = ValueNotifier(null);
   final ValueNotifier<String> statusMessage = ValueNotifier('');
 
-  int _currentBuildNumber = 40;
-  String _currentVersionTag = 'v1.5.2';
+  int _currentBuildNumber = 45;
+  String _currentVersionTag = 'v1.5.7';
 
   int get currentBuildNumber => _currentBuildNumber;
   String get currentVersionTag => _currentVersionTag;
 
   Future<void> initialize() async {
-    try {
-      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":40, "version":"1.5.2"}');
-      final data = jsonDecode(jsonStr);
-      _currentBuildNumber = data['build_number'] ?? 40;
-      _currentVersionTag = 'v${data['version'] ?? '1.5.2'}';
-    } catch (_) {
-      _currentBuildNumber = 40;
-      _currentVersionTag = 'v1.5.2';
-    }
+    updateReadyRelease.value = null;
+    await _resolveCurrentVersion();
 
     // Trigger silent background check
     checkSilentUpdate();
+  }
+
+  Future<void> _resolveCurrentVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final v = info.version.trim();
+      final b = int.tryParse(info.buildNumber) ?? 0;
+      if (v.isNotEmpty) {
+        _currentVersionTag = v.startsWith('v') ? v : 'v$v';
+      }
+      if (b > 0) {
+        _currentBuildNumber = b;
+      }
+    } catch (_) {
+      try {
+        final jsonStr = await rootBundle.loadString('assets/version.json');
+        final data = jsonDecode(jsonStr);
+        _currentBuildNumber = data['build_number'] ?? 45;
+        _currentVersionTag = 'v${data['version'] ?? '1.5.7'}';
+      } catch (_) {
+        _currentBuildNumber = 45;
+        _currentVersionTag = 'v1.5.7';
+      }
+    }
   }
 
   /// Silently checks for updates without throwing UI alerts
@@ -117,11 +135,17 @@ class OtaUpdateService {
 
     isChecking.value = true;
     try {
+      await _resolveCurrentVersion();
       final latest = await fetchLatestRelease();
-      if (latest != null && isNewer(latest)) {
-        debugPrint('[OTA] Newer version found: ${latest.tagName} (Current: $_currentVersionTag, Build: $_currentBuildNumber)');
-        // Start background download automatically
-        await downloadReleaseInBackground(latest);
+      if (latest != null) {
+        if (isNewer(latest)) {
+          debugPrint('[OTA] Newer version found: ${latest.tagName} (Current: $_currentVersionTag, Build: $_currentBuildNumber)');
+          // Start background download automatically
+          await downloadReleaseInBackground(latest);
+        } else {
+          debugPrint('[OTA] App is up to date: Current $_currentVersionTag (#$_currentBuildNumber) >= Remote ${latest.tagName} (#${latest.buildNumber})');
+          updateReadyRelease.value = null;
+        }
       }
     } catch (e) {
       debugPrint('[OTA] Background check failed: $e');
@@ -241,11 +265,17 @@ class OtaUpdateService {
       // If already cached and valid size (> 20MB for APK or > 10MB for zip)
       final minExpectedSize = Platform.isAndroid ? 20000000 : 10000000;
       if (await saveFile.exists() && await saveFile.length() > minExpectedSize) {
-        downloadedFilePath.value = saveFile.path;
-        updateReadyRelease.value = release;
-        downloadProgress.value = 1.0;
-        statusMessage.value = 'Ready to install ${release.tagName}';
-        return true;
+        if (isNewer(release)) {
+          downloadedFilePath.value = saveFile.path;
+          updateReadyRelease.value = release;
+          downloadProgress.value = 1.0;
+          statusMessage.value = 'Ready to install ${release.tagName}';
+          return true;
+        } else {
+          await saveFile.delete().catchError((_) => saveFile);
+          updateReadyRelease.value = null;
+          return false;
+        }
       }
 
       if (await partFile.exists()) {
@@ -279,12 +309,17 @@ class OtaUpdateService {
           }
           await partFile.rename(saveFile.path);
 
-          downloadedFilePath.value = saveFile.path;
-          updateReadyRelease.value = release;
-          downloadProgress.value = 1.0;
-          statusMessage.value = 'Ready to install ${release.tagName}';
-          debugPrint('[OTA] Download complete and verified: ${saveFile.path} ($partLength bytes)');
-          return true;
+          if (isNewer(release)) {
+            downloadedFilePath.value = saveFile.path;
+            updateReadyRelease.value = release;
+            downloadProgress.value = 1.0;
+            statusMessage.value = 'Ready to install ${release.tagName}';
+            debugPrint('[OTA] Download complete and verified: ${saveFile.path} ($partLength bytes)');
+            return true;
+          } else {
+            updateReadyRelease.value = null;
+            return false;
+          }
         } else {
           debugPrint('[OTA] Downloaded file too small: $partLength bytes');
           if (await partFile.exists()) {

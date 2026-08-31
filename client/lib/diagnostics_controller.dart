@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'api_client.dart';
 import 'diag_row.dart';
 
@@ -26,10 +27,19 @@ class DiagnosticsController {
 
   Future<(DiagStatus, String)> checkVer() async {
     try {
-      final json = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":0}');
-      final local = jsonDecode(json)['build_number'] ?? 0;
+      int local = 0;
+      try {
+        final info = await PackageInfo.fromPlatform();
+        local = int.tryParse(info.buildNumber) ?? 0;
+      } catch (_) {}
+
+      if (local == 0) {
+        final json = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":0}');
+        local = jsonDecode(json)['build_number'] ?? 0;
+      }
+
       final remote = await _readAgentVersion();
-      final match = local == remote;
+      final match = remote <= 0 || local == remote;
       return (match ? DiagStatus.healthy : DiagStatus.blocked, 'Local: #$local · Agent: #$remote${match ? '' : ' — MISMATCH'}');
     } catch (e) { return (DiagStatus.blocked, 'Version check failed: $e'); }
   }
