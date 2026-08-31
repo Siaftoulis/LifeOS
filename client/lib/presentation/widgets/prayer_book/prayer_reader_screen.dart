@@ -32,6 +32,8 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   final Map<int, GlobalKey> _sectionKeys = {};
   bool _desktopSidebarOpen = true;
   int _selectedSaintIdx = 0;
+  bool _isProgrammaticScrolling = false;
+  Timer? _programmaticScrollTimer;
 
   static const _maxContentWidth = 760.0;
   static const _sidebarWidth = 220.0;
@@ -46,13 +48,14 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   @override
   void dispose() {
     _scrollTimer?.cancel();
+    _programmaticScrollTimer?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients || _service == null) return;
+    if (_isProgrammaticScrolling || !_scrollController.hasClients || _service == null) return;
     for (int i = _service!.sections.length - 1; i >= 0; i--) {
       final key = _sectionKeys[i];
       if (key?.currentContext != null) {
@@ -112,13 +115,23 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   void _scrollToSection(int index) {
     final key = _sectionKeys[index];
     if (key?.currentContext != null) {
+      _programmaticScrollTimer?.cancel();
+      setState(() {
+        _activeSectionIndex = index;
+        _isProgrammaticScrolling = true;
+      });
       Scrollable.ensureVisible(
         key!.currentContext!,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
         alignment: 0.05,
-      );
-      setState(() => _activeSectionIndex = index);
+      ).then((_) {
+        _programmaticScrollTimer = Timer(const Duration(milliseconds: 120), () {
+          if (mounted) {
+            _isProgrammaticScrolling = false;
+          }
+        });
+      });
     }
   }
 
@@ -184,15 +197,18 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                         Navigator.pop(ctx);
                         _scrollToSection(index);
                       },
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
                         color: isActive
-                            ? accentGold.withValues(alpha: 0.12)
-                            : null,
+                            ? accentGold.withValues(alpha: 0.14)
+                            : Colors.transparent,
                         child: Row(
                           children: [
-                            Container(
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 220),
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
@@ -204,8 +220,9 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                section.header,
+                              child: AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeOutCubic,
                                 style: TextStyle(
                                   color: isActive
                                       ? accentGold
@@ -215,8 +232,11 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                                child: Text(
+                                  section.header,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ],
@@ -784,13 +804,15 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                 final isActive = _activeSectionIndex == index;
                 return InkWell(
                   onTap: () => _scrollToSection(index),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: isActive
-                          ? accentGold.withValues(alpha: 0.12)
-                          : null,
+                          ? accentGold.withValues(alpha: 0.14)
+                          : Colors.transparent,
                       border: Border(
                         left: BorderSide(
                           width: 3,
@@ -799,8 +821,9 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                         ),
                       ),
                     ),
-                    child: Text(
-                      section.header,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
                       style: TextStyle(
                         color: isActive
                             ? accentGold
@@ -809,8 +832,11 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                         fontWeight:
                             isActive ? FontWeight.bold : FontWeight.normal,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      child: Text(
+                        section.header,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 );
