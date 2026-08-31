@@ -407,7 +407,20 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                           color: EverforestColors.grey.withValues(alpha: 0.4)),
                       const SizedBox(height: 12),
                       const Text('Η υπηρεσία δεν είναι διαθέσιμη',
-                          style: TextStyle(color: EverforestColors.grey)),
+                          style: TextStyle(color: EverforestColors.grey, fontSize: 14)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() => _isLoading = true);
+                          _loadService();
+                        },
+                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                        label: const Text('Δοκιμάστε ξανά'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: EverforestColors.green,
+                          foregroundColor: EverforestColors.bg0,
+                        ),
+                      ),
                     ],
                   ),
                 )

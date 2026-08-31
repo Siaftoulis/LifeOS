@@ -40,13 +40,34 @@ class LifeOSRelease {
     }
 
     final tag = json['tag_name'] as String? ?? '';
-    final digits = tag.replaceAll(RegExp(r'[^0-9]'), '');
-    final buildNum = int.tryParse(digits) ?? 0;
+    final body = json['body'] as String? ?? '';
+    final title = json['name'] as String? ?? tag;
+
+    // Extract build number accurately from tag (+38), body (Build #38), or title
+    int buildNum = 0;
+    if (tag.contains('+')) {
+      buildNum = int.tryParse(tag.split('+').last) ?? 0;
+    }
+    if (buildNum == 0) {
+      final buildMatch = RegExp(r'(?:Build\s*#|build_number[\s:]+)(\d+)', caseSensitive: false).firstMatch(body);
+      if (buildMatch != null) {
+        buildNum = int.tryParse(buildMatch.group(1)!) ?? 0;
+      }
+    }
+    if (buildNum == 0) {
+      final titleMatch = RegExp(r'Build\s*#(\d+)', caseSensitive: false).firstMatch(title);
+      if (titleMatch != null) {
+        buildNum = int.tryParse(titleMatch.group(1)!) ?? 0;
+      }
+    }
+    if (buildNum == 0 && RegExp(r'^v?\d+$').hasMatch(tag.trim())) {
+      buildNum = int.tryParse(tag.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    }
 
     return LifeOSRelease(
       tagName: tag,
-      title: json['name'] as String? ?? tag,
-      body: json['body'] as String? ?? '',
+      title: title,
+      body: body,
       publishedAt: DateTime.tryParse(json['published_at'] as String? ?? '') ?? DateTime.now(),
       apkUrl: apk,
       zipUrl: zip,
@@ -69,21 +90,21 @@ class OtaUpdateService {
   final ValueNotifier<String?> downloadedFilePath = ValueNotifier(null);
   final ValueNotifier<String> statusMessage = ValueNotifier('');
 
-  int _currentBuildNumber = 0;
-  String _currentVersionTag = 'v1.5.0';
+  int _currentBuildNumber = 39;
+  String _currentVersionTag = 'v1.5.1';
 
   int get currentBuildNumber => _currentBuildNumber;
   String get currentVersionTag => _currentVersionTag;
 
   Future<void> initialize() async {
     try {
-      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":0, "version":"1.5.0"}');
+      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":39, "version":"1.5.1"}');
       final data = jsonDecode(jsonStr);
-      _currentBuildNumber = data['build_number'] ?? 0;
-      _currentVersionTag = 'v${data['version'] ?? '1.5.0'}';
+      _currentBuildNumber = data['build_number'] ?? 39;
+      _currentVersionTag = 'v${data['version'] ?? '1.5.1'}';
     } catch (_) {
-      _currentBuildNumber = 0;
-      _currentVersionTag = 'v1.5.0';
+      _currentBuildNumber = 39;
+      _currentVersionTag = 'v1.5.1';
     }
 
     // Trigger silent background check
@@ -98,7 +119,7 @@ class OtaUpdateService {
     try {
       final latest = await fetchLatestRelease();
       if (latest != null && isNewer(latest)) {
-        debugPrint('[OTA] Newer version found: ${latest.tagName} (Current: $_currentVersionTag)');
+        debugPrint('[OTA] Newer version found: ${latest.tagName} (Current: $_currentVersionTag, Build: $_currentBuildNumber)');
         // Start background download automatically
         await downloadReleaseInBackground(latest);
       }
@@ -110,13 +131,24 @@ class OtaUpdateService {
   }
 
   bool isNewer(LifeOSRelease release) {
-    if (release.buildNumber > _currentBuildNumber && _currentBuildNumber > 0) {
+    // Compare semantic versions (e.g. 1.5.0 vs 1.5.1)
+    final currentClean = _currentVersionTag.split('+').first.replaceAll(RegExp(r'[^0-9\.]'), '');
+    final remoteClean = release.tagName.split('+').first.replaceAll(RegExp(r'[^0-9\.]'), '');
+
+    final semVerComp = _compareSemVer(remoteClean, currentClean);
+    if (semVerComp > 0) {
       return true;
     }
-    // Compare tag versions
-    final currentClean = _currentVersionTag.replaceAll(RegExp(r'[^0-9\.]'), '');
-    final remoteClean = release.tagName.replaceAll(RegExp(r'[^0-9\.]'), '');
-    return _compareSemVer(remoteClean, currentClean) > 0;
+    if (semVerComp < 0) {
+      return false;
+    }
+
+    // SemVer is identical: compare explicit build numbers if present
+    if (release.buildNumber > 0 && _currentBuildNumber > 0) {
+      return release.buildNumber > _currentBuildNumber;
+    }
+
+    return false;
   }
 
   int _compareSemVer(String v1, String v2) {

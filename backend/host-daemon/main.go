@@ -198,6 +198,15 @@ func main() {
 		mux.HandleFunc("/api/v1/auth/oauth/"+p+"/callback", oauth.HandleCallback(p))
 	}
 
+	mux.HandleFunc("/api/v1/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "ok",
+			"server":  "lifeos-host-daemon",
+			"version": "1.5.0",
+		})
+	})
+
 	// Web portal: family browser access (login + modules) served at /
 	fileServer := http.FileServer(http.Dir("./web"))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -212,6 +221,7 @@ func main() {
 	// websocket (browsers can't set WS headers; HandleCollab validates the
 	// ?token= query param itself).
 	handler := middleware.WithAuthGate([]string{
+		"/api/v1/ping",
 		"/api/v1/auth/login",
 		"/api/v1/auth/register",
 		"/api/v1/auth/oauth/providers",
@@ -224,6 +234,7 @@ func main() {
 		"/api/v1/radar/live", // WS: radar live coordinates
 		"/api/v1/music/*",
 		"/api/v1/prayers/*",
+		"/api/v1/gallery/*",
 	}, mux)
 
 	// ponytail: Funnel upstream — public traffic arrives here via Tailscale

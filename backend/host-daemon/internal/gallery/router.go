@@ -452,6 +452,19 @@ func handleThumbnail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 1. Check disk thumbnail cache first for instantaneous response
+	cacheDir := filepath.Join("./data", "gallery_cache", "thumbnails")
+	thumbPath := filepath.Join(cacheDir, filepath.Base(id)+".jpg")
+
+	if info, err := os.Stat(thumbPath); err == nil && info.Size() > 0 {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Header().Set("Cache-Control", "public, max-age=2592000") // 30 days
+		http.ServeFile(w, r, thumbPath)
+		return
+	}
+
+	// 2. Fetch original file path from DB
 	var relPath string
 	err := DB.QueryRow("SELECT filepath FROM assets WHERE id = ?", id).Scan(&relPath)
 	if err != nil {
@@ -469,41 +482,61 @@ func handleThumbnail(w http.ResponseWriter, r *http.Request) {
 
 	img, _, err := image.Decode(file)
 	if err != nil {
-		// Might be a video or unsupported image, just fallback to stream or error
-		http.Error(w, "Unsupported format for thumbnail", http.StatusUnsupportedMediaType)
+		// Unsupported or video: fallback to streaming original file
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		http.ServeFile(w, r, absPath)
 		return
 	}
 
-	// Calculate thumbnail size (e.g. max 300px)
+	// 3. Calculate thumbnail size (max 320px)
 	bounds := img.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
 	var newWidth, newHeight int
 
+	if width <= 0 || height <= 0 {
+		http.Error(w, "Invalid image dimensions", http.StatusInternalServerError)
+		return
+	}
+
 	if width > height {
-		newWidth = 300
-		newHeight = (height * 300) / width
+		newWidth = 320
+		newHeight = (height * 320) / width
+		if newHeight <= 0 {
+			newHeight = 1
+		}
 	} else {
-		newHeight = 300
-		newWidth = (width * 300) / height
+		newHeight = 320
+		newWidth = (width * 320) / height
+		if newWidth <= 0 {
+			newWidth = 1
+		}
 	}
 
 	dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
 	draw.CatmullRom.Scale(dst, dst.Bounds(), img, bounds, draw.Over, nil)
 
+	// 4. Save to disk cache for future requests
+	if err := os.MkdirAll(cacheDir, 0755); err == nil {
+		if outFile, err := os.Create(thumbPath); err == nil {
+			jpeg.Encode(outFile, dst, &jpeg.Options{Quality: 80})
+			outFile.Close()
+		}
+	}
+
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, dst, &jpeg.Options{Quality: 75}); err != nil {
+	if err := jpeg.Encode(&buf, dst, &jpeg.Options{Quality: 80}); err != nil {
 		http.Error(w, "Error generating thumbnail", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Cache-Control", "public, max-age=604800")
+	w.Header().Set("Cache-Control", "public, max-age=2592000")
 	w.Write(buf.Bytes())
 }
 
 func handleStream(w http.ResponseWriter, r *http.Request) {
-	// Implement file serving
 	id := r.URL.Query().Get("id")
 	if DB == nil || id == "" {
 		http.Error(w, "Missing ID", http.StatusBadRequest)
@@ -518,5 +551,7 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	absPath := filepath.Join("./data", relPath)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Cache-Control", "public, max-age=604800")
 	http.ServeFile(w, r, absPath)
 }

@@ -272,10 +272,19 @@ class PrayerRepository {
   final ValueNotifier<Set<String>> favoriteIds =
       ValueNotifier<Set<String>>({});
 
+  final Map<String, DailyLiturgicalInfoModel> _dailyCache = {};
+  final Map<String, DailyPrayerRuleStatusModel> _ruleCache = {};
+  final Map<String, PrayerServiceModel> _serviceCache = {};
+
   /// Fetches the liturgical and Synaxarion info for the specified date
   Future<DailyLiturgicalInfoModel?> fetchDailyInfo([DateTime? date]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
+
+    // Instant cache hit if previously loaded
+    if (_dailyCache.containsKey(dateStr)) {
+      dailyInfo.value = _dailyCache[dateStr];
+    }
 
     try {
       final res = await ApiClient.instance
@@ -283,13 +292,14 @@ class PrayerRepository {
       if (res is Map) {
         final info = DailyLiturgicalInfoModel.fromJson(
             Map<String, dynamic>.from(res));
+        _dailyCache[dateStr] = info;
         dailyInfo.value = info;
         return info;
       }
     } catch (e) {
       debugPrint('PrayerRepository daily fetch error: $e');
     }
-    return null;
+    return _dailyCache[dateStr];
   }
 
   /// Fetches the daily prayer rule checklist and streak
@@ -297,19 +307,24 @@ class PrayerRepository {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
 
+    if (_ruleCache.containsKey(dateStr)) {
+      ruleStatus.value = _ruleCache[dateStr];
+    }
+
     try {
       final res = await ApiClient.instance
           .getDaemon('/api/v1/prayers/rule/today?date=$dateStr');
       if (res is Map) {
         final status = DailyPrayerRuleStatusModel.fromJson(
             Map<String, dynamic>.from(res));
+        _ruleCache[dateStr] = status;
         ruleStatus.value = status;
         return status;
       }
     } catch (e) {
       debugPrint('PrayerRepository rule status fetch error: $e');
     }
-    return null;
+    return _ruleCache[dateStr];
   }
 
   /// Complete a prayer rule objective and award RPG star points
@@ -338,6 +353,11 @@ class PrayerRepository {
       [DateTime? date]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
+    final cacheKey = '$serviceId-$dateStr';
+
+    if (_serviceCache.containsKey(cacheKey)) {
+      return _serviceCache[cacheKey];
+    }
 
     try {
       // Route Psalter/Scripture/Horologion/LiturgicalBook requests to specialized endpoints
@@ -378,12 +398,14 @@ class PrayerRepository {
       if (res is Map) {
         TelemetryReporter.instance.track(
             'prayers', 'service_opened', {'service_id': serviceId});
-        return PrayerServiceModel.fromJson(Map<String, dynamic>.from(res));
+        final serviceModel = PrayerServiceModel.fromJson(Map<String, dynamic>.from(res));
+        _serviceCache[cacheKey] = serviceModel;
+        return serviceModel;
       }
     } catch (e) {
       debugPrint('PrayerRepository service fetch error: $e');
     }
-    return null;
+    return _serviceCache[cacheKey];
   }
 
   /// Toggle bookmark for a prayer

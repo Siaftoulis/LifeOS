@@ -68,7 +68,8 @@ class CloudGalleryService {
         'limit': limit.toString(),
         'offset': offset.toString(),
       });
-      final response = await http.get(uri);
+      final headers = ApiClient.instance.transferHeaders;
+      final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List<dynamic> assets = data['assets'] ?? [];
@@ -101,7 +102,7 @@ class CloudGalleryService {
         }).toList();
       }
     } catch (e) {
-      print('Error fetching cloud assets: $e');
+      debugPrint('Error fetching cloud assets: $e');
     }
     return [];
   }
@@ -155,14 +156,15 @@ class CloudGalleryService {
   /// Fetch all cloud asset IDs (for sync comparison)
   static Future<Set<String>> fetchCloudAssetIds() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/assets?limit=10000'));
+      final headers = ApiClient.instance.transferHeaders;
+      final response = await http.get(Uri.parse('$baseUrl/assets?limit=10000'), headers: headers).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List<dynamic> assets = data['assets'] ?? [];
         return assets.map((e) => e['id'] as String).toSet();
       }
     } catch (e) {
-      print('Error fetching cloud asset IDs: $e');
+      debugPrint('Error fetching cloud asset IDs: $e');
     }
     return {};
   }
@@ -176,6 +178,7 @@ class CloudGalleryService {
       if (file == null) return const UploadResult(success: false, id: '');
 
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
+      request.headers.addAll(ApiClient.instance.transferHeaders);
       request.fields['user_id'] = userId;
       request.fields['device_id'] = deviceId;
       request.fields['asset_id'] = item.id;
@@ -221,7 +224,7 @@ class CloudGalleryService {
         );
       }
     } catch (e) {
-      print('Error uploading asset: $e');
+      debugPrint('Error uploading asset: $e');
     }
     return const UploadResult(success: false, id: '');
   }
@@ -235,6 +238,7 @@ class CloudGalleryService {
   }) async {
     try {
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/analyze'));
+      request.headers.addAll(ApiClient.instance.transferHeaders);
       request.fields['type'] = type;
       if (place.isNotEmpty) request.fields['place'] = place;
       if (date != null) request.fields['date'] = date.toUtc().toIso8601String();
@@ -246,7 +250,7 @@ class CloudGalleryService {
         return SmartAnalysis.fromJson(data);
       }
     } catch (e) {
-      print('Error analyzing asset: $e');
+      debugPrint('Error analyzing asset: $e');
     }
     return null;
   }

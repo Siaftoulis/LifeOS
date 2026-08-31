@@ -104,31 +104,51 @@ class ApiClient {
     Timer.periodic(const Duration(seconds: 15), (_) => _flushQueue());
   }
 
-  static Future<String> discoverBaseUrl() => _discover('/api/sync');
+  static Future<String> discoverBaseUrl() => _discover('/api/v1/ping');
 
-  static Future<String> discoverDaemonUrl() => _discover('/api/v1/auth/lock');
+  static Future<String> discoverDaemonUrl() => _discover('/api/v1/ping');
 
   static Future<String> _discover(String probePath) async {
     if (kIsWeb) return Uri.base.origin; // same-origin: the daemon serves the app
-    final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value.map((p) => 'http://${p.address}:50051').toList();
+    final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value
+        .map((p) => 'http://${p.address}:50051')
+        .toList();
     final urls = [
       ...dynamicUrls,
       'http://localhost:50051',
+      'https://pds-laptop-old.husky-forel.ts.net',
+      'http://100.115.84.43:50051',
+      'http://lifeos-daemon:50051',
       'http://192.168.1.47:50051',
-      'http://100.64.0.1:50051',      // Headscale Mesh Default GW
-      'http://100.115.84.43:50051',   // Headscale Node Candidate
-      'http://lifeos-daemon:50051',   // Tailnet MagicDNS Hostname
       'http://192.168.1.43:50051',
-      'http://10.0.2.2:50051'
+      'http://100.64.0.1:50051',
+      'http://10.0.2.2:50051',
     ];
-    final comp = Completer<String>(); int fails = 0;
+    final comp = Completer<String>();
+    int fails = 0;
     for (final url in urls) {
-      http.post(Uri.parse('$url$probePath'), headers: {'Content-Type': 'application/json'}, body: '{}')
-        .timeout(const Duration(milliseconds: 400))
-        .then((res) => res.statusCode == 200 && !comp.isCompleted ? comp.complete(url) : throw Exception())
-        .catchError((_) => ++fails >= urls.length && !comp.isCompleted ? comp.complete('http://localhost:50051') : null);
+      http
+          .get(Uri.parse('$url$probePath'), headers: {'Accept': 'application/json'})
+          .timeout(const Duration(milliseconds: 650))
+          .then((res) {
+            if ((res.statusCode == 200 || res.statusCode == 204) && !comp.isCompleted) {
+              comp.complete(url);
+            } else {
+              throw Exception('Non-200 probe status');
+            }
+          })
+          .catchError((_) {
+            fails++;
+            if (fails >= urls.length && !comp.isCompleted) {
+              comp.complete('https://pds-laptop-old.husky-forel.ts.net');
+            }
+            return null;
+          });
     }
-    return comp.future.timeout(const Duration(seconds: 2), onTimeout: () => 'http://localhost:50051');
+    return comp.future.timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => 'https://pds-laptop-old.husky-forel.ts.net',
+    );
   }
 
   Map<String, String> get _headers {
