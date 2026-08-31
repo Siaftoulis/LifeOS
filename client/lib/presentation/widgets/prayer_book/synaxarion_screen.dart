@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../api_client.dart';
 import '../../../theme/everforest_colors.dart';
 
 class SynaxarionScreen extends StatefulWidget {
@@ -36,12 +35,10 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
     });
 
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/synaxarion/month?month=$month'),
-      ).timeout(const Duration(seconds: 10));
+      final data = await ApiClient.instance
+          .getDaemon('/api/v1/prayers/synaxarion/month?month=$month');
 
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      if (data is Map) {
         final days = <String, DayData>{};
         for (final dayJson in data['days'] ?? []) {
           final key = dayJson['date'] ?? '';

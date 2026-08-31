@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../api_client.dart';
 import '../../../theme/everforest_colors.dart';
 import 'prayer_reader_screen.dart';
 
@@ -26,12 +25,9 @@ class _PsalterScreenState extends State<PsalterScreen> {
 
   Future<void> _loadPsalter() async {
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/psalter'),
-      ).timeout(const Duration(seconds: 10));
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/psalter');
 
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      if (data is Map && data['kathismata'] is List) {
         final kathismata = (data['kathismata'] as List)
             .map((k) => Kathisma.fromJson(k))
             .toList();
@@ -65,12 +61,11 @@ class _PsalterScreenState extends State<PsalterScreen> {
     setState(() => _isSearching = true);
 
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/psalter/search?q=${Uri.encodeComponent(query)}'),
-      ).timeout(const Duration(seconds: 5));
+      final data = await ApiClient.instance.getDaemon(
+        '/api/v1/prayers/psalter/search?q=${Uri.encodeComponent(query)}',
+      );
 
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      if (data is Map && data['results'] is List) {
         final results = (data['results'] as List)
             .map((r) => SearchResult.fromJson(r))
             .toList();

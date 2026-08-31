@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../api_client.dart';
 import '../../../theme/everforest_colors.dart';
 import 'prayer_reader_screen.dart';
 
@@ -31,11 +30,8 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
 
   Future<void> _loadServices() async {
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/${widget.bookId}'),
-      ).timeout(const Duration(seconds: 10));
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/${widget.bookId}');
+      if (data is Map) {
         setState(() {
           if (widget.bookId == 'octoechos' && data['tones'] != null) {
             _tones = data['tones'] as List;

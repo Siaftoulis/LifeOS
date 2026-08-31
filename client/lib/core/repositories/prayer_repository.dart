@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../../api_client.dart';
 import '../telemetry/telemetry_reporter.dart';
+import 'built_in_prayers.dart';
 
 class SaintModel {
   final String name;
@@ -261,7 +262,10 @@ class DailyPrayerRuleStatusModel {
 class PrayerRepository {
   static final PrayerRepository instance = PrayerRepository._internal();
 
-  PrayerRepository._internal();
+  PrayerRepository._internal() {
+    dailyInfo.value = getFallbackDailyInfo(DateTime.now());
+    ruleStatus.value = getFallbackRuleStatus(DateTime.now());
+  }
 
   final ValueNotifier<DailyLiturgicalInfoModel?> dailyInfo =
       ValueNotifier<DailyLiturgicalInfoModel?>(null);
@@ -276,14 +280,94 @@ class PrayerRepository {
   final Map<String, DailyPrayerRuleStatusModel> _ruleCache = {};
   final Map<String, PrayerServiceModel> _serviceCache = {};
 
+  DailyLiturgicalInfoModel getFallbackDailyInfo([DateTime? date]) {
+    final target = date ?? DateTime.now();
+    final dateStr = DateFormat('yyyy-MM-dd').format(target);
+    final greekMonths = [
+      'Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μαΐου', 'Ιουνίου',
+      'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου'
+    ];
+    final greekDays = [
+      'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο', 'Κυριακή'
+    ];
+    final dayName = greekDays[target.weekday - 1];
+    final monthName = greekMonths[target.month - 1];
+    final dateFormatted = '$dayName, ${target.day} $monthName';
+
+    final isWedOrFri = target.weekday == DateTime.wednesday || target.weekday == DateTime.friday;
+    final fasting = isWedOrFri ? 'Νηστεία (Κατάλυση οίνου & ελαίου)' : 'Ανηστεία (Εις πάντα)';
+
+    return DailyLiturgicalInfoModel(
+      date: dateStr,
+      dateFormatted: dateFormatted,
+      tone: 'Ήχος Α\'',
+      period: 'Οκτώηχος',
+      feastName: 'Εκκλησιαστικό Ημερολόγιο',
+      fasting: fasting,
+      saints: [
+        SaintModel(
+          name: 'Άγιοι της Ημέρας',
+          title: 'Συναξάριον & Εορτολόγιο',
+          shortLife: 'Μνήμη των ενδόξων Αγίων και Μαρτύρων της Εκκλησίας.',
+        ),
+      ],
+      readings: [],
+      movableCycle: 'Εβδομάδα Ματθαίου/Λουκά',
+    );
+  }
+
+  DailyPrayerRuleStatusModel getFallbackRuleStatus([DateTime? date]) {
+    final target = date ?? DateTime.now();
+    final dateStr = DateFormat('yyyy-MM-dd').format(target);
+    return DailyPrayerRuleStatusModel(
+      date: dateStr,
+      items: [
+        PrayerRuleItemModel(
+          id: 'morning_prayers',
+          title: 'Πρωινή Προσευχή',
+          description: 'Πρωινή ακολουθία & ευχαριστία',
+          icon: 'sun',
+          points: 25,
+        ),
+        PrayerRuleItemModel(
+          id: 'gospel_reading',
+          title: 'Ανάγνωση Ευαγγελίου',
+          description: 'Καθημερινό Ευαγγελικό & Αποστολικό ανάγνωσμα',
+          icon: 'book',
+          points: 20,
+        ),
+        PrayerRuleItemModel(
+          id: 'jesus_prayer',
+          title: 'Κομποσκοίνι (Ευχή του Ιησού)',
+          description: '«Κύριε Ιησού Χριστέ, ελέησόν με»',
+          icon: 'komboskini',
+          points: 30,
+        ),
+        PrayerRuleItemModel(
+          id: 'small_compline',
+          title: 'Μικρόν Απόδειπνον',
+          description: 'Βραδινή προσευχή & κατάνυξις',
+          icon: 'moon',
+          points: 25,
+        ),
+      ],
+      completedCount: 0,
+      totalCount: 4,
+      totalPointsEarned: 0,
+      streakDays: 1,
+    );
+  }
+
   /// Fetches the liturgical and Synaxarion info for the specified date
-  Future<DailyLiturgicalInfoModel?> fetchDailyInfo([DateTime? date]) async {
+  Future<DailyLiturgicalInfoModel> fetchDailyInfo([DateTime? date]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
 
     // Instant cache hit if previously loaded
     if (_dailyCache.containsKey(dateStr)) {
-      dailyInfo.value = _dailyCache[dateStr];
+      final cached = _dailyCache[dateStr]!;
+      dailyInfo.value = cached;
+      return cached;
     }
 
     try {
@@ -299,16 +383,23 @@ class PrayerRepository {
     } catch (e) {
       debugPrint('PrayerRepository daily fetch error: $e');
     }
-    return _dailyCache[dateStr];
+
+    // Return fallback if fetch fails or is offline
+    final fallback = getFallbackDailyInfo(target);
+    _dailyCache[dateStr] = fallback;
+    dailyInfo.value = fallback;
+    return fallback;
   }
 
   /// Fetches the daily prayer rule checklist and streak
-  Future<DailyPrayerRuleStatusModel?> fetchRuleStatus([DateTime? date]) async {
+  Future<DailyPrayerRuleStatusModel> fetchRuleStatus([DateTime? date]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
 
     if (_ruleCache.containsKey(dateStr)) {
-      ruleStatus.value = _ruleCache[dateStr];
+      final cached = _ruleCache[dateStr]!;
+      ruleStatus.value = cached;
+      return cached;
     }
 
     try {
@@ -324,7 +415,11 @@ class PrayerRepository {
     } catch (e) {
       debugPrint('PrayerRepository rule status fetch error: $e');
     }
-    return _ruleCache[dateStr];
+
+    final fallback = getFallbackRuleStatus(target);
+    _ruleCache[dateStr] = fallback;
+    ruleStatus.value = fallback;
+    return fallback;
   }
 
   /// Complete a prayer rule objective and award RPG star points
@@ -405,6 +500,14 @@ class PrayerRepository {
     } catch (e) {
       debugPrint('PrayerRepository service fetch error: $e');
     }
+
+    // Built-in offline fallback prayer
+    final builtIn = BuiltInPrayers.getFallbackService(serviceId, '');
+    if (builtIn != null) {
+      _serviceCache[cacheKey] = builtIn;
+      return builtIn;
+    }
+
     return _serviceCache[cacheKey];
   }
 

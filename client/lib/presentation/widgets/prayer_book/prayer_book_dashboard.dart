@@ -114,86 +114,100 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       body: ValueListenableBuilder<DailyLiturgicalInfoModel?>(
         valueListenable: PrayerRepository.instance.dailyInfo,
         builder: (context, info, _) {
-          if (_isLoading || info == null) {
-            return const Center(
-              child: CircularProgressIndicator(
-                  color: EverforestColors.yellow, strokeWidth: 2),
-            );
-          }
+          final effectiveInfo = info ??
+              PrayerRepository.instance.getFallbackDailyInfo(_selectedDate);
+          final primarySaint = effectiveInfo.saints.isNotEmpty
+              ? effectiveInfo.saints[0]
+              : null;
 
-          final primarySaint =
-              info.saints.isNotEmpty ? info.saints[0] : null;
+          return Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final isDesktop = width >= 1080;
+                  final isTablet = width >= 680 && width < 1080;
 
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              final isDesktop = width >= 1080;
-              final isTablet = width >= 680 && width < 1080;
-
-              if (isDesktop) {
-                // Desktop: 2-column sidebar layout
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 340,
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-                        child: _buildDailyPanel(info, primarySaint, isDesktop),
-                      ),
-                    ),
-                    Container(
-                      width: 1,
-                      color: Colors.white.withValues(alpha: 0.06),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildCategoryChips(),
-                            const SizedBox(height: 16),
-                            _buildPrayerGrid(columns: 3),
-                          ],
+                  if (isDesktop) {
+                    // Desktop: 2-column sidebar layout
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 340,
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
+                            child: _buildDailyPanel(
+                                effectiveInfo, primarySaint, isDesktop),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                );
-              }
+                        Container(
+                          width: 1,
+                          color: Colors.white.withValues(alpha: 0.06),
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildCategoryChips(),
+                                const SizedBox(height: 16),
+                                _buildPrayerGrid(columns: 3),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
 
-              // Tablet & Mobile
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                    isTablet ? 20 : 12, 8, isTablet ? 20 : 12, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTopBar(info),
-                    const SizedBox(height: 10),
-                    _buildFastingBanner(info),
-                    const SizedBox(height: 12),
-                    PrayerRuleTrackerCard(selectedDate: _selectedDate),
-                    const SizedBox(height: 14),
-                    if (primarySaint != null) ...[
-                      _buildSaintCard(primarySaint, info, isCompact: !isTablet),
-                      const SizedBox(height: 14),
-                    ],
-                    if (info.readings.isNotEmpty) ...[
-                      _buildReadingsSection(info.readings, isTablet),
-                      const SizedBox(height: 16),
-                    ],
-                    _buildCategoryChips(),
-                    const SizedBox(height: 14),
-                    _buildPrayerGrid(columns: isTablet ? 3 : 2),
-                  ],
+                  // Tablet & Mobile
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                        isTablet ? 20 : 12, 8, isTablet ? 20 : 12, 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTopBar(effectiveInfo),
+                        const SizedBox(height: 10),
+                        _buildFastingBanner(effectiveInfo),
+                        const SizedBox(height: 12),
+                        PrayerRuleTrackerCard(selectedDate: _selectedDate),
+                        const SizedBox(height: 14),
+                        if (primarySaint != null) ...[
+                          _buildSaintCard(primarySaint, effectiveInfo,
+                              isCompact: !isTablet),
+                          const SizedBox(height: 14),
+                        ],
+                        if (effectiveInfo.readings.isNotEmpty) ...[
+                          _buildReadingsSection(
+                              effectiveInfo.readings, isTablet),
+                          const SizedBox(height: 16),
+                        ],
+                        _buildCategoryChips(),
+                        const SizedBox(height: 14),
+                        _buildPrayerGrid(columns: isTablet ? 3 : 2),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              if (_isLoading)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: LinearProgressIndicator(
+                    color: EverforestColors.yellow,
+                    backgroundColor: Colors.transparent,
+                    minHeight: 2.5,
+                  ),
                 ),
-              );
-            },
+            ],
           );
         },
       ),

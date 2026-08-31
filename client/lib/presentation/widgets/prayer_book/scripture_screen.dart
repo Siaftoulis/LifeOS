@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../api_client.dart';
 import '../../../theme/everforest_colors.dart';
 import 'prayer_reader_screen.dart';
 
@@ -29,12 +28,9 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
 
   Future<void> _loadBooks() async {
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/scripture'),
-      ).timeout(const Duration(seconds: 10));
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/scripture');
 
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      if (data is Map && data['books'] is List) {
         final books = (data['books'] as List)
             .map((b) => BookSummary.fromJson(b))
             .toList();
@@ -80,12 +76,11 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
     setState(() => _isSearching = true);
 
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/scripture/search?q=${Uri.encodeComponent(query)}'),
-      ).timeout(const Duration(seconds: 5));
+      final data = await ApiClient.instance.getDaemon(
+        '/api/v1/prayers/scripture/search?q=${Uri.encodeComponent(query)}',
+      );
 
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
+      if (data is Map && data['results'] is List) {
         final results = (data['results'] as List)
             .map((r) => ScriptureSearchResult.fromJson(r))
             .toList();

@@ -90,21 +90,21 @@ class OtaUpdateService {
   final ValueNotifier<String?> downloadedFilePath = ValueNotifier(null);
   final ValueNotifier<String> statusMessage = ValueNotifier('');
 
-  int _currentBuildNumber = 39;
-  String _currentVersionTag = 'v1.5.1';
+  int _currentBuildNumber = 40;
+  String _currentVersionTag = 'v1.5.2';
 
   int get currentBuildNumber => _currentBuildNumber;
   String get currentVersionTag => _currentVersionTag;
 
   Future<void> initialize() async {
     try {
-      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":39, "version":"1.5.1"}');
+      final jsonStr = await rootBundle.loadString('assets/version.json').catchError((_) => '{"build_number":40, "version":"1.5.2"}');
       final data = jsonDecode(jsonStr);
-      _currentBuildNumber = data['build_number'] ?? 39;
-      _currentVersionTag = 'v${data['version'] ?? '1.5.1'}';
+      _currentBuildNumber = data['build_number'] ?? 40;
+      _currentVersionTag = 'v${data['version'] ?? '1.5.2'}';
     } catch (_) {
-      _currentBuildNumber = 39;
-      _currentVersionTag = 'v1.5.1';
+      _currentBuildNumber = 40;
+      _currentVersionTag = 'v1.5.2';
     }
 
     // Trigger silent background check

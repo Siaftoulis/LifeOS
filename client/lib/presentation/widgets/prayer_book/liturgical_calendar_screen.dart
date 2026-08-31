@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../../api_client.dart';
+import '../../../core/repositories/prayer_repository.dart';
 import '../../../theme/everforest_colors.dart';
 
 class LiturgicalCalendarScreen extends StatefulWidget {
@@ -48,23 +48,28 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
 
   Future<Map<String, dynamic>> _fetchDaily(String date) async {
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/daily?date=$date'),
-      ).timeout(const Duration(seconds: 10));
-      if (resp.statusCode == 200) {
-        return json.decode(resp.body);
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/daily?date=$date');
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
-    return {};
+    final fallback = PrayerRepository.instance.getFallbackDailyInfo(DateTime.now());
+    return {
+      'date': fallback.date,
+      'date_formatted': fallback.dateFormatted,
+      'tone': fallback.tone,
+      'period': fallback.period,
+      'feast_name': fallback.feastName,
+      'fasting': fallback.fasting,
+      'saints': fallback.saints.map((s) => {'name': s.name, 'title': s.title, 'short_life': s.shortLife}).toList(),
+    };
   }
 
   Future<Map<String, dynamic>> _fetchLectionaryMonth(String month) async {
     try {
-      final resp = await http.get(
-        Uri.parse('/api/v1/prayers/lectionary/month?month=$month'),
-      ).timeout(const Duration(seconds: 10));
-      if (resp.statusCode == 200) {
-        return json.decode(resp.body);
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/lectionary/month?month=$month');
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
     return {};
