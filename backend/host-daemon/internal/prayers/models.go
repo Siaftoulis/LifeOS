@@ -54,14 +54,23 @@ type PrayerSection struct {
 	DynamicType string `json:"dynamic_type,omitempty"`// e.g. "apolytikion", "kontakion", "gospel"
 }
 
+// CommemorationOption provides a selectable Saint / Commemoration option
+type CommemorationOption struct {
+	Index int    `json:"index"`
+	Name  string `json:"name"`
+	Title string `json:"title,omitempty"`
+}
+
 // PrayerService represents an entire liturgical service or prayer rule
 type PrayerService struct {
-	ID          string          `json:"id"`          // e.g. "morning_prayer", "small_compline", "matins"
-	Title       string          `json:"title"`       // e.g. "Πρωινή Προσευχή"
-	Category    string          `json:"category"`    // "Καθημερινές Ακολουθίες", "Θεία Μετάληψις", "Παρακλήσεις"
-	Subtitle    string          `json:"subtitle"`    // e.g. "Ακολουθία μετά την εξέγερσιν εκ του ύπνου"
-	EstimatedMin int            `json:"estimated_min"` // e.g. 15
-	Sections    []PrayerSection `json:"sections"`
+	ID                         string                `json:"id"`           // e.g. "morning_prayer", "small_compline", "matins"
+	Title                      string                `json:"title"`        // e.g. "Πρωινή Προσευχή"
+	Category                   string                `json:"category"`     // "Καθημερινές Ακολουθίες", "Θεία Μετάληψις", "Παρακλήσεις"
+	Subtitle                   string                `json:"subtitle"`     // e.g. "Ακολουθία μετά την εξέγερσιν εκ του ύπνου"
+	EstimatedMin               int                   `json:"estimated_min"`// e.g. 15
+	Sections                   []PrayerSection       `json:"sections"`
+	Commemorations             []CommemorationOption `json:"commemorations,omitempty"`
+	SelectedCommemorationIndex int                   `json:"selected_commemoration_idx"`
 }
 
 // PrayerCategory represents a grouped collection of prayers

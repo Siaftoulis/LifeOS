@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -188,7 +189,14 @@ func handlePrayerService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	date := parseDateQuery(r)
-	service, err := BuildService(id, date)
+	saintIdx := 0
+	if sParam := r.URL.Query().Get("saint_idx"); sParam != "" {
+		if val, err := strconv.Atoi(sParam); err == nil && val >= 0 {
+			saintIdx = val
+		}
+	}
+
+	service, err := BuildService(id, date, saintIdx)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "%s"}`, err.Error()), http.StatusNotFound)
 		return

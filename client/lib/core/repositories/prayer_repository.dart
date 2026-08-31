@@ -159,6 +159,26 @@ class PrayerSectionModel {
   }
 }
 
+class CommemorationOptionModel {
+  final int index;
+  final String name;
+  final String title;
+
+  CommemorationOptionModel({
+    required this.index,
+    required this.name,
+    this.title = '',
+  });
+
+  factory CommemorationOptionModel.fromJson(Map<String, dynamic> json) {
+    return CommemorationOptionModel(
+      index: (json['index'] as num?)?.toInt() ?? 0,
+      name: json['name']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+    );
+  }
+}
+
 class PrayerServiceModel {
   final String id;
   final String title;
@@ -166,6 +186,8 @@ class PrayerServiceModel {
   final String subtitle;
   final int estimatedMin;
   final List<PrayerSectionModel> sections;
+  final List<CommemorationOptionModel> commemorations;
+  final int selectedCommemorationIndex;
 
   PrayerServiceModel({
     required this.id,
@@ -174,16 +196,26 @@ class PrayerServiceModel {
     this.subtitle = '',
     this.estimatedMin = 10,
     required this.sections,
+    this.commemorations = const [],
+    this.selectedCommemorationIndex = 0,
   });
 
   factory PrayerServiceModel.fromJson(Map<String, dynamic> json) {
     final rawSections = json['sections'] as List? ?? [];
+    final rawComms = json['commemorations'] as List? ?? [];
     return PrayerServiceModel(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       category: json['category']?.toString() ?? '',
       subtitle: json['subtitle']?.toString() ?? '',
       estimatedMin: (json['estimated_min'] as num?)?.toInt() ?? 10,
+      selectedCommemorationIndex:
+          (json['selected_commemoration_idx'] as num?)?.toInt() ?? 0,
+      commemorations: rawComms
+          .whereType<Map>()
+          .map((c) =>
+              CommemorationOptionModel.fromJson(Map<String, dynamic>.from(c)))
+          .toList(),
       sections: rawSections
           .whereType<Map>()
           .map((s) =>
@@ -445,10 +477,10 @@ class PrayerRepository {
 
   /// Fetches complete prayer text with dynamically inserted Typikon variables
   Future<PrayerServiceModel?> fetchService(String serviceId,
-      [DateTime? date]) async {
+      [DateTime? date, int saintIdx = 0]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
-    final cacheKey = '$serviceId-$dateStr';
+    final cacheKey = '$serviceId-$dateStr-$saintIdx';
 
     if (_serviceCache.containsKey(cacheKey)) {
       return _serviceCache[cacheKey];
@@ -465,7 +497,7 @@ class PrayerRepository {
         if (parts.length >= 3) {
           url = '/api/v1/prayers/scripture/service?book=${parts[1]}&chapter=${parts[2]}';
         } else {
-          url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr';
+          url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr&saint_idx=$saintIdx';
         }
       } else if (['great_compline', 'royal_hours', 'midnight_office', 'first_hour', 'third_hour', 'sixth_hour', 'ninth_hour'].contains(serviceId)) {
         url = '/api/v1/prayers/horologion/service?id=$serviceId';
@@ -486,7 +518,7 @@ class PrayerRepository {
         // Direct Octoechos service ID (e.g. tone1_vespers)
         url = '/api/v1/prayers/octoechos/service?id=$serviceId';
       } else {
-        url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr';
+        url = '/api/v1/prayers/service?id=$serviceId&date=$dateStr&saint_idx=$saintIdx';
       }
 
       final res = await ApiClient.instance.getDaemon(url);

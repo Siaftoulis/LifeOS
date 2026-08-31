@@ -116,26 +116,26 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.0"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 37' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.3"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 41' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Universal Search & Offline Vault
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Full Liturgical Texts & Saint Selector
 
           ### Highlights & What's New
-          - **Universal Spotlight Search & Command Palette (Ctrl+K)**:
-            - Instant keyboard navigation to all LifeOS modules/tabs (Prayers, Music, Notes, Gallery, Movies, Finance, Maps, Tasks, Settings).
-            - Direct launcher for all Orthodox liturgical services, David's Psalter, New/Old Testament Scriptures, and Synaxarion.
-            - Filter chips by category and rich Everforest badges.
-          - **Complete Orthodox Hymnography & Canons**:
-            - Full Canons across all 8 Tones (St. John of Damascus).
-            - Small & Great Paraklesis to the Theotokos, Great Compline, and Holy Communion Canon.
-            - Canonical Hours (1st, 3rd, 6th, 9th) and Midnight Office (Amomos Ps. 118, Bridegroom Troparia).
-            - Strictly authentic Greek liturgical texts with zero English interpolations.
+          - **Full Unabbreviated Liturgical Texts (Zero Cuts / No Truncation)**:
+            - **Vespers (Εσπερινός)**: Full unabbreviated 35 verses of Psalm 103 (Προοιμιακός), full 18 verses of Psalms 140/141/129/116 (Στιχολογία «Θοῦ, Κύριε...»), complete Kekragaria Stichera on 10 (3 Anastasima + 3 Anatolika + 4 Menaion Saint Prosomia), full Doxastikon of the Saint, Dogmatic Theotokion, Phos Hilaron, full Aposticha, Nunc Dimittis, complete Trisagion prayers, Apolytikia, and Apolysis.
+            - **Matins (Όρθρος)**: Full unabbreviated Six Psalms (Psalms 3, 37, 62, 87, 102, 142) verse by verse, full Psalm 50, Ainoi with Saint's Prosomion, Great Doxology, Apolytikia, and Apolysis.
+            - **Divine Liturgy (Θεία Λειτουργία)**: Full Chrysostom & Basil dynamic services.
+          - **Commemorated Saint Selector (Επιλογέας Αγίου της Ημέρας)**:
+            - Sleek dropdown menu in the top bar with a small arrow (`Icons.arrow_drop_down_rounded`) allowing seamless switching between all commemorated saints of the day.
+            - Defaults to the 1st commemoration and dynamically regenerates hymns, stichera, and apolytikia for the selected saint.
+          - **Offline Prayer Book & 0ms Fallbacks**:
+            - Instant zero-delay loading on mobile without blocking spinners.
+            - Built-in offline liturgical prayers and robust mobile daemon endpoint routing.
           - **Audiophile Studio & Offline Music Vault**:
-            - Save music from server vault to device for 100% offline playback.
-            - 10-band EQ, bass/treble boost, 3D spatial audio, and preamp gain.
-          - **OTA Background Updates**:
-            - Automatic background update checks and one-tap install for Android APK & Windows.
+            - 100% offline device playback, 10-band EQ, and DSP audio processing.
+          - **OTA Updates & Diagnostics**:
+            - Enhanced OTA update engine with one-tap background download & install.
           EOF
 
       - name: Publish Release

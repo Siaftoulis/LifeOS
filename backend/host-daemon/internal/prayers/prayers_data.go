@@ -48,16 +48,20 @@ func GetAllCategories() []PrayerCategory {
 }
 
 // BuildService constructs a complete prayer service with dynamic Typikon parts injected for the day
-func BuildService(serviceID string, date time.Time) (*PrayerService, error) {
+func BuildService(serviceID string, date time.Time, saintIdx ...int) (*PrayerService, error) {
+	sIdx := 0
+	if len(saintIdx) > 0 && saintIdx[0] >= 0 {
+		sIdx = saintIdx[0]
+	}
 	switch serviceID {
 	case "divine_liturgy_chrysostom", "divine_liturgy":
-		return BuildDivineLiturgyChrysostom(date), nil
+		return BuildDivineLiturgyChrysostom(date, sIdx), nil
 	case "divine_liturgy_basil":
-		return BuildDivineLiturgyBasil(date), nil
+		return BuildDivineLiturgyBasil(date, sIdx), nil
 	case "matins":
-		return BuildMatinsDynamic(date), nil
+		return BuildMatinsDynamic(date, sIdx), nil
 	case "vespers":
-		return BuildVespersDynamic(date), nil
+		return BuildVespersDynamic(date, sIdx), nil
 	case "midnight_office":
 		return BuildMidnightOfficeService(), nil
 	case "hour_first", "first_hour":
@@ -90,13 +94,20 @@ func BuildService(serviceID string, date time.Time) (*PrayerService, error) {
 		sTitle := menologion.FeastName
 		apol := menologion.Apolytikion
 		if len(menologion.Saints) > 0 {
-			sName = menologion.Saints[0].Name
-			sTitle = menologion.Saints[0].Title
-			if menologion.Saints[0].Apolytikion != "" {
-				apol = menologion.Saints[0].Apolytikion
+			if sIdx >= len(menologion.Saints) {
+				sIdx = 0
+			}
+			sName = menologion.Saints[sIdx].Name
+			sTitle = menologion.Saints[sIdx].Title
+			if menologion.Saints[sIdx].Apolytikion != "" {
+				apol = menologion.Saints[sIdx].Apolytikion
 			}
 		}
-		return BuildGenericSaintParaklesis(sName, sTitle, apol), nil
+		svc := BuildGenericSaintParaklesis(sName, sTitle, apol)
+		commOpts, chosenIdx, _, _, _, _ := getCommemorationOptions(date, sIdx)
+		svc.Commemorations = commOpts
+		svc.SelectedCommemorationIndex = chosenIdx
+		return svc, nil
 	}
 
 	menologion := GetDailySaints(int(date.Month()), date.Day())

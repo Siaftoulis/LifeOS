@@ -31,6 +31,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   int _activeSectionIndex = 0;
   final Map<int, GlobalKey> _sectionKeys = {};
   bool _desktopSidebarOpen = true;
+  int _selectedSaintIdx = 0;
 
   static const _maxContentWidth = 760.0;
   static const _sidebarWidth = 220.0;
@@ -39,7 +40,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadService();
+    _loadService(0);
   }
 
   @override
@@ -69,16 +70,19 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
     }
   }
 
-  Future<void> _loadService() async {
+  Future<void> _loadService([int saintIdx = 0]) async {
     final svc = await PrayerRepository.instance
-        .fetchService(widget.serviceId, widget.date);
+        .fetchService(widget.serviceId, widget.date, saintIdx);
     if (mounted && svc != null) {
+      _sectionKeys.clear();
       for (int i = 0; i < svc.sections.length; i++) {
         _sectionKeys[i] = GlobalKey();
       }
       setState(() {
         _service = svc;
+        _selectedSaintIdx = svc.selectedCommemorationIndex;
         _isLoading = false;
+        _activeSectionIndex = 0;
       });
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -517,7 +521,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     setState(() => _desktopSidebarOpen = !_desktopSidebarOpen),
               ),
             const SizedBox(width: 4),
-            // Service Title
+            // Service Title & Commemoration Selector
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,7 +537,95 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (_service?.subtitle.isNotEmpty ?? false)
+                  if (_service?.commemorations != null &&
+                      _service!.commemorations.length > 1)
+                    PopupMenuButton<int>(
+                      initialValue: _selectedSaintIdx,
+                      tooltip: 'Επιλογή Αγίου / Εορτής',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      color: sidebarBg,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      onSelected: (idx) {
+                        if (idx != _selectedSaintIdx) {
+                          setState(() {
+                            _selectedSaintIdx = idx;
+                            _isLoading = true;
+                          });
+                          _loadService(idx);
+                        }
+                      },
+                      itemBuilder: (context) {
+                        return _service!.commemorations.map((comm) {
+                          final isChosen = comm.index == _selectedSaintIdx;
+                          return PopupMenuItem<int>(
+                            value: comm.index,
+                            height: 40,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  isChosen
+                                      ? Icons.check_circle_rounded
+                                      : Icons.radio_button_unchecked_rounded,
+                                  size: 16,
+                                  color: isChosen
+                                      ? accentGold
+                                      : EverforestColors.grey,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    comm.name,
+                                    style: TextStyle(
+                                      color: isChosen ? accentGold : textColor,
+                                      fontSize: 12.5,
+                                      fontWeight: isChosen
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _service!.commemorations
+                                  .firstWhere(
+                                      (c) => c.index == _selectedSaintIdx,
+                                      orElse: () =>
+                                          _service!.commemorations.first)
+                                  .name,
+                              style: TextStyle(
+                                color: accentGold,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down_rounded,
+                            color: accentGold,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (_service?.subtitle.isNotEmpty ?? false)
                     Text(
                       _service!.subtitle,
                       style: TextStyle(
