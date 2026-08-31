@@ -116,18 +116,19 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.5"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 43' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.6"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 44' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Permanent Release Keystore & Seamless OTA Updates
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Permanent Release Keystore & In-Place OTA Installer
 
           ### Highlights & What's New
           - **Permanent Release Keystore (Zero Signature Mismatch)**:
             - Configured dedicated permanent release signing keystore with APK Signature Schemes v1, v2, v3, and v4 enabled.
             - Guarantees 100% cryptographic certificate consistency across all builds and devices (Huawei, Xiaomi, Samsung, Pixel), eliminating "package's signature does not match installed app" and enabling seamless in-place OTA upgrades without uninstalling.
           - **Robust APK Installation & Parse Error Prevention**:
+            - External cache storage for APK updates on Android to prevent SELinux sandboxing issues on Huawei / EMUI / HarmonyOS.
             - Atomic `.part` file downloading with strict size and completion validation to prevent corrupted partial APK files.
-            - Explicit `FLAG_GRANT_READ_URI_PERMISSION` grant to all package installer handlers.
+            - Explicit `FLAG_GRANT_READ_URI_PERMISSION` and unknown app install permission checks (`canRequestPackageInstalls`).
           - **Smooth TOC & Sidebar Navigation**:
             - Zero indicator flickering / bouncing when selecting sections in Table of Contents or desktop sidebar.
           - **Full Unabbreviated Liturgical Texts (Zero Cuts / No Truncation)**:

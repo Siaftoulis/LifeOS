@@ -211,8 +211,25 @@ class OtaUpdateService {
     statusMessage.value = 'Downloading ${release.tagName}...';
 
     try {
-      final tempDir = await getTemporaryDirectory();
-      final updatesDir = Directory('${tempDir.path}/updates');
+      Directory updatesDir;
+      if (Platform.isAndroid) {
+        final extCacheList = await getExternalCacheDirectories();
+        if (extCacheList != null && extCacheList.isNotEmpty) {
+          updatesDir = Directory('${extCacheList.first.path}/updates');
+        } else {
+          final extStorage = await getExternalStorageDirectory();
+          if (extStorage != null) {
+            updatesDir = Directory('${extStorage.path}/updates');
+          } else {
+            final tempDir = await getTemporaryDirectory();
+            updatesDir = Directory('${tempDir.path}/updates');
+          }
+        }
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        updatesDir = Directory('${tempDir.path}/updates');
+      }
+
       if (!await updatesDir.exists()) {
         await updatesDir.create(recursive: true);
       }
