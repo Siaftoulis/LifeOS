@@ -9,6 +9,8 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -24,6 +26,25 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.44.9'
+          cache: true
+
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('client/android/**/*.gradle*', 'client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-${{ runner.os }}-
 
       - name: Strip Local JVM Paths
         working-directory: ./client
@@ -41,15 +62,41 @@ jobs:
         working-directory: ./client
         run: flutter build apk --release --no-pub
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Generate Release Body
+        run: |
+          VERSION=$(jq -r '.version // "1.5.8"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 46' .agent/version.json)
+          cat <<EOF > release_notes.md
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Prayer Book Overhaul & High-Speed Releases
+
+          ### Highlights & What's New
+          - **Continuous Uninterrupted Reading (Ψαλτήριον & Καινή Διαθήκη)**:
+            - Full unbroken continuous scroll for all 150 Psalms (20 Kathismata) and New Testament books.
+            - Floating bottom-pill quick jump selector to instantly navigate between Kathismata, Psalms, and Chapters.
+          - **Streamlined Minimalist Mobile UI**:
+            - 100% Greek localization across all widgets and liturgical texts.
+            - Time-of-day smart recommendation launcher (Πρωινή Προσευχή, Ώρες, Εσπερινός, Απόδειπνον).
+            - Removed digital Komboskini; replaced in daily prayer rule with Psalter reading.
+          - **Optimized OTA Updates & Faster Builds**:
+            - Proxy & caching for asset downloads on Go host daemon.
+            - High-speed release caching for immediate Android APK and Windows distribution.
+          EOF
+
+      - name: Publish Android APK Immediately
+        uses: softprops/action-gh-release@v2
         with:
-          name: app-release-apk
-          path: client/build/app/outputs/flutter-apk/app-release.apk
+          name: LifeOS ${{ github.ref_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: client/build/app/outputs/flutter-apk/app-release.apk
+          fail_on_unmatched_files: true
 
   build-windows:
     name: Build Windows Executable
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - name: Enable Developer Mode & Symlinks
         shell: powershell
@@ -66,6 +113,15 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.44.9'
+          cache: true
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\Pub\Cache
+          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-${{ runner.os }}-
 
       - name: Install Dependencies
         working-directory: ./client
@@ -83,69 +139,11 @@ jobs:
       - name: Zip Windows Build
         run: Compress-Archive -Path client\build\windows\x64\runner\Release\* -DestinationPath lifeos-windows-release.zip
 
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lifeos-windows-zip
-          path: lifeos-windows-release.zip
-
-  publish-release:
-    name: Publish GitHub Release
-    needs: [build-android, build-windows]
-    if: always() && (needs.build-android.result == 'success' || needs.build-windows.result == 'success')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Download APK Artifact
-        if: needs.build-android.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: app-release-apk
-          path: release-artifacts
-
-      - name: Download Windows Artifact
-        if: needs.build-windows.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          name: lifeos-windows-zip
-          path: release-artifacts
-
-      - name: Generate Release Body
-        run: |
-          VERSION=$(jq -r '.version // "1.5.7"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 45' .agent/version.json)
-          cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Dynamic Version Detection & Silent Latest State
-
-          ### Highlights & What's New
-          - **Dynamic Version Detection & Zero Redundant Pop-ups**:
-            - App now queries OS-level package metadata via `PackageInfo` to accurately detect current version and build number.
-            - When running the latest version, update pop-ups and banners are strictly suppressed.
-            - Automatically purges obsolete update caches when app is up-to-date.
-          - **Permanent Release Keystore (Zero Signature Mismatch)**:
-            - Configured dedicated permanent release signing keystore with APK Signature Schemes v1, v2, v3, and v4 enabled.
-            - In-place 1-tap OTA upgrades without uninstalling.
-          - **Robust APK Installation & Parse Error Prevention**:
-            - External cache storage for APK updates on Android to prevent SELinux sandboxing issues on Huawei / EMUI / HarmonyOS.
-            - Atomic `.part` file downloading with strict size and completion validation to prevent corrupted partial APK files.
-          - **Smooth TOC & Sidebar Navigation**:
-            - Zero indicator flickering / bouncing when selecting sections in Table of Contents or desktop sidebar.
-          - **Full Unabbreviated Liturgical Texts (Zero Cuts / No Truncation)**:
-            - Complete unabbreviated Psalm 103 (35 verses), Kekragaria Stichologia (18 verses), Stichera on 10, Six Psalms of Matins, Doxastika, and Apolytikia.
-          - **Commemorated Saint Selector**:
-            - Dropdown selector with arrow icon to dynamically switch between all commemorated saints of the day.
-          EOF
-
-      - name: Publish Release
+      - name: Attach Windows ZIP to Release
         uses: softprops/action-gh-release@v2
         with:
           name: LifeOS ${{ github.ref_name }}
-          body_path: release_notes.md
-          files: |
-            release-artifacts/app-release.apk
-            release-artifacts/lifeos-windows-release.zip
-          fail_on_unmatched_files: false
+          draft: false
+          prerelease: false
+          files: lifeos-windows-release.zip
+          fail_on_unmatched_files: true
