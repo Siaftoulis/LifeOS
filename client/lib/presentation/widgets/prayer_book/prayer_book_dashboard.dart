@@ -24,8 +24,8 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
   String _selectedCategory = 'all';
 
   final List<Map<String, String>> _categories = const [
-    {'id': 'all', 'label': 'Όλα'},
-    {'id': 'liturgy', 'label': 'Λειτουργίες'},
+    {'id': 'all', 'label': 'Όλες'},
+    {'id': 'liturgy', 'label': 'Θείες Λειτουργίες'},
     {'id': 'hours', 'label': 'Ακολουθίες & Ώρες'},
     {'id': 'paraklesis', 'label': 'Παρακλήσεις'},
     {'id': 'devotion', 'label': 'Κανόνες & Ευχές'},
@@ -107,6 +107,32 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
     );
   }
 
+  String _getRecommendedServiceId() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return 'morning_prayer';
+    } else if (hour >= 12 && hour < 17) {
+      return 'royal_hours';
+    } else if (hour >= 17 && hour < 21) {
+      return 'vespers';
+    } else {
+      return 'small_compline';
+    }
+  }
+
+  String _getRecommendedServiceTitle() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Πρωινή Προσευχή';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Ώρες';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Εσπερινός';
+    } else {
+      return 'Μικρόν Απόδειπνον';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +155,6 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   final isTablet = width >= 680 && width < 1080;
 
                   if (isDesktop) {
-                    // Desktop: 2-column sidebar layout
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -138,14 +163,10 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                           child: SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-                            child: _buildDailyPanel(
-                                effectiveInfo, primarySaint, isDesktop),
+                            child: _buildDailyPanel(effectiveInfo, primarySaint, isDesktop),
                           ),
                         ),
-                        Container(
-                          width: 1,
-                          color: Colors.white.withValues(alpha: 0.06),
-                        ),
+                        Container(width: 1, color: EverforestColors.bg2),
                         Expanded(
                           child: SingleChildScrollView(
                             physics: const BouncingScrollPhysics(),
@@ -164,11 +185,15 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                     );
                   }
 
-                  // Tablet & Mobile
+                  // Minimalist Mobile & Tablet Layout
                   return SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: EdgeInsets.fromLTRB(
-                        isTablet ? 20 : 12, 8, isTablet ? 20 : 12, 40),
+                      isTablet ? 20 : 14,
+                      10,
+                      isTablet ? 20 : 14,
+                      40,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -176,16 +201,16 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                         const SizedBox(height: 10),
                         _buildFastingBanner(effectiveInfo),
                         const SizedBox(height: 12),
+                        _buildQuickActionShortcuts(),
+                        const SizedBox(height: 12),
                         PrayerRuleTrackerCard(selectedDate: _selectedDate),
                         const SizedBox(height: 14),
                         if (primarySaint != null) ...[
-                          _buildSaintCard(primarySaint, effectiveInfo,
-                              isCompact: !isTablet),
+                          _buildSaintCard(primarySaint, effectiveInfo, isCompact: !isTablet),
                           const SizedBox(height: 14),
                         ],
                         if (effectiveInfo.readings.isNotEmpty) ...[
-                          _buildReadingsSection(
-                              effectiveInfo.readings, isTablet),
+                          _buildReadingsSection(effectiveInfo.readings, isTablet),
                           const SizedBox(height: 16),
                         ],
                         _buildCategoryChips(),
@@ -214,8 +239,118 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
     );
   }
 
-  Widget _buildDailyPanel(
-      DailyLiturgicalInfoModel info, SaintModel? primarySaint, bool isDesktop) {
+  Widget _buildQuickActionShortcuts() {
+    final recId = _getRecommendedServiceId();
+    final recTitle = _getRecommendedServiceTitle();
+
+    return Row(
+      children: [
+        // Time of Day Recommended Service Button
+        Expanded(
+          flex: 5,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _openPrayer(recId, recTitle),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: EverforestColors.yellow.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: EverforestColors.yellow.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.wb_twilight_rounded, color: EverforestColors.yellow, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ΠΡΟΣΕΥΧΗ ΩΡΑΣ',
+                          style: TextStyle(
+                            color: EverforestColors.yellow,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        Text(
+                          recTitle,
+                          style: const TextStyle(
+                            color: EverforestColors.fg,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded, color: EverforestColors.yellow, size: 12),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Quick Psalter Continuous Reader Button
+        Expanded(
+          flex: 4,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PsalterScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: EverforestColors.bg1,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: EverforestColors.bg2),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.auto_stories_rounded, color: EverforestColors.fg, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ΨΑΛΤΗΡΙΟΝ',
+                          style: TextStyle(
+                            color: EverforestColors.grey,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        Text(
+                          '150 Ψαλμοί',
+                          style: TextStyle(
+                            color: EverforestColors.fg,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyPanel(DailyLiturgicalInfoModel info, SaintModel? primarySaint, bool isDesktop) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -250,8 +385,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 style: TextStyle(
                   color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
                   fontSize: 12,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               selected: isSelected,
@@ -263,7 +397,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 side: BorderSide(
                   color: isSelected
                       ? EverforestColors.yellow
-                      : Colors.white.withValues(alpha: 0.06),
+                      : EverforestColors.bg2,
                 ),
               ),
               onSelected: (_) {
@@ -282,14 +416,13 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       decoration: BoxDecoration(
         color: EverforestColors.bg1,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: EverforestColors.bg2),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded,
-                color: EverforestColors.grey, size: 22),
+            icon: const Icon(Icons.chevron_left_rounded, color: EverforestColors.grey, size: 22),
             onPressed: () => _changeDate(-1),
             tooltip: 'Προηγούμενη Ημέρα',
           ),
@@ -320,13 +453,10 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(' • ',
-                        style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                    const Text(' • ', style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                     Flexible(
                       child: Text(
-                        info.movableCycle.isNotEmpty
-                            ? info.movableCycle
-                            : info.period,
+                        info.movableCycle.isNotEmpty ? info.movableCycle : info.period,
                         style: const TextStyle(
                           color: EverforestColors.grey,
                           fontSize: 10.5,
@@ -337,25 +467,11 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                     ),
                   ],
                 ),
-                if (info.katavasies != null && info.katavasies!.name.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '${info.katavasies!.name} (${info.katavasies!.tone})',
-                    style: const TextStyle(
-                      color: EverforestColors.aqua,
-                      fontSize: 10,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded,
-                color: EverforestColors.grey, size: 22),
+            icon: const Icon(Icons.chevron_right_rounded, color: EverforestColors.grey, size: 22),
             onPressed: () => _changeDate(1),
             tooltip: 'Επόμενη Ημέρα',
           ),
@@ -373,14 +489,11 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         decoration: BoxDecoration(
           color: EverforestColors.green.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: EverforestColors.green.withValues(alpha: 0.22),
-          ),
+          border: Border.all(color: EverforestColors.green.withValues(alpha: 0.22)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.eco_rounded,
-                color: EverforestColors.green, size: 16),
+            const Icon(Icons.eco_rounded, color: EverforestColors.green, size: 16),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -394,32 +507,21 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(Icons.info_outline_rounded,
-                color: EverforestColors.green, size: 14),
+            const Icon(Icons.info_outline_rounded, color: EverforestColors.green, size: 14),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSaintCard(SaintModel primarySaint, DailyLiturgicalInfoModel info,
-      {required bool isCompact}) {
+  Widget _buildSaintCard(SaintModel primarySaint, DailyLiturgicalInfoModel info, {required bool isCompact}) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isCompact ? 12 : 16),
       decoration: BoxDecoration(
         color: EverforestColors.bg1,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: EverforestColors.yellow.withValues(alpha: 0.25),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: EverforestColors.yellow.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,8 +534,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   shape: BoxShape.circle,
                   color: EverforestColors.yellow.withValues(alpha: 0.15),
                 ),
-                child: const Icon(Icons.church_rounded,
-                    color: EverforestColors.yellow, size: 20),
+                child: const Icon(Icons.church_rounded, color: EverforestColors.yellow, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -470,11 +571,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
               primarySaint.shortLife,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: EverforestColors.fg,
-                fontSize: 12,
-                height: 1.4,
-              ),
+              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.4),
             ),
           ],
           const SizedBox(height: 10),
@@ -488,28 +585,20 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 dateFormatted: info.dateFormatted,
               ),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: EverforestColors.yellow.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: EverforestColors.yellow.withValues(alpha: 0.35),
-                  ),
+                  border: Border.all(color: EverforestColors.yellow.withValues(alpha: 0.35)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.auto_stories_rounded,
-                        color: EverforestColors.yellow, size: 14),
+                    Icon(Icons.auto_stories_rounded, color: EverforestColors.yellow, size: 14),
                     SizedBox(width: 5),
                     Text(
                       'Βίος & Παράκλησις',
-                      style: TextStyle(
-                        color: EverforestColors.yellow,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(color: EverforestColors.yellow, fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -521,8 +610,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
     );
   }
 
-  Widget _buildReadingsSection(
-      List<ScriptureReadingModel> readings, bool isTablet) {
+  Widget _buildReadingsSection(List<ScriptureReadingModel> readings, bool isTablet) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -559,30 +647,21 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
                   reading.type.toUpperCase(),
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: color, fontSize: 9.5, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   reading.reference,
-                  style: const TextStyle(
-                    color: EverforestColors.fg,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -594,11 +673,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
             reading.text,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: EverforestColors.fg,
-              fontSize: 12,
-              height: 1.45,
-            ),
+            style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.45),
           ),
         ],
       ),
@@ -637,7 +712,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'scripture',
         title: 'Καινή Διαθήκη',
-        subtitle: '27 Βιβλία Νέου Διαθήκης',
+        subtitle: '27 Βιβλία Αγίας Γραφής',
         icon: Icons.menu_book_rounded,
         color: EverforestColors.blue,
         estMin: 0,
@@ -646,7 +721,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'synaxarion',
         title: 'Συναξαριστής',
-        subtitle: '4,397 Άγιοι - 366 ημέρες',
+        subtitle: 'Άγιοι & Εορτές 365 ημερών',
         icon: Icons.church_rounded,
         color: EverforestColors.purple,
         estMin: 0,
@@ -655,7 +730,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'calendar',
         title: 'Ημερολόγιο',
-        subtitle: 'Λειτουργικό Ημερολόγιο',
+        subtitle: 'Λειτουργικό Εορτολόγιο',
         icon: Icons.calendar_month_rounded,
         color: EverforestColors.aqua,
         estMin: 0,
@@ -691,7 +766,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'matins',
         title: 'Όρθρος',
-        subtitle: 'Πρωινή Ακολουθία',
+        subtitle: 'Πρωινή Ακολουθία & Αίνοι',
         icon: Icons.wb_twilight_rounded,
         color: EverforestColors.yellow,
         estMin: 30,
@@ -699,8 +774,8 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       ),
       _PrayerEntry(
         id: 'great_compline',
-        title: 'Μεγάλον Απόδειπνον',
-        subtitle: 'Νυχτερινή Ακολουθία',
+        title: 'Μέγα Απόδειπνον',
+        subtitle: '«Μεθ\' ημών ο Θεός»',
         icon: Icons.nightlight_round,
         color: EverforestColors.purple,
         estMin: 25,
@@ -718,7 +793,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'midnight_office',
         title: 'Μεσονυκτικόν',
-        subtitle: 'Νυχτερινή Ακολουθία',
+        subtitle: 'Νυκτερινή Ακολουθία',
         icon: Icons.dark_mode_rounded,
         color: EverforestColors.purple,
         estMin: 15,
@@ -736,7 +811,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'third_hour',
         title: 'Γ\' Ώρα',
-        subtitle: 'Κατάβασις Αγίου Πνεύματος',
+        subtitle: 'Κάθοδος Αγίου Πνεύματος',
         icon: Icons.schedule_rounded,
         color: EverforestColors.green,
         estMin: 5,
@@ -745,7 +820,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'sixth_hour',
         title: 'Ϛ\' Ώρα',
-        subtitle: 'Σταυρός του Κυρίου',
+        subtitle: 'Σταύρωσις του Κυρίου',
         icon: Icons.history_rounded,
         color: EverforestColors.orange,
         estMin: 5,
@@ -754,7 +829,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'ninth_hour',
         title: 'Θ\' Ώρα',
-        subtitle: 'Παράκλησις του Θανάτου',
+        subtitle: 'Θάνατος του Σωτήρος',
         icon: Icons.schedule,
         color: EverforestColors.blue,
         estMin: 5,
@@ -763,7 +838,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
       _PrayerEntry(
         id: 'akathist_hymn',
         title: 'Ακάθιστος Ύμνος',
-        subtitle: 'Χαιρετισμοί Παναγίας',
+        subtitle: 'Χαιρετισμοί εις την Θεοτόκον',
         icon: Icons.auto_stories_rounded,
         color: EverforestColors.blue,
         estMin: 35,
@@ -815,24 +890,6 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         category: 'paraklesis',
       ),
       _PrayerEntry(
-        id: 'service_artoklasia_litany',
-        title: 'Αρτοκλασία & Λιτανεία',
-        subtitle: 'Ευλογία Άρτων, Σίτου & Οίνου',
-        icon: Icons.celebration_rounded,
-        color: EverforestColors.purple,
-        estMin: 20,
-        category: 'paraklesis',
-      ),
-      _PrayerEntry(
-        id: 'paraklesis_generic',
-        title: 'Παράκλησις Αγίου Ημέρας',
-        subtitle: 'Δυναμικός Κανών Εορταζομένου',
-        icon: Icons.person_rounded,
-        color: EverforestColors.aqua,
-        estMin: 25,
-        category: 'paraklesis',
-      ),
-      _PrayerEntry(
         id: 'communion_prep',
         title: 'Θεία Μετάληψις',
         subtitle: 'Ακολουθία & Προετοιμασία',
@@ -850,96 +907,6 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         estMin: 10,
         category: 'devotion',
       ),
-      _PrayerEntry(
-        id: 'jesus_prayer',
-        title: 'Προσευχή Ιησού',
-        subtitle: 'Κανόνας Κομποσχοινίου',
-        icon: Icons.touch_app_rounded,
-        color: EverforestColors.green,
-        estMin: 10,
-        category: 'devotion',
-      ),
-      _PrayerEntry(
-        id: 'ephraim_prayer',
-        title: 'Προσευχή Εφραίμ',
-        subtitle: 'Ταπείνωση & Μετάνοια',
-        icon: Icons.self_improvement_rounded,
-        color: EverforestColors.orange,
-        estMin: 5,
-        category: 'devotion',
-      ),
-      _PrayerEntry(
-        id: 'table_prayers',
-        title: 'Τραπεζικές Ευχές',
-        subtitle: 'Προ & Μετά το Γεύμα',
-        icon: Icons.restaurant_rounded,
-        color: EverforestColors.yellow,
-        estMin: 5,
-        category: 'devotion',
-      ),
-      _PrayerEntry(
-        id: 'optina_prayer',
-        title: 'Ευχή Οπτίνων',
-        subtitle: 'Ευχή Γερόντων',
-        icon: Icons.elderly_rounded,
-        color: EverforestColors.blue,
-        estMin: 3,
-        category: 'devotion',
-      ),
-      _PrayerEntry(
-        id: 'triodion',
-        title: 'Τριώδιον',
-        subtitle: 'Μεγάλη Τεσσαρακοστή',
-        icon: Icons.menu_book_rounded,
-        color: EverforestColors.purple,
-        estMin: 0,
-        category: 'books',
-      ),
-      _PrayerEntry(
-        id: 'pentecostarion',
-        title: 'Πεντηκοστάριον',
-        subtitle: 'Πασχαλιακός Κύκλος',
-        icon: Icons.auto_stories_rounded,
-        color: EverforestColors.aqua,
-        estMin: 0,
-        category: 'books',
-      ),
-      _PrayerEntry(
-        id: 'menaion',
-        title: 'Μηναίον',
-        subtitle: '12 Μεγάλες Εορτές',
-        icon: Icons.menu_book_rounded,
-        color: EverforestColors.yellow,
-        estMin: 0,
-        category: 'books',
-      ),
-      _PrayerEntry(
-        id: 'euchologion',
-        title: 'Ευχολόγιον',
-        subtitle: '38 Ευχές Ημερήσιες & Μυστικές',
-        icon: Icons.menu_book_rounded,
-        color: EverforestColors.orange,
-        estMin: 0,
-        category: 'books',
-      ),
-      _PrayerEntry(
-        id: 'sacraments',
-        title: 'Μυστήρια',
-        subtitle: 'Βάπτισμα, Χρίσμα, Γάμος, Ευχέλαιον',
-        icon: Icons.local_library_rounded,
-        color: EverforestColors.green,
-        estMin: 0,
-        category: 'books',
-      ),
-      _PrayerEntry(
-        id: 'octoechos',
-        title: 'Οκτωήχος',
-        subtitle: '8 Τόνοι - Παρακλητική',
-        icon: Icons.queue_music_rounded,
-        color: EverforestColors.blue,
-        estMin: 0,
-        category: 'books',
-      ),
     ];
 
     final filtered = _selectedCategory == 'all'
@@ -947,110 +914,76 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         : allPrayers.where((p) => p.category == _selectedCategory).toList();
 
     return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: columns >= 3 ? 1.45 : 1.3,
-      ),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.45,
+      ),
       itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final p = filtered[index];
-        return _buildPrayerCard(
-          id: p.id,
-          title: p.title,
-          subtitle: p.subtitle,
-          icon: p.icon,
-          color: p.color,
-          estMin: p.estMin,
+      itemBuilder: (context, idx) {
+        final prayer = filtered[idx];
+        return InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _openPrayer(prayer.id, prayer.title),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: EverforestColors.bg1,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: prayer.color.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: prayer.color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(prayer.icon, color: prayer.color, size: 18),
+                    ),
+                    if (prayer.estMin > 0)
+                      Text(
+                        '~${prayer.estMin} λ.',
+                        style: const TextStyle(color: EverforestColors.grey, fontSize: 10),
+                      ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prayer.title,
+                      style: const TextStyle(
+                        color: EverforestColors.fg,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      prayer.subtitle,
+                      style: const TextStyle(color: EverforestColors.grey, fontSize: 10.5),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildPrayerCard({
-    required String id,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required int estMin,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => _openPrayer(id, title),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: EverforestColors.bg1,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: color.withValues(alpha: 0.15),
-                    ),
-                    child: Icon(icon, color: color, size: 18),
-                  ),
-                  if (estMin > 0)
-                    Text(
-                      '$estMin λ.',
-                      style: const TextStyle(
-                        color: EverforestColors.grey,
-                        fontSize: 10.5,
-                      ),
-                    ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: EverforestColors.fg,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: EverforestColors.grey,
-                      fontSize: 10.5,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -1064,7 +997,7 @@ class _PrayerEntry {
   final int estMin;
   final String category;
 
-  const _PrayerEntry({
+  _PrayerEntry({
     required this.id,
     required this.title,
     required this.subtitle,

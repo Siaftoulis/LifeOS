@@ -67,6 +67,7 @@ func loadScripture() (*ScriptureData, error) {
 
 func RegisterScriptureRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/prayers/scripture", handleScriptureBooks)
+	mux.HandleFunc("/api/v1/prayers/scripture/book", handleScriptureBook)
 	mux.HandleFunc("/api/v1/prayers/scripture/chapter", handleScriptureChapter)
 	mux.HandleFunc("/api/v1/prayers/scripture/search", handleScriptureSearch)
 	mux.HandleFunc("/api/v1/prayers/scripture/service", handleScriptureAsService)
@@ -108,6 +109,36 @@ func handleScriptureBooks(w http.ResponseWriter, r *http.Request) {
 		}(),
 		"books": summaries,
 	})
+}
+
+func handleScriptureBook(w http.ResponseWriter, r *http.Request) {
+	scripture, err := loadScripture()
+	if err != nil {
+		http.Error(w, `{"error":"failed to load scripture"}`, http.StatusInternalServerError)
+		return
+	}
+
+	bookStr := r.URL.Query().Get("book")
+	if bookStr == "" {
+		http.Error(w, `{"error":"missing book parameter"}`, http.StatusBadRequest)
+		return
+	}
+
+	bookNum, err := strconv.Atoi(bookStr)
+	if err != nil {
+		http.Error(w, `{"error":"invalid book number"}`, http.StatusBadRequest)
+		return
+	}
+
+	for _, book := range scripture.Books {
+		if book.Number == bookNum {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			json.NewEncoder(w).Encode(book)
+			return
+		}
+	}
+
+	http.Error(w, `{"error":"book not found"}`, http.StatusNotFound)
 }
 
 func handleScriptureChapter(w http.ResponseWriter, r *http.Request) {

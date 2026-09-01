@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/repositories/prayer_repository.dart';
 import '../../../theme/everforest_colors.dart';
-import 'komboskini_counter_sheet.dart';
+import 'psalter_screen.dart';
+import 'scripture_screen.dart';
 import 'prayer_reader_screen.dart';
 
 class PrayerRuleTrackerCard extends StatefulWidget {
@@ -77,11 +78,19 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
   }
 
   void _openItemAction(PrayerRuleItemModel item) {
-    if (item.id == 'jesus_prayer') {
-      KomboskiniCounterSheet.show(context);
+    if (item.id == 'psalter_reading') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PsalterScreen()),
+      );
     } else if (item.id == 'gospel_reading') {
       if (widget.onGospelTap != null) {
         widget.onGospelTap!();
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ScriptureScreen()),
+        );
       }
     } else {
       Navigator.push(
@@ -103,8 +112,8 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
         return Icons.wb_sunny_rounded;
       case 'book':
         return Icons.menu_book_rounded;
-      case 'komboskini':
-        return Icons.touch_app_rounded;
+      case 'psalter':
+        return Icons.auto_stories_rounded;
       case 'moon':
         return Icons.nights_stay_rounded;
       default:

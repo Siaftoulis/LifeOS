@@ -78,6 +78,10 @@ aves_repo/
 client/appflowy_repo/
 client/prefs.json
 client/vault/
+backend/host-daemon/internal/prayers/data/jwt_secret
+backend/host-daemon/internal/prayers/data/ledger.json
+backend/host-daemon/internal/prayers/data/points.json
+backend/host-daemon/internal/auth/middleware/data/
 *.exe~
 *.bak
 *.zip

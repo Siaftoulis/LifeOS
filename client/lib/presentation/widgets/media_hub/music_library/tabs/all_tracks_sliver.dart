@@ -111,7 +111,7 @@ class TrackTile extends StatelessWidget {
 
   void _showMetadata(BuildContext context) {
     final streamUrl =
-        '${ApiClient.instance.daemonUrl}/api/v1/music/stream/${track.id}';
+        '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${track.id}';
     TrackMetadataModal.show(
       context,
       title: track.title,

@@ -229,7 +229,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   String _streamUrlFor(String trackId) {
-    return '${ApiClient.instance.daemonUrl}/api/v1/music/stream/$trackId';
+    return '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=$trackId';
   }
 
   void _playTrackList(List<MusicTrack> list, int startIndex) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
@@ -143,7 +144,7 @@ class MusicSearchResults extends StatelessWidget {
 
   PlaybackItem _itemFromTrack(MusicTrack t) => PlaybackItem(
         id: t.id,
-        url: 'http://127.0.0.1:50051/api/v1/music/stream?id=${t.id}',
+        url: '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${t.id}',
         title: t.title,
         artist: t.artist,
         thumbnail: t.thumbnail,

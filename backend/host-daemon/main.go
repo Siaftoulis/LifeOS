@@ -235,6 +235,7 @@ func main() {
 		"/api/v1/music/*",
 		"/api/v1/prayers/*",
 		"/api/v1/gallery/*",
+		"/api/v1/system/updates/*",
 	}, mux)
 
 	// ponytail: Funnel upstream — public traffic arrives here via Tailscale

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'database/preferences_service.dart';
 import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
-import 'update_manager.dart';
 import 'api_client.dart';
 import 'global_keys.dart';
 import 'p2p_dialog_handler.dart';
@@ -87,7 +86,6 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
           theme: ThemeData.dark(),
           showPerformanceOverlay: PreferencesService.showPerformanceOverlay.value,
           home: Builder(builder: (ctx) {
-            WidgetsBinding.instance.addPostFrameCallback((_) => UpdateManager.checkForUpdates(ctx, ApiClient.instance));
             return ValueListenableBuilder<List<List<String>>>(
               valueListenable: PreferencesService.layout,
               builder: (context, layout, _) {

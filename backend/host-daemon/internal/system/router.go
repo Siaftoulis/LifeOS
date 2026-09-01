@@ -2,9 +2,12 @@ package system
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"lifeos/host-daemon/internal/auth/middleware"
 )
@@ -191,4 +194,74 @@ func RegisterRoutes(mux *http.ServeMux) {
 
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	})
+
+	mux.HandleFunc("/api/v1/system/updates/latest", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		force := r.URL.Query().Get("refresh") == "true"
+		rel, err := GetLatestRelease(force)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to fetch release: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(rel)
+	})
+
+	mux.HandleFunc("/api/v1/system/updates/download", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		assetType := strings.ToLower(r.URL.Query().Get("asset"))
+		if assetType == "" {
+			assetType = "apk"
+		}
+
+		rel, err := GetLatestRelease(false)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get release info: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		cachedPath, err := DownloadAndCacheAsset(rel, assetType)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to download asset: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		filename := filepath.Base(cachedPath)
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+		if strings.HasSuffix(filename, ".apk") {
+			w.Header().Set("Content-Type", "application/vnd.android.package-archive")
+		} else {
+			w.Header().Set("Content-Type", "application/zip")
+		}
+
+		http.ServeFile(w, r, cachedPath)
+	})
 }
+

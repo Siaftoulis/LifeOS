@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../api_client.dart';
-import '../../update_manager.dart';
+import '../../core/update/ota_update_service.dart';
 import '../../diagnostics_panel.dart';
 import '../../database/preferences_service.dart';
 
@@ -36,7 +36,12 @@ class SettingsView extends StatelessWidget {
                     isChild ? 'Locked for child profile access' : 'Fetch latest build from local host or GitHub',
                     style: TextStyle(color: isChild ? Colors.grey.withValues(alpha: 0.5) : Colors.white30, fontSize: 11),
                   ),
-                  onTap: isChild ? null : () => UpdateManager(api: api).downloadAndInstallAPK(),
+                  onTap: isChild ? null : () async {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Checking for system updates...'), duration: Duration(seconds: 2)),
+                    );
+                    await OtaUpdateService.instance.checkSilentUpdate(forceRefresh: true);
+                  },
                 ),
               ),
               const SizedBox(height: 12),

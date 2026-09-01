@@ -11,78 +11,19 @@ class SystemUpdatesWidget extends StatefulWidget {
 
 class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
   final OtaUpdateService _ota = OtaUpdateService.instance;
-  List<LifeOSRelease> _history = [];
-  bool _isLoadingHistory = false;
-  String? _rollingBackTag;
+  LifeOSRelease? _latestRelease;
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    _checkLatest();
   }
 
-  Future<void> _loadHistory() async {
-    setState(() => _isLoadingHistory = true);
-    final list = await _ota.fetchReleaseHistory();
+  Future<void> _checkLatest({bool force = false}) async {
+    await _ota.checkSilentUpdate(forceRefresh: force);
+    final rel = await _ota.fetchLatestRelease(forceRefresh: force);
     if (mounted) {
-      setState(() {
-        _history = list;
-        _isLoadingHistory = false;
-      });
-    }
-  }
-
-  Future<void> _handleRollback(LifeOSRelease release) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: EverforestColors.bg1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: EverforestColors.bg2),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.history_rounded, color: EverforestColors.yellow),
-            const SizedBox(width: 10),
-            Text('Rollback to ${release.tagName}', style: const TextStyle(color: EverforestColors.fg)),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to rollback LifeOS to version ${release.tagName}? Your local database and offline music/media will remain safe.',
-          style: const TextStyle(color: EverforestColors.fg, fontSize: 13, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('CANCEL', style: TextStyle(color: EverforestColors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: EverforestColors.yellow,
-              foregroundColor: EverforestColors.bg0,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('ROLLBACK NOW', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && mounted) {
-      setState(() => _rollingBackTag = release.tagName);
-      final ok = await _ota.triggerRollback(release);
-      if (mounted) {
-        setState(() => _rollingBackTag = null);
-        if (!ok) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              backgroundColor: EverforestColors.red,
-              content: Text('Failed to download rollback build. Check network connection.'),
-            ),
-          );
-        }
-      }
+      setState(() => _latestRelease = rel);
     }
   }
 
@@ -122,7 +63,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                       ),
                     ),
                     Text(
-                      'Silent background updates with 1-tap version rollback',
+                      'Seamless 1-tap in-place updates via Server Cache & GitHub',
                       style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                     ),
                   ],
@@ -134,10 +75,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                   return OutlinedButton.icon(
                     onPressed: checking
                         ? null
-                        : () async {
-                            await _ota.checkSilentUpdate();
-                            await _loadHistory();
-                          },
+                        : () => _checkLatest(force: true),
                     icon: checking
                         ? const SizedBox(
                             width: 14,
@@ -249,98 +187,87 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
             ),
           ),
           const SizedBox(height: 20),
-          // History & Rollback Section
+          // Latest Release Details Section
           const Row(
             children: [
-              Icon(Icons.history_toggle_off_rounded, color: EverforestColors.yellow, size: 18),
+              Icon(Icons.new_releases_outlined, color: EverforestColors.aqua, size: 18),
               SizedBox(width: 8),
               Text(
-                'Version History & Rollback',
+                'Latest Available Release',
                 style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: _isLoadingHistory
-                ? const Center(child: CircularProgressIndicator(color: EverforestColors.green))
-                : _history.isEmpty
-                    ? const Center(child: Text('No historical releases found', style: TextStyle(color: EverforestColors.grey, fontSize: 12)))
-                    : ListView.separated(
-                        itemCount: _history.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, idx) {
-                          final rel = _history[idx];
-                          final isCurrent = rel.tagName == _ota.currentVersionTag;
-                          final isRollingBack = _rollingBackTag == rel.tagName;
-
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: EverforestColors.bg0,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isCurrent ? EverforestColors.green.withValues(alpha: 0.5) : EverforestColors.bg2,
+            child: _latestRelease == null
+                ? Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: EverforestColors.bg0,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: EverforestColors.bg2),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Checking for latest release details...',
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 12),
+                      ),
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: EverforestColors.bg0,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: EverforestColors.bg2),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              _latestRelease!.title,
+                              style: const TextStyle(
+                                color: EverforestColors.fg,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          rel.tagName,
-                                          style: TextStyle(
-                                            color: isCurrent ? EverforestColors.green : EverforestColors.fg,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        if (isCurrent) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: EverforestColors.green.withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: const Text('ACTIVE', style: TextStyle(color: EverforestColors.green, fontSize: 9, fontWeight: FontWeight.bold)),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${rel.publishedAt.year}-${rel.publishedAt.month.toString().padLeft(2, '0')}-${rel.publishedAt.day.toString().padLeft(2, '0')}',
-                                      style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                if (!isCurrent)
-                                  ElevatedButton.icon(
-                                    onPressed: isRollingBack ? null : () => _handleRollback(rel),
-                                    icon: isRollingBack
-                                        ? const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.bg0))
-                                        : const Icon(Icons.undo_rounded, size: 14),
-                                    label: Text(
-                                      isRollingBack ? 'Downloading...' : 'Rollback',
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: EverforestColors.bg2,
-                                      foregroundColor: EverforestColors.fg,
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                    ),
-                                  ),
-                              ],
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: EverforestColors.aqua.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                _latestRelease!.tagName,
+                                style: const TextStyle(color: EverforestColors.aqua, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          );
-                        },
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Published: ${_latestRelease!.publishedAt.year}-${_latestRelease!.publishedAt.month.toString().padLeft(2, '0')}-${_latestRelease!.publishedAt.day.toString().padLeft(2, '0')}',
+                          style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(color: EverforestColors.bg2, height: 1),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Text(
+                              _latestRelease!.body.isNotEmpty ? _latestRelease!.body : 'No detailed changelog provided for this release.',
+                              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.5),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),

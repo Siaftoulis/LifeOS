@@ -369,11 +369,11 @@ class PrayerRepository {
           points: 20,
         ),
         PrayerRuleItemModel(
-          id: 'jesus_prayer',
-          title: 'Κομποσκοίνι (Ευχή του Ιησού)',
-          description: '«Κύριε Ιησού Χριστέ, ελέησόν με»',
-          icon: 'komboskini',
-          points: 30,
+          id: 'psalter_reading',
+          title: 'Ανάγνωση Ψαλτηρίου',
+          description: 'Καθίσματα & Ψαλμοί του Δαυΐδ',
+          icon: 'psalter',
+          points: 25,
         ),
         PrayerRuleItemModel(
           id: 'small_compline',
