@@ -5,10 +5,11 @@
     A self-hosted, offline-first operating system layer that consolidates your entire digital life into a single, private, unified workspace.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.5.0-blue" alt="Version" />
-    <img src="https://img.shields.io/badge/build-33-green" alt="Build" />
-    <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter" alt="Flutter" />
-    <img src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go" alt="Go" />
+    <a href="https://pds-laptop-old.husky-forel.ts.net/"><img src="https://img.shields.io/badge/Web%20Portal-Live-success?logo=googlechrome&logoColor=white" alt="Web Portal" /></a>
+    <img src="https://img.shields.io/badge/version-1.5.12-blue" alt="Version" />
+    <img src="https://img.shields.io/badge/build-50-green" alt="Build" />
+    <img src="https://img.shields.io/badge/Flutter-3.44.9-02569B?logo=flutter" alt="Flutter" />
+    <img src="https://img.shields.io/badge/Go-1.22-00ADD8?logo=go" alt="Go" />
     <img src="https://img.shields.io/badge/license-private-lightgrey" alt="License" />
   </p>
 </p>
@@ -19,7 +20,7 @@
 
 Access LifeOS from **any browser** (PC, tablet, phone — no installation needed):
 
-- **Public URL (permanent):** `https://lifeos-host.husky-forel.ts.net`
+- **Live URL:** [https://pds-laptop-old.husky-forel.ts.net/](https://pds-laptop-old.husky-forel.ts.net/)
   *(Tailscale Funnel — HTTPS, valid certificate, served by the host daemon itself)*
 - **Login:** with your own LifeOS account (username/password), or **Google / GitHub** single sign-on (invite-only — the admin must create or map your account first).
 - **Security:** every API call (except the public login/register/OAuth flows) requires a **JWT** issued by the daemon. Account **registration is disabled on the public internet path** — new accounts can only be created on your private network.
