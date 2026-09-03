@@ -63,6 +63,7 @@ jobs:
         run: |
           cd client
           flutter pub get
+          python3 tool/patch_appflowy.py
           flutter build web --release --no-wasm-dry-run
           cd ..
           # Remove service worker & patch bootstrap cache buster
