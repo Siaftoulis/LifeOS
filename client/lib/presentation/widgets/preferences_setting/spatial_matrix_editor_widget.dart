@@ -172,35 +172,42 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
 
   Map<String, List<Map<String, String>>> _getGroupedModules() {
     return {
-      'System & Core': [
-        {'id': 'home', 'name': 'Home View'},
-        {'id': 'configurator', 'name': 'Settings'},
-        {'id': 'app_drawer', 'name': 'App Drawer'},
-        {'id': 'void', 'name': 'Void / Empty'},
+      'System & Settings': [
+        {'id': 'home', 'name': 'Home View (Αρχική)'},
+        {'id': 'configurator', 'name': 'Settings (Ρυθμίσεις & Updates)'},
+        {'id': 'preferences_setting', 'name': 'Preferences & System Updates'},
+        {'id': 'app_drawer', 'name': 'App Drawer (Εφαρμογές)'},
+        {'id': 'nexus', 'name': 'Nexus System Dashboard'},
+        {'id': 'void', 'name': 'Void / Κενό (Empty Slot)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Communications & Social': [
-        {'id': 'chat_hub', 'name': 'Messenger & P2P Chat'},
+      'Faith & Scripture': [
+        {'id': 'prayer_book', 'name': 'Prayer Book & Scripture (Προσευχολόγιο)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Productivity & Knowledge': [
+      'Knowledge & Reading': [
+        {'id': 'obsidian_zen', 'name': 'Obsidian Zen (Σημειώσεις & Έγγραφα)'},
+        {'id': 'books', 'name': 'Book Library & EPUBs (Βιβλιοθήκη)'},
         {'id': 'knowledge_hub', 'name': 'Knowledge Hub'},
+        {'id': 'knowledge_base', 'name': 'Knowledge Base & Wiki'},
+        {'id': 'flashcards', 'name': 'Flashcards (Κάρτες Μάθησης)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Gamification & Tasks': [
-        {'id': 'rpg_hub', 'name': 'RPG & Star System Hub'},
-        {'id': 'chtm', 'name': 'CHTM (Calendar/Habits/Tasks)'},
+      'Communications & AI': [
+        {'id': 'chat_hub', 'name': 'Messenger & P2P Chat'},
+        {'id': 'project_infinity', 'name': 'Project Infinity (AI Canvas)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
       'Media & Entertainment': [
-        {'id': 'media_hub', 'name': 'Media Hub'},
+        {'id': 'media_hub', 'name': 'Media Hub (Μουσική, Ταινίες, Gallery)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Finance': [
-        {'id': 'finance', 'name': 'Finance Hub'},
+      'Finance & Banking': [
+        {'id': 'finance', 'name': 'Finance Hub (Τράπεζες, Λογιστική)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Faith & Spirituality': [
-        {'id': 'prayer_book', 'name': 'Prayer Book (Προσευχολόγιο)'},
+      'Gamification & Tasks': [
+        {'id': 'rpg_hub', 'name': 'RPG Quest Board & Stars'},
+        {'id': 'chtm', 'name': 'CHTM (Ημερολόγιο, Συνήθειες, Tasks)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
-      'Infrastructure & Utils': [
-        {'id': 'infra', 'name': 'Infrastructure Hub'},
-        {'id': 'home_management', 'name': 'Home Management'},
-        {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking'},
+      'Infrastructure & Smart Home': [
+        {'id': 'infra', 'name': 'Infrastructure Hub (Servers, VMs)'},
+        {'id': 'home_management', 'name': 'Smart Home (Έξυπνο Σπίτι)'},
+        {'id': 'maps_live_tracking', 'name': 'Maps & Live Tracking (Χάρτες)'},
       ]..sort((a, b) => a['name']!.compareTo(b['name']!)),
     };
   }

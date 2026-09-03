@@ -64,21 +64,22 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.9"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 47' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.10"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 48' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Mobile Reader UI & Scripture Overhaul
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Settings OTA Updates & Spatial Grid Directory
 
           ### Highlights & What's New
-          - **Fixed Mobile Reader Scrolling Bug**:
-            - Eliminated touch gesture conflicts and scroll traps caused by nested SelectableText inside chapters and verses.
-            - Butter-smooth scrolling across the Gospels (Ευαγγέλιο), Apostle (Απόστολος), Psalter, and Liturgical Services.
-          - **Fluid Scripture Navigation & Dedicated Chapter Reading**:
-            - Floating chapter navigation bar ([◀ Προηγούμενο] [Κεφάλαιο X / Y ▾] [Επόμενο ▶]) with instant chapter grid picker.
-            - Natural biblical typography with rubric verse badges, ancient Greek serif font, and toggleable Modern Greek translation (Π. Τρεμπέλα).
-          - **Seamless Liturgical Book Experience**:
-            - Removed boxed container cards around prayer sections for authentic sacred text reading.
-            - Interactive daily Gospel & Epistle readings on dashboard with full reader modal.
+          - **System & OTA Updates in Settings**:
+            - Added direct access to **System Updates & OTA** inside the main Settings (GridConfigurator).
+            - Check for new versions, view release changelog, and trigger 1-tap seamless APK updates directly from Settings.
+          - **Full Spatial Matrix Grid Integration**:
+            - Added all 20+ installed ecosystem hubs and modules to the Spatial Matrix Editor and FeatureRegistry.
+            - Assign any module to any grid slot: Prayer Book, Books (EPUB), Flashcards, Obsidian Zen, Chat Hub, Smart Home, Maps & Live Tracking, Finance, RPG, Media Hub, Nexus, and more.
+            - Added **All Installed Modules Directory** in Settings to browse and launch all ecosystem modules directly.
+          - **Mobile Reader UI & Scripture Overhaul**:
+            - Eliminated scroll traps and gesture conflicts in the Gospel, Apostle, and Psalter.
+            - Fluid chapter navigation bar and clean sacred typography.
           EOF
 
       - name: Publish Android APK Immediately

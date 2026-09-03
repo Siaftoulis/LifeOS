@@ -18,6 +18,10 @@ import '../presentation/widgets/knowledge_base/knowledge_base_dashboard.dart';
 import '../presentation/widgets/prayer_book/prayer_book_dashboard.dart';
 import '../presentation/widgets/project_infinity/project_infinity_dashboard.dart';
 import '../presentation/widgets/chat_hub/chat_hub_dashboard.dart';
+import '../presentation/widgets/preferences_setting/preferences_dashboard_view.dart';
+import '../presentation/widgets/home_management/smart_home_dashboard.dart';
+import '../presentation/widgets/maps_live_tracking/maps_dashboard_widget.dart';
+import '../presentation/widgets/nexus_dashboard.dart';
 
 class FeatureRegistry {
   static ValueNotifier<List<List<String>>> get layoutNotifier => PreferencesService.layout;
@@ -37,12 +41,18 @@ class FeatureRegistry {
     'app_drawer': () => const AndroidLauncherWidget(),
     'void': () => const VoidSlot(),
     'obsidian_zen': () => ZenWorkspace(),
+    'obsidian': () => ZenWorkspace(),
     'knowledge_base': () => const KnowledgeBaseDashboard(),
     'flashcards': () => const FlashcardsDashboard(),
     'books': () => const BookLibraryDashboard(),
     'prayer_book': () => const PrayerBookDashboard(),
+    'prayers': () => const PrayerBookDashboard(),
     'project_infinity': () => const ProjectInfinityDashboard(),
     'chat_hub': () => const ChatHubDashboard(),
+    'preferences_setting': () => const PreferencesDashboardView(),
+    'home_management': () => const SmartHomeDashboard(),
+    'maps_live_tracking': () => const MapsDashboardWidget(),
+    'nexus': () => const NexusDashboard(),
   };
 
   static void rotateLayout() => layoutNotifier.value = [...layoutNotifier.value.sublist(1), layoutNotifier.value.first];
