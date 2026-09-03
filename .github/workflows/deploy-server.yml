@@ -81,10 +81,10 @@ jobs:
         if: steps.check-secret.outputs.has_secret == 'true'
         run: |
           # Deploy Web Assets
-          tailscale ssh --check=false root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && rm -rf web && mkdir -p web && tar -xf - -C web && rm -f web/flutter_service_worker.js" < web.tar
+          tailscale ssh root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && rm -rf web && mkdir -p web && tar -xf - -C web && rm -f web/flutter_service_worker.js" < web.tar
 
           # Deploy Linux Daemon Binary & Restart Service
-          tailscale ssh --check=false root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && tar -xf - && systemctl stop lifeos-host-daemon && cp lifeos-linux /usr/local/bin/lifeos-host-daemon && chmod +x /usr/local/bin/lifeos-host-daemon lifeos-linux && systemctl start lifeos-host-daemon" < bin.tar
+          tailscale ssh root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && tar -xf - && systemctl stop lifeos-host-daemon && cp lifeos-linux /usr/local/bin/lifeos-host-daemon && chmod +x /usr/local/bin/lifeos-host-daemon lifeos-linux && systemctl start lifeos-host-daemon" < bin.tar
 
       - name: Verify Live Deployment
         if: steps.check-secret.outputs.has_secret == 'true'
