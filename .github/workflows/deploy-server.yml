@@ -70,7 +70,6 @@ jobs:
           rm -f client/build/web/flutter_service_worker.js
           TS=$(date +%s)
           sed -i "s/\"mainJsPath\":\"main.dart.js\"/\"mainJsPath\":\"main.dart.js?t=$TS\"/g" client/build/web/flutter_bootstrap.js
-          sed -i 's/serviceWorkerSettings:[^}]*}/serviceWorkerSettings: null/g' client/build/web/flutter_bootstrap.js
 
       - name: Package Assets
         if: steps.check-secret.outputs.has_secret == 'true'

@@ -34,8 +34,6 @@ Remove-Item "$webSrc\flutter_service_worker.js" -Force -ErrorAction SilentlyCont
 # Patch flutter_bootstrap.js to disable service worker completely
 if (Test-Path "$webSrc\flutter_bootstrap.js") {
     $bootstrap = Get-Content "$webSrc\flutter_bootstrap.js" -Raw
-    # Replace serviceWorkerSettings block with null
-    $bootstrap = $bootstrap -replace 'serviceWorkerSettings:\s*\{[^}]*\}', 'serviceWorkerSettings: null'
     $ts = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
     $bootstrap = $bootstrap -replace '"mainJsPath":"main.dart.js"', ('"mainJsPath":"main.dart.js?t=' + $ts + '"')
     Set-Content -Path "$webSrc\flutter_bootstrap.js" -Value $bootstrap -NoNewline
