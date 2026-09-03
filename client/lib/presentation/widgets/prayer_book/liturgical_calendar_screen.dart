@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../api_client.dart';
+import '../../../core/repositories/offline_prayer_data.dart';
 import '../../../core/repositories/prayer_repository.dart';
 import '../../../theme/everforest_colors.dart';
 
@@ -53,14 +54,36 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
         return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
+
+    final dailyReadings = await OfflinePrayerData.loadDailyReadings(date);
     final fallback = PrayerRepository.instance.getFallbackDailyInfo(DateTime.now());
+
+    final readingsList = <Map<String, String>>[];
+    if (dailyReadings['epistle'] is Map && (dailyReadings['epistle']['text'] ?? '').toString().isNotEmpty) {
+      readingsList.add({
+        'type': 'Απόστολος',
+        'reference': dailyReadings['epistle']['reference']?.toString() ?? '',
+        'text': dailyReadings['epistle']['text']?.toString() ?? '',
+      });
+    }
+    if (dailyReadings['gospel'] is Map && (dailyReadings['gospel']['text'] ?? '').toString().isNotEmpty) {
+      readingsList.add({
+        'type': 'Ευαγγέλιον',
+        'reference': dailyReadings['gospel']['reference']?.toString() ?? '',
+        'text': dailyReadings['gospel']['text']?.toString() ?? '',
+      });
+    }
+
     return {
       'date': fallback.date,
       'date_formatted': fallback.dateFormatted,
       'tone': fallback.tone,
       'period': fallback.period,
-      'feast_name': fallback.feastName,
+      'feast_name': (dailyReadings['feast']?.toString().isNotEmpty == true)
+          ? dailyReadings['feast']
+          : fallback.feastName,
       'fasting': fallback.fasting,
+      'readings': readingsList,
       'saints': fallback.saints.map((s) => {'name': s.name, 'title': s.title, 'short_life': s.shortLife}).toList(),
     };
   }
@@ -68,11 +91,13 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
   Future<Map<String, dynamic>> _fetchLectionaryMonth(String month) async {
     try {
       final data = await ApiClient.instance.getDaemon('/api/v1/prayers/lectionary/month?month=$month');
-      if (data is Map) {
+      if (data is Map && data['days'] is List && (data['days'] as List).isNotEmpty) {
         return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
-    return {};
+
+    final m = int.tryParse(month) ?? DateTime.now().month;
+    return await OfflinePrayerData.loadLectionaryMonth(m);
   }
 
   @override

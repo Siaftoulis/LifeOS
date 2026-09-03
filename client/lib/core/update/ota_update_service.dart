@@ -294,8 +294,8 @@ class OtaUpdateService {
   Future<bool> downloadReleaseInBackground(LifeOSRelease release) async {
     if (kIsWeb) return false;
 
-    // Resolve download URL (check daemon download proxy first, or direct GitHub asset URL)
-    String? downloadUrl;
+    // Resolve download candidate URLs (check daemon download proxy first, then direct GitHub asset URL)
+    final candidateUrls = <String>[];
     String? daemonUrl;
     try {
       daemonUrl = ApiClient.instance.daemonUrl;
@@ -303,12 +303,14 @@ class OtaUpdateService {
 
     final assetType = Platform.isAndroid ? 'apk' : 'zip';
     if (daemonUrl != null && daemonUrl.isNotEmpty) {
-      downloadUrl = '$daemonUrl/api/v1/system/updates/download?asset=$assetType';
-    } else {
-      downloadUrl = Platform.isAndroid ? release.apkUrl : release.zipUrl;
+      candidateUrls.add('$daemonUrl/api/v1/system/updates/download?asset=$assetType');
+    }
+    final directUrl = Platform.isAndroid ? release.apkUrl : release.zipUrl;
+    if (directUrl != null && directUrl.isNotEmpty && !candidateUrls.contains(directUrl)) {
+      candidateUrls.add(directUrl);
     }
 
-    if (downloadUrl == null || downloadUrl.isEmpty) {
+    if (candidateUrls.isEmpty) {
       debugPrint('[OTA] No suitable download URL for platform');
       return false;
     }
@@ -338,11 +340,23 @@ class OtaUpdateService {
         await partFile.delete().catchError((_) => partFile);
       }
 
-      final request = http.Request('GET', Uri.parse(downloadUrl));
-      request.headers['User-Agent'] = 'LifeOS-Client';
-      final response = await client.send(request).timeout(const Duration(minutes: 10));
+      http.StreamedResponse? response;
+      for (final downloadUrl in candidateUrls) {
+        try {
+          final request = http.Request('GET', Uri.parse(downloadUrl));
+          request.headers['User-Agent'] = 'LifeOS-Client';
+          final candidateRes = await client.send(request).timeout(const Duration(seconds: 15));
+          if (candidateRes.statusCode == 200) {
+            response = candidateRes;
+            debugPrint('[OTA] Successfully connected to download stream: $downloadUrl');
+            break;
+          }
+        } catch (e) {
+          debugPrint('[OTA] Download attempt failed ($downloadUrl): $e');
+        }
+      }
 
-      if (response.statusCode == 200) {
+      if (response != null && response.statusCode == 200) {
         final totalBytes = response.contentLength ?? 0;
         int receivedBytes = 0;
         final sink = partFile.openWrite();

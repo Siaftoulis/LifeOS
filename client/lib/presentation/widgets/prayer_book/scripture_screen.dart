@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../api_client.dart';
+import '../../../core/repositories/offline_prayer_data.dart';
 import '../../../theme/everforest_colors.dart';
 
 class ScriptureBookSummary {
@@ -130,52 +131,61 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
   }
 
   Future<void> _loadBooksAndInitial() async {
+    List<ScriptureBookSummary> list = [];
     try {
       final data = await ApiClient.instance.getDaemon('/api/v1/prayers/scripture');
       if (data is Map && data['books'] is List) {
-        final list = (data['books'] as List)
+        list = (data['books'] as List)
             .whereType<Map>()
             .map((b) => ScriptureBookSummary.fromJson(Map<String, dynamic>.from(b)))
             .toList();
+      }
+    } catch (_) {}
 
-        if (mounted) {
-          setState(() {
-            _books = list;
-            _isLoading = false;
-          });
-          await _loadFullBook(widget.initialBookNumber, targetChapter: 1);
-        }
-      } else {
-        if (mounted) setState(() => _isLoading = false);
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = 'Αδυναμία φόρτωσης Αγίας Γραφής.';
-          _isLoading = false;
-        });
-      }
+    // Offline fallback from bundled assets
+    if (list.isEmpty) {
+      list = await OfflinePrayerData.loadScriptureBooks();
+    }
+
+    if (mounted && list.isNotEmpty) {
+      setState(() {
+        _books = list;
+        _isLoading = false;
+      });
+      await _loadFullBook(widget.initialBookNumber, targetChapter: 1);
+    } else if (mounted) {
+      setState(() {
+        _error = 'Αδυναμία φόρτωσης Αγίας Γραφής.';
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> _loadFullBook(int bookNum, {int targetChapter = 1}) async {
     setState(() => _isLoadingBook = true);
+    ScriptureFullBookModel? book;
     try {
       final data = await ApiClient.instance.getDaemon('/api/v1/prayers/scripture/book?book=$bookNum');
       if (data is Map) {
-        final book = ScriptureFullBookModel.fromJson(Map<String, dynamic>.from(data));
-        final chIdx = (targetChapter - 1).clamp(0, book.chapters.isNotEmpty ? book.chapters.length - 1 : 0);
-        if (mounted) {
-          setState(() {
-            _activeBook = book;
-            _activeChapterIndex = chIdx;
-            _isLoadingBook = false;
-          });
-          _resetScroll();
-        }
+        book = ScriptureFullBookModel.fromJson(Map<String, dynamic>.from(data));
       }
-    } catch (e) {
-      if (mounted) setState(() => _isLoadingBook = false);
+    } catch (_) {}
+
+    // Offline fallback from bundled assets
+    if (book == null) {
+      book = await OfflinePrayerData.loadScriptureBook(bookNum);
+    }
+
+    if (mounted && book != null) {
+      final chIdx = (targetChapter - 1).clamp(0, book.chapters.isNotEmpty ? book.chapters.length - 1 : 0);
+      setState(() {
+        _activeBook = book;
+        _activeChapterIndex = chIdx;
+        _isLoadingBook = false;
+      });
+      _resetScroll();
+    } else if (mounted) {
+      setState(() => _isLoadingBook = false);
     }
   }
 

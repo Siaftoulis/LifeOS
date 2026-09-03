@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../api_client.dart';
+import '../../../core/repositories/offline_prayer_data.dart';
 import '../../../theme/everforest_colors.dart';
 
 class KathismaModel {
@@ -88,37 +89,43 @@ class _PsalterScreenState extends State<PsalterScreen> {
   }
 
   Future<void> _loadPsalter() async {
+    List<KathismaModel> list = [];
     try {
       final data = await ApiClient.instance.getDaemon('/api/v1/prayers/psalter');
       if (data is Map && data['kathismata'] is List) {
-        final list = (data['kathismata'] as List)
+        list = (data['kathismata'] as List)
             .whereType<Map>()
             .map((k) => KathismaModel.fromJson(Map<String, dynamic>.from(k)))
             .toList();
-
-        for (final k in list) {
-          _kathismaKeys[k.number] = GlobalKey();
-          for (final p in k.psalms) {
-            _psalmKeys[p.number] = GlobalKey();
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _kathismata = list;
-            _isLoading = false;
-          });
-
-          if (widget.initialPsalm != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _scrollToPsalm(widget.initialPsalm!);
-            });
-          }
-        }
-      } else {
-        if (mounted) setState(() => _isLoading = false);
       }
-    } catch (e) {
+    } catch (_) {}
+
+    // Offline fallback from bundled assets
+    if (list.isEmpty) {
+      list = await OfflinePrayerData.loadPsalter();
+    }
+
+    if (list.isNotEmpty) {
+      for (final k in list) {
+        _kathismaKeys[k.number] = GlobalKey();
+        for (final p in k.psalms) {
+          _psalmKeys[p.number] = GlobalKey();
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _kathismata = list;
+          _isLoading = false;
+        });
+
+        if (widget.initialPsalm != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToPsalm(widget.initialPsalm!);
+          });
+        }
+      }
+    } else {
       if (mounted) {
         setState(() {
           _error = 'Αδυναμία φόρτωσης Ψαλτηρίου.';

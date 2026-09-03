@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../api_client.dart';
+import '../../../core/repositories/offline_prayer_data.dart';
 import '../../../theme/everforest_colors.dart';
 
 class SynaxarionScreen extends StatefulWidget {
@@ -34,27 +35,31 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
       _selectedMonth = month;
     });
 
+    Map<String, DayData> days = {};
     try {
       final data = await ApiClient.instance
           .getDaemon('/api/v1/prayers/synaxarion/month?month=$month');
 
       if (data is Map) {
-        final days = <String, DayData>{};
         for (final dayJson in data['days'] ?? []) {
           final key = dayJson['date'] ?? '';
           days[key] = DayData.fromJson(dayJson);
         }
-        setState(() {
-          _days = days;
-          _isLoading = false;
-          final todayKey = '${month.toString().padLeft(2, '0')}-${_selectedDay.toString().padLeft(2, '0')}';
-          _selectedDayData = days[todayKey];
-        });
-      } else {
-        setState(() => _isLoading = false);
       }
-    } catch (e) {
-      setState(() => _isLoading = false);
+    } catch (_) {}
+
+    // Offline fallback from bundled assets
+    if (days.isEmpty) {
+      days = await OfflinePrayerData.loadSynaxarionMonth(month);
+    }
+
+    if (mounted) {
+      setState(() {
+        _days = days;
+        _isLoading = false;
+        final todayKey = '${month.toString().padLeft(2, '0')}-${_selectedDay.toString().padLeft(2, '0')}';
+        _selectedDayData = days[todayKey];
+      });
     }
   }
 
