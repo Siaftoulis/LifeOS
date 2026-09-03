@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'database/preferences_service.dart';
 import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
-import 'api_client.dart';
 import 'global_keys.dart';
 import 'p2p_dialog_handler.dart';
 import 'notification_poll_service.dart';

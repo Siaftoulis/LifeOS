@@ -13,25 +13,26 @@ import (
 var scriptureFS embed.FS
 
 type ScriptureVerse struct {
-	Number int    `json:"number"`
-	Text   string `json:"text"`
+	Number      int    `json:"number"`
+	Text        string `json:"text"`
+	Translation string `json:"translation,omitempty"`
 }
 
 type ScriptureChapter struct {
-	Number int             `json:"number"`
+	Number int              `json:"number"`
 	Verses []ScriptureVerse `json:"verses"`
 }
 
 type ScriptureBook struct {
-	Number    int               `json:"number"`
-	NameGreek string            `json:"nameGreek"`
-	NameEnglish string          `json:"nameEnglish"`
-	Chapters  []ScriptureChapter `json:"chapters"`
+	Number      int                `json:"number"`
+	NameGreek   string             `json:"nameGreek"`
+	NameEnglish string             `json:"nameEnglish"`
+	Chapters    []ScriptureChapter `json:"chapters"`
 }
 
 type ScriptureData struct {
-	Source  string         `json:"source"`
-	License string         `json:"license"`
+	Source  string          `json:"source"`
+	License string          `json:"license"`
 	Books   []ScriptureBook `json:"books"`
 }
 
@@ -39,9 +40,9 @@ type ScriptureData struct {
 type ScriptureBookSummary struct {
 	Number       int    `json:"number"`
 	NameGreek    string `json:"nameGreek"`
-	NameEnglish string `json:"nameEnglish"`
-	ChapterCount int   `json:"chapter_count"`
-	VerseCount   int   `json:"verse_count"`
+	NameEnglish  string `json:"nameEnglish"`
+	ChapterCount int    `json:"chapter_count"`
+	VerseCount   int    `json:"verse_count"`
 }
 
 var scriptureCache *ScriptureData
@@ -89,7 +90,7 @@ func handleScriptureBooks(w http.ResponseWriter, r *http.Request) {
 		summaries[i] = ScriptureBookSummary{
 			Number:       book.Number,
 			NameGreek:    book.NameGreek,
-			NameEnglish: book.NameEnglish,
+			NameEnglish:  book.NameEnglish,
 			ChapterCount: len(book.Chapters),
 			VerseCount:   verseCount,
 		}
@@ -97,8 +98,8 @@ func handleScriptureBooks(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"source":  scripture.Source,
-		"license": scripture.License,
+		"source":      scripture.Source,
+		"license":     scripture.License,
 		"total_books": len(scripture.Books),
 		"total_verses": func() int {
 			total := 0
@@ -172,12 +173,12 @@ func handleScriptureChapter(w http.ResponseWriter, r *http.Request) {
 			for _, ch := range book.Chapters {
 				if ch.Number == chapterNum {
 					resp := map[string]interface{}{
-						"book_number":    book.Number,
-						"book_name_greek": book.NameGreek,
+						"book_number":       book.Number,
+						"book_name_greek":   book.NameGreek,
 						"book_name_english": book.NameEnglish,
-						"chapter":        ch.Number,
-						"verse_count":    len(ch.Verses),
-						"verses":         ch.Verses,
+						"chapter":           ch.Number,
+						"verse_count":       len(ch.Verses),
+						"verses":            ch.Verses,
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					json.NewEncoder(w).Encode(resp)
@@ -206,12 +207,12 @@ func handleScriptureSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type SearchResult struct {
-		BookNumber    int    `json:"book_number"`
-		BookGreek     string `json:"book_greek"`
-		BookEnglish   string `json:"book_english"`
-		Chapter       int    `json:"chapter"`
-		Verse         int    `json:"verse"`
-		Snippet       string `json:"snippet"`
+		BookNumber  int    `json:"book_number"`
+		BookGreek   string `json:"book_greek"`
+		BookEnglish string `json:"book_english"`
+		Chapter     int    `json:"chapter"`
+		Verse       int    `json:"verse"`
+		Snippet     string `json:"snippet"`
 	}
 
 	var results []SearchResult
@@ -221,6 +222,8 @@ func handleScriptureSearch(w http.ResponseWriter, r *http.Request) {
 		for _, ch := range book.Chapters {
 			for _, v := range ch.Verses {
 				lowerText := strings.ToLower(v.Text)
+				lowerTrans := strings.ToLower(v.Translation)
+
 				if idx := strings.Index(lowerText, q); idx != -1 {
 					start := idx - 40
 					if start < 0 {
@@ -241,6 +244,35 @@ func handleScriptureSearch(w http.ResponseWriter, r *http.Request) {
 					results = append(results, SearchResult{
 						BookNumber:  book.Number,
 						BookGreek:   book.NameGreek,
+						BookEnglish: book.NameEnglish,
+						Chapter:     ch.Number,
+						Verse:       v.Number,
+						Snippet:     snippet,
+					})
+
+					if len(results) >= maxResults {
+						goto done
+					}
+				} else if idx := strings.Index(lowerTrans, q); idx != -1 {
+					start := idx - 40
+					if start < 0 {
+						start = 0
+					}
+					end := idx + len(q) + 60
+					if end > len(v.Translation) {
+						end = len(v.Translation)
+					}
+					snippet := v.Translation[start:end]
+					if start > 0 {
+						snippet = "..." + snippet
+					}
+					if end < len(v.Translation) {
+						snippet = snippet + "..."
+					}
+
+					results = append(results, SearchResult{
+						BookNumber:  book.Number,
+						BookGreek:   book.NameGreek + " (Μετάφραση)",
 						BookEnglish: book.NameEnglish,
 						Chapter:     ch.Number,
 						Verse:       v.Number,
@@ -296,24 +328,42 @@ func handleScriptureAsService(w http.ResponseWriter, r *http.Request) {
 				if ch.Number == chapterNum {
 					// Build content string with verse numbers
 					var content strings.Builder
+					var transContent strings.Builder
+					hasTrans := false
+
 					for _, v := range ch.Verses {
 						content.WriteString(fmt.Sprintf("%d %s\n\n", v.Number, v.Text))
+						if v.Translation != "" {
+							transContent.WriteString(fmt.Sprintf("%d %s\n\n", v.Number, v.Translation))
+							hasTrans = true
+						}
+					}
+
+					sections := []map[string]interface{}{
+						{
+							"header":     fmt.Sprintf("%s %d", book.NameEnglish, chapterNum),
+							"content":    content.String(),
+							"is_rubric":  false,
+							"is_dynamic": false,
+						},
+					}
+
+					if hasTrans {
+						sections = append(sections, map[string]interface{}{
+							"header":     "Νεοελληνική Ερμηνευτική Απόδοση (Π. Τρεμπέλα)",
+							"content":    transContent.String(),
+							"is_rubric":  false,
+							"is_dynamic": false,
+						})
 					}
 
 					resp := map[string]interface{}{
-						"id":          fmt.Sprintf("scripture_%d_%d", bookNum, chapterNum),
-						"title":       fmt.Sprintf("%s %d", book.NameEnglish, chapterNum),
-						"category":    "Καινή Διαθήκη",
-						"subtitle":    fmt.Sprintf("%s · Κεφάλαιο %d", book.NameGreek, chapterNum),
-						"estimated_min": len(ch.Verses) / 5, // rough estimate
-						"sections": []map[string]interface{}{
-							{
-								"header":    fmt.Sprintf("%s %d", book.NameEnglish, chapterNum),
-								"content":   content.String(),
-								"is_rubric": false,
-								"is_dynamic": false,
-							},
-						},
+						"id":            fmt.Sprintf("scripture_%d_%d", bookNum, chapterNum),
+						"title":         fmt.Sprintf("%s %d", book.NameEnglish, chapterNum),
+						"category":      "Καινή Διαθήκη",
+						"subtitle":      fmt.Sprintf("%s · Κεφάλαιο %d", book.NameGreek, chapterNum),
+						"estimated_min": len(ch.Verses) / 5,
+						"sections":      sections,
 					}
 					w.Header().Set("Content-Type", "application/json; charset=utf-8")
 					json.NewEncoder(w).Encode(resp)

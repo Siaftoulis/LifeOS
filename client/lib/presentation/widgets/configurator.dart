@@ -109,7 +109,7 @@ Widget _buildDivider() {
   return Divider(
     height: 1,
     thickness: 1,
-    color: EverforestColors.bg2.withOpacity(0.5),
+    color: EverforestColors.bg2.withValues(alpha: 0.5),
     indent: 60,
     endIndent: 16,
   );
@@ -161,7 +161,7 @@ class _ProfileSettingsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: EverforestColors.red.withOpacity(0.1),
+                    color: EverforestColors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: EverforestColors.red, width: 1),
                   ),
@@ -290,8 +290,8 @@ class _SystemPreferencesPage extends StatelessWidget {
       ),
       trailing: Switch(
         value: value,
-        activeColor: EverforestColors.green,
-        activeTrackColor: EverforestColors.green.withOpacity(0.2),
+        activeThumbColor: EverforestColors.green,
+        activeTrackColor: EverforestColors.green.withValues(alpha: 0.2),
         inactiveThumbColor: EverforestColors.grey,
         inactiveTrackColor: EverforestColors.bg2,
         onChanged: onChanged,

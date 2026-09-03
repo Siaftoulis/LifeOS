@@ -496,9 +496,9 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: EverforestColors.bg0.withOpacity(0.75),
+                              color: EverforestColors.bg0.withValues(alpha: 0.75),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: EverforestColors.bg2.withOpacity(0.5)),
+                              border: Border.all(color: EverforestColors.bg2.withValues(alpha: 0.5)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

@@ -629,53 +629,139 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
     );
   }
 
-  Widget _buildReadingCard(ScriptureReadingModel reading) {
+  void _showReadingDetail(ScriptureReadingModel reading) {
     final isGospel = reading.type.contains('Ευαγγέλιον');
     final color = isGospel ? EverforestColors.yellow : EverforestColors.blue;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: EverforestColors.bg1,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: EverforestColors.bg1,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  reading.type.toUpperCase(),
-                  style: TextStyle(color: color, fontSize: 9.5, fontWeight: FontWeight.bold),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: EverforestColors.grey.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      reading.type.toUpperCase(),
+                      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      reading.reference,
+                      style: const TextStyle(
+                        color: EverforestColors.fg,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Divider(color: EverforestColors.bg2),
+              const SizedBox(height: 10),
               Expanded(
-                child: Text(
-                  reading.reference,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: SelectionArea(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Text(
+                      reading.text,
+                      style: const TextStyle(
+                        color: EverforestColors.fg,
+                        fontSize: 16,
+                        height: 1.7,
+                        fontFamily: 'serif',
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            reading.text,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.45),
-          ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildReadingCard(ScriptureReadingModel reading) {
+    final isGospel = reading.type.contains('Ευαγγέλιον');
+    final color = isGospel ? EverforestColors.yellow : EverforestColors.blue;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => _showReadingDetail(reading),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: EverforestColors.bg1,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    reading.type.toUpperCase(),
+                    style: TextStyle(color: color, fontSize: 9.5, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    reading.reference,
+                    style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(Icons.open_in_full_rounded, color: color.withValues(alpha: 0.6), size: 14),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              reading.text,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.45),
+            ),
+          ],
+        ),
       ),
     );
   }

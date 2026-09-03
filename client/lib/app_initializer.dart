@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
 import 'database/db_executor.dart';
@@ -70,10 +69,10 @@ class AppInitializer {
         final base = resolved[0];
         final daemon = resolved[1];
 
-        if (base != null && base != PreferencesService.cachedBaseUrl.value) {
+        if (base != PreferencesService.cachedBaseUrl.value) {
           PreferencesService.cachedBaseUrl.value = base;
         }
-        if (daemon != null && daemon != PreferencesService.cachedDaemonUrl.value) {
+        if (daemon != PreferencesService.cachedDaemonUrl.value) {
           PreferencesService.cachedDaemonUrl.value = daemon;
         }
         ApiClient.instance.updateUrls(base, daemon);

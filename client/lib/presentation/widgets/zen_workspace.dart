@@ -6,7 +6,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:appflowy_editor/appflowy_editor.dart';
-import 'package:appflowy_editor/src/editor/editor_component/service/shortcuts/command/copy_paste_extension.dart';
 
 import '../../appflowy/src/editor/block_component/callout_block_component/callout_block_component.dart';
 import '../../appflowy/src/editor/block_component/code_block_component/code_block_component.dart';
@@ -14,7 +13,6 @@ import '../../appflowy/src/editor/block_component/toggle_block_component/toggle_
 import '../../appflowy/src/editor/selection_menu/selection_menu_service.dart';
 import '../../appflowy/src/editor/wiki_link_shortcut.dart';
 import '../../auth_service.dart';
-import '../../api_client.dart';
 import '../../core/obsidian/zen_collab_service.dart';
 import '../../core/obsidian/zen_collab_transport.dart';
 import '../../core/obsidian/zen_file_system.dart';

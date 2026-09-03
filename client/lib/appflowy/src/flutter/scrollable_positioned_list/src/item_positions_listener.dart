@@ -5,7 +5,6 @@
 import 'package:flutter/foundation.dart';
 
 import 'item_positions_notifier.dart';
-import 'scrollable_positioned_list.dart';
 
 /// Provides a listenable iterable of [itemPositions] of items that are on
 /// screen and their locations.
@@ -43,12 +42,11 @@ class ItemPosition {
   final double itemTrailingEdge;
 
   @override
-  bool operator ==(dynamic other) {
-    if (other.runtimeType != runtimeType) return false;
-    final ItemPosition otherPosition = other;
-    return otherPosition.index == index &&
-        otherPosition.itemLeadingEdge == itemLeadingEdge &&
-        otherPosition.itemTrailingEdge == itemTrailingEdge;
+  bool operator ==(Object other) {
+    if (other is! ItemPosition) return false;
+    return other.index == index &&
+        other.itemLeadingEdge == itemLeadingEdge &&
+        other.itemTrailingEdge == itemTrailingEdge;
   }
 
   @override

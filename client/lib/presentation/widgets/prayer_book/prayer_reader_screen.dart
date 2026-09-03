@@ -663,15 +663,21 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
             if (!isDesktop) ...[
               // TOC Sheet Button
               IconButton(
-                icon: Icon(Icons.toc_rounded, color: accentGold, size: 22),
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.all(6),
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                icon: Icon(Icons.toc_rounded, color: accentGold, size: 21),
                 tooltip: 'Περιεχόμενα',
                 onPressed: () =>
                     _openMobileToc(context, textColor, accentGold, sidebarBg),
               ),
               // Settings Sheet Button
               IconButton(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.all(6),
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
                 icon: const Icon(Icons.tune_rounded,
-                    color: EverforestColors.grey, size: 20),
+                    color: EverforestColors.grey, size: 19),
                 tooltip: 'Ρυθμίσεις',
                 onPressed: () =>
                     _openSettingsSheet(context, textColor, accentGold, sidebarBg),
@@ -896,62 +902,72 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
     required bool isDesktop,
     required bool isTablet,
   }) {
-    final horizontalPadding = isDesktop ? 32.0 : (isTablet ? 24.0 : 16.0);
+    final horizontalPadding = isDesktop ? 32.0 : (isTablet ? 22.0 : 12.0);
+    final isMobile = !isDesktop && !isTablet;
 
     return Stack(
       children: [
-        SingleChildScrollView(
-          controller: _scrollController,
-          padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 90),
-          physics: const BouncingScrollPhysics(),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top ornament
-                  Center(
-                    child: Text(
-                      '☦',
-                      style: TextStyle(
-                        color: accentGold.withValues(alpha: 0.4),
-                        fontSize: 24,
+        SelectionArea(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.fromLTRB(horizontalPadding, 14, horizontalPadding, 100),
+            physics: const BouncingScrollPhysics(),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top ornament
+                    Center(
+                      child: Text(
+                        '\u2626',
+                        style: TextStyle(
+                          color: accentGold.withValues(alpha: 0.45),
+                          fontSize: isMobile ? 20 : 24,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  // Sections
-                  ...List.generate(_service!.sections.length, (i) {
-                    final section = _service!.sections[i];
-                    return Padding(
-                      key: _sectionKeys[i],
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: _buildSection(
-                          section, textColor, rubricColor, accentGold),
-                    );
-                  }),
-                  // Bottom ornament
-                  const SizedBox(height: 10),
-                  Center(
-                    child: Text(
-                      '☦',
-                      style: TextStyle(
-                        color: accentGold.withValues(alpha: 0.4),
-                        fontSize: 24,
+                    SizedBox(height: isMobile ? 12 : 18),
+                    // Sections
+                    ...List.generate(_service!.sections.length, (i) {
+                      final section = _service!.sections[i];
+                      return Padding(
+                        key: _sectionKeys[i],
+                        padding: EdgeInsets.only(bottom: isMobile ? 14 : 20),
+                        child: _buildSection(
+                          section,
+                          i,
+                          _service!.sections.length,
+                          textColor,
+                          rubricColor,
+                          accentGold,
+                          isMobile,
+                        ),
+                      );
+                    }),
+                    // Bottom ornament
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Text(
+                        '\u2626',
+                        style: TextStyle(
+                          color: accentGold.withValues(alpha: 0.45),
+                          fontSize: isMobile ? 20 : 24,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         // Floating compact auto-scroll pill
         Positioned(
-          right: 16,
-          bottom: 16,
+          right: isMobile ? 12 : 16,
+          bottom: isMobile ? 12 : 16,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -984,7 +1000,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _isAutoScrolling ? 'Παύση' : 'Κύλιση',
+                      _isAutoScrolling ? '\u03a0\u03b1\u03cd\u03c3\u03b7' : '\u039a\u03cd\u03bb\u03b9\u03c3\u03b7',
                       style: const TextStyle(
                         color: EverforestColors.bg0,
                         fontWeight: FontWeight.bold,
@@ -1002,83 +1018,106 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
   }
 
   Widget _buildSection(
-      PrayerSectionModel section, Color textColor, Color rubricColor, Color accentGold) {
+      PrayerSectionModel section,
+      int index,
+      int totalSections,
+      Color textColor,
+      Color rubricColor,
+      Color accentGold,
+      bool isMobile) {
     final isRubric = section.isRubric;
     final isDynamic = section.isDynamic;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section Header
-        if (section.header.isNotEmpty) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  section.header,
-                  style: TextStyle(
-                    color: rubricColor,
-                    fontSize: _fontSize * 0.82,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.4,
-                  ),
-                ),
+    return Container(
+      width: double.infinity,
+      padding: isDynamic
+          ? (isMobile ? const EdgeInsets.fromLTRB(14, 12, 12, 14) : const EdgeInsets.fromLTRB(18, 16, 16, 18))
+          : EdgeInsets.symmetric(
+              vertical: isMobile ? 8 : 12,
+              horizontal: isMobile ? 4 : 8,
+            ),
+      decoration: isDynamic
+          ? BoxDecoration(
+              color: accentGold.withValues(alpha: _isParchmentMode ? 0.08 : 0.05),
+              borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+              border: Border(
+                left: BorderSide(color: accentGold.withValues(alpha: 0.7), width: 3.5),
               ),
-              if (isDynamic)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: accentGold.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: accentGold.withValues(alpha: 0.3),
+            )
+          : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          if (section.header.isNotEmpty) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    section.header,
+                    style: TextStyle(
+                      color: rubricColor,
+                      fontSize: isMobile
+                          ? (_fontSize * 0.88).clamp(13.5, 17.5)
+                          : _fontSize * 0.92,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.4,
+                      fontFamily: 'serif',
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.auto_awesome_rounded,
-                          color: accentGold, size: 10),
-                      const SizedBox(width: 3),
-                      Text(
-                        _getDynamicTypeLabel(section.dynamicType),
-                        style: TextStyle(
-                          color: accentGold,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-
-        // Content
-        if (isDynamic)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: EverforestColors.bg1.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: accentGold.withValues(alpha: 0.18),
-              ),
+                if (isDynamic) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: accentGold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: accentGold.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome_rounded, color: accentGold, size: 10),
+                        const SizedBox(width: 3),
+                        Text(
+                          _getDynamicTypeLabel(section.dynamicType),
+                          style: TextStyle(
+                            color: accentGold,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
             ),
-            child: _buildPrayerText(section.content, textColor, isRubric, rubricColor),
-          )
-        else
-          _buildPrayerText(section.content, textColor, isRubric, rubricColor),
-      ],
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: isDynamic
+                  ? accentGold.withValues(alpha: 0.25)
+                  : (_isParchmentMode
+                      ? Colors.black.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.06)),
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          // Content
+          _buildPrayerText(section.content, textColor, isRubric, rubricColor, isMobile),
+        ],
+      ),
     );
   }
 
   Widget _buildPrayerText(
-      String content, Color textColor, bool isRubric, Color rubricColor) {
+      String content, Color textColor, bool isRubric, Color rubricColor, bool isMobile) {
     final paragraphs = content.split('\n\n');
 
     return RichText(
@@ -1093,7 +1132,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
           final isSubHeader = lines.length == 1 &&
               trimmed.length < 75 &&
               !trimmed.endsWith('.') &&
-              !trimmed.endsWith('·') &&
+              !trimmed.endsWith('\u00b7') &&
               !trimmed.endsWith(')');
 
           if (isSubHeader && !isRubric) {
@@ -1126,8 +1165,8 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
               lineSpans.add(const TextSpan(text: '\n'));
             }
 
-            final speakerMatch = RegExp(r'^(ΙΕΡΕΥΣ|ΔΙΑΚΟΝΟΣ|ΧΟΡΟΣ|ΑΝΑΓΝΩΣΤΗΣ|ΛΑΟΣ)(\s*\([^)]+\))?:').firstMatch(tline);
-            final verseMatch = RegExp(r"^(Στίχ\.\s*[^:\n]+:|Στίχοι[^:\n]*:|Δόξα\s*Πατρί\.\.\.|Καὶ\s*νῦν\.\.\.|Δόξα\.\.\.|ΣΤΙΧΟΛΟΓΙΑ\s*[^:\n]+:|Η\s*ΥΠΑΚΟΗ:|ΟΙ\s*ΑΝΑΒΑΘΜΟΙ|ΤΟ\s*ΠΡΟΚΕΙΜΕΝΟΝ|ΑΠΟΛΥΤΙΚΙ[ΑΟ]Ν[^:\n]*:|ΚΟΝΤΑΚΙΟΝ[^:\n]*:|Ο\s*ΟΙΚΟΣ:|ΕΞΑΠΟΣΤΕΙΛΑΡΙΟΝ[^:\n]*:|ΘΕΟΤΟΚΙΟΝ:|Ὁ\s*Εἱρμός:|Ὁ\s*Ειρμός:|ΚΑΘΙΣΜΑ\s*[^:\n]+:|Ὠδὴ\s*[^:\n]+:)").firstMatch(tline);
+            final speakerMatch = RegExp(r'^(\u0399\u0395\u03a1\u0395\u03a5\u03a3|\u0394\u0399\u0391\u039a\u039f\u039d\u039f\u03a3|\u03a7\u039f\u03a1\u039f\u03a3|\u0391\u039d\u0391\u0393\u039d\u03a9\u03a3\u03a4\u0397\u03a3|\u039b\u0391\u039f\u03a3)(\s*\([^)]+\))?:').firstMatch(tline);
+            final verseMatch = RegExp(r"^(\u03a3\u03c4\u03af\u03c7\.\s*[^:\n]+:|\u03a3\u03c4\u03af\u03c7\u03bf\u03b9[^:\n]*:|\u0394\u03cc\u03be\u03b1\s*\u03a0\u03b1\u03c4\u03c1\u03af\.\.\.|\u039a\u03b1\u1f76\s*\u03bd\u1fe6\u03bd\.\.\.|\u0394\u03cc\u03be\u03b1\.\.\.|\u03a3\u03a4\u0399\u03a7\u039f\u039b\u039f\u0393\u0399\u0391\s*[^:\n]+:|\u0397\s*\u03a5\u03a0\u0391\u039a\u039f\u0397:|\u039f\u0399\s*\u0391\u039d\u0391\u0392\u0391\u0398\u039c\u039f\u0399|\u03a4\u039f\s*\u03a0\u03a1\u039f\u039a\u0395\u0399\u039c\u0395\u039d\u039f\u039d|\u0391\u03a0\u039f\u039b\u03a5\u03a4\u0399\u039a\u0399[\u0391\u039f]\u039d[^:\n]*:|\u039a\u039f\u039d\u03a4\u0391\u039a\u0399\u039f\u039d[^:\n]*:|\u039f\s*\u039f\u0399\u039a\u039f\u03a3:|\u0395\u039e\u0391\u03a0\u039f\u03a3\u03a4\u0395\u0399\u039b\u0391\u03a1\u0399\u039f\u039d[^:\n]*:|\u0398\u0395\u039f\u03a4\u039f\u039a\u0399\u039f\u039d:|\u1f49\s*\u0395\u1f31\u03c1\u03bc\u03cc\u03c2:|\u1f49\s*\u0395\u03b9\u03c1\u03bc\u03cc\u03c2:|\u039a\u0391\u0398\u0399\u03a3\u039c\u0391\s*[^:\n]+:|\u1f68\u03b4\u1f74\s*[^:\n]+:)").firstMatch(tline);
 
             if (speakerMatch != null) {
               final spk = speakerMatch.group(0)!;

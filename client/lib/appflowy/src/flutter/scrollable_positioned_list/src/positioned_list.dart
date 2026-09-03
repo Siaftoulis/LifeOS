@@ -94,6 +94,7 @@ class PositionedList extends StatefulWidget {
   ///  Defaults to false.
   ///
   /// See [ScrollView.shrinkWrap].
+  /// {@endtemplate}
   final bool shrinkWrap;
 
   /// How the scroll view should respond to user input.

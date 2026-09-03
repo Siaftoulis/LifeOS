@@ -64,22 +64,21 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.8"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 46' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.9"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 47' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Prayer Book Overhaul & High-Speed Releases
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Mobile Reader UI & Scripture Overhaul
 
           ### Highlights & What's New
-          - **Continuous Uninterrupted Reading (Ψαλτήριον & Καινή Διαθήκη)**:
-            - Full unbroken continuous scroll for all 150 Psalms (20 Kathismata) and New Testament books.
-            - Floating bottom-pill quick jump selector to instantly navigate between Kathismata, Psalms, and Chapters.
-          - **Streamlined Minimalist Mobile UI**:
-            - 100% Greek localization across all widgets and liturgical texts.
-            - Time-of-day smart recommendation launcher (Πρωινή Προσευχή, Ώρες, Εσπερινός, Απόδειπνον).
-            - Removed digital Komboskini; replaced in daily prayer rule with Psalter reading.
-          - **Optimized OTA Updates & Faster Builds**:
-            - Proxy & caching for asset downloads on Go host daemon.
-            - High-speed release caching for immediate Android APK and Windows distribution.
+          - **Fixed Mobile Reader Scrolling Bug**:
+            - Eliminated touch gesture conflicts and scroll traps caused by nested SelectableText inside chapters and verses.
+            - Butter-smooth scrolling across the Gospels (Ευαγγέλιο), Apostle (Απόστολος), Psalter, and Liturgical Services.
+          - **Fluid Scripture Navigation & Dedicated Chapter Reading**:
+            - Floating chapter navigation bar ([◀ Προηγούμενο] [Κεφάλαιο X / Y ▾] [Επόμενο ▶]) with instant chapter grid picker.
+            - Natural biblical typography with rubric verse badges, ancient Greek serif font, and toggleable Modern Greek translation (Π. Τρεμπέλα).
+          - **Seamless Liturgical Book Experience**:
+            - Removed boxed container cards around prayer sections for authentic sacred text reading.
+            - Interactive daily Gospel & Epistle readings on dashboard with full reader modal.
           EOF
 
       - name: Publish Android APK Immediately

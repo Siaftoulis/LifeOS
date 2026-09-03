@@ -101,7 +101,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
     
     // Initial fetch to ensure we have something immediately
     try {
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+      final pos = await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.best));
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(pos.latitude, pos.longitude);

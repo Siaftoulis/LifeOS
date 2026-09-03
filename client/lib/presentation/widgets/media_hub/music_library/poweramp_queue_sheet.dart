@@ -162,7 +162,7 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                 : ReorderableListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: queue.length,
-                    onReorder: (oldIdx, newIdx) {
+                    onReorderItem: (oldIdx, newIdx) {
                       setState(() {
                         widget.onReorder(oldIdx, newIdx);
                       });

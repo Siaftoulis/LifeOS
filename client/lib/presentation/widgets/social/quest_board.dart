@@ -276,7 +276,7 @@ class _QuestBoardState extends State<QuestBoard> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: assignee,
+                  initialValue: assignee,
                   dropdownColor: EverforestColors.bg1,
                   style: TextStyle(color: EverforestColors.fg),
                   decoration: InputDecoration(

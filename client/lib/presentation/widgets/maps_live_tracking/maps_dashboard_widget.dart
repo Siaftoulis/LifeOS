@@ -52,7 +52,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
 
   Future<void> _startLocationTracking() async {
     try {
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+      final pos = await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.best));
       if (mounted) {
         setState(() => _myLocation = LatLng(pos.latitude, pos.longitude));
       }
@@ -89,7 +89,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
   Future<void> _locateMe() async {
     setState(() => _isLocating = true);
     try {
-      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final pos = await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
       final latLng = LatLng(pos.latitude, pos.longitude);
       _mapController.move(latLng, 15.0);
       setState(() => _myLocation = latLng);

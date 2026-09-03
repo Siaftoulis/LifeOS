@@ -17,17 +17,18 @@ type PsalmVerse struct {
 }
 
 type PsalmData struct {
-	Number    int    `json:"number"`
-	Title     string `json:"title"`
-	Text      string `json:"text"`
-	VerseCount int   `json:"verseCount"`
-	Incomplete bool   `json:"incomplete,omitempty"`
+	Number      int    `json:"number"`
+	Title       string `json:"title"`
+	Text        string `json:"text"`
+	Translation string `json:"translation,omitempty"`
+	VerseCount  int    `json:"verseCount"`
+	Incomplete  bool   `json:"incomplete,omitempty"`
 }
 
 type KathismaData struct {
-	Number  int         `json:"number"`
-	Title   string      `json:"title"`
-	Psalms  []PsalmData `json:"psalms"`
+	Number int         `json:"number"`
+	Title  string      `json:"title"`
+	Psalms []PsalmData `json:"psalms"`
 }
 
 type PsalterData struct {
@@ -47,6 +48,7 @@ type PsalmResponse struct {
 	Number      int    `json:"number"`
 	Title       string `json:"title"`
 	Text        string `json:"text"`
+	Translation string `json:"translation,omitempty"`
 	VerseCount  int    `json:"verse_count"`
 	Kathisma    int    `json:"kathisma"`
 	Incomplete  bool   `json:"incomplete,omitempty"`
@@ -167,12 +169,13 @@ func handlePsalterPsalm(w http.ResponseWriter, r *http.Request) {
 		for _, p := range k.Psalms {
 			if p.Number == psalmNum {
 				resp := PsalmResponse{
-					Number:     p.Number,
-					Title:      p.Title,
-					Text:       p.Text,
-					VerseCount: p.VerseCount,
-					Kathisma:   k.Number,
-					Incomplete: p.Incomplete,
+					Number:      p.Number,
+					Title:       p.Title,
+					Text:        p.Text,
+					Translation: p.Translation,
+					VerseCount:  p.VerseCount,
+					Kathisma:    k.Number,
+					Incomplete:  p.Incomplete,
 				}
 				w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				json.NewEncoder(w).Encode(resp)
@@ -209,8 +212,9 @@ func handlePsalterSearch(w http.ResponseWriter, r *http.Request) {
 	for _, k := range psalter.Kathismata {
 		for _, p := range k.Psalms {
 			lowerText := strings.ToLower(p.Text)
+			lowerTrans := strings.ToLower(p.Translation)
+
 			if idx := strings.Index(lowerText, q); idx != -1 {
-				// Extract snippet around match
 				start := idx - 40
 				if start < 0 {
 					start = 0
@@ -230,6 +234,29 @@ func handlePsalterSearch(w http.ResponseWriter, r *http.Request) {
 				results = append(results, SearchResult{
 					PsalmNumber: p.Number,
 					PsalmTitle:  p.Title,
+					Kathisma:    k.Number,
+					Snippet:     snippet,
+				})
+			} else if idx := strings.Index(lowerTrans, q); idx != -1 {
+				start := idx - 40
+				if start < 0 {
+					start = 0
+				}
+				end := idx + len(q) + 60
+				if end > len(p.Translation) {
+					end = len(p.Translation)
+				}
+				snippet := p.Translation[start:end]
+				if start > 0 {
+					snippet = "..." + snippet
+				}
+				if end < len(p.Translation) {
+					snippet = snippet + "..."
+				}
+
+				results = append(results, SearchResult{
+					PsalmNumber: p.Number,
+					PsalmTitle:  p.Title + " (Μετάφραση)",
 					Kathisma:    k.Number,
 					Snippet:     snippet,
 				})
@@ -284,21 +311,30 @@ func handlePsalterAsService(w http.ResponseWriter, r *http.Request) {
 	for _, k := range psalter.Kathismata {
 		for _, p := range k.Psalms {
 			if p.Number == psalmNum {
-				// Format as a PrayerService response
-				resp := map[string]interface{}{
-					"id":          idStr,
-					"title":       p.Title,
-					"category":    "Ψαλτήριον",
-					"subtitle":    "Καθίσμα ${k.Number} · Ψαλμός ${p.Number}",
-					"estimated_min": 5,
-					"sections": []map[string]interface{}{
-						{
-							"header":    p.Title,
-							"content":   p.Text,
-							"is_rubric": false,
-							"is_dynamic": false,
-						},
+				sections := []map[string]interface{}{
+					{
+						"header":     p.Title,
+						"content":    p.Text,
+						"is_rubric":  false,
+						"is_dynamic": false,
 					},
+				}
+				if p.Translation != "" {
+					sections = append(sections, map[string]interface{}{
+						"header":     "Νεοελληνική Απόδοση",
+						"content":    p.Translation,
+						"is_rubric":  false,
+						"is_dynamic": false,
+					})
+				}
+
+				resp := map[string]interface{}{
+					"id":            idStr,
+					"title":         p.Title,
+					"category":      "Ψαλτήριον",
+					"subtitle":      fmt.Sprintf("Κάθισμα %d · Ψαλμός %d", k.Number, p.Number),
+					"estimated_min": 5,
+					"sections":      sections,
 				}
 				w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				json.NewEncoder(w).Encode(resp)

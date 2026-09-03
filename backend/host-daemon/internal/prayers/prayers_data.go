@@ -426,5 +426,21 @@ func BuildService(serviceID string, date time.Time, saintIdx ...int) (*PrayerSer
 		}, nil
 	}
 
+	// Check Euchologion
+	if book, err := loadEuchologion(); err == nil {
+		for _, p := range book.Prayers {
+			if p.ID == serviceID {
+				return &PrayerService{
+					ID:           p.ID,
+					Title:        p.Title,
+					Category:     p.Category,
+					Subtitle:     "Ευχολόγιον",
+					EstimatedMin: 10,
+					Sections:     p.Sections,
+				}, nil
+			}
+		}
+	}
+
 	return nil, fmt.Errorf("service not found: %s", serviceID)
 }

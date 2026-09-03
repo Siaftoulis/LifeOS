@@ -1257,7 +1257,7 @@ class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWi
   }
 
   Widget _buildChildren() {
-    final items = _searchItems(_keyword);
+    final items = _children ?? _searchItems(_keyword);
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(20),
