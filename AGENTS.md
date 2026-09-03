@@ -21,16 +21,22 @@ LifeOS — self-hosted, offline-first Flutter + Go monorepo (Windows client prim
 - Analyze: `flutter analyze` shows ~1.8k pre-existing issues; filter — errors outside `appflowy_repo/` are the real signal.
 - Go: `go build .` / `go test ./...` in `backend/host-daemon`; cross-compile with `GOOS=linux GOARCH=amd64 CGO_ENABLED=0`.
 
-## Deploy to server (pds-laptop-old)
+## Deploy to server (pds-laptop-old) & Professional Automated Release
 
-- `deploy_server.ps1` builds web, patches `flutter_bootstrap.js` (service worker removal + `?t=` cache buster), ships via `tailscale ssh root@pds-laptop-old` to `/var/lib/lifeos-host-daemon`, restarts systemd `lifeos-host-daemon`.
-- **Gotcha:** `flutter build web` prints "Wasm dry run findings" to stderr → PowerShell `$ErrorActionPreference="Stop"` aborts the script. Run `flutter build web --release` first, then `deploy_server.ps1 -SkipBuild`.
-- **Gotcha:** `tailscale ssh` requires interactive human approval — it prints `To authenticate, visit: https://login.tailscale.com/a/...` and hangs. The user must open the URL before any deploy works.
+- **1-Command Automated Pipeline**: Run `.\release_and_deploy.ps1 -Bump patch|minor|none -Message "..."`
+  - Automatically bumps version in `client/pubspec.yaml` and `.agent/version.json`.
+  - Builds Web (`--no-wasm-dry-run` wrapped so it never aborts) & Linux daemon binaries (`lifeos-linux`).
+  - Deploys Web & Linux daemon to `pds-laptop-old` over Tailscale SSH, restarts `lifeos-host-daemon`, and verifies live URL `https://pds-laptop-old.husky-forel.ts.net/`.
+  - Commits to Git, tags `vX.Y.Z`, and pushes to GitHub `main` + tag.
+  - Automatically triggers GitHub Actions CI/CD to compile Android APK & Windows ZIP!
+  - Automatically refreshes the host daemon's update cache.
+- `deploy_server.ps1` can still be run directly for server-only deploys without bumping/tagging.
+- **Gotcha:** `tailscale ssh` requires interactive human approval if the Tailscale SSH session expires — it prints `To authenticate, visit: https://login.tailscale.com/a/...` and hangs. Open the URL to approve.
 
 ## Release (GitHub Actions)
 
 - Workflow `.github/workflows/release.yml` triggers on any `v*` tag: builds Android APK + Windows ZIP, publishes release with body from `.agent/version.json` `build_number`.
-- Bump both: `client/pubspec.yaml` `version:` and `.agent/version.json`, commit, then `git tag vX.Y.Z` + push tag.
+- Handled automatically by `release_and_deploy.ps1`.
 - **Gotcha:** workflow MUST keep `flutter-version: '3.44.9'` pinned in `subosito/flutter-action` (both jobs) — unpinned stable is 3.47 which breaks the build.
 - **Gotcha:** never re-add `flutter create`/`flutter pub add` steps to the workflow — re-resolving deps on the runner breaks the build. `android/`, `windows/`, `pubspec.lock` are committed; runners only `flutter pub get`.
 - **Gotcha:** `client/android/gradle/wrapper/gradle-wrapper.jar` is git-ignored by `client/android/.gitignore` but must stay tracked (was force-added) or runner builds fail.
