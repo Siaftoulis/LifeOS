@@ -10,8 +10,16 @@ Write-Host "=== LifeOS Server Deployment (pds-laptop-old) ===" -ForegroundColor 
 if (-not $SkipBuild) {
     Write-Host "1. Building Flutter Web release bundle..." -ForegroundColor Yellow
     Push-Location "$workspaceRoot\client"
-    flutter build web --release
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    flutter build web --release --no-wasm-dry-run
+    $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = $prevEAP
     Pop-Location
+    if ($exitCode -ne 0) {
+        Write-Error "Flutter web build failed with exit code $exitCode"
+        exit $exitCode
+    }
 }
 
 $webSrc = "$workspaceRoot\client\build\web"
@@ -71,6 +79,9 @@ if (Test-Path "$tmp\idx.html") {
         Write-Host " NOTE: Web index updated." -ForegroundColor Yellow
     }
 }
+
+# Refresh host daemon update cache
+curl.exe -s "http://100.115.141.4:50051/api/v1/system/updates/latest?refresh=true" | Out-Null
 
 Remove-Item "$tmp\web.tar", "$tmp\bin.tar", "$tmp\lifeos-linux", "$tmp\server_linux", "$tmp\idx.html" -Force -ErrorAction SilentlyContinue
 Write-Host "=== Deployment Finished Successfully ===" -ForegroundColor Green
