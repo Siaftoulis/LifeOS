@@ -1,7 +1,44 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'prayer_repository.dart';
 
 class BuiltInPrayers {
+  static Map<String, PrayerServiceModel>? _cachedOfflineServices;
+  static bool _isLoadingAssets = false;
+
+  /// Preloads bundled offline prayers from assets/prayers_core.json
+  static Future<void> ensureLoaded() async {
+    if (_cachedOfflineServices != null || _isLoadingAssets) return;
+    _isLoadingAssets = true;
+    try {
+      final jsonStr = await rootBundle.loadString('assets/prayers_core.json');
+      final Map<String, dynamic> decoded = jsonDecode(jsonStr);
+      final map = <String, PrayerServiceModel>{};
+      decoded.forEach((key, val) {
+        if (val is Map) {
+          map[key] = PrayerServiceModel.fromJson(Map<String, dynamic>.from(val));
+        }
+      });
+      _cachedOfflineServices = map;
+    } catch (_) {
+      // Fall back to hardcoded prayers
+    } finally {
+      _isLoadingAssets = false;
+    }
+  }
+
+  static Future<PrayerServiceModel?> getService(String serviceId, String title) async {
+    await ensureLoaded();
+    if (_cachedOfflineServices != null && _cachedOfflineServices!.containsKey(serviceId)) {
+      return _cachedOfflineServices![serviceId];
+    }
+    return getFallbackService(serviceId, title);
+  }
+
   static PrayerServiceModel? getFallbackService(String serviceId, String title) {
+    if (_cachedOfflineServices != null && _cachedOfflineServices!.containsKey(serviceId)) {
+      return _cachedOfflineServices![serviceId];
+    }
     switch (serviceId) {
       case 'trisagion':
         return PrayerServiceModel(

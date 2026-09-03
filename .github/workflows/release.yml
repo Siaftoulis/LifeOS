@@ -64,22 +64,22 @@ jobs:
 
       - name: Generate Release Body
         run: |
-          VERSION=$(jq -r '.version // "1.5.10"' .agent/version.json)
-          BUILD_NUM=$(jq -r '.build_number // 48' .agent/version.json)
+          VERSION=$(jq -r '.version // "1.5.11"' .agent/version.json)
+          BUILD_NUM=$(jq -r '.build_number // 49' .agent/version.json)
           cat <<EOF > release_notes.md
-          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Settings OTA Updates & Spatial Grid Directory
+          ## LifeOS v$VERSION (Build #$BUILD_NUM) — Full Offline Divine Liturgies & Complete Prayer Book
 
           ### Highlights & What's New
-          - **System & OTA Updates in Settings**:
-            - Added direct access to **System Updates & OTA** inside the main Settings (GridConfigurator).
-            - Check for new versions, view release changelog, and trigger 1-tap seamless APK updates directly from Settings.
-          - **Full Spatial Matrix Grid Integration**:
-            - Added all 20+ installed ecosystem hubs and modules to the Spatial Matrix Editor and FeatureRegistry.
-            - Assign any module to any grid slot: Prayer Book, Books (EPUB), Flashcards, Obsidian Zen, Chat Hub, Smart Home, Maps & Live Tracking, Finance, RPG, Media Hub, Nexus, and more.
-            - Added **All Installed Modules Directory** in Settings to browse and launch all ecosystem modules directly.
-          - **Mobile Reader UI & Scripture Overhaul**:
-            - Eliminated scroll traps and gesture conflicts in the Gospel, Apostle, and Psalter.
-            - Fluid chapter navigation bar and clean sacred typography.
+          - **100% Offline Complete Divine Liturgies & Services**:
+            - Embedded all 33 complete Orthodox services into `assets/prayers_core.json` directly inside the app bundle.
+            - Full Divine Liturgy of St. John Chrysostom (all 22 unabbreviated sections: Antiphons, Little/Great Entrance, Trisagios, Epistle, Gospel, Cherubic Hymn, Anaphora, Creed, Epiclesis, Communion, Thanksgiving, Apolysis).
+            - Full Divine Liturgy of St. Basil the Great (all 22 unabbreviated sections).
+            - Full Orthros (Matins), Great Vespers, Mesonyktikon, Hours, Parakleseis, Akathist Hymn, and Communion prayers available 100% offline with zero network dependency.
+          - **Network & Server Mesh Reconnection**:
+            - Updated daemon mesh discovery with active server Tailscale IP (`100.115.141.4:50051`) for live dynamic typikon daily commemorations.
+          - **Settings & Spatial Matrix Grid**:
+            - Instant System Updates & OTA inside Settings.
+            - All 20+ ecosystem modules customizable across all grid slots.
           EOF
 
       - name: Publish Android APK Immediately

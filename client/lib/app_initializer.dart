@@ -11,6 +11,7 @@ import 'core/points_live_feedback.dart';
 import 'core/local_discovery_service.dart';
 import 'core/p2p_transfer_service.dart';
 import 'core/update/ota_update_service.dart';
+import 'core/repositories/built_in_prayers.dart';
 
 class AppInitializer {
   static Future<void> initialize(Stopwatch s) async {
@@ -51,6 +52,7 @@ class AppInitializer {
     PointsLiveFeedback.instance.start();
 
     _startBackgroundDiscovery();
+    BuiltInPrayers.ensureLoaded();
     if (!kIsWeb) {
       OtaUpdateService.instance.initialize();
     }

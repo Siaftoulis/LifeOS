@@ -533,8 +533,8 @@ class PrayerRepository {
       debugPrint('PrayerRepository service fetch error: $e');
     }
 
-    // Built-in offline fallback prayer
-    final builtIn = BuiltInPrayers.getFallbackService(serviceId, '');
+    // Built-in offline fallback prayer (loads from assets/prayers_core.json)
+    final builtIn = await BuiltInPrayers.getService(serviceId, '');
     if (builtIn != null) {
       _serviceCache[cacheKey] = builtIn;
       return builtIn;

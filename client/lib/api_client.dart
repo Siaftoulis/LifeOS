@@ -117,6 +117,7 @@ class ApiClient {
       ...dynamicUrls,
       'http://localhost:50051',
       'https://pds-laptop-old.husky-forel.ts.net',
+      'http://100.115.141.4:50051',
       'http://100.115.84.43:50051',
       'http://lifeos-daemon:50051',
       'http://192.168.1.47:50051',
