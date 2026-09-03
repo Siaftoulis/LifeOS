@@ -1,0 +1,99 @@
+name: Deploy to Server (pds-laptop-old)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy to pds-laptop-old
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check for Tailscale Secret
+        id: check-secret
+        run: |
+          if [ -z "${{ secrets.TAILSCALE_AUTHKEY }}" ]; then
+            echo "::warning::TAILSCALE_AUTHKEY secret is not set in GitHub repository settings. Skipping cloud deployment."
+            echo "has_secret=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_secret=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Connect to Tailnet
+        if: steps.check-secret.outputs.has_secret == 'true'
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          args: --accept-routes
+
+      - name: Setup Go
+        if: steps.check-secret.outputs.has_secret == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+
+      - name: Setup Flutter
+        if: steps.check-secret.outputs.has_secret == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: 'stable'
+          cache: true
+
+      - name: Build Linux amd64 Host Daemon
+        if: steps.check-secret.outputs.has_secret == 'true'
+        run: |
+          cd backend/host-daemon
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o ../../lifeos-linux .
+          cd ../..
+
+      - name: Build Flutter Web Release Bundle
+        if: steps.check-secret.outputs.has_secret == 'true'
+        run: |
+          cd client
+          flutter pub get
+          flutter build web --release --no-wasm-dry-run
+          cd ..
+          # Remove service worker & patch bootstrap cache buster
+          rm -f client/build/web/flutter_service_worker.js
+          TS=$(date +%s)
+          sed -i "s/\"mainJsPath\":\"main.dart.js\"/\"mainJsPath\":\"main.dart.js?t=$TS\"/g" client/build/web/flutter_bootstrap.js
+          sed -i 's/serviceWorkerSettings:[^}]*}/serviceWorkerSettings: null/g' client/build/web/flutter_bootstrap.js
+
+      - name: Package Assets
+        if: steps.check-secret.outputs.has_secret == 'true'
+        run: |
+          tar -cf web.tar -C client/build/web .
+          tar -cf bin.tar lifeos-linux
+
+      - name: Deploy to pds-laptop-old via Tailscale SSH
+        if: steps.check-secret.outputs.has_secret == 'true'
+        run: |
+          # Deploy Web Assets
+          tailscale ssh --check=false root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && rm -rf web && mkdir -p web && tar -xf - -C web && rm -f web/flutter_service_worker.js" < web.tar
+
+          # Deploy Linux Daemon Binary & Restart Service
+          tailscale ssh --check=false root@pds-laptop-old "cd /var/lib/lifeos-host-daemon && tar -xf - && systemctl stop lifeos-host-daemon && cp lifeos-linux /usr/local/bin/lifeos-host-daemon && chmod +x /usr/local/bin/lifeos-host-daemon lifeos-linux && systemctl start lifeos-host-daemon" < bin.tar
+
+      - name: Verify Live Deployment
+        if: steps.check-secret.outputs.has_secret == 'true'
+        run: |
+          sleep 2
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://pds-laptop-old.husky-forel.ts.net/)
+          echo "Server HTTP status code: $HTTP_CODE"
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 302 ]; then
+            echo "Server https://pds-laptop-old.husky-forel.ts.net/ is LIVE!"
+          else
+            echo "Warning: Received HTTP $HTTP_CODE"
+          fi
