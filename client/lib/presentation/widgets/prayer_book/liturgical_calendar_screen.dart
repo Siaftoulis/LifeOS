@@ -492,7 +492,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
 
   Widget _buildCalendarGrid() {
     final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday % 7;
+    final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday - 1;
     final isOld = _calendarSystem == CalendarSystem.oldCalendar;
 
     return Container(
@@ -505,7 +505,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       child: Column(
         children: [
           Row(
-            children: ['Κ', 'Δ', 'Τ', 'Τ', 'Π', 'Π', 'Σ'].map((d) {
+            children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) {
               return Expanded(
                 child: Center(
                   child: Text(

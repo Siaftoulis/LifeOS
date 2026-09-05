@@ -16,6 +16,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
   Map<String, DayData> _days = {};
   bool _isLoading = true;
   DayData? _selectedDayData;
+  bool _isCalendarExpanded = false;
 
   static const _monthNames = [
     '', 'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
@@ -143,8 +144,9 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
   }
 
   Widget _buildCalendarGrid({bool isMobile = false}) {
-    final daysInMonth = DateTime(2026, _selectedMonth + 1, 0).day;
-    final firstWeekday = DateTime(2026, _selectedMonth, 1).weekday;
+    final currentYear = DateTime.now().year;
+    final daysInMonth = DateTime(currentYear, _selectedMonth + 1, 0).day;
+    final firstWeekday = DateTime(currentYear, _selectedMonth, 1).weekday;
 
     final grid = GridView.builder(
       shrinkWrap: isMobile,
@@ -209,8 +211,8 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
 
     if (isMobile) {
       return Container(
-        margin: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+        margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: EverforestColors.bg1,
           borderRadius: BorderRadius.circular(14),
@@ -219,15 +221,50 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              child: Row(
-                children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) =>
-                  Expanded(child: Center(child: Text(d, style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
-                ).toList(),
+            InkWell(
+              onTap: () => setState(() => _isCalendarExpanded = !_isCalendarExpanded),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month_rounded, color: EverforestColors.yellow, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Ημερολόγιο: $_selectedDay ${_monthNames[_selectedMonth]}',
+                      style: const TextStyle(
+                        color: EverforestColors.fg,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      _isCalendarExpanded ? 'Απόκρυψη' : 'Αλλαγή ημέρας',
+                      style: const TextStyle(color: EverforestColors.aqua, fontSize: 11.5),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _isCalendarExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      color: EverforestColors.aqua,
+                      size: 18,
+                    ),
+                  ],
+                ),
               ),
             ),
-            grid,
+            if (_isCalendarExpanded) ...[
+              const Divider(color: EverforestColors.bg2, height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Row(
+                  children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) =>
+                    Expanded(child: Center(child: Text(d, style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
+                  ).toList(),
+                ),
+              ),
+              grid,
+            ],
           ],
         ),
       );
