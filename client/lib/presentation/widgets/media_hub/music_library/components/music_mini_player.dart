@@ -1,9 +1,9 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../theme/everforest_colors.dart';
+import '../music_formatters.dart';
 
 class MusicMiniPlayer extends StatelessWidget {
   const MusicMiniPlayer({
@@ -24,13 +24,6 @@ class MusicMiniPlayer extends StatelessWidget {
   final String currentThumbnail;
   final VoidCallback onTap;
   final VoidCallback onOpenLyrics;
-
-  String _sanitizeThumbnailUrl(String url) {
-    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
-      return url.replaceFirst('http://', 'https://');
-    }
-    return url;
-  }
 
   Widget _buildMiniPlaceholder() {
     return Container(
@@ -148,7 +141,8 @@ class MusicMiniPlayer extends StatelessWidget {
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
                                       child: Image.network(
-                                        _sanitizeThumbnailUrl(currentThumbnail),
+                                        sanitizeMusicThumbnailUrl(
+                                            currentThumbnail),
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, __, ___) =>
                                             _buildMiniPlaceholder(),

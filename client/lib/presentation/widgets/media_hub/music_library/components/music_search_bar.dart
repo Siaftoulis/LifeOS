@@ -1,11 +1,94 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../theme/everforest_colors.dart';
+import '../music_formatters.dart';
 import 'heart_button.dart';
+
+enum MusicSearchQueryType {
+  directYouTubeUrl,
+  normalSearch,
+}
+
+/// Checks whether an input string is clearly a direct YouTube video URL.
+bool isDirectYouTubeUrl(String input) {
+  return extractYouTubeVideoId(input) != null;
+}
+
+/// Extracts an 11-character YouTube video ID from supported URL forms:
+/// - https://www.youtube.com/watch?v=...
+/// - https://youtube.com/watch?v=...
+/// - https://youtu.be/...
+/// - https://m.youtube.com/watch?v=...
+/// - https://music.youtube.com/watch?v=...
+/// - https://www.youtube.com/shorts/...
+/// - https://www.youtube.com/embed/...
+/// - https://www.youtube.com/v/...
+String? extractYouTubeVideoId(String input) {
+  final trimmed = input.trim();
+  if (trimmed.isEmpty) return null;
+
+  final toParse =
+      (trimmed.startsWith('http://') || trimmed.startsWith('https://'))
+          ? trimmed
+          : 'https://$trimmed';
+
+  final uri = Uri.tryParse(toParse);
+  if (uri == null || uri.host.isEmpty) return null;
+
+  final host = uri.host.toLowerCase();
+  final isYouTubeHost = host == 'youtube.com' ||
+      host.endsWith('.youtube.com') ||
+      host == 'youtu.be' ||
+      host.endsWith('.youtu.be');
+
+  if (!isYouTubeHost) return null;
+
+  // 1. youtu.be/<id>
+  if (host == 'youtu.be' || host.endsWith('.youtu.be')) {
+    final pathSegments = uri.pathSegments;
+    if (pathSegments.isNotEmpty) {
+      final id = pathSegments.first.trim();
+      if (_isValidYouTubeId(id)) return id;
+    }
+    return null;
+  }
+
+  // 2. youtube.com/watch?v=<id>
+  if (uri.path == '/watch' || uri.path == '/watch/') {
+    final v = uri.queryParameters['v']?.trim();
+    if (v != null && _isValidYouTubeId(v)) return v;
+    return null;
+  }
+
+  // 3. youtube.com/shorts/<id>, /embed/<id>, /v/<id>
+  final segments = uri.pathSegments;
+  if (segments.length >= 2) {
+    final first = segments[0].toLowerCase();
+    if (first == 'shorts' || first == 'embed' || first == 'v') {
+      final id = segments[1].trim();
+      if (_isValidYouTubeId(id)) return id;
+    }
+  }
+
+  return null;
+}
+
+bool _isValidYouTubeId(String id) {
+  if (id.length != 11) return false;
+  final validRegex = RegExp(r'^[a-zA-Z0-9_-]{11}$');
+  return validRegex.hasMatch(id);
+}
+
+/// Categorizes a search query into either direct YouTube URL or normal query.
+MusicSearchQueryType categorizeSearchQuery(String input) {
+  if (isDirectYouTubeUrl(input)) {
+    return MusicSearchQueryType.directYouTubeUrl;
+  }
+  return MusicSearchQueryType.normalSearch;
+}
 
 class MusicSearchBar extends StatelessWidget {
   const MusicSearchBar({
@@ -27,6 +110,7 @@ class MusicSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isUrl = isDirectYouTubeUrl(query);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: TextField(
@@ -36,9 +120,12 @@ class MusicSearchBar extends StatelessWidget {
         textInputAction: TextInputAction.search,
         style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
         decoration: InputDecoration(
-          hintText: 'Search YouTube Music...',
+          hintText: 'Search or paste YouTube URL...',
           hintStyle: const TextStyle(color: EverforestColors.grey),
-          prefixIcon: const Icon(Icons.search, color: EverforestColors.green),
+          prefixIcon: Icon(
+            isUrl ? Icons.link_rounded : Icons.search,
+            color: isUrl ? EverforestColors.aqua : EverforestColors.green,
+          ),
           suffixIcon: isSearching
               ? const Padding(
                   padding: EdgeInsets.all(12),
@@ -98,15 +185,8 @@ class MusicSearchResults extends StatelessWidget {
   final VoidCallback onWebNotice;
   final void Function(MusicTrack track)? onAddToPlaylist;
 
-  String _sanitizeThumbnailUrl(String url) {
-    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
-      return url.replaceFirst('http://', 'https://');
-    }
-    return url;
-  }
-
   Widget _thumbnail(String url, double size) {
-    final secureUrl = _sanitizeThumbnailUrl(url);
+    final secureUrl = sanitizeMusicThumbnailUrl(url);
     if (secureUrl.isEmpty) {
       return Container(
         width: size,
@@ -135,13 +215,6 @@ class MusicSearchResults extends StatelessWidget {
     );
   }
 
-  String _fmt(double seconds) {
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final remS = s % 60;
-    return '$m:${remS.toString().padLeft(2, '0')}';
-  }
-
   PlaybackItem _itemFromTrack(MusicTrack t) => PlaybackItem(
         id: t.id,
         url: '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${t.id}',
@@ -154,15 +227,18 @@ class MusicSearchResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isSearching) {
-      return const Center(
+      final isUrl = isDirectYouTubeUrl(query);
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: EverforestColors.green),
-            SizedBox(height: 16),
+            const CircularProgressIndicator(color: EverforestColors.green),
+            const SizedBox(height: 16),
             Text(
-              'Searching YouTube Music...',
-              style: TextStyle(
+              isUrl
+                  ? 'Resolving YouTube link...'
+                  : 'Searching YouTube Music...',
+              style: const TextStyle(
                 color: EverforestColors.fg,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
@@ -241,7 +317,7 @@ class MusicSearchResults extends StatelessWidget {
                   style: const TextStyle(
                       color: EverforestColors.fg, fontWeight: FontWeight.w600)),
               subtitle: Text(
-                '${t.artist}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
+                '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
                 style:
                     const TextStyle(color: EverforestColors.grey, fontSize: 13),
               ),

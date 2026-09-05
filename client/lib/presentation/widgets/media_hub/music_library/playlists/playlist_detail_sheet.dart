@@ -4,6 +4,7 @@ import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../theme/everforest_colors.dart';
 import '../components/heart_button.dart';
+import '../music_formatters.dart';
 import '../tabs/all_tracks_sliver.dart';
 import 'create_playlist_dialog.dart';
 
@@ -101,13 +102,6 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
         _isLoading = false;
       });
     }
-  }
-
-  String _fmt(double seconds) {
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final remS = s % 60;
-    return '$m:${remS.toString().padLeft(2, '0')}';
   }
 
   Future<void> _playAll({bool shuffle = false}) async {
@@ -425,7 +419,7 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                                   fontWeight: FontWeight.w600),
                             ),
                             subtitle: Text(
-                              '${t.artist}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
+                              '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(

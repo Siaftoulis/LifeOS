@@ -60,3 +60,36 @@ func TestTrackListSearchSingle(t *testing.T) {
 		t.Fatalf("get missing: got %d, want 404", rec.Code)
 	}
 }
+
+func TestIsDirectYouTubeURL(t *testing.T) {
+	valid := []string{
+		"https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+		"https://youtube.com/watch?v=dQw4w9WgXcQ",
+		"http://www.youtube.com/watch?v=dQw4w9WgXcQ",
+		"https://youtu.be/dQw4w9WgXcQ",
+		"https://m.youtube.com/watch?v=dQw4w9WgXcQ",
+		"https://www.youtube.com/shorts/dQw4w9WgXcQ",
+		"https://www.youtube.com/embed/dQw4w9WgXcQ",
+		"https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s",
+	}
+	for _, u := range valid {
+		if !isDirectYouTubeURL(u) {
+			t.Errorf("expected isDirectYouTubeURL(%q) == true, got false", u)
+		}
+	}
+
+	invalid := []string{
+		"David Bowie - Starman",
+		"https://example.com/watch?v=dQw4w9WgXcQ",
+		"https://spotify.com/track/12345",
+		"https://youtube.com",
+		"https://youtu.be/",
+		"https://www.youtube.com/playlist?list=PL1234567890",
+		"",
+	}
+	for _, u := range invalid {
+		if isDirectYouTubeURL(u) {
+			t.Errorf("expected isDirectYouTubeURL(%q) == false, got true", u)
+		}
+	}
+}

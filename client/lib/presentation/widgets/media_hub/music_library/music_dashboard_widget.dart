@@ -44,6 +44,99 @@ export 'tabs/smart_mixes_sliver.dart';
 class MusicDashboardWidget extends StatefulWidget {
   const MusicDashboardWidget({super.key});
 
+  /// Cache for track genre classification
+  static final Map<String, String> _trackGenreCache = {};
+
+  /// Static helper for testing and track-level memoized genre classification.
+  static String classifyTrackGenre(MusicTrack t) {
+    final cacheKey = '${t.id}:${t.title}:${t.artist}:${t.album}';
+    final cached = _trackGenreCache[cacheKey];
+    if (cached != null) return cached;
+
+    final combined = '${t.title} ${t.artist} ${t.album}'.toLowerCase();
+    final greekRegex = RegExp(r'[\u0370-\u03FF]');
+
+    String genre;
+    if (greekRegex.hasMatch(t.title) ||
+        greekRegex.hasMatch(t.artist) ||
+        combined.contains('parios') ||
+        combined.contains('mitropanos') ||
+        combined.contains('sfakianakis') ||
+        combined.contains('remos') ||
+        combined.contains('argiros') ||
+        combined.contains('vertis') ||
+        combined.contains('pantelidis') ||
+        combined.contains('papakonstantinou') ||
+        combined.contains('laiko') ||
+        combined.contains('zeimbekiko')) {
+      genre = '🏛️ Greek / Ελληνικά';
+    } else if (combined.contains('rock') ||
+        combined.contains('metal') ||
+        combined.contains('queen') ||
+        combined.contains('metallica') ||
+        combined.contains('nirvana') ||
+        combined.contains('scorpions') ||
+        combined.contains('pink floyd') ||
+        combined.contains('guitar') ||
+        combined.contains('punk') ||
+        combined.contains('linkin park')) {
+      genre = '🎸 Rock & Metal';
+    } else if (combined.contains('rap') ||
+        combined.contains('hip hop') ||
+        combined.contains('hip-hop') ||
+        combined.contains('trap') ||
+        combined.contains('eminem') ||
+        combined.contains('drake') ||
+        combined.contains('kanye') ||
+        combined.contains('tupac') ||
+        combined.contains('snoop') ||
+        combined.contains('kendrick') ||
+        combined.contains('light') ||
+        combined.contains('snik') ||
+        combined.contains('toquel') ||
+        combined.contains('trannos')) {
+      genre = '🎤 Hip-Hop & Rap';
+    } else if (combined.contains('edm') ||
+        combined.contains('house') ||
+        combined.contains('dance') ||
+        combined.contains('techno') ||
+        combined.contains('club') ||
+        combined.contains('remix') ||
+        combined.contains('tiesto') ||
+        combined.contains('guetta') ||
+        combined.contains('avicii') ||
+        combined.contains('calvin') ||
+        combined.contains('garrix')) {
+      genre = '⚡ Electronic & Club';
+    } else if (combined.contains('acoustic') ||
+        combined.contains('ballad') ||
+        combined.contains('unplugged') ||
+        combined.contains('piano') ||
+        combined.contains('slow') ||
+        combined.contains('love') ||
+        combined.contains('romantic')) {
+      genre = '🌙 Acoustic & Ballads';
+    } else if (combined.contains('chill') ||
+        combined.contains('lofi') ||
+        combined.contains('lo-fi') ||
+        combined.contains('ambient') ||
+        combined.contains('jazz') ||
+        combined.contains('relax') ||
+        combined.contains('focus') ||
+        combined.contains('blues')) {
+      genre = '☕ Chill & Relax';
+    } else {
+      genre = '✨ Pop & Chart Hits';
+    }
+
+    _trackGenreCache[cacheKey] = genre;
+    return genre;
+  }
+
+  static void clearGenreCache() {
+    _trackGenreCache.clear();
+  }
+
   @override
   State<MusicDashboardWidget> createState() => _MusicDashboardWidgetState();
 }
@@ -125,6 +218,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   void _tracksChanged() {
+    _lastGroupedTracks = null;
+    _cachedGenreGroups = null;
     final libraryIds =
         MusicRepository.instance.tracks.value.map((t) => t.id).toSet();
     final done = _downloading.intersection(libraryIds);
@@ -525,7 +620,24 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     AddToPlaylistSheet.show(context, track);
   }
 
+  // Memoized genre groups for library tracks
+  List<MusicTrack>? _lastGroupedTracks;
+  Map<String, List<MusicTrack>>? _cachedGenreGroups;
+
+  bool _areTrackListsIdentical(List<MusicTrack> a, List<MusicTrack>? b) {
+    if (b == null || a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i]) && a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Map<String, List<MusicTrack>> _groupTracksByGenre(List<MusicTrack> tracks) {
+    if (_cachedGenreGroups != null &&
+        _areTrackListsIdentical(tracks, _lastGroupedTracks)) {
+      return _cachedGenreGroups!;
+    }
+
     final Map<String, List<MusicTrack>> genreMap = {
       '🏛️ Greek / Ελληνικά': [],
       '🎸 Rock & Metal': [],
@@ -536,85 +648,14 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       '☕ Chill & Relax': [],
     };
 
-    final greekRegex = RegExp(r'[\u0370-\u03FF]');
-
     for (final t in tracks) {
-      final combined = '${t.title} ${t.artist} ${t.album}'.toLowerCase();
-
-      if (greekRegex.hasMatch(t.title) ||
-          greekRegex.hasMatch(t.artist) ||
-          combined.contains('parios') ||
-          combined.contains('mitropanos') ||
-          combined.contains('sfakianakis') ||
-          combined.contains('remos') ||
-          combined.contains('argiros') ||
-          combined.contains('vertis') ||
-          combined.contains('pantelidis') ||
-          combined.contains('papakonstantinou') ||
-          combined.contains('laiko') ||
-          combined.contains('zeimbekiko')) {
-        genreMap['🏛️ Greek / Ελληνικά']!.add(t);
-      } else if (combined.contains('rock') ||
-          combined.contains('metal') ||
-          combined.contains('queen') ||
-          combined.contains('metallica') ||
-          combined.contains('nirvana') ||
-          combined.contains('scorpions') ||
-          combined.contains('pink floyd') ||
-          combined.contains('guitar') ||
-          combined.contains('punk') ||
-          combined.contains('linkin park')) {
-        genreMap['🎸 Rock & Metal']!.add(t);
-      } else if (combined.contains('rap') ||
-          combined.contains('hip hop') ||
-          combined.contains('hip-hop') ||
-          combined.contains('trap') ||
-          combined.contains('eminem') ||
-          combined.contains('drake') ||
-          combined.contains('kanye') ||
-          combined.contains('tupac') ||
-          combined.contains('snoop') ||
-          combined.contains('kendrick') ||
-          combined.contains('light') ||
-          combined.contains('snik') ||
-          combined.contains('toquel') ||
-          combined.contains('trannos')) {
-        genreMap['🎤 Hip-Hop & Rap']!.add(t);
-      } else if (combined.contains('edm') ||
-          combined.contains('house') ||
-          combined.contains('dance') ||
-          combined.contains('techno') ||
-          combined.contains('club') ||
-          combined.contains('remix') ||
-          combined.contains('tiesto') ||
-          combined.contains('guetta') ||
-          combined.contains('avicii') ||
-          combined.contains('calvin') ||
-          combined.contains('garrix')) {
-        genreMap['⚡ Electronic & Club']!.add(t);
-      } else if (combined.contains('acoustic') ||
-          combined.contains('ballad') ||
-          combined.contains('unplugged') ||
-          combined.contains('piano') ||
-          combined.contains('slow') ||
-          combined.contains('love') ||
-          combined.contains('romantic')) {
-        genreMap['🌙 Acoustic & Ballads']!.add(t);
-      } else if (combined.contains('chill') ||
-          combined.contains('lofi') ||
-          combined.contains('lo-fi') ||
-          combined.contains('ambient') ||
-          combined.contains('jazz') ||
-          combined.contains('relax') ||
-          combined.contains('focus') ||
-          combined.contains('blues')) {
-        genreMap['☕ Chill & Relax']!.add(t);
-      } else {
-        genreMap['✨ Pop & Chart Hits']!.add(t);
-      }
+      final genre = MusicDashboardWidget.classifyTrackGenre(t);
+      genreMap[genre]?.add(t);
     }
 
     genreMap.removeWhere((_, list) => list.isEmpty);
+    _lastGroupedTracks = List<MusicTrack>.unmodifiable(tracks);
+    _cachedGenreGroups = genreMap;
     return genreMap;
   }
 

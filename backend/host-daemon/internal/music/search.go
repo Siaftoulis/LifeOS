@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -29,6 +30,51 @@ type flatEntry struct {
 
 type flatDump struct {
 	Entries []flatEntry `json:"entries"`
+}
+
+func isDirectYouTubeURL(q string) bool {
+	q = strings.TrimSpace(q)
+	if q == "" {
+		return false
+	}
+	u, err := url.Parse(q)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	host := strings.ToLower(u.Host)
+	if host != "youtube.com" && !strings.HasSuffix(host, ".youtube.com") &&
+		host != "youtu.be" && !strings.HasSuffix(host, ".youtu.be") {
+		return false
+	}
+	if strings.Contains(host, "youtu.be") {
+		parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+		return len(parts) >= 1 && len(parts[0]) == 11
+	}
+	if u.Path == "/watch" && len(u.Query().Get("v")) == 11 {
+		return true
+	}
+	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+	if len(parts) >= 2 {
+		first := strings.ToLower(parts[0])
+		if (first == "shorts" || first == "embed" || first == "v") && len(parts[1]) == 11 {
+			return true
+		}
+	}
+	return false
+}
+
+func extractThumbnail(rawThumbs []json.RawMessage, id string) string {
+	if len(rawThumbs) > 0 {
+		var t struct {
+			URL string `json:"url"`
+		}
+		if err := json.Unmarshal(rawThumbs[len(rawThumbs)-1], &t); err == nil && t.URL != "" {
+			return t.URL
+		} else if err := json.Unmarshal(rawThumbs[0], &t); err == nil && t.URL != "" {
+			return t.URL
+		}
+	}
+	return "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg"
 }
 
 // HandleSearch runs `yt-dlp ytsearchN:<query>` (flat, no download) and returns
@@ -74,6 +120,11 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultSearchTimeout)
 	defer cancel()
 
+	target := "ytsearch15:" + query
+	if isDirectYouTubeURL(query) {
+		target = query
+	}
+
 	args := []string{
 		"--js-runtimes", jsRuntimesArg(),
 		"--flat-playlist",
@@ -83,7 +134,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"--no-warnings",
 		"--no-check-certificates",
 		"--default-search", "ytsearch",
-		"ytsearch15:" + query,
+		target,
 	}
 
 	out, err := ExecYtDlp(ctx, "search", query, args)
@@ -92,42 +143,39 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	results := make([]SearchResult, 0)
 	var dump flatDump
-	if err := json.Unmarshal(out, &dump); err != nil {
-		log.Printf("music search: parse failed for %q: %v", query, err)
-		http.Error(w, "Search failed", http.StatusBadGateway)
-		return
+	if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
+		for _, e := range dump.Entries {
+			if e.ID == "" || e.Title == "" || e.Duration > maxSongSeconds {
+				continue
+			}
+			results = append(results, SearchResult{
+				ID:        e.ID,
+				Title:     e.Title,
+				Artist:    e.Uploader,
+				Duration:  e.Duration,
+				Thumbnail: extractThumbnail(e.Thumbnails, e.ID),
+			})
+		}
+	} else {
+		var single flatEntry
+		if err := json.Unmarshal(out, &single); err == nil && single.ID != "" && single.Title != "" {
+			if single.Duration <= maxSongSeconds {
+				results = append(results, SearchResult{
+					ID:        single.ID,
+					Title:     single.Title,
+					Artist:    single.Uploader,
+					Duration:  single.Duration,
+					Thumbnail: extractThumbnail(single.Thumbnails, single.ID),
+				})
+			}
+		} else {
+			log.Printf("music search: parse failed for %q: %v", query, err)
+			http.Error(w, "Search failed", http.StatusBadGateway)
+			return
+		}
 	}
 
-	results := make([]SearchResult, 0, len(dump.Entries))
-	for _, e := range dump.Entries {
-		if e.ID == "" || e.Title == "" {
-			continue
-		}
-		if e.Duration > maxSongSeconds {
-			continue
-		}
-		thumb := ""
-		if len(e.Thumbnails) > 0 {
-			var t struct {
-				URL string `json:"url"`
-			}
-			if err := json.Unmarshal(e.Thumbnails[len(e.Thumbnails)-1], &t); err == nil && t.URL != "" {
-				thumb = t.URL
-			} else if err := json.Unmarshal(e.Thumbnails[0], &t); err == nil {
-				thumb = t.URL
-			}
-		}
-		if thumb == "" {
-			thumb = "https://i.ytimg.com/vi/" + e.ID + "/hqdefault.jpg"
-		}
-		results = append(results, SearchResult{
-			ID:        e.ID,
-			Title:     e.Title,
-			Artist:    e.Uploader,
-			Duration:  e.Duration,
-			Thumbnail: thumb,
-		})
-	}
 	json.NewEncoder(w).Encode(results)
 }

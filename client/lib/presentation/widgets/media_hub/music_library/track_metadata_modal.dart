@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../theme/everforest_colors.dart';
+import 'music_formatters.dart';
 
 /// Poweramp-style Audiophile Track Metadata Inspector modal.
 class TrackMetadataModal extends StatelessWidget {
@@ -18,7 +19,7 @@ class TrackMetadataModal extends StatelessWidget {
     super.key,
     required this.title,
     required this.artist,
-    this.album = '',
+    required this.album,
     required this.trackId,
     required this.url,
     required this.duration,
@@ -29,7 +30,7 @@ class TrackMetadataModal extends StatelessWidget {
     BuildContext context, {
     required String title,
     required String artist,
-    String album = '',
+    required String album,
     required String trackId,
     required String url,
     required Duration duration,
@@ -49,12 +50,6 @@ class TrackMetadataModal extends StatelessWidget {
         track: track,
       ),
     );
-  }
-
-  String _formatDuration(Duration d) {
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
   }
 
   String _getHighResCoverUrl(String url) {
@@ -256,7 +251,7 @@ class TrackMetadataModal extends StatelessWidget {
                   const Divider(color: Colors.white10, height: 18),
                   _buildInfoRow('Channels', channels),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Duration', _formatDuration(duration)),
+                  _buildInfoRow('Duration', formatDurationSpan(duration)),
                   if (t.replayGainTrack != null) ...[
                     const Divider(color: Colors.white10, height: 18),
                     _buildInfoRow('ReplayGain Track',

@@ -15,6 +15,7 @@ import 'track_metadata_modal.dart';
 import 'lyrics_sync_viewer.dart';
 import 'poweramp_equalizer_modal.dart';
 import 'now_playing/now_playing_spectrogram.dart';
+import 'music_formatters.dart';
 
 enum NowPlayingCardMode {
   artwork,
@@ -803,13 +804,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  String _formatDuration(double seconds) {
-    if (seconds <= 0) return '';
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final remS = s % 60;
-    return '$m:${remS.toString().padLeft(2, '0')}';
-  }
+  String _formatDuration(double seconds) =>
+      formatTrackDuration(seconds, allowEmpty: true);
 
   Widget _buildEmbeddedQueue() {
     final q = widget.queue ?? [];

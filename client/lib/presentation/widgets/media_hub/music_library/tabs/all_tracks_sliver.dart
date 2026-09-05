@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/everforest_colors.dart';
 import '../components/heart_button.dart';
+import '../music_formatters.dart';
 import '../track_metadata_modal.dart';
 
 class TrackThumbnail extends StatelessWidget {
@@ -18,17 +18,9 @@ class TrackThumbnail extends StatelessWidget {
   final double size;
   final double borderRadius;
 
-  String _sanitizeThumbnailUrl(String url) {
-    if (url.isEmpty) return '';
-    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
-      return url.replaceFirst('http://', 'https://');
-    }
-    return url;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final secureUrl = _sanitizeThumbnailUrl(url);
+    final secureUrl = sanitizeMusicThumbnailUrl(url);
     if (secureUrl.isEmpty) {
       return Container(
         width: size,
@@ -102,13 +94,6 @@ class TrackTile extends StatelessWidget {
   final VoidCallback onWebNotice;
   final VoidCallback? onAddToPlaylist;
 
-  String _fmt(double seconds) {
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final remS = s % 60;
-    return '$m:${remS.toString().padLeft(2, '0')}';
-  }
-
   void _showMetadata(BuildContext context) {
     final streamUrl =
         '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${track.id}';
@@ -141,7 +126,7 @@ class TrackTile extends StatelessWidget {
             color: EverforestColors.fg, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
-        '${track.artist}${track.album.isNotEmpty ? ' · ${track.album}' : ''}${track.duration > 0 ? ' · ${_fmt(track.duration)}' : ''}${isOfflineLocal ? ' · 📱 On device' : ''}',
+        '${track.artist}${track.album.isNotEmpty ? ' · ${track.album}' : ''}${track.duration > 0 ? ' · ${formatTrackDuration(track.duration)}' : ''}${isOfflineLocal ? ' · 📱 On device' : ''}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: EverforestColors.grey, fontSize: 13),

@@ -1,6 +1,42 @@
+import 'dart:collection';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../theme/everforest_colors.dart';
+import 'music_formatters.dart';
+
+/// In-memory bounded LRU cache for computed waveform samples per track.
+class BoundedWaveformCache {
+  final int maxCapacity;
+  final LinkedHashMap<String, List<double>> _cache =
+      LinkedHashMap<String, List<double>>();
+
+  BoundedWaveformCache({this.maxCapacity = 100});
+
+  List<double>? get(String trackId) {
+    if (trackId.isEmpty) return null;
+    final value = _cache.remove(trackId);
+    if (value != null) {
+      _cache[trackId] = value;
+      return value;
+    }
+    return null;
+  }
+
+  void put(String trackId, List<double> samples) {
+    if (trackId.isEmpty || samples.isEmpty) return;
+    _cache.remove(trackId);
+    if (_cache.length >= maxCapacity) {
+      _cache.remove(_cache.keys.first);
+    }
+    _cache[trackId] = List<double>.unmodifiable(samples);
+  }
+
+  bool containsKey(String trackId) => _cache.containsKey(trackId);
+
+  int get length => _cache.length;
+
+  void clear() => _cache.clear();
+}
 
 /// An interactive audio waveform seekbar with real FFT-based visualization.
 class WaveformSeekbar extends StatefulWidget {
@@ -12,6 +48,9 @@ class WaveformSeekbar extends StatefulWidget {
   final double height;
   final Color activeColor;
   final Color inactiveColor;
+
+  static final BoundedWaveformCache waveformCache =
+      BoundedWaveformCache(maxCapacity: 100);
 
   const WaveformSeekbar({
     super.key,
@@ -39,18 +78,48 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
   @override
   void initState() {
     super.initState();
-    _generateWaveform();
+    final cached = WaveformSeekbar.waveformCache.get(widget.trackId);
+    if (cached != null) {
+      _waveformSamples = cached;
+      _isLoading = false;
+      _lastAudioUrl = widget.audioUrl;
+    } else {
+      _generateWaveform();
+    }
   }
 
   @override
   void didUpdateWidget(covariant WaveformSeekbar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.trackId != widget.trackId || oldWidget.audioUrl != widget.audioUrl) {
-      _generateWaveform();
+    if (oldWidget.trackId != widget.trackId ||
+        oldWidget.audioUrl != widget.audioUrl) {
+      final cached = WaveformSeekbar.waveformCache.get(widget.trackId);
+      if (cached != null) {
+        _waveformSamples = cached;
+        _isLoading = false;
+        _lastAudioUrl = widget.audioUrl;
+      } else {
+        _generateWaveform();
+      }
     }
   }
 
   Future<void> _generateWaveform() async {
+    final cached = WaveformSeekbar.waveformCache.get(widget.trackId);
+    if (cached != null) {
+      if (mounted) {
+        setState(() {
+          _waveformSamples = cached;
+          _isLoading = false;
+          _lastAudioUrl = widget.audioUrl;
+        });
+      } else {
+        _waveformSamples = cached;
+        _isLoading = false;
+      }
+      return;
+    }
+
     if (widget.audioUrl == null || widget.audioUrl!.isEmpty) {
       _setFakeWaveform();
       return;
@@ -67,6 +136,7 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
 
     try {
       final samples = await _computeRealWaveform(widget.audioUrl!);
+      WaveformSeekbar.waveformCache.put(widget.trackId, samples);
       if (mounted) {
         setState(() {
           _waveformSamples = samples;
@@ -92,12 +162,14 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
     for (int i = 0; i < barCount; i++) {
       final noise = (random.nextDouble() - 0.5) * 0.4;
       final wave = math.sin(i / barCount * math.pi * 3) * 0.25;
-      double val = (prev * 0.6 + (0.35 + wave + noise) * 0.4).clamp(0.12, 1.0);
+      double val =
+          (prev * 0.6 + (0.35 + wave + noise) * 0.4).clamp(0.12, 1.0);
       if (i < 5) val *= (i + 1) / 6.0;
       if (i > barCount - 6) val *= (barCount - i) / 6.0;
       samples.add(val.clamp(0.1, 1.0));
       prev = val;
     }
+    WaveformSeekbar.waveformCache.put(widget.trackId, samples);
     _setState(() {
       _waveformSamples = samples;
       _isLoading = false;
@@ -129,7 +201,8 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
     for (int i = 0; i < barCount; i++) {
       final noise = (random.nextDouble() - 0.5) * 0.4;
       final wave = math.sin(i / barCount * math.pi * 3) * 0.25;
-      double val = (prev * 0.6 + (0.35 + wave + noise) * 0.4).clamp(0.12, 1.0);
+      double val =
+          (prev * 0.6 + (0.35 + wave + noise) * 0.4).clamp(0.12, 1.0);
       if (i < 5) val *= (i + 1) / 6.0;
       if (i > barCount - 6) val *= (barCount - i) / 6.0;
       samples.add(val.clamp(0.1, 1.0));
@@ -146,16 +219,6 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
 
   void _setState(VoidCallback fn) {
     if (mounted) setState(fn);
-  }
-
-  String _formatDuration(Duration d) {
-    if (d.isNegative) return '00:00';
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    if (d.inHours > 0) {
-      return '${d.inHours}:$minutes:$seconds';
-    }
-    return '$minutes:$seconds';
   }
 
   void _handleSeek(double dx, double width) {
@@ -236,7 +299,7 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              _formatDuration(Duration(milliseconds: currentMs)),
+              formatDurationSpan(Duration(milliseconds: currentMs)),
               style: TextStyle(
                 color: _isDragging ? widget.activeColor : EverforestColors.grey,
                 fontSize: 12,
@@ -245,7 +308,7 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
               ),
             ),
             Text(
-              '-${_formatDuration(remaining)}',
+              '-${formatDurationSpan(remaining)}',
               style: const TextStyle(
                 color: EverforestColors.grey,
                 fontSize: 12,

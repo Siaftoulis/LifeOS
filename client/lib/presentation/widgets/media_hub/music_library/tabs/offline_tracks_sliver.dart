@@ -5,6 +5,7 @@ import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../database/database.dart' hide MusicTrack;
 import '../../../../../theme/everforest_colors.dart';
+import '../music_formatters.dart';
 import 'all_tracks_sliver.dart';
 
 class OfflineTracksSliver extends StatelessWidget {
@@ -24,13 +25,6 @@ class OfflineTracksSliver extends StatelessWidget {
   final void Function(OfflineMusicTrack track) onDeleteOffline;
   final VoidCallback onWebNotice;
   final String Function(String trackId) streamUrlFor;
-
-  String _fmt(double seconds) {
-    final s = seconds.round();
-    final m = s ~/ 60;
-    final remS = s % 60;
-    return '$m:${remS.toString().padLeft(2, '0')}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +88,7 @@ class OfflineTracksSliver extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     )),
                 subtitle: Text(
-                  '${o.artist ?? 'Unknown'}${o.duration > 0 ? ' · ${_fmt(o.duration)}' : ''} · 📱 On this device',
+                  '${o.artist ?? 'Unknown'}${o.duration > 0 ? ' · ${formatTrackDuration(o.duration)}' : ''} · 📱 On this device',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
