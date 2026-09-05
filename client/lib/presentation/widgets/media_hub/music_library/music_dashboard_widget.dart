@@ -77,6 +77,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   int _libraryTab = 0;
   String? _selectedArtist;
   String? _selectedGenre;
+  String _localTrackFilter = '';
+  TrackSortOption _trackSortOption = TrackSortOption.titleAsc;
+  final TextEditingController _localFilterCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -155,6 +158,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     MusicRepository.instance.downloadQueue.removeListener(_downloadQueueChanged);
     _pc.removeListener(_playbackChanged);
     _searchCtrl.dispose();
+    _localFilterCtrl.dispose();
     super.dispose();
   }
 
@@ -783,9 +787,28 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 ],
               ),
             ),
-            if (_libraryTab == 0)
+            if (_libraryTab == 0) ...[
+              SliverToBoxAdapter(
+                child: AllTracksFilterBar(
+                  controller: _localFilterCtrl,
+                  sortOption: _trackSortOption,
+                  onQueryChanged: (q) => setState(() => _localTrackFilter = q),
+                  onSortOptionChanged: (opt) =>
+                      setState(() => _trackSortOption = opt),
+                  totalCount: list.length,
+                  filteredCount: filterAndSortTracks(list,
+                          query: _localTrackFilter,
+                          sortOption: _trackSortOption)
+                      .length,
+                  onClearQuery: () {
+                    _localFilterCtrl.clear();
+                    setState(() => _localTrackFilter = '');
+                  },
+                ),
+              ),
               AllTracksSliver(
-                tracks: list,
+                tracks: filterAndSortTracks(list,
+                    query: _localTrackFilter, sortOption: _trackSortOption),
                 offlineDownloading: _offlineDownloading,
                 canPlay: _canPlay,
                 onDownloadOffline: _downloadOffline,
@@ -793,7 +816,11 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onPlay: _playTrackList,
                 onWebNotice: _webPlaybackNotice,
                 onAddToPlaylist: _addToPlaylist,
-              )
+                emptyMessage: _localTrackFilter.trim().isNotEmpty
+                    ? 'No tracks match "$_localTrackFilter".\nTry clearing or adjusting your search.'
+                    : null,
+              ),
+            ]
             else if (_libraryTab == 1)
               LikedSongsSliver(
                 canPlay: _canPlay,

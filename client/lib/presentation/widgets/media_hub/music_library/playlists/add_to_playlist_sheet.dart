@@ -36,13 +36,39 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
 
   Future<void> _loadMembership() async {
     final playlists = MusicRepository.instance.playlists.value;
-    for (final p in playlists) {
-      final tracks = await MusicRepository.instance.getPlaylistTracks(p.id);
-      _playlistMembership[p.id] =
-          tracks.any((t) => t.trackId == widget.track.id);
+    if (playlists.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
     }
-    if (mounted) {
-      setState(() => _isLoading = false);
+
+    try {
+      final results = await Future.wait(
+        playlists.map((p) async {
+          try {
+            final tracks =
+                await MusicRepository.instance.getPlaylistTracks(p.id);
+            final isIn = tracks.any((t) => t.trackId == widget.track.id);
+            return MapEntry(p.id, isIn);
+          } catch (e) {
+            debugPrint('Error loading playlist membership for ${p.id}: $e');
+            return MapEntry(p.id, _playlistMembership[p.id] ?? false);
+          }
+        }),
+      );
+
+      if (mounted) {
+        setState(() {
+          for (final entry in results) {
+            _playlistMembership[entry.key] = entry.value;
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error in concurrent playlist membership loading: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

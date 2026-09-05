@@ -71,15 +71,26 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
     for (final p in pt) {
       if (allMap.containsKey(p.trackId)) {
         resolved.add(allMap[p.trackId]!);
+      } else if (p.track.id.isNotEmpty &&
+          ((p.track.title.isNotEmpty && p.track.title != 'Unknown') ||
+              (p.track.artist.isNotEmpty && p.track.artist != 'Unknown'))) {
+        resolved.add(p.track);
+        MusicRepository.instance.rememberTrack(p.track);
       } else {
-        resolved.add(MusicTrack(
+        final fallback = MusicTrack(
           id: p.trackId,
-          title: 'Track ${p.trackId}',
-          artist: 'Unknown Artist',
-          album: '',
-          thumbnail: '',
-          duration: 0,
-        ));
+          title: p.track.title.isNotEmpty && p.track.title != 'Unknown'
+              ? p.track.title
+              : 'Track ${p.trackId}',
+          artist: p.track.artist.isNotEmpty && p.track.artist != 'Unknown'
+              ? p.track.artist
+              : 'Unknown Artist',
+          album: p.track.album,
+          thumbnail: p.track.thumbnail,
+          duration: p.track.duration,
+          filePath: p.track.filePath,
+        );
+        resolved.add(fallback);
       }
     }
 

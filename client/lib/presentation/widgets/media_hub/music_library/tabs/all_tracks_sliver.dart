@@ -266,6 +266,197 @@ class TrackTile extends StatelessWidget {
   }
 }
 
+enum TrackSortOption {
+  titleAsc('Title (A-Z)', Icons.sort_by_alpha_rounded),
+  titleDesc('Title (Z-A)', Icons.sort_by_alpha_rounded),
+  artistAsc('Artist (A-Z)', Icons.person_outline_rounded),
+  dateAddedDesc('Date Added (Newest)', Icons.access_time_rounded),
+  dateAddedAsc('Date Added (Oldest)', Icons.history_rounded),
+  durationDesc('Duration (Longest)', Icons.timer_outlined),
+  durationAsc('Duration (Shortest)', Icons.timer_rounded);
+
+  final String label;
+  final IconData icon;
+  const TrackSortOption(this.label, this.icon);
+}
+
+/// Pure helper to filter and sort library tracks without mutating source list.
+List<MusicTrack> filterAndSortTracks(
+  List<MusicTrack> source, {
+  required String query,
+  required TrackSortOption sortOption,
+}) {
+  var list = List<MusicTrack>.from(source);
+  if (query.trim().isNotEmpty) {
+    final q = query.trim().toLowerCase();
+    list = list.where((t) {
+      return t.title.toLowerCase().contains(q) ||
+          t.artist.toLowerCase().contains(q) ||
+          t.album.toLowerCase().contains(q);
+    }).toList();
+  }
+  switch (sortOption) {
+    case TrackSortOption.titleAsc:
+      list.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+      break;
+    case TrackSortOption.titleDesc:
+      list.sort((a, b) => b.title.toLowerCase().compareTo(a.title.toLowerCase()));
+      break;
+    case TrackSortOption.artistAsc:
+      list.sort((a, b) => a.artist.toLowerCase().compareTo(b.artist.toLowerCase()));
+      break;
+    case TrackSortOption.dateAddedDesc:
+      list.sort((a, b) => (b.addedAt ?? 0).compareTo(a.addedAt ?? 0));
+      break;
+    case TrackSortOption.dateAddedAsc:
+      list.sort((a, b) => (a.addedAt ?? 0).compareTo(b.addedAt ?? 0));
+      break;
+    case TrackSortOption.durationDesc:
+      list.sort((a, b) => b.duration.compareTo(a.duration));
+      break;
+    case TrackSortOption.durationAsc:
+      list.sort((a, b) => a.duration.compareTo(b.duration));
+      break;
+  }
+  return list;
+}
+
+class AllTracksFilterBar extends StatelessWidget {
+  const AllTracksFilterBar({
+    super.key,
+    required this.controller,
+    required this.sortOption,
+    required this.onQueryChanged,
+    required this.onSortOptionChanged,
+    required this.totalCount,
+    required this.filteredCount,
+    required this.onClearQuery,
+  });
+
+  final TextEditingController controller;
+  final TrackSortOption sortOption;
+  final ValueChanged<String> onQueryChanged;
+  final ValueChanged<TrackSortOption> onSortOptionChanged;
+  final int totalCount;
+  final int filteredCount;
+  final VoidCallback onClearQuery;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFiltered = controller.text.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: EverforestColors.bg1,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search_rounded,
+                color: EverforestColors.grey, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                onChanged: onQueryChanged,
+                style: const TextStyle(
+                  color: EverforestColors.fg,
+                  fontSize: 13,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Filter tracks, artists, albums...',
+                  hintStyle: TextStyle(
+                    color: EverforestColors.grey,
+                    fontSize: 13,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                ),
+              ),
+            ),
+            if (isFiltered)
+              IconButton(
+                icon: const Icon(Icons.close_rounded,
+                    color: EverforestColors.grey, size: 16),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Clear filter',
+                onPressed: onClearQuery,
+              ),
+            const SizedBox(width: 6),
+            Container(
+              height: 16,
+              width: 1,
+              color: EverforestColors.bg2,
+            ),
+            const SizedBox(width: 6),
+            PopupMenuButton<TrackSortOption>(
+              tooltip: 'Sort tracks: ${sortOption.label}',
+              color: EverforestColors.bg1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              onSelected: onSortOptionChanged,
+              itemBuilder: (ctx) => TrackSortOption.values.map((opt) {
+                final isSelected = opt == sortOption;
+                return PopupMenuItem<TrackSortOption>(
+                  value: opt,
+                  child: Row(
+                    children: [
+                      Icon(opt.icon,
+                          color: isSelected
+                              ? EverforestColors.aqua
+                              : EverforestColors.grey,
+                          size: 18),
+                      const SizedBox(width: 10),
+                      Text(
+                        opt.label,
+                        style: TextStyle(
+                          color: isSelected
+                              ? EverforestColors.aqua
+                              : EverforestColors.fg,
+                          fontSize: 13,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(sortOption.icon,
+                        color: EverforestColors.aqua, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      isFiltered ? '$filteredCount/$totalCount' : '$totalCount',
+                      style: const TextStyle(
+                        color: EverforestColors.grey,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class AllTracksSliver extends StatelessWidget {
   const AllTracksSliver({
     super.key,
@@ -277,6 +468,7 @@ class AllTracksSliver extends StatelessWidget {
     required this.onPlay,
     required this.onWebNotice,
     this.onAddToPlaylist,
+    this.emptyMessage,
   });
 
   final List<MusicTrack> tracks;
@@ -287,18 +479,20 @@ class AllTracksSliver extends StatelessWidget {
   final void Function(List<MusicTrack> list, int index) onPlay;
   final VoidCallback onWebNotice;
   final void Function(MusicTrack track)? onAddToPlaylist;
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
     if (tracks.isEmpty) {
-      return const SliverToBoxAdapter(
+      return SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
           child: Center(
             child: Text(
-              'No downloaded songs yet.\nSearch YouTube Music above to download!',
+              emptyMessage ??
+                  'No downloaded songs yet.\nSearch YouTube Music above to download!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: EverforestColors.grey, fontSize: 15),
+              style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
             ),
           ),
         ),
@@ -329,3 +523,4 @@ class AllTracksSliver extends StatelessWidget {
     );
   }
 }
+

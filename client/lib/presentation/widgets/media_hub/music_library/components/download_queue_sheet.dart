@@ -21,6 +21,7 @@ class DownloadQueueSheet extends StatefulWidget {
 
 class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
   Timer? _pollTimer;
+  bool _isFetching = false;
   final Set<String> _expandedErrors = {};
 
   @override
@@ -35,6 +36,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _pollTimer = null;
     MusicRepository.instance.downloadQueue.removeListener(_onQueueUpdated);
     super.dispose();
   }
@@ -44,6 +46,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
   }
 
   void _checkAndSchedulePolling() {
+    if (!mounted) return;
     final queue = MusicRepository.instance.downloadQueue.value;
     final hasActive = queue.any((item) {
       final s = item.status.toUpperCase();
@@ -58,10 +61,43 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
 
     if (_pollTimer == null || !_pollTimer!.isActive) {
       _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-        await MusicRepository.instance.loadDownloadQueue();
-        if (MusicRepository.instance.downloadQueue.value
-            .any((i) => i.status.toUpperCase() == 'COMPLETED')) {
-          MusicRepository.instance.refresh();
+        if (!mounted) return;
+        if (_isFetching) return;
+        _isFetching = true;
+        try {
+          final prevQueue = MusicRepository.instance.downloadQueue.value;
+          final prevActiveIds = prevQueue
+              .where((i) {
+                final s = i.status.toUpperCase();
+                return s == 'PENDING' || s == 'DOWNLOADING';
+              })
+              .map((i) => i.id)
+              .toSet();
+
+          await MusicRepository.instance.loadDownloadQueue();
+          if (!mounted) return;
+
+          final newQueue = MusicRepository.instance.downloadQueue.value;
+          // Refresh library only if an item transitioned to completed
+          final newlyCompleted = newQueue.any((i) =>
+              prevActiveIds.contains(i.id) &&
+              i.status.toUpperCase() == 'COMPLETED');
+          if (newlyCompleted) {
+            MusicRepository.instance.refresh();
+          }
+
+          final stillActive = newQueue.any((i) {
+            final s = i.status.toUpperCase();
+            return s == 'PENDING' || s == 'DOWNLOADING';
+          });
+          if (!stillActive) {
+            _pollTimer?.cancel();
+            _pollTimer = null;
+          }
+        } catch (e) {
+          debugPrint('Download queue poll error: $e');
+        } finally {
+          _isFetching = false;
         }
       });
     }
