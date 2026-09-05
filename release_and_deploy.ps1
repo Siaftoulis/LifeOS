@@ -61,21 +61,21 @@ $pubspecContent = Get-Content $pubspecFile -Raw
 $pubspecContent = $pubspecContent -replace 'version:\s*\S+', "version: $newVer+$newBuild"
 Set-Content -Path $pubspecFile -Value $pubspecContent
 
-Write-Host "✓ Version files updated to v$newVer+$newBuild" -ForegroundColor Green
+Write-Host "Version files updated to v$newVer+$newBuild" -ForegroundColor Green
 
 # 2. Deploy to Server (pds-laptop-old)
-Write-Host "`n>>> [STEP 1/3] Building & Deploying to Server (pds-laptop-old)..." -ForegroundColor Yellow
+Write-Host "`n>>> [STEP 1/3] Building and Deploying to Server (pds-laptop-old)..." -ForegroundColor Yellow
 & "$workspaceRoot\deploy_server.ps1"
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Server deployment failed!"
     exit 1
 }
 
-# 3. Git Commit, Tag & Push
-Write-Host "`n>>> [STEP 2/3] Committing & Tagging Git Release..." -ForegroundColor Yellow
+# 3. Git Commit, Tag and Push
+Write-Host "`n>>> [STEP 2/3] Committing and Tagging Git Release..." -ForegroundColor Yellow
 Push-Location $workspaceRoot
 git add .agent/version.json client/pubspec.yaml deploy_server.ps1 release_and_deploy.ps1
-$commitMsg = "release: v$newVer (Build #$newBuild) - $Message"
+$commitMsg = 'release: v{0} (Build #{1}) - {2}' -f $newVer, $newBuild, $Message
 git commit -m $commitMsg --allow-empty
 
 $tagName = "v$newVer"
@@ -83,11 +83,11 @@ $tagName = "v$newVer"
 $tagExists = git tag -l $tagName
 if (-not $tagExists) {
     git tag $tagName
-    Write-Host "✓ Created Git tag $tagName" -ForegroundColor Green
+    Write-Host "Created Git tag $tagName" -ForegroundColor Green
 }
 
 # 4. Push to GitHub
-Write-Host "`n>>> [STEP 3/3] Pushing to GitHub (Triggers Cloud CI/CD for APK & Windows)..." -ForegroundColor Yellow
+Write-Host "`n>>> [STEP 3/3] Pushing to GitHub (Triggers Cloud CI/CD for APK and Windows)..." -ForegroundColor Yellow
 git push origin main
 git push origin $tagName
 
@@ -96,7 +96,8 @@ Pop-Location
 Write-Host "`n========================================================" -ForegroundColor Green
 Write-Host " SUCCESS! Everything is automated and shipped:           " -ForegroundColor Green
 Write-Host " 1. Web Portal LIVE:  https://pds-laptop-old.husky-forel.ts.net/" -ForegroundColor Cyan
-Write-Host " 2. Linux Daemon:     Updated & running on pds-laptop-old" -ForegroundColor Cyan
-Write-Host " 3. GitHub Release:   https://github.com/Siaftoulis/LifeOS/releases/tag/$tagName" -ForegroundColor Cyan
+Write-Host " 2. Linux Daemon:     Updated and running on pds-laptop-old" -ForegroundColor Cyan
+Write-Host (' 3. GitHub Release:   https://github.com/Siaftoulis/LifeOS/releases/tag/' + $tagName) -ForegroundColor Cyan
 Write-Host " 4. Actions Pipeline: https://github.com/Siaftoulis/LifeOS/actions" -ForegroundColor Cyan
 Write-Host "========================================================" -ForegroundColor Green
+
