@@ -135,7 +135,7 @@ class OfflinePrayerData {
   // --------------------------------------------------------------------------
   // 4. LITURGICAL CALENDAR & LECTIONARY (Ημερολόγιο)
   // --------------------------------------------------------------------------
-  static Future<Map<String, dynamic>> loadLectionaryMonth(int month) async {
+  static Future<Map<String, dynamic>> loadLectionaryMonth(int month, {bool isOldCalendar = false, int year = 2026}) async {
     try {
       if (_cachedLectionaryRaw == null) {
         final jsonStr = await rootBundle.loadString('assets/prayers/lectionary.json');
@@ -149,7 +149,11 @@ class OfflinePrayerData {
 
       for (int day = 1; day <= maxDay; day++) {
         final dateKey = '${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-        final d = readings[dateKey];
+        final civilDate = DateTime(year, month, day);
+        final liturgicalDate = isOldCalendar ? civilDate.subtract(const Duration(days: 13)) : civilDate;
+        final lookupKey = '${liturgicalDate.month.toString().padLeft(2, '0')}-${liturgicalDate.day.toString().padLeft(2, '0')}';
+
+        final d = readings[lookupKey];
         String epistleRef = '';
         String gospelRef = '';
         String feast = '';
@@ -166,6 +170,9 @@ class OfflinePrayerData {
 
         days.add({
           'date': dateKey,
+          'lookup_key': lookupKey,
+          'julian_day': liturgicalDate.day,
+          'julian_month': liturgicalDate.month,
           'feast': feast,
           'epistle_ref': epistleRef,
           'gospel_ref': gospelRef,
@@ -175,6 +182,7 @@ class OfflinePrayerData {
 
       return {
         'month': month,
+        'is_old_calendar': isOldCalendar,
         'days': days,
       };
     } catch (e) {
@@ -183,18 +191,37 @@ class OfflinePrayerData {
     }
   }
 
-  static Future<Map<String, dynamic>> loadDailyReadings(String dateKey) async {
+  static Future<Map<String, dynamic>> loadDailyReadings(String dateKey, {bool isOldCalendar = false}) async {
     // dateKey: MM-DD or YYYY-MM-DD
-    final key = dateKey.length >= 5 ? dateKey.substring(dateKey.length - 5) : dateKey;
     try {
       if (_cachedLectionaryRaw == null) {
         final jsonStr = await rootBundle.loadString('assets/prayers/lectionary.json');
         _cachedLectionaryRaw = jsonDecode(jsonStr) as Map<String, dynamic>;
       }
       final readings = _cachedLectionaryRaw?['readings'] as Map<String, dynamic>? ?? {};
-      final d = readings[key];
+
+      String lookupKey;
+      if (isOldCalendar) {
+        DateTime dt;
+        if (dateKey.length == 10) {
+          dt = DateTime.tryParse(dateKey) ?? DateTime.now();
+        } else {
+          final parts = dateKey.split('-');
+          final m = int.tryParse(parts[0]) ?? DateTime.now().month;
+          final d = int.tryParse(parts[1]) ?? DateTime.now().day;
+          dt = DateTime(DateTime.now().year, m, d);
+        }
+        final julianDt = dt.subtract(const Duration(days: 13));
+        lookupKey = '${julianDt.month.toString().padLeft(2, '0')}-${julianDt.day.toString().padLeft(2, '0')}';
+      } else {
+        lookupKey = dateKey.length >= 5 ? dateKey.substring(dateKey.length - 5) : dateKey;
+      }
+
+      final d = readings[lookupKey];
       if (d is Map) {
-        return Map<String, dynamic>.from(d);
+        final map = Map<String, dynamic>.from(d);
+        map['lookup_key'] = lookupKey;
+        return map;
       }
     } catch (_) {}
     return {};

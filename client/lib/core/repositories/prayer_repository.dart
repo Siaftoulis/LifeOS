@@ -305,16 +305,17 @@ class PrayerRepository {
   final ValueNotifier<DailyPrayerRuleStatusModel?> ruleStatus =
       ValueNotifier<DailyPrayerRuleStatusModel?>(null);
 
-  final ValueNotifier<Set<String>> favoriteIds =
+final ValueNotifier<Set<String>> favoriteIds =
       ValueNotifier<Set<String>>({});
 
   final Map<String, DailyLiturgicalInfoModel> _dailyCache = {};
   final Map<String, DailyPrayerRuleStatusModel> _ruleCache = {};
   final Map<String, PrayerServiceModel> _serviceCache = {};
 
-  DailyLiturgicalInfoModel getFallbackDailyInfo([DateTime? date]) {
+  DailyLiturgicalInfoModel getFallbackDailyInfo([DateTime? date, bool isOldCalendar = false]) {
     final target = date ?? DateTime.now();
-    final dateStr = DateFormat('yyyy-MM-dd').format(target);
+    final effectiveTarget = isOldCalendar ? target.subtract(const Duration(days: 13)) : target;
+    final dateStr = DateFormat('yyyy-MM-dd').format(effectiveTarget);
     final greekMonths = [
       'Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μαΐου', 'Ιουνίου',
       'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου'
@@ -324,9 +325,13 @@ class PrayerRepository {
     ];
     final dayName = greekDays[target.weekday - 1];
     final monthName = greekMonths[target.month - 1];
-    final dateFormatted = '$dayName, ${target.day} $monthName';
+    final churchMonthName = greekMonths[effectiveTarget.month - 1];
 
-    final isWedOrFri = target.weekday == DateTime.wednesday || target.weekday == DateTime.friday;
+    final dateFormatted = isOldCalendar
+        ? '$dayName, ${effectiveTarget.day} $churchMonthName [Π.Η.] / ${target.day} $monthName [Πολιτικό]'
+        : '$dayName, ${target.day} $monthName';
+
+    final isWedOrFri = effectiveTarget.weekday == DateTime.wednesday || effectiveTarget.weekday == DateTime.friday;
     final fasting = isWedOrFri ? 'Νηστεία (Κατάλυση οίνου & ελαίου)' : 'Ανηστεία (Εις πάντα)';
 
     return DailyLiturgicalInfoModel(
@@ -334,7 +339,7 @@ class PrayerRepository {
       dateFormatted: dateFormatted,
       tone: 'Ήχος Α\'',
       period: 'Οκτώηχος',
-      feastName: 'Εκκλησιαστικό Ημερολόγιο',
+      feastName: isOldCalendar ? 'Παλαιό Ημερολόγιο (Ιουλιανό)' : 'Εκκλησιαστικό Ημερολόγιο',
       fasting: fasting,
       saints: [
         SaintModel(
@@ -391,24 +396,26 @@ class PrayerRepository {
   }
 
   /// Fetches the liturgical and Synaxarion info for the specified date
-  Future<DailyLiturgicalInfoModel> fetchDailyInfo([DateTime? date]) async {
+  Future<DailyLiturgicalInfoModel> fetchDailyInfo([DateTime? date, bool isOldCalendar = false]) async {
     final target = date ?? DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(target);
+    final cacheKey = isOldCalendar ? '${dateStr}_old' : dateStr;
 
     // Instant cache hit if previously loaded
-    if (_dailyCache.containsKey(dateStr)) {
-      final cached = _dailyCache[dateStr]!;
+    if (_dailyCache.containsKey(cacheKey)) {
+      final cached = _dailyCache[cacheKey]!;
       dailyInfo.value = cached;
       return cached;
     }
 
     try {
+      final calParam = isOldCalendar ? '&calendar=old' : '';
       final res = await ApiClient.instance
-          .getDaemon('/api/v1/prayers/daily?date=$dateStr');
+          .getDaemon('/api/v1/prayers/daily?date=$dateStr$calParam');
       if (res is Map) {
         final info = DailyLiturgicalInfoModel.fromJson(
             Map<String, dynamic>.from(res));
-        _dailyCache[dateStr] = info;
+        _dailyCache[cacheKey] = info;
         dailyInfo.value = info;
         return info;
       }
@@ -417,8 +424,8 @@ class PrayerRepository {
     }
 
     // Return fallback if fetch fails or is offline
-    final fallback = getFallbackDailyInfo(target);
-    _dailyCache[dateStr] = fallback;
+    final fallback = getFallbackDailyInfo(target, isOldCalendar);
+    _dailyCache[cacheKey] = fallback;
     dailyInfo.value = fallback;
     return fallback;
   }

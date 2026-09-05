@@ -86,11 +86,28 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
             const Expanded(child: Center(child: CircularProgressIndicator(color: EverforestColors.yellow)))
           else
             Expanded(
-              child: Row(
-                children: [
-                  SizedBox(width: 280, child: _buildCalendarGrid()),
-                  Expanded(child: _buildDayDetail()),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 700;
+                  if (isMobile) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildCalendarGrid(isMobile: true),
+                          _buildDayDetail(isMobile: true),
+                        ],
+                      ),
+                    );
+                  }
+                  return Row(
+                    children: [
+                      SizedBox(width: 280, child: _buildCalendarGrid()),
+                      Expanded(child: _buildDayDetail()),
+                    ],
+                  );
+                },
               ),
             ),
         ],
@@ -125,9 +142,96 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
     );
   }
 
-  Widget _buildCalendarGrid() {
+  Widget _buildCalendarGrid({bool isMobile = false}) {
     final daysInMonth = DateTime(2026, _selectedMonth + 1, 0).day;
     final firstWeekday = DateTime(2026, _selectedMonth, 1).weekday;
+
+    final grid = GridView.builder(
+      shrinkWrap: isMobile,
+      physics: isMobile ? const NeverScrollableScrollPhysics() : null,
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8, vertical: isMobile ? 4 : 0),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        childAspectRatio: isMobile ? 1.35 : 1.2,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemCount: (firstWeekday - 1) + daysInMonth,
+      itemBuilder: (context, index) {
+        if (index < firstWeekday - 1) return const SizedBox();
+        final day = index - (firstWeekday - 1) + 1;
+        final key = '${_selectedMonth.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+        final dayData = _days[key];
+        final hasSaints = dayData != null && dayData.saintCount > 0;
+        final isSelected = day == _selectedDay;
+        final isToday = day == DateTime.now().day && _selectedMonth == DateTime.now().month;
+
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedDay = day;
+              _selectedDayData = dayData;
+            });
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? EverforestColors.yellow.withValues(alpha: 0.2)
+                  : isToday
+                      ? EverforestColors.green.withValues(alpha: 0.1)
+                      : EverforestColors.bg1,
+              borderRadius: BorderRadius.circular(6),
+              border: isSelected
+                  ? Border.all(color: EverforestColors.yellow, width: 1.5)
+                  : isToday
+                      ? Border.all(color: EverforestColors.green.withValues(alpha: 0.3))
+                      : null,
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('$day', style: TextStyle(
+                  color: isSelected ? EverforestColors.yellow : EverforestColors.fg,
+                  fontSize: 13, fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                )),
+                if (hasSaints)
+                  Container(
+                    width: 4, height: 4,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, color: EverforestColors.yellow),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (isMobile) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+        decoration: BoxDecoration(
+          color: EverforestColors.bg1,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: EverforestColors.bg2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              child: Row(
+                children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) =>
+                  Expanded(child: Center(child: Text(d, style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
+                ).toList(),
+              ),
+            ),
+            grid,
+          ],
+        ),
+      );
+    }
 
     return Column(
       children: [
@@ -139,104 +243,71 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
             ).toList(),
           ),
         ),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7, childAspectRatio: 1.2, crossAxisSpacing: 2, mainAxisSpacing: 2,
-            ),
-            itemCount: (firstWeekday - 1) + daysInMonth,
-            itemBuilder: (context, index) {
-              if (index < firstWeekday - 1) return const SizedBox();
-              final day = index - (firstWeekday - 1) + 1;
-              final key = '${_selectedMonth.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-              final dayData = _days[key];
-              final hasSaints = dayData != null && dayData.saintCount > 0;
-              final isSelected = day == _selectedDay;
-              final isToday = day == DateTime.now().day && _selectedMonth == DateTime.now().month;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedDay = day;
-                    _selectedDayData = dayData;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? EverforestColors.yellow.withValues(alpha: 0.2)
-                        : isToday
-                            ? EverforestColors.green.withValues(alpha: 0.1)
-                            : EverforestColors.bg1,
-                    borderRadius: BorderRadius.circular(6),
-                    border: isSelected
-                        ? Border.all(color: EverforestColors.yellow, width: 1.5)
-                        : isToday
-                            ? Border.all(color: EverforestColors.green.withValues(alpha: 0.3))
-                            : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('$day', style: TextStyle(
-                        color: isSelected ? EverforestColors.yellow : EverforestColors.fg,
-                        fontSize: 13, fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                      )),
-                      if (hasSaints)
-                        Container(
-                          width: 4, height: 4,
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: EverforestColors.yellow),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+        Expanded(child: grid),
       ],
     );
   }
 
-  Widget _buildDayDetail() {
+  Widget _buildDayDetail({bool isMobile = false}) {
     final dayData = _selectedDayData;
     if (dayData == null || dayData.saints.isEmpty) {
-      return Center(
-        child: Text(
-          'No saints commemorated',
+      return Container(
+        padding: const EdgeInsets.all(32),
+        alignment: Alignment.center,
+        child: const Text(
+          'Δεν υπάρχουν καταγεγραμμένοι άγιοι',
           style: TextStyle(color: EverforestColors.grey, fontSize: 14),
         ),
+      );
+    }
+
+    final header = Container(
+      width: double.infinity,
+      margin: isMobile ? const EdgeInsets.symmetric(horizontal: 12) : EdgeInsets.zero,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: EverforestColors.bg1,
+        borderRadius: isMobile ? BorderRadius.circular(14) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${_selectedDay} ${_monthNames[_selectedMonth]}',
+            style: const TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (dayData.feast.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(dayData.feast, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            '${dayData.saintCount} ${dayData.saintCount == 1 ? 'Άγιος τιμάται' : 'Άγιοι τιμώνται'}',
+            style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          header,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 40),
+            child: Column(
+              children: dayData.saints.map((s) => _buildSaintCard(s)).toList(),
+            ),
+          ),
+        ],
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          color: EverforestColors.bg1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${_selectedDay} ${_monthNames[_selectedMonth]}',
-                style: const TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              if (dayData.feast.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(dayData.feast, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
-              ],
-              const SizedBox(height: 4),
-              Text(
-                '${dayData.saintCount} saint${dayData.saintCount > 1 ? 's' : ''} commemorated',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
+        header,
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(12),
@@ -247,6 +318,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
       ],
     );
   }
+
 
   Widget _buildSaintCard(SynaxarionSaint saint) {
     final hasLife = saint.fullLife.isNotEmpty || saint.shortLife.isNotEmpty;

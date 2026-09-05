@@ -53,4 +53,18 @@ void main() {
     final readings = lectionaryJson['readings'] as Map<String, dynamic>;
     expect(readings.containsKey('09-03'), isTrue);
   });
+
+  test('New Calendar vs Old Calendar (Julian -13 days offset) calculates correct liturgical feast', () {
+    final rep = PrayerRepository.instance;
+    final testDate = DateTime(2026, 9, 5);
+
+    // New Calendar fallback
+    final newCalInfo = rep.getFallbackDailyInfo(testDate, false);
+    expect(newCalInfo.dateFormatted, contains('5 Σεπτεμβρίου'));
+
+    // Old Calendar fallback (-13 days: 23 August)
+    final oldCalInfo = rep.getFallbackDailyInfo(testDate, true);
+    expect(oldCalInfo.dateFormatted, contains('23 Αυγούστου [Π.Η.]'));
+    expect(oldCalInfo.dateFormatted, contains('5 Σεπτεμβρίου [Πολιτικό]'));
+  });
 }

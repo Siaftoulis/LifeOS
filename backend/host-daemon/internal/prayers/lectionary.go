@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 //go:embed data/lectionary_raw.json
@@ -69,7 +70,19 @@ func handleLectionaryDay(w http.ResponseWriter, r *http.Request) {
 
 	// Parse MM-DD or YYYY-MM-DD
 	dateKey := q
-	if len(q) > 5 {
+	isOldCal := r.URL.Query().Get("calendar") == "old" || r.URL.Query().Get("calendar") == "julian"
+	if isOldCal {
+		var t time.Time
+		if len(q) == 10 {
+			t, _ = time.Parse("2006-01-02", q)
+		} else if len(q) == 5 {
+			t, _ = time.Parse("2006-01-02", fmt.Sprintf("2026-%s", q))
+		}
+		if !t.IsZero() {
+			julianDate := t.AddDate(0, 0, -13)
+			dateKey = fmt.Sprintf("%02d-%02d", julianDate.Month(), julianDate.Day())
+		}
+	} else if len(q) > 5 {
 		dateKey = q[len(q)-5:]
 	}
 
@@ -78,10 +91,11 @@ func handleLectionaryDay(w http.ResponseWriter, r *http.Request) {
 		// Return empty readings for days without data (e.g. Great Lent weekdays)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"date":     dateKey,
-			"feast":    "",
-			"epistle":  nil,
-			"gospel":   nil,
+			"date":         q,
+			"lookup_key":   dateKey,
+			"feast":        "",
+			"epistle":      nil,
+			"gospel":       nil,
 			"has_readings": false,
 		})
 		return
@@ -89,10 +103,11 @@ func handleLectionaryDay(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"date":     dateKey,
-		"feast":    day.Feast,
-		"epistle":  day.Epistle,
-		"gospel":   day.Gospel,
+		"date":         q,
+		"lookup_key":   dateKey,
+		"feast":        day.Feast,
+		"epistle":      day.Epistle,
+		"gospel":       day.Gospel,
 		"has_readings": day.Epistle.Reference != "" || day.Gospel.Reference != "",
 	})
 }
@@ -116,8 +131,13 @@ func handleLectionaryMonth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isOldCal := r.URL.Query().Get("calendar") == "old" || r.URL.Query().Get("calendar") == "julian"
+
 	type MonthDay struct {
 		Date        string `json:"date"`
+		LookupKey   string `json:"lookup_key,omitempty"`
+		JulianDay   int    `json:"julian_day,omitempty"`
+		JulianMonth int    `json:"julian_month,omitempty"`
 		Feast       string `json:"feast"`
 		EpistleRef  string `json:"epistle_ref"`
 		GospelRef   string `json:"gospel_ref"`
@@ -130,7 +150,19 @@ func handleLectionaryMonth(w http.ResponseWriter, r *http.Request) {
 
 	for day := 1; day <= maxDay; day++ {
 		dateKey := fmt.Sprintf("%02d-%02d", month, day)
-		d, exists := lectionary.Readings[dateKey]
+		lookupKey := dateKey
+		julianDay := day
+		julianMonth := month
+
+		if isOldCal {
+			civilDate := time.Date(2026, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+			julianDate := civilDate.AddDate(0, 0, -13)
+			lookupKey = fmt.Sprintf("%02d-%02d", julianDate.Month(), julianDate.Day())
+			julianDay = julianDate.Day()
+			julianMonth = int(julianDate.Month())
+		}
+
+		d, exists := lectionary.Readings[lookupKey]
 
 		epistleRef := ""
 		gospelRef := ""
@@ -146,6 +178,9 @@ func handleLectionaryMonth(w http.ResponseWriter, r *http.Request) {
 
 		days = append(days, MonthDay{
 			Date:        dateKey,
+			LookupKey:   lookupKey,
+			JulianDay:   julianDay,
+			JulianMonth: julianMonth,
 			Feast:       feast,
 			EpistleRef:  epistleRef,
 			GospelRef:   gospelRef,
@@ -155,8 +190,9 @@ func handleLectionaryMonth(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"month":      month,
-		"month_name": monthNameGR[month],
-		"days":       days,
+		"month":           month,
+		"month_name":      monthNameGR[month],
+		"is_old_calendar": isOldCal,
+		"days":            days,
 	})
 }

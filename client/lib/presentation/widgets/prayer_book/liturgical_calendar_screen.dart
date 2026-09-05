@@ -5,6 +5,11 @@ import '../../../core/repositories/offline_prayer_data.dart';
 import '../../../core/repositories/prayer_repository.dart';
 import '../../../theme/everforest_colors.dart';
 
+enum CalendarSystem {
+  newCalendar, // Νέο Ημερολόγιο (Αναθεωρημένο Ιουλιανό)
+  oldCalendar, // Παλαιό Ημερολόγιο (Ιουλιανό, −13 ημέρες)
+}
+
 class LiturgicalCalendarScreen extends StatefulWidget {
   const LiturgicalCalendarScreen({super.key});
 
@@ -14,9 +19,22 @@ class LiturgicalCalendarScreen extends StatefulWidget {
 
 class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
   late DateTime _currentMonth;
+  CalendarSystem _calendarSystem = CalendarSystem.newCalendar;
   Map<String, dynamic>? _todayInfo;
   Map<String, dynamic>? _monthData;
   bool _loading = true;
+
+  static const _monthNames = [
+    '', 'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
+    'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος',
+    'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος',
+  ];
+
+  static const _monthNamesGenitive = [
+    '', 'Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου',
+    'Μαΐου', 'Ιουνίου', 'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου',
+    'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου',
+  ];
 
   @override
   void initState() {
@@ -31,32 +49,38 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       final today = DateTime.now();
       final todayStr = DateFormat('yyyy-MM-dd').format(today);
       final monthStr = _currentMonth.month.toString();
+      final isOld = _calendarSystem == CalendarSystem.oldCalendar;
 
       final results = await Future.wait([
-        _fetchDaily(todayStr),
-        _fetchLectionaryMonth(monthStr),
+        _fetchDaily(todayStr, isOldCalendar: isOld),
+        _fetchLectionaryMonth(monthStr, isOldCalendar: isOld),
       ]);
 
-      setState(() {
-        _todayInfo = results[0];
-        _monthData = results[1];
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _todayInfo = results[0];
+          _monthData = results[1];
+          _loading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
-  Future<Map<String, dynamic>> _fetchDaily(String date) async {
+  Future<Map<String, dynamic>> _fetchDaily(String date, {required bool isOldCalendar}) async {
+    final calParam = isOldCalendar ? '&calendar=old' : '';
     try {
-      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/daily?date=$date');
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/daily?date=$date$calParam');
       if (data is Map) {
         return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
 
-    final dailyReadings = await OfflinePrayerData.loadDailyReadings(date);
-    final fallback = PrayerRepository.instance.getFallbackDailyInfo(DateTime.now());
+    final dailyReadings = await OfflinePrayerData.loadDailyReadings(date, isOldCalendar: isOldCalendar);
+    final fallback = PrayerRepository.instance.getFallbackDailyInfo(DateTime.now(), isOldCalendar);
 
     final readingsList = <Map<String, String>>[];
     if (dailyReadings['epistle'] is Map && (dailyReadings['epistle']['text'] ?? '').toString().isNotEmpty) {
@@ -88,16 +112,17 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
     };
   }
 
-  Future<Map<String, dynamic>> _fetchLectionaryMonth(String month) async {
+  Future<Map<String, dynamic>> _fetchLectionaryMonth(String month, {required bool isOldCalendar}) async {
+    final calParam = isOldCalendar ? '&calendar=old' : '';
     try {
-      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/lectionary/month?month=$month');
+      final data = await ApiClient.instance.getDaemon('/api/v1/prayers/lectionary/month?month=$month$calParam');
       if (data is Map && data['days'] is List && (data['days'] as List).isNotEmpty) {
         return Map<String, dynamic>.from(data);
       }
     } catch (_) {}
 
     final m = int.tryParse(month) ?? DateTime.now().month;
-    return await OfflinePrayerData.loadLectionaryMonth(m);
+    return await OfflinePrayerData.loadLectionaryMonth(m, isOldCalendar: isOldCalendar, year: _currentMonth.year);
   }
 
   @override
@@ -109,6 +134,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           : CustomScrollView(
               slivers: [
                 _buildAppBar(),
+                SliverToBoxAdapter(child: _buildCalendarModeTabs()),
                 SliverToBoxAdapter(child: _buildTodayCard()),
                 SliverToBoxAdapter(child: _buildMonthHeader()),
                 SliverToBoxAdapter(child: _buildCalendarGrid()),
@@ -120,14 +146,19 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 110,
       pinned: true,
       backgroundColor: EverforestColors.bg0,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
+        onPressed: () => Navigator.pop(context),
+      ),
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          'Ημερολόγιο',
+        title: const Text(
+          'Εκκλησιαστικό Ημερολόγιο',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
             color: EverforestColors.fg,
           ),
@@ -145,8 +176,98 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
     );
   }
 
+  Widget _buildCalendarModeTabs() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: EverforestColors.bg1,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: EverforestColors.bg2),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTabItem(
+              title: 'Νέο Ημερολόγιο',
+              subtitle: 'Αναθεωρημένο Ιουλιανό',
+              selected: _calendarSystem == CalendarSystem.newCalendar,
+              onTap: () {
+                if (_calendarSystem != CalendarSystem.newCalendar) {
+                  setState(() => _calendarSystem = CalendarSystem.newCalendar);
+                  _loadData();
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildTabItem(
+              title: 'Παλαιό Ημερολόγιο',
+              subtitle: 'Ιουλιανό (−13 ημέρες)',
+              selected: _calendarSystem == CalendarSystem.oldCalendar,
+              onTap: () {
+                if (_calendarSystem != CalendarSystem.oldCalendar) {
+                  setState(() => _calendarSystem = CalendarSystem.oldCalendar);
+                  _loadData();
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required String title,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          decoration: BoxDecoration(
+            color: selected ? EverforestColors.green.withValues(alpha: 0.18) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: selected ? Border.all(color: EverforestColors.green.withValues(alpha: 0.6)) : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.bold,
+                  color: selected ? EverforestColors.green : EverforestColors.fg,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: selected ? EverforestColors.aqua : EverforestColors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTodayCard() {
     if (_todayInfo == null) return const SizedBox.shrink();
+
+    final isOld = _calendarSystem == CalendarSystem.oldCalendar;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -154,21 +275,53 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       decoration: BoxDecoration(
         color: EverforestColors.bg1,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: EverforestColors.green.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: isOld
+              ? EverforestColors.orange.withValues(alpha: 0.3)
+              : EverforestColors.green.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.calendar_today, color: EverforestColors.green, size: 20),
+              Icon(
+                Icons.calendar_today,
+                color: isOld ? EverforestColors.orange : EverforestColors.green,
+                size: 20,
+              ),
               const SizedBox(width: 8),
-              Text(
-                _todayInfo!['date_formatted'] ?? '',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: EverforestColors.fg,
+              Expanded(
+                child: Text(
+                  _todayInfo!['date_formatted'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: EverforestColors.fg,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isOld
+                      ? EverforestColors.orange.withValues(alpha: 0.15)
+                      : EverforestColors.green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isOld
+                        ? EverforestColors.orange.withValues(alpha: 0.4)
+                        : EverforestColors.green.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Text(
+                  isOld ? 'Παλαιό Ημερ.' : 'Νέο Ημερ.',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isOld ? EverforestColors.orange : EverforestColors.green,
+                  ),
                 ),
               ),
             ],
@@ -198,7 +351,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                   Expanded(
                     child: Text(
                       _todayInfo!['feast_name'],
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: EverforestColors.yellow,
@@ -277,20 +430,18 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          reference,
-          style: const TextStyle(fontSize: 12, color: EverforestColors.fg),
+        Expanded(
+          child: Text(
+            reference,
+            style: const TextStyle(fontSize: 12, color: EverforestColors.fg),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildMonthHeader() {
-    const monthNames = [
-      '', 'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
-      'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος',
-      'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος',
-    ];
+    final isOld = _calendarSystem == CalendarSystem.oldCalendar;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -306,13 +457,24 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
               _loadData();
             },
           ),
-          Text(
-            '${monthNames[_currentMonth.month]} ${_currentMonth.year}',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: EverforestColors.fg,
-            ),
+          Column(
+            children: [
+              Text(
+                '${_monthNames[_currentMonth.month]} ${_currentMonth.year}',
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w600,
+                  color: EverforestColors.fg,
+                ),
+              ),
+              Text(
+                isOld ? 'Παλαιό Ημερολόγιο (π.ημ.)' : 'Νέο Ημερολόγιο (ν.ημ.)',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isOld ? EverforestColors.orange : EverforestColors.aqua,
+                ),
+              ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, color: EverforestColors.fg),
@@ -331,6 +493,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
   Widget _buildCalendarGrid() {
     final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
     final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday % 7;
+    final isOld = _calendarSystem == CalendarSystem.oldCalendar;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -342,7 +505,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       child: Column(
         children: [
           Row(
-            children: ['Δ', 'Τ', 'Τ', 'Π', 'Π', 'Σ', 'Κ'].map((d) {
+            children: ['Κ', 'Δ', 'Τ', 'Τ', 'Π', 'Π', 'Σ'].map((d) {
               return Expanded(
                 child: Center(
                   child: Text(
@@ -363,7 +526,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
               children: List.generate(7, (dayIndex) {
                 final dayNum = week * 7 + dayIndex - firstDay + 1;
                 if (dayNum < 1 || dayNum > daysInMonth) {
-                  return const Expanded(child: SizedBox(height: 40));
+                  return const Expanded(child: SizedBox(height: 44));
                 }
 
                 final dateKey = '${_currentMonth.month.toString().padLeft(2, '0')}-${dayNum.toString().padLeft(2, '0')}';
@@ -375,7 +538,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                   child: GestureDetector(
                     onTap: () => _showDayDetail(dateKey, dayData),
                     child: Container(
-                      height: 40,
+                      height: 44,
                       margin: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
                         color: isToday
@@ -394,15 +557,24 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                           Text(
                             '$dayNum',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: isOld ? 13 : 14,
                               color: isToday ? EverforestColors.green : EverforestColors.fg,
                               fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
-                          if (hasFeast)
+                          if (isOld && dayData?['julian_day'] != null)
+                            Text(
+                              '${dayData!['julian_day']}',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                color: isToday ? EverforestColors.green : EverforestColors.grey,
+                              ),
+                            ),
+                          if (hasFeast && !isOld)
                             Container(
                               width: 4,
                               height: 4,
+                              margin: const EdgeInsets.only(top: 2),
                               decoration: const BoxDecoration(
                                 color: EverforestColors.yellow,
                                 shape: BoxShape.circle,
@@ -439,6 +611,20 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
   }
 
   void _showDayDetail(String dateKey, Map<String, dynamic>? dayData) {
+    final dayParts = dateKey.split('-');
+    final m = int.tryParse(dayParts[0]) ?? _currentMonth.month;
+    final d = int.tryParse(dayParts[1]) ?? 1;
+    final civilDate = DateTime(_currentMonth.year, m, d);
+    final civilDateText = '$d ${_monthNamesGenitive[m]} ${_currentMonth.year}';
+    final isOld = _calendarSystem == CalendarSystem.oldCalendar;
+
+    DateTime? julianDate;
+    String? julianDateText;
+    if (isOld) {
+      julianDate = civilDate.subtract(const Duration(days: 13));
+      julianDateText = '${julianDate.day} ${_monthNamesGenitive[julianDate.month]} (Παλαιό Ημερολόγιο — π.ημ.)';
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: EverforestColors.bg1,
@@ -447,69 +633,109 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: EverforestColors.grey,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              dateKey,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: EverforestColors.fg,
-              ),
-            ),
-            if (dayData?['feast']?.toString().isNotEmpty == true) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: EverforestColors.bg0,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  dayData!['feast'],
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: EverforestColors.yellow,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: EverforestColors.grey,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-            ],
-            if (dayData?['has_readings'] == true) ...[
               const SizedBox(height: 16),
-              const Text(
-                'Αναγνώσματα',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: EverforestColors.aqua,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    civilDateText,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: EverforestColors.fg,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isOld
+                          ? EverforestColors.orange.withValues(alpha: 0.15)
+                          : EverforestColors.green.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isOld
+                            ? EverforestColors.orange.withValues(alpha: 0.4)
+                            : EverforestColors.green.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      isOld ? 'Παλαιό Ημερ.' : 'Νέο Ημερ.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isOld ? EverforestColors.orange : EverforestColors.green,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              if (dayData?['epistle_ref']?.toString().isNotEmpty == true) ...[
-                const SizedBox(height: 8),
-                _buildReadingRow('Α', dayData!['epistle_ref']),
+              if (julianDateText != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  julianDateText,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: EverforestColors.aqua,
+                  ),
+                ),
               ],
-              if (dayData?['gospel_ref']?.toString().isNotEmpty == true) ...[
-                const SizedBox(height: 8),
-                _buildReadingRow('Ε', dayData!['gospel_ref']),
+              if (dayData?['feast']?.toString().isNotEmpty == true) ...[
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: EverforestColors.bg0,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    dayData!['feast'],
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: EverforestColors.yellow,
+                    ),
+                  ),
+                ),
               ],
+              if (dayData?['has_readings'] == true) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Αναγνώσματα',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: EverforestColors.aqua,
+                  ),
+                ),
+                if (dayData?['epistle_ref']?.toString().isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  _buildReadingRow('Α', dayData!['epistle_ref']),
+                ],
+                if (dayData?['gospel_ref']?.toString().isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  _buildReadingRow('Ε', dayData!['gospel_ref']),
+                ],
+              ],
+              const SizedBox(height: 24),
             ],
-            const SizedBox(height: 24),
-          ],
+          ),
         ),
       ),
     );
@@ -522,6 +748,8 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
     final daysWithReadings = days.where((d) => d['has_readings'] == true).toList();
     if (daysWithReadings.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
+    final isOld = _calendarSystem == CalendarSystem.oldCalendar;
+
     return SliverToBoxAdapter(
       child: Container(
         margin: const EdgeInsets.all(16),
@@ -533,16 +761,26 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Αναγνώσματα Μηνός',
-              style: TextStyle(
-                fontSize: 18,
+            Text(
+              isOld ? 'Αναγνώσματα Μηνός (Παλαιό Ημερολόγιο)' : 'Αναγνώσματα Μηνός (Νέο Ημερολόγιο)',
+              style: const TextStyle(
+                fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: EverforestColors.fg,
               ),
             ),
             const SizedBox(height: 12),
             ...daysWithReadings.map((day) {
+              final dateStr = day['date']?.toString() ?? '';
+              String dayLabel = dateStr;
+              if (isOld && day['julian_day'] != null && day['julian_month'] != null) {
+                final jm = day['julian_month'] as int;
+                final jd = day['julian_day'] as int;
+                final mName = (jm >= 1 && jm <= 12) ? _monthNamesGenitive[jm] : '';
+                final shortM = mName.length >= 3 ? mName.substring(0, 3) : mName;
+                dayLabel = '$dateStr ($jd $shortM. π.ημ.)';
+              }
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
@@ -556,10 +794,11 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                     Row(
                       children: [
                         Text(
-                          day['date'],
+                          dayLabel,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: EverforestColors.grey,
+                            fontWeight: FontWeight.w600,
+                            color: EverforestColors.aqua,
                           ),
                         ),
                         if (day['feast']?.toString().isNotEmpty == true) ...[

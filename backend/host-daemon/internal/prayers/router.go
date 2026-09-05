@@ -101,15 +101,21 @@ func getUsername(r *http.Request) string {
 func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	date := parseDateQuery(r)
+	isOldCal := r.URL.Query().Get("calendar") == "old" || r.URL.Query().Get("calendar") == "julian"
 
-	menologion := GetDailySaints(int(date.Month()), date.Day())
-	tone := GetOctoechosTone(date)
-	period, movable := GetLiturgicalPeriod(date)
-	fasting := CalculateFastingRule(date)
+	liturgicalDate := date
+	if isOldCal {
+		liturgicalDate = date.AddDate(0, 0, -13)
+	}
+
+	menologion := GetDailySaints(int(liturgicalDate.Month()), liturgicalDate.Day())
+	tone := GetOctoechosTone(liturgicalDate)
+	period, movable := GetLiturgicalPeriod(liturgicalDate)
+	fasting := CalculateFastingRule(liturgicalDate)
 
 	// Build readings from lectionary (preferred) or menologion fallback
 	lectionary, _ := loadLectionary()
-	dateKey := date.Format("01-02")
+	dateKey := liturgicalDate.Format("01-02")
 	lectionaryDay, hasLectionary := lectionary.Readings[dateKey]
 
 	type ReadingRef struct {
@@ -142,7 +148,7 @@ func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	katavasies := GetSeasonalKatavasies(date)
+	katavasies := GetSeasonalKatavasies(liturgicalDate)
 
 	type DailyInfo struct {
 		Date          string        `json:"date"`
@@ -156,11 +162,19 @@ func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 		Gospel        *ReadingRef   `json:"gospel"`
 		MovableCycle  string        `json:"movable_cycle"`
 		Katavasies    KatavasiaSet  `json:"katavasies"`
+		Calendar      string        `json:"calendar,omitempty"`
+	}
+
+	dateFormatted := formatGreekDate(date)
+	calLabel := "new"
+	if isOldCal {
+		calLabel = "old"
+		dateFormatted = fmt.Sprintf("%s (Π.Η.) / %s (Πολιτικό)", formatGreekDate(liturgicalDate), formatGreekDate(date))
 	}
 
 	info := DailyInfo{
 		Date:          date.Format("2006-01-02"),
-		DateFormatted: formatGreekDate(date),
+		DateFormatted: dateFormatted,
 		Tone:          tone,
 		Period:        period,
 		FeastName:     menologion.FeastName,
@@ -170,6 +184,7 @@ func handleDailyLiturgicalInfo(w http.ResponseWriter, r *http.Request) {
 		Gospel:        gospelReading,
 		MovableCycle:  movable,
 		Katavasies:    katavasies,
+		Calendar:      calLabel,
 	}
 
 	json.NewEncoder(w).Encode(info)
