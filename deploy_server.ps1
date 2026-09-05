@@ -83,3 +83,4 @@ curl.exe -s "http://100.115.141.4:50051/api/v1/system/updates/latest?refresh=tru
 
 Remove-Item "$tmp\web.tar", "$tmp\bin.tar", "$tmp\lifeos-linux", "$tmp\server_linux", "$tmp\idx.html" -Force -ErrorAction SilentlyContinue
 Write-Host "=== Deployment Finished Successfully ===" -ForegroundColor Green
+exit 0
