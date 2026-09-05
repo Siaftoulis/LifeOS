@@ -152,10 +152,11 @@ class PowerampNowPlayingSheet extends StatefulWidget {
 class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     with SingleTickerProviderStateMixin {
   NowPlayingCardMode _cardMode = NowPlayingCardMode.artwork;
-  int _desktopRightTab = 0; // 0 = Equalizer & DSP, 1 = Queue
+  int _desktopRightTab = 0; // 0 = Equalizer & DSP, 1 = Queue, 2 = Lyrics
   late bool _isShuffle;
   late PlaybackRepeat _repeat;
   late AnimationController _visualizerAnim;
+  StreamSubscription<PlayerState>? _playerStateSub;
 
   String? _feedbackText;
   IconData? _feedbackIcon;
@@ -173,11 +174,29 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     _visualizerAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 60),
-    )..repeat();
+    );
+    _syncVisualizerWithPlayer(widget.player.playerState);
+    _playerStateSub =
+        widget.player.playerStateStream.listen(_syncVisualizerWithPlayer);
+  }
+
+  void _syncVisualizerWithPlayer(PlayerState state) {
+    final isPlaying =
+        state.playing && state.processingState != ProcessingState.completed;
+    if (isPlaying) {
+      if (!_visualizerAnim.isAnimating) {
+        _visualizerAnim.repeat();
+      }
+    } else {
+      if (_visualizerAnim.isAnimating) {
+        _visualizerAnim.stop();
+      }
+    }
   }
 
   @override
   void dispose() {
+    _playerStateSub?.cancel();
     _visualizerAnim.dispose();
     _feedbackTimer?.cancel();
     _longPressSeekTimer?.cancel();
@@ -253,6 +272,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     }
     if (oldWidget.repeat != widget.repeat) {
       _repeat = widget.repeat;
+    }
+    if (oldWidget.player != widget.player) {
+      _playerStateSub?.cancel();
+      _syncVisualizerWithPlayer(widget.player.playerState);
+      _playerStateSub =
+          widget.player.playerStateStream.listen(_syncVisualizerWithPlayer);
     }
   }
 
@@ -588,6 +613,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               Icons.queue_music_rounded,
                               'Queue (${widget.queue?.length ?? 0})',
                             ),
+                            _buildDesktopTabButton(2, Icons.lyrics_rounded, 'Lyrics'),
                           ],
                         ),
                       ),
@@ -761,9 +787,28 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         return const PowerampEqualizerModal(isEmbedded: true);
       case 1:
         return _buildEmbeddedQueue();
+      case 2:
+        return _buildDesktopLyricsWorkstation();
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildDesktopLyricsWorkstation() {
+    return LyricsSyncViewer(
+      title: widget.title,
+      artist: widget.artist,
+      player: widget.player,
+      isEmbedded: true,
+    );
+  }
+
+  String _formatDuration(double seconds) {
+    if (seconds <= 0) return '';
+    final s = seconds.round();
+    final m = s ~/ 60;
+    final remS = s % 60;
+    return '$m:${remS.toString().padLeft(2, '0')}';
   }
 
   Widget _buildEmbeddedQueue() {
@@ -773,11 +818,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.queue_music_rounded, color: EverforestColors.grey, size: 40),
+            const Icon(Icons.queue_music_rounded,
+                color: EverforestColors.grey, size: 40),
             const SizedBox(height: 8),
             Text(
               'Queue is empty',
-              style: TextStyle(color: EverforestColors.grey.withValues(alpha: 0.8), fontSize: 13),
+              style: TextStyle(
+                  color: EverforestColors.grey.withValues(alpha: 0.8),
+                  fontSize: 13),
             ),
           ],
         ),
@@ -803,7 +851,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               if (widget.onClearQueue != null)
                 TextButton(
                   onPressed: widget.onClearQueue,
-                  child: const Text('Clear', style: TextStyle(color: EverforestColors.red, fontSize: 12)),
+                  child: const Text('Clear',
+                      style:
+                          TextStyle(color: EverforestColors.red, fontSize: 12)),
                 ),
             ],
           ),
@@ -818,47 +868,131 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             itemBuilder: (context, i) {
               final item = q[i];
               final isCurrent = i == widget.currentIndex;
+              final meta =
+                  MusicRepository.instance.getTrackMetadata(item.id);
+              final thumbUrl = item.thumbnail.isNotEmpty
+                  ? item.thumbnail
+                  : (meta?.thumbnail ?? '');
+              final durSec = meta?.duration ?? 0.0;
+              final durText =
+                  durSec > 0 ? _formatDuration(durSec) : '';
+
               return Material(
                 key: ValueKey('queue_item_${item.id}_$i'),
                 color: isCurrent
-                    ? EverforestColors.green.withValues(alpha: 0.12)
+                    ? EverforestColors.green.withValues(alpha: 0.14)
                     : Colors.transparent,
-                child: ListTile(
-                  dense: true,
-                  leading: isCurrent
-                      ? const Icon(Icons.volume_up_rounded, color: EverforestColors.green, size: 20)
-                      : Text(
-                          '${i + 1}',
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: isCurrent
+                        ? const Border(
+                            left: BorderSide(
+                              color: EverforestColors.green,
+                              width: 3.5,
+                            ),
+                          )
+                        : null,
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 2),
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Center(
+                            child: isCurrent
+                                ? const Icon(Icons.volume_up_rounded,
+                                    color: EverforestColors.green, size: 18)
+                                : Text(
+                                    '${i + 1}',
+                                    style: const TextStyle(
+                                        color: EverforestColors.grey,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                          ),
                         ),
-                  title: Text(
-                    item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: isCurrent ? EverforestColors.green : EverforestColors.fg,
-                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 13,
+                        const SizedBox(width: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            color: EverforestColors.bg0,
+                            child: thumbUrl.isNotEmpty
+                                ? Image.network(
+                                    thumbUrl,
+                                    width: 38,
+                                    height: 38,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.music_note_rounded,
+                                      color: EverforestColors.grey,
+                                      size: 18,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.music_note_rounded,
+                                    color: EverforestColors.grey,
+                                    size: 18,
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
+                    title: Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isCurrent
+                            ? EverforestColors.green
+                            : EverforestColors.fg,
+                        fontWeight:
+                            isCurrent ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    subtitle: Text(
+                      item.artist.isNotEmpty ? item.artist : 'LifeOS Library',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: EverforestColors.grey, fontSize: 11),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (durText.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              durText,
+                              style: const TextStyle(
+                                color: EverforestColors.grey,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        if (widget.onRemove != null)
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded,
+                                color: EverforestColors.grey, size: 16),
+                            tooltip: 'Remove from queue',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => widget.onRemove!(i),
+                          ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.drag_handle_rounded,
+                            color: EverforestColors.grey, size: 18),
+                      ],
+                    ),
+                    onTap: () => widget.onPlayIndex?.call(i),
                   ),
-                  subtitle: Text(
-                    item.artist,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.onRemove != null)
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded, color: EverforestColors.grey, size: 16),
-                          onPressed: () => widget.onRemove!(i),
-                        ),
-                      const Icon(Icons.drag_handle_rounded, color: EverforestColors.grey, size: 18),
-                    ],
-                  ),
-                  onTap: () => widget.onPlayIndex?.call(i),
                 ),
               );
             },
@@ -923,18 +1057,24 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             const SizedBox(height: 12),
             // Drag Handle with Fling Down Dismiss
             GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onVerticalDragEnd: (details) {
-                if (details.primaryVelocity != null && details.primaryVelocity! > 150) {
+                if (details.primaryVelocity != null &&
+                    details.primaryVelocity! > 150) {
                   Navigator.pop(context);
                 }
               },
-              child: Center(
-                child: Container(
-                  width: 48,
-                  height: 4.5,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(3),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 48),
+                child: Center(
+                  child: Container(
+                    width: 48,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
                 ),
               ),
@@ -1095,53 +1235,61 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   Widget _buildHeroCard({required double cardSize}) {
+    final isLyricsMode = _cardMode == NowPlayingCardMode.lyrics;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
-          onTap: _cycleCardMode,
-          onDoubleTapDown: (details) {
-            final xFraction = details.localPosition.dx / constraints.maxWidth;
-            if (xFraction < 0.35) {
-              _seekRelative(const Duration(seconds: -10));
-            } else if (xFraction > 0.65) {
-              _seekRelative(const Duration(seconds: 10));
-            } else {
-              if (widget.player.playing) {
-                widget.player.pause();
-                _showFeedback('Paused', Icons.pause_rounded);
-              } else {
-                widget.player.play();
-                _showFeedback('Playing', Icons.play_arrow_rounded);
-              }
-            }
-          },
-          onLongPress: () => TrackMetadataModal.show(
-            context,
-            title: widget.title,
-            artist: widget.artist,
-            album: widget.album,
-            trackId: widget.trackId,
-            url: widget.streamUrl,
-            duration: widget.player.duration ?? Duration.zero,
-          ),
-          onVerticalDragUpdate: (details) {
-            final delta = -details.primaryDelta! / 200.0;
-            _adjustVolume(delta);
-          },
-          onVerticalDragEnd: (details) {
-            if (details.primaryVelocity != null && details.primaryVelocity! > 250) {
-              Navigator.pop(context);
-            }
-          },
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity != null) {
-              if (details.primaryVelocity! < -200) {
-                widget.onNext();
-              } else if (details.primaryVelocity! > 200) {
-                widget.onPrev();
-              }
-            }
-          },
+          behavior: HitTestBehavior.translucent,
+          onTap: isLyricsMode ? null : _cycleCardMode,
+          onDoubleTapDown: isLyricsMode
+              ? null
+              : (details) {
+                  final xFraction =
+                      details.localPosition.dx / constraints.maxWidth;
+                  if (xFraction < 0.35) {
+                    _seekRelative(const Duration(seconds: -10));
+                  } else if (xFraction > 0.65) {
+                    _seekRelative(const Duration(seconds: 10));
+                  } else {
+                    if (widget.player.playing) {
+                      widget.player.pause();
+                      _showFeedback('Paused', Icons.pause_rounded);
+                    } else {
+                      widget.player.play();
+                      _showFeedback('Playing', Icons.play_arrow_rounded);
+                    }
+                  }
+                },
+          onLongPress: isLyricsMode
+              ? null
+              : () => TrackMetadataModal.show(
+                    context,
+                    title: widget.title,
+                    artist: widget.artist,
+                    album: widget.album,
+                    trackId: widget.trackId,
+                    url: widget.streamUrl,
+                    duration: widget.player.duration ?? Duration.zero,
+                  ),
+          onVerticalDragUpdate: isLyricsMode
+              ? null
+              : (details) {
+                  final delta = -details.primaryDelta! / 200.0;
+                  _adjustVolume(delta);
+                },
+          onVerticalDragEnd: null,
+          onHorizontalDragEnd: isLyricsMode
+              ? null
+              : (details) {
+                  if (details.primaryVelocity != null) {
+                    if (details.primaryVelocity! < -200) {
+                      widget.onNext();
+                    } else if (details.primaryVelocity! > 200) {
+                      widget.onPrev();
+                    }
+                  }
+                },
           child: Stack(
             alignment: Alignment.center,
             children: [
