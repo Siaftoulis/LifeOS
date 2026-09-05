@@ -13,6 +13,8 @@ import '../audio_dsp_service.dart';
 class PlaybackEngine {
   AudioPlayer? _player;
   bool _disposed = false;
+  bool _hasEqualizerPipeline = false;
+  void Function(AudioPlayer)? onPlayerChanged;
 
   bool get isAvailable => !kIsWeb && !_disposed;
 
@@ -20,28 +22,108 @@ class PlaybackEngine {
 
   /// Creates the shared player once, wiring the platform audio pipeline
   /// (Android EQ etc.) and attaching DSP.
-  Future<void> init() async {
+  Future<void> init({bool withPipeline = true}) async {
     if (!isAvailable) return;
     if (_player != null) return;
+    try {
+      if (withPipeline) {
+        _player = AudioPlayer(
+          audioPipeline: AudioDspService.instance.buildAudioPipeline(),
+          androidApplyAudioAttributes: true,
+          handleInterruptions: true,
+        );
+        _hasEqualizerPipeline = true;
+      } else {
+        _player = AudioPlayer(
+          androidApplyAudioAttributes: true,
+          handleInterruptions: true,
+        );
+        _hasEqualizerPipeline = false;
+      }
+    } catch (e) {
+      debugPrint('PlaybackEngine init error: $e, falling back to plain player');
+      _player = AudioPlayer(
+        androidApplyAudioAttributes: true,
+        handleInterruptions: true,
+      );
+      _hasEqualizerPipeline = false;
+    }
+    AudioDspService.instance.attachPlayer(_player!);
+    onPlayerChanged?.call(_player!);
+  }
+
+  Future<void> _reinitWithoutPipeline() async {
+    final old = _player;
+    _player = null;
+    if (old != null) {
+      try {
+        await old.stop();
+      } catch (_) {}
+      try {
+        await old.dispose();
+      } catch (_) {}
+    }
+    _hasEqualizerPipeline = false;
+    AudioDspService.instance.disableHardwareEq();
     _player = AudioPlayer(
-      audioPipeline: AudioDspService.instance.buildAudioPipeline(),
       androidApplyAudioAttributes: true,
       handleInterruptions: true,
     );
     AudioDspService.instance.attachPlayer(_player!);
+    onPlayerChanged?.call(_player!);
+  }
+
+  Future<void> _loadSource(AudioPlayer p, String url) async {
+    if (url.startsWith('file://')) {
+      final filePath = Uri.parse(url).toFilePath();
+      await p.setFilePath(filePath);
+    } else if (url.startsWith('/') || (url.length > 2 && url[1] == ':')) {
+      await p.setFilePath(url);
+    } else {
+      await p.setUrl(url);
+    }
   }
 
   Future<void> setUrl(String url) async {
+    if (_player == null) await init();
     final p = _player;
     if (p == null) return;
-    await p.setUrl(url);
+    try {
+      await _loadSource(p, url);
+    } catch (e) {
+      debugPrint('PlaybackEngine setUrl error: $e');
+      if (_hasEqualizerPipeline) {
+        debugPrint('PlaybackEngine: retrying without hardware audio effects pipeline for device compatibility');
+        await _reinitWithoutPipeline();
+        final fallbackPlayer = _player;
+        if (fallbackPlayer != null) {
+          await _loadSource(fallbackPlayer, url);
+        }
+      } else {
+        rethrow;
+      }
+    }
     AudioDspService.instance.reapply();
   }
 
   Future<void> play() async {
     final p = _player;
     if (p == null) return;
-    await p.play();
+    try {
+      await p.play();
+    } catch (e) {
+      debugPrint('PlaybackEngine play() error: $e');
+      if (_hasEqualizerPipeline) {
+        debugPrint('PlaybackEngine: play() failed with pipeline, reinitializing without pipeline');
+        await _reinitWithoutPipeline();
+        final fallback = _player;
+        if (fallback != null) {
+          await fallback.play();
+          return;
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<void> pause() async {

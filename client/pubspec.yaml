@@ -1,7 +1,7 @@
 name: lifeos_client
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.5.14+52
+version: 1.5.15+53
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -95,4 +95,5 @@ flutter:
     - assets/version.json
     - assets/prayers_core.json
     - assets/prayers/
+
 

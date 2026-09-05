@@ -370,6 +370,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   String _streamUrlFor(String trackId) {
+    final offline = MusicRepository.instance.offlineFilePath(trackId);
+    if (offline != null && offline.isNotEmpty) {
+      return offline;
+    }
     return '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=$trackId';
   }
 

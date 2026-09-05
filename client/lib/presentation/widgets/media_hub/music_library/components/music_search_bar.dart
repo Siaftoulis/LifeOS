@@ -215,14 +215,20 @@ class MusicSearchResults extends StatelessWidget {
     );
   }
 
-  PlaybackItem _itemFromTrack(MusicTrack t) => PlaybackItem(
-        id: t.id,
-        url: '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${t.id}',
-        title: t.title,
-        artist: t.artist,
-        thumbnail: t.thumbnail,
-        album: t.album,
-      );
+  PlaybackItem _itemFromTrack(MusicTrack t) {
+    final offline = MusicRepository.instance.offlineFilePath(t.id);
+    final url = (offline != null && offline.isNotEmpty)
+        ? offline
+        : '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${t.id}';
+    return PlaybackItem(
+      id: t.id,
+      url: url,
+      title: t.title,
+      artist: t.artist,
+      thumbnail: t.thumbnail,
+      album: t.album,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

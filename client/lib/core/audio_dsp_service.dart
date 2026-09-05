@@ -31,6 +31,7 @@ class AudioDspService {
   AndroidEqualizer? _androidEqualizer;
   AudioPlayer? _activePlayer;
   bool _prefsLoaded = false;
+  bool _hardwareEqSupported = true;
 
   final _changeController = StreamController<void>.broadcast();
   Stream<void> get onDspChanged => _changeController.stream;
@@ -41,6 +42,12 @@ class AudioDspService {
   double get trebleBoost => _trebleBoost;
   double get spatial3d => _spatial3d;
   List<double> get bands => List.unmodifiable(_bands);
+
+  /// Disables Android hardware EQ if the device sound system rejects it.
+  void disableHardwareEq() {
+    _hardwareEqSupported = false;
+    _androidEqualizer = null;
+  }
 
   /// Whether this platform can actually apply DSP to the audio output.
   bool get isSupportedOnPlatform {
@@ -58,9 +65,16 @@ class AudioDspService {
   /// Builds the just_audio [AudioPipeline] for the platform. MUST be called
   /// once before the [AudioPlayer] is constructed so EQ effects attach.
   AudioPipeline buildAudioPipeline() {
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      _androidEqualizer = AndroidEqualizer();
-      return AudioPipeline(androidAudioEffects: [_androidEqualizer!]);
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android && _hardwareEqSupported) {
+      try {
+        _androidEqualizer = AndroidEqualizer();
+        return AudioPipeline(androidAudioEffects: [_androidEqualizer!]);
+      } catch (e) {
+        debugPrint('AudioDspService: AndroidEqualizer unavailable on this device: $e');
+        _androidEqualizer = null;
+        _hardwareEqSupported = false;
+        return AudioPipeline();
+      }
     }
     return AudioPipeline();
   }
@@ -207,6 +221,7 @@ class AudioDspService {
   }
 
   Future<void> _applyAndroidEq() async {
+    if (!_hardwareEqSupported) return;
     final eq = _androidEqualizer;
     if (eq == null || _activePlayer == null) return;
     try {

@@ -42,18 +42,14 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
   @override
   void dispose() {
     _pageController.dispose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     super.dispose();
   }
 
   void _toggleImmersive() {
     setState(() {
       _isImmersive = !_isImmersive;
-      if (_isImmersive) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      } else {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      }
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     });
   }
 

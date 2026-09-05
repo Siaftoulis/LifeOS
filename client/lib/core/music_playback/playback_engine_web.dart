@@ -6,6 +6,7 @@ class PlaybackEngine {
   bool get isAvailable => false;
 
   dynamic get player => null;
+  void Function(dynamic)? onPlayerChanged;
 
   Future<void> init() async {}
 

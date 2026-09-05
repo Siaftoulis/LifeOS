@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'database/preferences_service.dart';
 import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
@@ -15,7 +17,7 @@ class LifeOSMainApp extends StatefulWidget {
   State<LifeOSMainApp> createState() => _LifeOSMainAppState();
 }
 
-class _LifeOSMainAppState extends State<LifeOSMainApp> {
+class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserver {
   bool _isUnlocked = false;
   final _pollService = NotificationPollService();
   final _sessionGuard = WebSessionGuard(onExpire: () => AuthService.instance.logout());
@@ -23,6 +25,10 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
     if (AuthService.isLocalhost) {
       AuthService.instance.ensureLocalhostUser();
       _isUnlocked = true;
@@ -35,7 +41,15 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     AuthService.instance.currentUser.removeListener(_handleAuthChange);
     _pollService.stop();
     P2PTransferService.instance.onReceiveRequest = null;

@@ -38,21 +38,33 @@ class PlaybackController extends ChangeNotifier {
   StreamSubscription<dynamic>? _playerStateSub;
   final Random _rng = Random();
 
-  /// Lazily initializes the engine (called from the music UI initState).
-  Future<void> ensureInitialized() async {
-    if (!isAvailable) return;
-    await playbackEngine.init();
-    _processingSub ??= player?.processingStateStream.listen((state) {
+  void _bindPlayerStreams() {
+    _processingSub?.cancel();
+    _playerStateSub?.cancel();
+    final p = player;
+    if (p == null) return;
+    _processingSub = p.processingStateStream.listen((state) {
       if (state == ProcessingState.completed) {
         _onTrackCompleted();
       }
     });
-    _playerStateSub ??= player?.playerStateStream.listen((state) {
+    _playerStateSub = p.playerStateStream.listen((state) {
       if (state.playing) {
         _isLoadingTrack = false;
         _watchdogTimer?.cancel();
       }
     });
+  }
+
+  /// Lazily initializes the engine (called from the music UI initState).
+  Future<void> ensureInitialized() async {
+    if (!isAvailable) return;
+    playbackEngine.onPlayerChanged = (_) {
+      _bindPlayerStreams();
+      notifyListeners();
+    };
+    await playbackEngine.init();
+    _bindPlayerStreams();
   }
 
   // ---------------------------------------------------------------- queue

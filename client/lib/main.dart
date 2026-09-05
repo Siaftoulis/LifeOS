@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:window_manager/window_manager.dart';
@@ -41,6 +42,7 @@ Future<void> main([List<String> args = const []]) async {
       unawaited(FlutterDisplayMode.setHighRefreshRate().catchError((e) {
         debugPrint('Failed to set high refresh rate: $e');
       }));
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
 
     if (!kIsWeb && args.contains('multi_window')) {

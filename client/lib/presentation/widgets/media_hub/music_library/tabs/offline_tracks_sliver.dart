@@ -57,7 +57,7 @@ class OfflineTracksSliver extends StatelessWidget {
                   .map((x) => PlaybackItem(
                         id: x.id,
                         url: x.filePath.isNotEmpty
-                            ? Uri.file(x.filePath).toString()
+                            ? x.filePath
                             : streamUrlFor(x.id),
                         title: x.title,
                         artist: x.artist ?? '',
