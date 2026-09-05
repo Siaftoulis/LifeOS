@@ -38,15 +38,43 @@ class MusicRepository extends DaemonRepository {
   final ValueNotifier<List<DownloadQueueItem>> downloadQueue =
       ValueNotifier(const []);
 
+  /// Known track metadata cache for resolving titles/artists/thumbnails in queue & UI.
+  final Map<String, MusicTrack> knownTrackMetadata = {};
+
+  void rememberTrack(MusicTrack track) {
+    if (track.id.isNotEmpty) {
+      knownTrackMetadata[track.id] = track;
+    }
+  }
+
+  void rememberTracks(Iterable<MusicTrack> newTracks) {
+    for (final t in newTracks) {
+      if (t.id.isNotEmpty) knownTrackMetadata[t.id] = t;
+    }
+  }
+
+  MusicTrack? getTrackMetadata(String trackId) {
+    if (knownTrackMetadata.containsKey(trackId)) return knownTrackMetadata[trackId];
+    for (final t in tracks.value) {
+      if (t.id == trackId) {
+        knownTrackMetadata[trackId] = t;
+        return t;
+      }
+    }
+    return null;
+  }
+
   @override
   Future<void> load() async {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/tracks');
       if (res is List) {
-        tracks.value = res
+        final loaded = res
             .whereType<Map>()
             .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        tracks.value = loaded;
+        rememberTracks(loaded);
       }
     } catch (_) {
       // daemon offline: keep last known list
@@ -136,10 +164,12 @@ class MusicRepository extends DaemonRepository {
       final res = await ApiClient.instance
           .postDaemonSlow('/api/v1/music/search', {'query': query});
       if (res is List) {
-        return res
+        final list = res
             .whereType<Map>()
             .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        rememberTracks(list);
+        return list;
       }
     } catch (e) {
       debugPrint('Music search error: $e');
@@ -149,12 +179,14 @@ class MusicRepository extends DaemonRepository {
 
   /// Download a search result to the daemon's library (artist folders).
   Future<void> download(MusicTrack track) async {
+    rememberTrack(track);
     try {
       await ApiClient.instance.postDaemon('/api/v1/music/download', {
         'video_id': track.id,
         'thumbnail': track.thumbnail,
       });
       TelemetryReporter.instance.track('music', 'download_started', {'track_id': track.id});
+      await loadDownloadQueue();
     } catch (_) {}
   }
 
@@ -361,7 +393,33 @@ class MusicRepository extends DaemonRepository {
       if (res is List) {
         downloadQueue.value = res
             .whereType<Map>()
-            .map((m) => DownloadQueueItem.fromJson(Map<String, dynamic>.from(m)))
+            .map((m) {
+              final item = DownloadQueueItem.fromJson(Map<String, dynamic>.from(m));
+              final meta = getTrackMetadata(item.trackId);
+              if (meta != null && (item.customTitle == null || item.customTitle!.isEmpty)) {
+                return DownloadQueueItem(
+                  id: item.id,
+                  trackId: item.trackId,
+                  url: item.url,
+                  destinationPath: item.destinationPath,
+                  status: item.status,
+                  priority: item.priority,
+                  retryCount: item.retryCount,
+                  totalBytes: item.totalBytes,
+                  downloadedBytes: item.downloadedBytes,
+                  errorMessage: item.errorMessage,
+                  wifiOnly: item.wifiOnly,
+                  chargingOnly: item.chargingOnly,
+                  createdAt: item.createdAt,
+                  startedAt: item.startedAt,
+                  completedAt: item.completedAt,
+                  customTitle: meta.title,
+                  customArtist: meta.artist,
+                  customThumbnail: meta.thumbnail,
+                );
+              }
+              return item;
+            })
             .toList();
       }
     } catch (e) {

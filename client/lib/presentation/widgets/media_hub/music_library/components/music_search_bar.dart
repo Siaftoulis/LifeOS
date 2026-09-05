@@ -212,78 +212,103 @@ class MusicSearchResults extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 120),
-      itemCount: results.length,
-      itemBuilder: (context, i) {
-        final t = results[i];
-        final alreadyDownloaded = MusicRepository.instance.tracks.value
-            .any((track) => track.id == t.id);
-        return ListTile(
-          leading: _thumbnail(t.thumbnail, 48),
-          title: Text(t.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  color: EverforestColors.fg, fontWeight: FontWeight.w600)),
-          subtitle: Text(
-            '${t.artist}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HeartButton(track: t, size: 20),
-              const SizedBox(width: 4),
-              if (alreadyDownloaded)
-                const Icon(Icons.check_circle_rounded,
-                    color: EverforestColors.green)
-              else if (downloading.contains(t.id))
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: EverforestColors.green),
-                  ),
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.download_rounded,
-                      color: EverforestColors.green),
-                  onPressed: () => onDownload(t),
-                ),
-              if (onAddToPlaylist != null)
-                IconButton(
-                  icon: const Icon(Icons.playlist_add_rounded,
-                      color: EverforestColors.grey, size: 22),
-                  tooltip: 'Add to Playlist',
-                  onPressed: () => onAddToPlaylist!(t),
-                ),
-              if (canPlay)
-                IconButton(
-                  icon: const Icon(Icons.play_circle_fill_rounded,
-                      color: EverforestColors.fg, size: 32),
-                  onPressed: () => playbackController.playQueue(
-                      results.map(_itemFromTrack).toList(),
-                      startIndex: i),
-                )
-              else
-                const Tooltip(
-                  message: 'Playback is available in the LifeOS native app',
-                  child: Icon(
-                    Icons.phonelink_lock_rounded,
-                    color: EverforestColors.grey,
-                    size: 22,
-                  ),
-                ),
-            ],
-          ),
-          onTap: canPlay
-              ? () => playbackController
-                  .playQueue(results.map(_itemFromTrack).toList(), startIndex: i)
-              : onWebNotice,
+    final isWide = MediaQuery.of(context).size.width >= 720;
+    return ValueListenableBuilder<List<DownloadQueueItem>>(
+      valueListenable: MusicRepository.instance.downloadQueue,
+      builder: (context, queue, _) {
+        final activeQueueIds = queue
+            .where((q) =>
+                q.status.toUpperCase() == 'PENDING' ||
+                q.status.toUpperCase() == 'DOWNLOADING')
+            .map((q) => q.trackId)
+            .toSet();
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 120),
+          itemCount: results.length,
+          itemBuilder: (context, i) {
+            final t = results[i];
+            final alreadyDownloaded = MusicRepository.instance.tracks.value
+                .any((track) => track.id == t.id);
+            final isItemDownloading =
+                activeQueueIds.contains(t.id) || downloading.contains(t.id);
+
+            return ListTile(
+              leading: _thumbnail(t.thumbnail, 48),
+              title: Text(t.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: EverforestColors.fg, fontWeight: FontWeight.w600)),
+              subtitle: Text(
+                '${t.artist}${t.duration > 0 ? ' · ${_fmt(t.duration)}' : ''}',
+                style:
+                    const TextStyle(color: EverforestColors.grey, fontSize: 13),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HeartButton(track: t, size: 20),
+                  const SizedBox(width: 4),
+                  if (alreadyDownloaded)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(Icons.check_circle_rounded,
+                          color: EverforestColors.green, size: 20),
+                    )
+                  else if (isItemDownloading)
+                    const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: EverforestColors.green),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.download_rounded,
+                          color: EverforestColors.green),
+                      tooltip: 'Download to Library',
+                      onPressed: () => onDownload(t),
+                    ),
+                  if (onAddToPlaylist != null)
+                    IconButton(
+                      icon: const Icon(Icons.playlist_add_rounded,
+                          color: EverforestColors.grey, size: 22),
+                      tooltip: 'Add to Playlist',
+                      onPressed: () => onAddToPlaylist!(t),
+                    ),
+                  if (isWide) ...[
+                    if (canPlay)
+                      IconButton(
+                        icon: const Icon(Icons.play_circle_fill_rounded,
+                            color: EverforestColors.fg, size: 30),
+                        tooltip: 'Play',
+                        onPressed: () => playbackController.playQueue(
+                            results.map(_itemFromTrack).toList(),
+                            startIndex: i),
+                      )
+                    else
+                      const Tooltip(
+                        message:
+                            'Playback is available in the LifeOS native app',
+                        child: Icon(
+                          Icons.phonelink_lock_rounded,
+                          color: EverforestColors.grey,
+                          size: 20,
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+              onTap: canPlay
+                  ? () => playbackController
+                      .playQueue(results.map(_itemFromTrack).toList(), startIndex: i)
+                  : onWebNotice,
+            );
+          },
         );
       },
     );

@@ -59,7 +59,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   String? _searchError;
   Timer? _debounceTimer;
 
-  String _currentTitle = 'Nothing playing';
+  String _currentTitle = '';
   String _currentArtist = '';
   String _currentAlbum = '';
   String _currentTrackId = '';
@@ -70,6 +70,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   final Set<String> _offlineDownloading = {};
 
   bool get _canPlay => !kIsWeb;
+  bool get _hasActivePlayback =>
+      _canPlay && _currentTrackId.isNotEmpty && _pc.currentItem != null;
   PlaybackController get _pc => PlaybackController.instance;
 
   int _libraryTab = 0;
@@ -85,13 +87,28 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     MusicRepository.instance.refresh();
     MusicRepository.instance.loadOffline();
     MusicRepository.instance.tracks.addListener(_tracksChanged);
+    MusicRepository.instance.downloadQueue.addListener(_downloadQueueChanged);
     _pc.addListener(_playbackChanged);
     _playbackChanged();
   }
 
   void _playbackChanged() {
     final item = _pc.currentItem;
-    if (!mounted || item == null || item.id == _currentTrackId) return;
+    if (!mounted) return;
+    if (item == null) {
+      if (_currentTrackId.isNotEmpty) {
+        setState(() {
+          _currentTrackId = '';
+          _currentStreamUrl = '';
+          _currentTitle = '';
+          _currentArtist = '';
+          _currentAlbum = '';
+          _currentThumbnail = '';
+        });
+      }
+      return;
+    }
+    if (item.id == _currentTrackId) return;
     setState(() {
       _currentTrackId = item.id;
       _currentStreamUrl = item.url;
@@ -113,10 +130,29 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
   }
 
+  void _downloadQueueChanged() {
+    if (!mounted) return;
+    final queue = MusicRepository.instance.downloadQueue.value;
+    final finishedOrFailed = queue
+        .where((q) {
+          final s = q.status.toUpperCase();
+          return s == 'COMPLETED' || s == 'FAILED' || s == 'CANCELLED';
+        })
+        .map((q) => q.trackId)
+        .toSet();
+
+    if (_downloading.any(finishedOrFailed.contains)) {
+      setState(() {
+        _downloading.removeWhere(finishedOrFailed.contains);
+      });
+    }
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
     MusicRepository.instance.tracks.removeListener(_tracksChanged);
+    MusicRepository.instance.downloadQueue.removeListener(_downloadQueueChanged);
     _pc.removeListener(_playbackChanged);
     _searchCtrl.dispose();
     super.dispose();
@@ -193,9 +229,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           ),
         );
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _downloading.remove(track.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Download failed: $e'),
+            backgroundColor: EverforestColors.red,
+          ),
+        );
       }
     }
   }
@@ -305,6 +347,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         onRemove: _pc.removeAt,
         onClearQueue: _pc.clearQueue,
         onReorder: _pc.reorderQueue,
+        repeat: _pc.repeat,
+        shuffle: _pc.shuffle,
+        onRepeatChanged: (mode) => _pc.setRepeat(mode),
+        onShuffleChanged: (mode) => _pc.setShuffle(mode),
       ),
     );
   }
@@ -816,7 +862,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 playbackController: _pc,
               ),
             SliverToBoxAdapter(
-                child: SizedBox(height: _canPlay ? 130 : 24)),
+                child: SizedBox(height: _hasActivePlayback ? 130 : 24)),
           ],
         );
       },
@@ -865,7 +911,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
               ),
             ],
           ),
-          if (_canPlay)
+          if (_hasActivePlayback)
             Positioned(
               left: 14,
               right: 14,

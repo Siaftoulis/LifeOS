@@ -197,6 +197,12 @@ class PlaybackController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setShuffle(bool enabled) {
+    if (_state.shuffle == enabled) return;
+    _state = _state.copyWith(shuffle: enabled);
+    notifyListeners();
+  }
+
   void removeAt(int index) {
     final q = List<PlaybackItem>.of(_state.queue);
     if (index < 0 || index >= q.length) return;

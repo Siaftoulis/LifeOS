@@ -49,7 +49,11 @@ class MusicMiniPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = playbackController.player;
-    if (player == null) return const SizedBox.shrink();
+    if (player == null ||
+        currentTrackId.isEmpty ||
+        playbackController.currentItem == null) {
+      return const SizedBox.shrink();
+    }
 
     return GestureDetector(
       onTap: onTap,

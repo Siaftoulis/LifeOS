@@ -126,6 +126,8 @@ class TrackTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= 720;
+
     return ListTile(
       leading: GestureDetector(
         onTap: () => _showMetadata(context),
@@ -150,8 +152,11 @@ class TrackTile extends StatelessWidget {
           HeartButton(track: track, size: 20),
           const SizedBox(width: 4),
           if (isOfflineLocal)
-            const Icon(Icons.download_done_rounded,
-                color: EverforestColors.green, size: 20)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(Icons.download_done_rounded,
+                  color: EverforestColors.green, size: 20),
+            )
           else if (isDownloadingOffline)
             const Padding(
               padding: EdgeInsets.all(10),
@@ -169,37 +174,90 @@ class TrackTile extends StatelessWidget {
               tooltip: 'Save to this device (offline)',
               onPressed: () => onDownloadOffline(track),
             ),
-          if (onAddToPlaylist != null)
+          if (isWide) ...[
+            if (onAddToPlaylist != null)
+              IconButton(
+                icon: const Icon(Icons.playlist_add_rounded,
+                    color: EverforestColors.grey, size: 22),
+                tooltip: 'Add to Playlist',
+                onPressed: onAddToPlaylist,
+              ),
             IconButton(
-              icon: const Icon(Icons.playlist_add_rounded,
-                  color: EverforestColors.grey, size: 22),
-              tooltip: 'Add to Playlist',
-              onPressed: onAddToPlaylist,
-            ),
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded,
-                color: EverforestColors.grey, size: 20),
-            tooltip: 'Inspect Audio Specs',
-            onPressed: () => _showMetadata(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded,
-                color: EverforestColors.grey, size: 20),
-            tooltip: 'Delete Song',
-            onPressed: () => onDeleteTrack(track),
-          ),
-          if (canPlay)
-            IconButton(
-              icon: const Icon(Icons.play_circle_fill_rounded,
-                  color: EverforestColors.fg, size: 32),
-              onPressed: () => onPlay(currentList, index),
-            )
-          else
-            const Tooltip(
-              message: 'Playback is available in the LifeOS native app',
-              child: Icon(Icons.phonelink_lock_rounded,
+              icon: const Icon(Icons.info_outline_rounded,
                   color: EverforestColors.grey, size: 20),
+              tooltip: 'Inspect Audio Specs',
+              onPressed: () => _showMetadata(context),
             ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded,
+                  color: EverforestColors.red, size: 20),
+              tooltip: 'Delete Song',
+              onPressed: () => onDeleteTrack(track),
+            ),
+          ] else ...[
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded,
+                  color: EverforestColors.grey, size: 20),
+              tooltip: 'More actions',
+              color: EverforestColors.bg1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              onSelected: (val) {
+                if (val == 'playlist') {
+                  onAddToPlaylist?.call();
+                } else if (val == 'specs') {
+                  _showMetadata(context);
+                } else if (val == 'delete') {
+                  onDeleteTrack(track);
+                }
+              },
+              itemBuilder: (ctx) => [
+                if (onAddToPlaylist != null)
+                  const PopupMenuItem(
+                    value: 'playlist',
+                    child: Row(
+                      children: [
+                        Icon(Icons.playlist_add_rounded,
+                            color: EverforestColors.fg, size: 20),
+                        SizedBox(width: 10),
+                        Text('Add to Playlist',
+                            style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                const PopupMenuItem(
+                  value: 'specs',
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded,
+                          color: EverforestColors.fg, size: 20),
+                      SizedBox(width: 10),
+                      Text('Audio Specs & Info',
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(height: 8),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline_rounded,
+                          color: EverforestColors.red, size: 20),
+                      SizedBox(width: 10),
+                      Text('Delete from Library',
+                          style: TextStyle(
+                              color: EverforestColors.red,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
       onTap: canPlay ? () => onPlay(currentList, index) : onWebNotice,

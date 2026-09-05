@@ -245,14 +245,28 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     });
   }
 
+  @override
+  void didUpdateWidget(covariant PowerampNowPlayingSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shuffle != widget.shuffle) {
+      _isShuffle = widget.shuffle;
+    }
+    if (oldWidget.repeat != widget.repeat) {
+      _repeat = widget.repeat;
+    }
+  }
+
   void _toggleLoopMode() {
     setState(() {
       if (_repeat == PlaybackRepeat.off) {
         _repeat = PlaybackRepeat.all;
+        _showFeedback('Repeat All', Icons.repeat_rounded);
       } else if (_repeat == PlaybackRepeat.all) {
         _repeat = PlaybackRepeat.one;
+        _showFeedback('Repeat One', Icons.repeat_one_rounded);
       } else {
         _repeat = PlaybackRepeat.off;
+        _showFeedback('Repeat Off', Icons.repeat_rounded);
       }
       widget.onRepeatChanged?.call(_repeat);
     });
@@ -261,6 +275,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   void _toggleShuffle() {
     setState(() {
       _isShuffle = !_isShuffle;
+      _showFeedback(_isShuffle ? 'Shuffle On' : 'Shuffle Off', Icons.shuffle_rounded);
       widget.onShuffleChanged?.call(_isShuffle);
     });
   }

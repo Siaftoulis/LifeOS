@@ -187,6 +187,9 @@ class DownloadQueueItem {
     required this.createdAt,
     this.startedAt,
     this.completedAt,
+    this.customTitle,
+    this.customArtist,
+    this.customThumbnail,
   });
 
   factory DownloadQueueItem.fromJson(Map<String, dynamic> json) => DownloadQueueItem(
@@ -205,6 +208,9 @@ class DownloadQueueItem {
         createdAt: (json['created_at'] as num?)?.toInt() ?? 0,
         startedAt: (json['started_at'] as num?)?.toInt(),
         completedAt: (json['completed_at'] as num?)?.toInt(),
+        customTitle: json['title']?.toString(),
+        customArtist: json['artist']?.toString(),
+        customThumbnail: json['thumbnail']?.toString() ?? json['thumbnail_url']?.toString(),
       );
 
   final String id;
@@ -222,12 +228,86 @@ class DownloadQueueItem {
   final int createdAt;
   final int? startedAt;
   final int? completedAt;
+  final String? customTitle;
+  final String? customArtist;
+  final String? customThumbnail;
 
-  String get title => trackId;
-  String get artist => '';
+  String get title => (customTitle != null && customTitle!.isNotEmpty) ? customTitle! : trackId;
+  String get artist => customArtist ?? '';
+  String get thumbnail => customThumbnail ?? '';
+
+  String displayTitle([Map<String, MusicTrack>? metadataCache]) {
+    if (customTitle != null && customTitle!.isNotEmpty) return customTitle!;
+    if (metadataCache != null && metadataCache.containsKey(trackId)) {
+      final t = metadataCache[trackId]!;
+      if (t.title.isNotEmpty) return t.title;
+    }
+    return trackId;
+  }
+
+  String displayArtist([Map<String, MusicTrack>? metadataCache]) {
+    if (customArtist != null && customArtist!.isNotEmpty) return customArtist!;
+    if (metadataCache != null && metadataCache.containsKey(trackId)) {
+      final t = metadataCache[trackId]!;
+      if (t.artist.isNotEmpty) return t.artist;
+    }
+    return 'LifeOS Library';
+  }
+
+  String displayThumbnail([Map<String, MusicTrack>? metadataCache]) {
+    if (customThumbnail != null && customThumbnail!.isNotEmpty) return customThumbnail!;
+    if (metadataCache != null && metadataCache.containsKey(trackId)) {
+      final t = metadataCache[trackId]!;
+      if (t.thumbnail.isNotEmpty) return t.thumbnail;
+    }
+    return '';
+  }
+
   double? get progress => (totalBytes != null && totalBytes! > 0)
       ? (downloadedBytes / totalBytes!).clamp(0.0, 1.0)
       : null;
+
+  DownloadQueueItem copyWith({
+    String? id,
+    String? trackId,
+    String? url,
+    String? destinationPath,
+    String? status,
+    int? priority,
+    int? retryCount,
+    int? totalBytes,
+    int? downloadedBytes,
+    String? errorMessage,
+    bool? wifiOnly,
+    bool? chargingOnly,
+    int? createdAt,
+    int? startedAt,
+    int? completedAt,
+    String? customTitle,
+    String? customArtist,
+    String? customThumbnail,
+  }) {
+    return DownloadQueueItem(
+      id: id ?? this.id,
+      trackId: trackId ?? this.trackId,
+      url: url ?? this.url,
+      destinationPath: destinationPath ?? this.destinationPath,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      retryCount: retryCount ?? this.retryCount,
+      totalBytes: totalBytes ?? this.totalBytes,
+      downloadedBytes: downloadedBytes ?? this.downloadedBytes,
+      errorMessage: errorMessage ?? this.errorMessage,
+      wifiOnly: wifiOnly ?? this.wifiOnly,
+      chargingOnly: chargingOnly ?? this.chargingOnly,
+      createdAt: createdAt ?? this.createdAt,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
+      customTitle: customTitle ?? this.customTitle,
+      customArtist: customArtist ?? this.customArtist,
+      customThumbnail: customThumbnail ?? this.customThumbnail,
+    );
+  }
 }
 
 class DownloadQueueCreate {

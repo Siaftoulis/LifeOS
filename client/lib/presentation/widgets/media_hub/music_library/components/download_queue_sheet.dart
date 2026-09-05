@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/everforest_colors.dart';
@@ -19,10 +20,51 @@ class DownloadQueueSheet extends StatefulWidget {
 }
 
 class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
+  Timer? _pollTimer;
+  final Set<String> _expandedErrors = {};
+
   @override
   void initState() {
     super.initState();
-    MusicRepository.instance.loadDownloadQueue();
+    MusicRepository.instance.loadDownloadQueue().then((_) {
+      if (mounted) _checkAndSchedulePolling();
+    });
+    MusicRepository.instance.downloadQueue.addListener(_onQueueUpdated);
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    MusicRepository.instance.downloadQueue.removeListener(_onQueueUpdated);
+    super.dispose();
+  }
+
+  void _onQueueUpdated() {
+    if (mounted) _checkAndSchedulePolling();
+  }
+
+  void _checkAndSchedulePolling() {
+    final queue = MusicRepository.instance.downloadQueue.value;
+    final hasActive = queue.any((item) {
+      final s = item.status.toUpperCase();
+      return s == 'PENDING' || s == 'DOWNLOADING';
+    });
+
+    if (!hasActive) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
+      return;
+    }
+
+    if (_pollTimer == null || !_pollTimer!.isActive) {
+      _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+        await MusicRepository.instance.loadDownloadQueue();
+        if (MusicRepository.instance.downloadQueue.value
+            .any((i) => i.status.toUpperCase() == 'COMPLETED')) {
+          MusicRepository.instance.refresh();
+        }
+      });
+    }
   }
 
   Color _statusColor(String status) {
@@ -33,6 +75,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
         return EverforestColors.green;
       case 'FAILED':
         return EverforestColors.red;
+      case 'CANCELLED':
+        return EverforestColors.grey;
       default:
         return EverforestColors.yellow;
     }
@@ -125,6 +169,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                   );
                 }
 
+                final metadata = MusicRepository.instance.knownTrackMetadata;
+
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 12),
@@ -133,6 +179,14 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                   itemBuilder: (context, i) {
                     final item = queue[i];
                     final color = _statusColor(item.status);
+                    final isFailed = item.status.toUpperCase() == 'FAILED';
+                    final isPendingOrDownloading =
+                        item.status.toUpperCase() == 'PENDING' ||
+                            item.status.toUpperCase() == 'DOWNLOADING';
+                    final title = item.displayTitle(metadata);
+                    final artist = item.displayArtist(metadata);
+                    final thumb = item.displayThumbnail(metadata);
+                    final isExpanded = _expandedErrors.contains(item.id);
 
                     return Container(
                       padding: const EdgeInsets.all(14),
@@ -140,25 +194,65 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                         color: EverforestColors.bg1,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.05)),
+                            color: isFailed
+                                ? EverforestColors.red.withValues(alpha: 0.3)
+                                : Colors.white.withValues(alpha: 0.05)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  item.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: EverforestColors.fg,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                              if (thumb.isNotEmpty) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    thumb,
+                                    width: 38,
+                                    height: 38,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: 38,
+                                      height: 38,
+                                      color: EverforestColors.bg0,
+                                      child: const Icon(
+                                          Icons.music_note_rounded,
+                                          color: EverforestColors.aqua,
+                                          size: 18),
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(width: 10),
+                              ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: EverforestColors.fg,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      artist.isNotEmpty
+                                          ? artist
+                                          : 'LifeOS Library',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: EverforestColors.grey,
+                                          fontSize: 12),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
@@ -175,29 +269,23 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.close_rounded,
-                                    color: EverforestColors.grey, size: 18),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                tooltip: 'Cancel',
-                                onPressed: () async {
-                                  await MusicRepository.instance
-                                      .cancelDownload(item.id);
-                                  await MusicRepository.instance
-                                      .loadDownloadQueue();
-                                },
-                              ),
+                              if (isPendingOrDownloading) ...[
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.close_rounded,
+                                      color: EverforestColors.grey, size: 18),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  tooltip: 'Cancel',
+                                  onPressed: () async {
+                                    await MusicRepository.instance
+                                        .cancelDownload(item.id);
+                                    await MusicRepository.instance
+                                        .loadDownloadQueue();
+                                  },
+                                ),
+                              ],
                             ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.artist.isNotEmpty
-                                ? item.artist
-                                : 'LifeOS Library',
-                            style: const TextStyle(
-                                color: EverforestColors.grey, fontSize: 12),
                           ),
                           if (item.status.toUpperCase() == 'DOWNLOADING') ...[
                             const SizedBox(height: 8),
@@ -209,8 +297,68 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                     ? item.progress
                                     : null,
                                 backgroundColor: EverforestColors.bg0,
-                                valueColor: AlwaysStoppedAnimation<Color>(color),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(color),
                                 minHeight: 4,
+                              ),
+                            ),
+                          ],
+                          if (isFailed && item.errorMessage.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedErrors.remove(item.id);
+                                  } else {
+                                    _expandedErrors.add(item.id);
+                                  }
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: EverforestColors.red
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: EverforestColors.red
+                                          .withValues(alpha: 0.25)),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.error_outline_rounded,
+                                        color: EverforestColors.red,
+                                        size: 15),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        item.errorMessage,
+                                        maxLines: isExpanded ? null : 2,
+                                        overflow: isExpanded
+                                            ? null
+                                            : TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: EverforestColors.red,
+                                          fontSize: 11,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.expand_less_rounded
+                                          : Icons.expand_more_rounded,
+                                      color: EverforestColors.red,
+                                      size: 16,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
