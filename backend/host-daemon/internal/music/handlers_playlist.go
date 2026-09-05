@@ -178,7 +178,7 @@ func HandleGetPlaylistTracks(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	rows, err := DB.Query(`
 		SELECT mt.id, mt.title, mt.artist, mt.album, mt.album_artist, mt.track_number, mt.disc_number, mt.year, mt.genre,
-		       mt.file_path, mt.lyrics_path, mt.thumbnail_url, mt.yt_dlp_id, mt.duration, mt.bitrate, mt.codec,
+		       mt.file_path, mt.lyrics_path, COALESCE(NULLIF(mt.thumbnail, ''), mt.thumbnail_url, ''), mt.yt_dlp_id, mt.duration, mt.bitrate, mt.codec,
 		       mt.replay_gain_track, mt.replay_gain_album, mt.play_count, mt.last_played_at, mt.added_at,
 		       pt.position
 		FROM playlist_tracks pt
@@ -195,15 +195,18 @@ func HandleGetPlaylistTracks(w http.ResponseWriter, r *http.Request) {
 	var tracks []PlaylistTrack
 	for rows.Next() {
 		var t Track
-		var albumArtist, genre, filePath, lyricsPath, thumbUrl, ytDlpId, codec sql.NullString
+		var albumArtist, genre, filePath, lyricsPath, thumb, ytDlpId, codec sql.NullString
 		var trackNum, discNum, year, bitrate sql.NullInt64
 		var replayTrack, replayAlbum sql.NullFloat64
 		var playCount sql.NullInt64
 		var lastPlayed, addedAt sql.NullInt64
 		var pos int
 		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &albumArtist, &trackNum, &discNum, &year, &genre,
-			&filePath, &lyricsPath, &thumbUrl, &ytDlpId, &t.Duration, &bitrate, &codec,
+			&filePath, &lyricsPath, &thumb, &ytDlpId, &t.Duration, &bitrate, &codec,
 			&replayTrack, &replayAlbum, &playCount, &lastPlayed, &addedAt, &pos); err == nil {
+			t.FilePath = filePath.String
+			t.Thumbnail = thumb.String
+			t.ThumbnailURL = thumb.String
 			tracks = append(tracks, PlaylistTrack{Track: t, Position: pos})
 		}
 	}

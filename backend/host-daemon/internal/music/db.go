@@ -24,7 +24,12 @@ func InitDB(dataDir string) error {
 
 	DB = db
 
-	return createTables()
+	if err := createTables(); err != nil {
+		return err
+	}
+
+	StartQueueWorker()
+	return nil
 }
 
 func createTables() error {
@@ -128,6 +133,7 @@ func createTables() error {
 		{"file_path", "ALTER TABLE music_tracks ADD COLUMN file_path TEXT NOT NULL DEFAULT ''"},
 		{"duration", "ALTER TABLE music_tracks ADD COLUMN duration REAL NOT NULL DEFAULT 0"},
 		{"thumbnail", "ALTER TABLE music_tracks ADD COLUMN thumbnail TEXT NOT NULL DEFAULT ''"},
+		{"thumbnail_url", "ALTER TABLE music_tracks ADD COLUMN thumbnail_url TEXT DEFAULT ''"},
 	} {
 		var has int
 		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('music_tracks') WHERE name=?", col.name).Scan(&has); err == nil && has == 0 {
@@ -136,6 +142,10 @@ func createTables() error {
 			}
 		}
 	}
+
+	// Bidirectional sync for existing data to ensure thumbnail consistency
+	_, _ = DB.Exec(`UPDATE music_tracks SET thumbnail = thumbnail_url WHERE (thumbnail IS NULL OR thumbnail = '') AND (thumbnail_url IS NOT NULL AND thumbnail_url != '')`)
+	_, _ = DB.Exec(`UPDATE music_tracks SET thumbnail_url = thumbnail WHERE (thumbnail_url IS NULL OR thumbnail_url = '') AND (thumbnail IS NOT NULL AND thumbnail != '')`)
 
 	// Remove legacy placeholder records if any exist
 	DB.Exec("DELETE FROM music_tracks WHERE file_path LIKE 'storage/media/%' OR id IN ('t1', 't2', 't3')")
@@ -154,7 +164,7 @@ func seedMedia() {
 		{"p2", "City Skyline", "https://via.placeholder.com/400x300.png?text=City+Skyline", "Oct 18, 2026"},
 		{"p3", "Forest Path", "https://via.placeholder.com/400x300.png?text=Forest+Path", "Oct 15, 2026"},
 	}
-	
+
 	for _, p := range photos {
 		_, err := DB.Exec("INSERT OR IGNORE INTO photos (id, title, url, date) VALUES (?, ?, ?, ?)",
 			p.ID, p.Title, p.URL, p.Date)

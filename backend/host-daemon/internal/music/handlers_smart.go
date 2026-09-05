@@ -40,6 +40,10 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 		}
 	}
 
+	const smartCols = `mt.id, mt.title, mt.artist, mt.album, mt.album_artist, mt.track_number, mt.disc_number, mt.year, mt.genre,
+		mt.file_path, mt.lyrics_path, COALESCE(NULLIF(mt.thumbnail, ''), mt.thumbnail_url, ''), mt.yt_dlp_id, mt.duration, mt.bitrate, mt.codec,
+		mt.replay_gain_track, mt.replay_gain_album, mt.play_count, mt.last_played_at, mt.added_at`
+
 	var query string
 	seed := r.URL.Query().Get("seed")
 	now := time.Now()
@@ -48,9 +52,7 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 	switch ptype {
 	case "discovery_weekly":
 		query = `
-			SELECT DISTINCT mt.id, mt.title, mt.artist, mt.album, mt.album_artist, mt.track_number, mt.disc_number, mt.year, mt.genre,
-			       mt.file_path, mt.lyrics_path, mt.thumbnail_url, mt.yt_dlp_id, mt.duration, mt.bitrate, mt.codec,
-			       mt.replay_gain_track, mt.replay_gain_album, mt.play_count, mt.last_played_at, mt.added_at
+			SELECT DISTINCT ` + smartCols + `
 			FROM music_tracks mt
 			WHERE mt.id NOT IN (
 				SELECT track_id FROM listening_history WHERE played_at > ?
@@ -69,9 +71,10 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 			return
 		}
 		query = `
-			SELECT * FROM music_tracks
-			WHERE (artist = ? OR genre = ?)
-			ORDER BY play_count DESC, added_at DESC
+			SELECT ` + smartCols + `
+			FROM music_tracks mt
+			WHERE (mt.artist = ? OR mt.genre = ?)
+			ORDER BY mt.play_count DESC, mt.added_at DESC
 			LIMIT ?
 		`
 	case "release_radar":
@@ -83,7 +86,8 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 		}
 		since = now.AddDate(0, 0, -recentDays).UnixMilli()
 		query = `
-			SELECT mt.* FROM music_tracks mt
+			SELECT DISTINCT ` + smartCols + `
+			FROM music_tracks mt
 			WHERE mt.added_at > ?
 			AND mt.artist IN (
 				SELECT DISTINCT artist FROM music_tracks
@@ -94,7 +98,8 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 		`
 	case "recommendations":
 		query = `
-			SELECT DISTINCT mt.* FROM music_tracks mt
+			SELECT DISTINCT ` + smartCols + `
+			FROM music_tracks mt
 			WHERE mt.id NOT IN (
 				SELECT track_id FROM listening_history WHERE played_at > ?
 			)
@@ -130,14 +135,17 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 	var tracks []Track
 	for rows.Next() {
 		var t Track
-		var albumArtist, genre, filePath, lyricsPath, thumbUrl, ytDlpId, codec sql.NullString
+		var albumArtist, genre, filePath, lyricsPath, thumb, ytDlpId, codec sql.NullString
 		var trackNum, discNum, year, bitrate sql.NullInt64
 		var replayTrack, replayAlbum sql.NullFloat64
 		var playCount sql.NullInt64
 		var lastPlayed, addedAt sql.NullInt64
 		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &albumArtist, &trackNum, &discNum, &year, &genre,
-			&filePath, &lyricsPath, &thumbUrl, &ytDlpId, &t.Duration, &bitrate, &codec,
+			&filePath, &lyricsPath, &thumb, &ytDlpId, &t.Duration, &bitrate, &codec,
 			&replayTrack, &replayAlbum, &playCount, &lastPlayed, &addedAt); err == nil {
+			t.FilePath = filePath.String
+			t.Thumbnail = thumb.String
+			t.ThumbnailURL = thumb.String
 			tracks = append(tracks, t)
 		}
 	}

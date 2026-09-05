@@ -64,7 +64,7 @@ func HandleGetHistory(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := DB.Query(`
 		SELECT lh.id, lh.track_id, lh.played_at, lh.position_ms, lh.duration_ms, lh.completion_rate, lh.skipped, lh.source,
-		       mt.title, mt.artist, mt.album, mt.thumbnail_url
+		       mt.title, mt.artist, mt.album, COALESCE(NULLIF(mt.thumbnail, ''), mt.thumbnail_url, '')
 		FROM listening_history lh
 		LEFT JOIN music_tracks mt ON mt.id = lh.track_id
 		ORDER BY lh.played_at DESC

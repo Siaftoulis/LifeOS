@@ -1,10 +1,10 @@
 package music
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
-	"os/exec"
 	"strings"
 )
 
@@ -20,10 +20,10 @@ type SearchResult struct {
 }
 
 type flatEntry struct {
-	ID        string         `json:"id"`
-	Title     string         `json:"title"`
-	Uploader  string         `json:"uploader"`
-	Duration  float64        `json:"duration"`
+	ID         string            `json:"id"`
+	Title      string            `json:"title"`
+	Uploader   string            `json:"uploader"`
+	Duration   float64           `json:"duration"`
 	Thumbnails []json.RawMessage `json:"thumbnails"`
 }
 
@@ -71,7 +71,11 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := exec.Command("yt-dlp",
+	ctx, cancel := context.WithTimeout(r.Context(), defaultSearchTimeout)
+	defer cancel()
+
+	args := []string{
+		"--js-runtimes", jsRuntimesArg(),
 		"--flat-playlist",
 		"--dump-single-json",
 		"--no-playlist",
@@ -79,10 +83,11 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 		"--no-warnings",
 		"--no-check-certificates",
 		"--default-search", "ytsearch",
-		"ytsearch15:"+query,
-	).Output()
+		"ytsearch15:" + query,
+	}
+
+	out, err := ExecYtDlp(ctx, "search", query, args)
 	if err != nil {
-		log.Printf("music search: yt-dlp failed for %q: %v", query, err)
 		http.Error(w, "Search failed", http.StatusBadGateway)
 		return
 	}

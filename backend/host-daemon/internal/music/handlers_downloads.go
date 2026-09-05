@@ -103,6 +103,7 @@ func HandleEnqueueDownload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	notifyQueue()
 	json.NewEncoder(w).Encode(map[string]any{"id": id, "status": "queued"})
 }
 
@@ -170,8 +171,12 @@ func HandleCancelDownload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.PathValue("id")
-	_, err := DB.Exec("UPDATE download_queue SET status = 'cancelled' WHERE id = ?", id)
-	if err != nil {
+	if id == "" {
+		http.Error(w, "Missing id", http.StatusBadRequest)
+		return
+	}
+
+	if err := CancelDownload(id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

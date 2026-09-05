@@ -55,16 +55,19 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/music/smart/daily-mix", HandleDailyMix)
 	mux.HandleFunc("GET /api/v1/music/smart/release-radar", HandleReleaseRadar)
 	mux.HandleFunc("GET /api/v1/music/smart/recommendations", HandleRecommendations)
+
+	StartQueueWorker()
 }
 
 type Track struct {
-	ID        string  `json:"id"`
-	Title     string  `json:"title"`
-	Artist    string  `json:"artist"`
-	Album     string  `json:"album"`
-	FilePath  string  `json:"file_path"`
-	Duration  float64 `json:"duration"`
-	Thumbnail string  `json:"thumbnail"`
+	ID           string  `json:"id"`
+	Title        string  `json:"title"`
+	Artist       string  `json:"artist"`
+	Album        string  `json:"album"`
+	FilePath     string  `json:"file_path"`
+	Duration     float64 `json:"duration"`
+	Thumbnail    string  `json:"thumbnail"`
+	ThumbnailURL string  `json:"thumbnail_url,omitempty"`
 }
 
 func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +81,7 @@ func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := "SELECT id, title, artist, album, file_path, duration, thumbnail FROM music_tracks"
+	query := "SELECT id, title, artist, album, file_path, duration, COALESCE(NULLIF(thumbnail, ''), thumbnail_url, '') FROM music_tracks"
 	var args []any
 	if q := strings.TrimSpace(r.URL.Query().Get("q")); q != "" {
 		query += " WHERE title LIKE ? OR artist LIKE ? OR album LIKE ?"
@@ -96,7 +99,10 @@ func HandleGetTracks(w http.ResponseWriter, r *http.Request) {
 	var tracks []Track
 	for rows.Next() {
 		var t Track
-		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &t.Thumbnail); err == nil {
+		var thumb string
+		if err := rows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &thumb); err == nil {
+			t.Thumbnail = thumb
+			t.ThumbnailURL = thumb
 			tracks = append(tracks, t)
 		}
 	}
@@ -123,11 +129,14 @@ func HandleGetTrack(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
 	var t Track
-	if err := DB.QueryRow("SELECT id, title, artist, album, file_path, duration, thumbnail FROM music_tracks WHERE id = ?", id).
-		Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &t.Thumbnail); err != nil {
+	var thumb string
+	if err := DB.QueryRow("SELECT id, title, artist, album, file_path, duration, COALESCE(NULLIF(thumbnail, ''), thumbnail_url, '') FROM music_tracks WHERE id = ?", id).
+		Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &t.FilePath, &t.Duration, &thumb); err != nil {
 		http.Error(w, "Track not found", http.StatusNotFound)
 		return
 	}
+	t.Thumbnail = thumb
+	t.ThumbnailURL = thumb
 	json.NewEncoder(w).Encode(t)
 }
 
@@ -193,7 +202,7 @@ func HandleDeleteTrack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Also remove cache file if any
-	cachePath := filepath.Join(DataDir, "music_cache", id+".mp4")
+	cachePath := filepath.Join(getCacheDir(), id+".mp4")
 	_ = os.Remove(cachePath)
 
 	_, err := DB.Exec("DELETE FROM music_tracks WHERE id = ?", id)

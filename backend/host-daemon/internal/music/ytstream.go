@@ -1,14 +1,13 @@
 package music
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -47,14 +46,14 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cacheDir := filepath.Join("data", "music_cache")
+	cacheDir := getCacheDir()
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
-	// If not cached, initiate background download
+	// If not cached, initiate background download with independent context
 	if stat, err := os.Stat(cacheFilePath); err != nil || stat.Size() <= 50000 {
 		go func() {
-			_ = downloadAndCache(id, cacheFilePath)
+			_ = downloadAndCache(context.Background(), id, cacheFilePath)
 		}()
 	}
 
@@ -89,7 +88,7 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cacheDir := filepath.Join("data", "music_cache")
+	cacheDir := getCacheDir()
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
@@ -99,8 +98,8 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Not cached yet: download & cache cleanly
-	if err := downloadAndCache(id, cacheFilePath); err == nil {
+	// 2. Not cached yet: download & cache cleanly using request context
+	if err := downloadAndCache(r.Context(), id, cacheFilePath); err == nil {
 		if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
 			serveCachedFile(w, r, cacheFilePath, stat)
 			return
@@ -123,7 +122,7 @@ func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, st
 	http.ServeContent(w, r, "stream.m4a", stat.ModTime(), file)
 }
 
-func downloadAndCache(id string, destPath string) error {
+func downloadAndCache(parentCtx context.Context, id string, destPath string) error {
 	lock := getFlightLock(id)
 	lock.Lock()
 	defer lock.Unlock()
@@ -136,23 +135,22 @@ func downloadAndCache(id string, destPath string) error {
 	_ = os.Remove(tmpFile)
 
 	log.Printf("music ytstream: downloading & caching %s...", id)
-	jsRuntime := "node:/usr/bin/nodejs"
-	if runtime.GOOS == "windows" {
-		jsRuntime = "node"
-	}
-	cmd := exec.Command("yt-dlp",
-		"--js-runtimes", jsRuntime,
+
+	ctx, cancel := context.WithTimeout(parentCtx, defaultStreamTimeout)
+	defer cancel()
+
+	args := []string{
+		"--js-runtimes", jsRuntimesArg(),
 		"--no-warnings",
 		"--no-check-certificates",
 		"-f", "bestaudio[ext=m4a]/140/bestaudio/ba/b",
 		"--no-playlist",
 		"-o", tmpFile,
-		"https://www.youtube.com/watch?v="+id,
-	)
+		"https://www.youtube.com/watch?v=" + id,
+	}
 
-	out, err := cmd.CombinedOutput()
+	_, err := ExecYtDlp(ctx, "ytstream", id, args)
 	if err != nil {
-		log.Printf("music ytstream: download failed for %s: %v, output: %s", id, err, string(out))
 		_ = os.Remove(tmpFile)
 		return err
 	}
