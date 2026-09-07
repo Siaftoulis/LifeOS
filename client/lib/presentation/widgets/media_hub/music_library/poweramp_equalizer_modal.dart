@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/audio_dsp_service.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'equalizer/eq_not_supported_sheet.dart';
 import 'equalizer/eq_painters.dart';
 import 'equalizer/eq_presets.dart';
@@ -118,41 +119,29 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
     if (kIsWeb) return 'Web';
     switch (defaultTargetPlatform) {
       case TargetPlatform.windows:
-        return 'Windows';
+        return 'Windows (libmpv)';
+      case TargetPlatform.android:
+        return 'Android (ExoPlayer)';
       case TargetPlatform.linux:
-        return 'Linux';
+        return 'Linux (libmpv)';
       case TargetPlatform.macOS:
         return 'macOS';
-      case TargetPlatform.android:
-        return 'Android';
       case TargetPlatform.iOS:
         return 'iOS';
       default:
-        return 'Unknown';
+        return 'Native';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final skin = context.skin;
 
     return Container(
-      height: widget.isEmbedded ? null : size.height * 0.88,
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
-        borderRadius: widget.isEmbedded
-            ? BorderRadius.circular(24)
-            : const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: widget.isEmbedded
-            ? null
-            : const [
-                BoxShadow(
-                  color: Colors.black87,
-                  blurRadius: 40,
-                  offset: Offset(0, -10),
-                ),
-              ],
+        color: skin.bg0,
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(widget.isEmbedded ? 0 : 28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -161,37 +150,32 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             const SizedBox(height: 12),
             Center(
               child: Container(
-                width: 48,
-                height: 4.5,
+                width: 44,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.white24,
-                  borderRadius: BorderRadius.circular(3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-          ] else ...[
-            const SizedBox(height: 12),
           ],
 
-          // Header: Title, EQ Power Switch, Reset
+          // Studio Header Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: _eqEnabled
-                        ? EverforestColors.green.withValues(alpha: 0.15)
+                        ? skin.accent.withValues(alpha: 0.15)
                         : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     Icons.equalizer_rounded,
-                    color: _eqEnabled
-                        ? EverforestColors.green
-                        : EverforestColors.grey,
+                    color: _eqEnabled ? skin.accent : skin.textMuted,
                     size: 22,
                   ),
                 ),
@@ -200,10 +184,10 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'GRAPHIC EQUALIZER',
+                      Text(
+                        'POWERAMP EQUALIZER',
                         style: TextStyle(
-                          color: EverforestColors.fg,
+                          color: skin.fg,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -214,22 +198,20 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                             ? '10-Band Studio DSP Active'
                             : 'DSP Bypass Mode',
                         style: TextStyle(
-                          color: _eqEnabled
-                              ? EverforestColors.green
-                              : EverforestColors.grey,
+                          color: _eqEnabled ? skin.green : skin.textMuted,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         AudioDspService.instance.isSupportedOnPlatform
                             ? 'Platform: ${_platformName()} · DSP Active'
                             : 'Platform: ${_platformName()} · EQ Not Supported',
                         style: TextStyle(
                           color: AudioDspService.instance.isSupportedOnPlatform
-                              ? EverforestColors.green
-                              : EverforestColors.orange,
+                              ? skin.green
+                              : skin.orange,
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
@@ -239,15 +221,15 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                 ),
                 Switch(
                   value: _eqEnabled,
-                  activeThumbColor: EverforestColors.green,
+                  activeThumbColor: skin.accent,
                   onChanged: (val) {
                     setState(() => _eqEnabled = val);
                     _syncDsp();
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.refresh_rounded,
-                      color: EverforestColors.grey, size: 20),
+                  icon: Icon(Icons.refresh_rounded,
+                      color: skin.textMuted, size: 20),
                   tooltip: 'Reset EQ',
                   onPressed: _resetEq,
                 ),
@@ -255,7 +237,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
 
           // Presets Horizontal Selector
           SizedBox(
@@ -275,19 +257,19 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                     if (selected) _applyPreset(p);
                   },
                   labelStyle: TextStyle(
-                    color:
-                        isSelected ? EverforestColors.bg0 : EverforestColors.fg,
+                    color: isSelected
+                        ? (skin.isDark ? Colors.black : Colors.white)
+                        : skin.fg,
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 11,
                   ),
-                  selectedColor: EverforestColors.green,
-                  backgroundColor: EverforestColors.bg1,
+                  selectedColor: skin.accent,
+                  backgroundColor: skin.bg1,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
-                      color:
-                          isSelected ? EverforestColors.green : Colors.white12,
+                      color: isSelected ? skin.accent : Colors.white12,
                     ),
                   ),
                 );
@@ -295,7 +277,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Real-time Curve Spectrum Preview
           Padding(
@@ -304,20 +286,22 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               height: 48,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: EverforestColors.bg1,
+                color: skin.bg1,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: CustomPaint(
                 painter: EqCurvePainter(
                   bands: _bands,
                   enabled: _eqEnabled,
+                  curveColor: skin.accent,
+                  glowColor: skin.accent.withValues(alpha: 0.4),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // 10-Band Vertical Sliders Grid
           Expanded(
@@ -331,7 +315,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(10, (index) {
-                    return _buildBandColumn(index);
+                    return _buildBandColumn(index, skin);
                   }),
                 ),
               ),
@@ -340,11 +324,11 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
 
           const SizedBox(height: 12),
 
-          // Bottom DSP Knobs: Bass Boost, Treble Boost, Stereo Spatializer
+          // Bottom Poweramp DSP Tone Knobs
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
             decoration: BoxDecoration(
-              color: EverforestColors.bg1,
+              color: skin.bg1,
               borderRadius: BorderRadius.vertical(
                   top: Radius.circular(widget.isEmbedded ? 0 : 24)),
               border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
@@ -353,13 +337,43 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildDspRotary(
-                  label: 'BASS BOOST',
-                  value: _bassBoost,
-                  activeColor: EverforestColors.yellow,
-                  onChanged: _eqEnabled
-                      ? (v) {
+                  label: 'PREAMP',
+                  fraction: ((_preamp + 12.0) / 24.0).clamp(0.0, 1.0),
+                  displayValue: '${_preamp >= 0 ? '+' : ''}${_preamp.toStringAsFixed(1)}dB',
+                  activeColor: skin.blue,
+                  skin: skin,
+                  onDelta: _eqEnabled
+                      ? (d) {
                           setState(() {
-                            _bassBoost = v;
+                            _preamp = (_preamp + d * 24.0).clamp(-12.0, 12.0);
+                            _preamp = (_preamp * 10).round() / 10.0;
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onIncrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _preamp = (_preamp + 0.5).clamp(-12.0, 12.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onDecrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _preamp = (_preamp - 0.5).clamp(-12.0, 12.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onReset: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _preamp = 0.0;
                             _selectedPreset = 'Custom';
                           });
                           _syncDsp();
@@ -367,13 +381,85 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                       : null,
                 ),
                 _buildDspRotary(
-                  label: 'TREBLE BOOST',
-                  value: _trebleBoost,
-                  activeColor: EverforestColors.aqua,
-                  onChanged: _eqEnabled
-                      ? (v) {
+                  label: 'BASS BOOST',
+                  fraction: _bassBoost,
+                  displayValue: '${(_bassBoost * 100).round()}%',
+                  activeColor: skin.yellow,
+                  skin: skin,
+                  onDelta: _eqEnabled
+                      ? (d) {
                           setState(() {
-                            _trebleBoost = v;
+                            _bassBoost = (_bassBoost + d).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onIncrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _bassBoost = (_bassBoost + 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onDecrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _bassBoost = (_bassBoost - 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onReset: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _bassBoost = 0.0;
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                ),
+                _buildDspRotary(
+                  label: 'TREBLE (HIGHS)',
+                  fraction: _trebleBoost,
+                  displayValue: '${(_trebleBoost * 100).round()}%',
+                  activeColor: skin.aqua,
+                  skin: skin,
+                  onDelta: _eqEnabled
+                      ? (d) {
+                          setState(() {
+                            _trebleBoost = (_trebleBoost + d).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onIncrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _trebleBoost = (_trebleBoost + 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onDecrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _trebleBoost = (_trebleBoost - 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onReset: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _trebleBoost = 0.0;
                             _selectedPreset = 'Custom';
                           });
                           _syncDsp();
@@ -382,12 +468,41 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                 ),
                 _buildDspRotary(
                   label: 'SPATIAL 3D',
-                  value: _stereoExpansion,
-                  activeColor: EverforestColors.purple,
-                  onChanged: _eqEnabled
-                      ? (v) {
+                  fraction: _stereoExpansion,
+                  displayValue: '${(_stereoExpansion * 100).round()}%',
+                  activeColor: skin.purple,
+                  skin: skin,
+                  onDelta: _eqEnabled
+                      ? (d) {
                           setState(() {
-                            _stereoExpansion = v;
+                            _stereoExpansion = (_stereoExpansion + d).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onIncrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _stereoExpansion = (_stereoExpansion + 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onDecrement: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _stereoExpansion = (_stereoExpansion - 0.05).clamp(0.0, 1.0);
+                            _selectedPreset = 'Custom';
+                          });
+                          _syncDsp();
+                        }
+                      : null,
+                  onReset: _eqEnabled
+                      ? () {
+                          setState(() {
+                            _stereoExpansion = 0.0;
                             _selectedPreset = 'Custom';
                           });
                           _syncDsp();
@@ -402,16 +517,15 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
     );
   }
 
-  Widget _buildBandColumn(int index) {
+  Widget _buildBandColumn(int index, AppSkin skin) {
     final value = _bands[index];
+    final isBoosted = value.abs() > 0.1;
     return Column(
       children: [
         Text(
           '${value >= 0 ? '+' : ''}${value.toStringAsFixed(1)}',
           style: TextStyle(
-            color: value.abs() > 0.1
-                ? EverforestColors.green
-                : EverforestColors.grey,
+            color: isBoosted ? skin.accent : skin.textMuted,
             fontSize: 9,
             fontFamily: 'monospace',
             fontWeight: FontWeight.bold,
@@ -424,9 +538,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 3.0,
                 thumbShape:
-                    const RoundSliderThumbShape(enabledThumbRadius: 5.5),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                activeTrackColor: EverforestColors.green,
+                    const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 11),
+                activeTrackColor: skin.accent,
                 inactiveTrackColor: Colors.white12,
                 thumbColor: Colors.white,
               ),
@@ -449,8 +563,8 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
         ),
         Text(
           kEqBandFrequencies[index],
-          style: const TextStyle(
-            color: EverforestColors.grey,
+          style: TextStyle(
+            color: skin.textMuted,
             fontSize: 9.5,
             fontWeight: FontWeight.w600,
           ),
@@ -461,32 +575,34 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
 
   Widget _buildDspRotary({
     required String label,
-    required double value,
+    required double fraction,
+    required String displayValue,
     required Color activeColor,
-    ValueChanged<double>? onChanged,
+    required AppSkin skin,
+    ValueChanged<double>? onDelta,
+    VoidCallback? onIncrement,
+    VoidCallback? onDecrement,
+    VoidCallback? onReset,
   }) {
-    final pct = (value * 100).round();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          onVerticalDragUpdate: (details) {
-            if (onChanged == null) return;
-            final delta = -details.primaryDelta! / 100.0;
-            final newVal = (value + delta).clamp(0.0, 1.0);
-            onChanged(newVal);
+          onDoubleTap: onReset,
+          onPanUpdate: (details) {
+            if (onDelta == null) return;
+            final delta = (-details.delta.dy + details.delta.dx) / 100.0;
+            onDelta(delta);
           },
           child: Container(
-            width: 52,
-            height: 52,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: EverforestColors.bg0,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white12),
               boxShadow: [
                 BoxShadow(
-                  color: activeColor.withValues(alpha: value > 0 ? 0.25 : 0.0),
-                  blurRadius: 8,
+                  color: activeColor.withValues(alpha: fraction > 0 ? 0.22 : 0.0),
+                  blurRadius: 10,
                   spreadRadius: 1,
                 ),
               ],
@@ -495,34 +611,66 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               alignment: Alignment.center,
               children: [
                 CustomPaint(
-                  size: const Size(52, 52),
+                  size: const Size(56, 56),
                   painter: KnobDialPainter(
-                    fraction: value,
+                    fraction: fraction,
                     color: activeColor,
+                    backgroundColor: skin.bg2,
+                    showTicks: true,
                   ),
                 ),
-                Text(
-                  '$pct%',
-                  style: const TextStyle(
-                    color: EverforestColors.fg,
-                    fontSize: 11,
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: skin.bg0.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  ),
+                  child: Text(
+                    displayValue,
+                    style: TextStyle(
+                      color: skin.fg,
+                      fontSize: 8.5,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            color: EverforestColors.grey,
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: onDecrement,
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                child: Icon(Icons.remove, size: 13, color: skin.textMuted),
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: skin.textMuted,
+                fontSize: 8.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+            InkWell(
+              onTap: onIncrement,
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                child: Icon(Icons.add, size: 13, color: skin.textMuted),
+              ),
+            ),
+          ],
         ),
       ],
     );

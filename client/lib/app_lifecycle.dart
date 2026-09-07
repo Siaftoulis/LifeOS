@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'database/preferences_service.dart';
+import 'theme/app_skin_manager.dart';
 import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
 import 'global_keys.dart';
@@ -86,8 +87,10 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
     return ListenableBuilder(
       listenable: Listenable.merge([
         PreferencesService.showPerformanceOverlay,
+        AppSkinManager.currentSkinNotifier,
       ]),
       builder: (context, _) {
+        final skin = AppSkinManager.currentSkin;
         return MaterialApp(
           navigatorKey: rootNavigatorKey,
           scaffoldMessengerKey: rootScaffoldMessengerKey,
@@ -96,20 +99,23 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           ),
           title: 'LifeOS',
-          theme: ThemeData.dark(),
+          theme: skin.toThemeData(),
           showPerformanceOverlay: PreferencesService.showPerformanceOverlay.value,
           home: Builder(builder: (ctx) {
             return ValueListenableBuilder<List<List<String>>>(
               valueListenable: PreferencesService.layout,
               builder: (context, layout, _) {
-                return LifeOSMainStack(
-                  isUnlocked: _isUnlocked,
-                  layout: layout,
-                  onUnlock: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    _sessionGuard.attach();
-                    setState(() => _isUnlocked = true);
-                  },
+                return ColoredBox(
+                  color: skin.bg0,
+                  child: LifeOSMainStack(
+                    isUnlocked: _isUnlocked,
+                    layout: layout,
+                    onUnlock: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      _sessionGuard.attach();
+                      setState(() => _isUnlocked = true);
+                    },
+                  ),
                 );
               },
             );

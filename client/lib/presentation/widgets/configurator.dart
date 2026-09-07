@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../theme/everforest_colors.dart';
+import '../../theme/app_skin_manager.dart';
 import '../../database/preferences_service.dart';
 import '../../auth_service.dart';
 import 'preferences_setting/my_profile_widget.dart';
 import 'preferences_setting/admin_console_widget.dart';
 import 'preferences_setting/grid_configurator_widget.dart';
+import 'preferences_setting/customization_settings_widget.dart';
 
 import 'preferences_setting/spatial_matrix_editor_widget.dart';
 import 'preferences_setting/online_users_list_widget.dart';
@@ -17,18 +19,19 @@ class GridConfigurator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
-      color: EverforestColors.bg0,
+      color: skin.bg0,
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
         physics: const BouncingScrollPhysics(),
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 8.0, bottom: 24.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 24.0),
             child: Text(
               'SETTINGS',
               style: TextStyle(
-                color: EverforestColors.green,
+                color: skin.accent,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2.0,
@@ -38,26 +41,33 @@ class GridConfigurator extends StatelessWidget {
           _SettingsCard(
             children: [
               _SettingsMenuTile(
+                title: 'Themes & Customization',
+                subtitle: '13 skins, OLED pitch black, Obsidian & dev palettes',
+                icon: Icons.palette_outlined,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _CustomizationPage())),
+              ),
+              _buildDivider(context),
+              _SettingsMenuTile(
                 title: 'Account & Profile',
                 subtitle: 'Manage active user profile and roles',
                 icon: Icons.person_outline,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _ProfileSettingsPage())),
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _SettingsMenuTile(
                 title: 'System Preferences',
                 subtitle: 'Background sync, dev mode, overlays',
                 icon: Icons.settings_system_daydream,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _SystemPreferencesPage())),
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _SettingsMenuTile(
                 title: 'System Updates & OTA',
                 subtitle: 'Check for updates, install new APK versions',
                 icon: Icons.system_update_alt_rounded,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _SystemUpdatesPage())),
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _SettingsMenuTile(
                 title: 'User Interface',
                 subtitle: 'Spatial matrix and launcher layout',
@@ -67,12 +77,12 @@ class GridConfigurator extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          const Padding(
-            padding: EdgeInsets.only(left: 8.0, bottom: 12.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 12.0),
             child: Text(
               'SPATIAL GRID & MODULES',
               style: TextStyle(
-                color: EverforestColors.green,
+                color: skin.accent,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.5,
@@ -87,7 +97,7 @@ class GridConfigurator extends StatelessWidget {
                 icon: Icons.grid_goldenratio_rounded,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const _UiSettingsPage())),
               ),
-              _buildDivider(),
+              _buildDivider(context),
               _SettingsMenuTile(
                 title: 'All Installed Modules',
                 subtitle: 'Browse and launch all 20+ ecosystem hubs & tools',
@@ -112,12 +122,13 @@ class _SettingsMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      leading: Icon(icon, color: EverforestColors.green, size: 28),
-      title: Text(title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: EverforestColors.grey),
+      leading: Icon(icon, color: skin.accent, size: 28),
+      title: Text(title, style: TextStyle(color: skin.fg, fontSize: 16, fontWeight: FontWeight.w600)),
+      subtitle: Text(subtitle, style: TextStyle(color: skin.textMuted, fontSize: 12)),
+      trailing: Icon(Icons.chevron_right, color: skin.textMuted),
       onTap: onTap,
     );
   }
@@ -129,11 +140,12 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Material(
-      color: EverforestColors.bg1,
+      color: skin.bg1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: EverforestColors.bg2, width: 1.0),
+        side: BorderSide(color: skin.bg2, width: 1.0),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -144,17 +156,36 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-Widget _buildDivider() {
+Widget _buildDivider([BuildContext? context]) {
+  final bg2 = context != null
+      ? context.skin.bg2
+      : AppSkinManager.currentSkin.bg2;
   return Divider(
     height: 1,
     thickness: 1,
-    color: EverforestColors.bg2.withValues(alpha: 0.5),
+    color: bg2.withValues(alpha: 0.5),
     indent: 60,
     endIndent: 16,
   );
 }
 
 // --- SUB PAGES ---
+
+class _CustomizationPage extends StatelessWidget {
+  const _CustomizationPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _BaseSettingsPage(
+      title: 'Themes & Customization',
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        physics: BouncingScrollPhysics(),
+        child: CustomizationSettingsWidget(),
+      ),
+    );
+  }
+}
 
 class _BaseSettingsPage extends StatelessWidget {
   final String title;
@@ -164,15 +195,16 @@ class _BaseSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Scaffold(
-      backgroundColor: EverforestColors.bg0,
+      backgroundColor: skin.bg0,
       appBar: AppBar(
-        backgroundColor: EverforestColors.bg0,
+        backgroundColor: skin.bg0,
         elevation: 0,
-        iconTheme: const IconThemeData(color: EverforestColors.green),
+        iconTheme: IconThemeData(color: skin.accent),
         title: Text(
           title,
-          style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.w600),
+          style: TextStyle(color: skin.fg, fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
       body: body,

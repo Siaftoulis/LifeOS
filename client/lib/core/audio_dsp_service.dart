@@ -167,24 +167,24 @@ class AudioDspService {
     if (!_enabled) return '';
     final filters = <String>[];
 
-    // 1. Preamp Volume
+    // 1. Preamp Volume (-12dB to +12dB)
     if (_preamp.abs() > 0.05) {
-      filters.add('volume=volume=${_preamp.toStringAsFixed(1)}dB');
+      filters.add('volume=volume=${_preamp.clamp(-12.0, 12.0).toStringAsFixed(1)}dB');
     }
 
-    // 2. Bass Boost (centered at 110Hz with 0.6 Q width for punchy warmth)
+    // 2. Poweramp-style Bass Boost (centered at 80Hz with 0.7 Q width for deep punchy low-end)
     if (_bassBoost > 0.01) {
       final bassGainDb = _bassBoost * 18.0; // up to +18 dB
-      filters.add('bass=g=${bassGainDb.toStringAsFixed(1)}:f=110:w=0.6');
+      filters.add('bass=g=${bassGainDb.toStringAsFixed(1)}:f=80:w=0.7');
     }
 
-    // 3. Treble Boost (centered at 8000Hz for crystalline sparkle)
+    // 3. Poweramp-style Treble Sparkle (centered at 10000Hz for crystalline presence and air)
     if (_trebleBoost > 0.01) {
       final trebleGainDb = _trebleBoost * 18.0; // up to +18 dB
-      filters.add('treble=g=${trebleGainDb.toStringAsFixed(1)}:f=8000:w=0.6');
+      filters.add('treble=g=${trebleGainDb.toStringAsFixed(1)}:f=10000:w=0.7');
     }
 
-    // 4. 3D Spatial Audio / Stereo Expansion (1.0 = standard, up to 3.5 = expansive 3D soundstage)
+    // 4. 3D Spatial Audio / Stereo Soundstage expansion
     if (_spatial3d > 0.01) {
       final m = 1.0 + (_spatial3d * 2.5);
       filters.add('stereotools=slev=${m.toStringAsFixed(2)}');
@@ -203,20 +203,22 @@ class AudioDspService {
     return 'lavfi=[${filters.join(',')}]';
   }
 
-  /// Maps our 10 bands (31–16k) onto the Android 5-band hardware EQ
-  /// (60/230/910/3600/14000 Hz), folding the preamp into each gain so boosted
-  /// presets don't clip the output stage.
+  /// Maps our 10 bands + tone controls onto the Android 5-band hardware EQ
+  /// (60/230/910/3600/14000 Hz), integrating Bass & Treble boost and Preamp.
   List<double> _mappedAndroidGains() {
+    final bassGain = _bassBoost * 12.0;
+    final trebleGain = _trebleBoost * 12.0;
+
     final pairs = <(double, double)>[
-      (_bands[0], _bands[1]), // → 60 Hz
-      (_bands[2], _bands[3]), // → 230 Hz
-      (_bands[4], _bands[5]), // → 910 Hz
-      (_bands[6], _bands[7]), // → 3.6 kHz
-      (_bands[8], _bands[9]), // → 14 kHz
+      (_bands[0] + bassGain, _bands[1] + bassGain * 0.8), // → 60 Hz (Sub + Low Bass)
+      (_bands[2] + bassGain * 0.4, _bands[3]),            // → 230 Hz (Punchy Bass)
+      (_bands[4], _bands[5]),                              // → 910 Hz (Mids)
+      (_bands[6], _bands[7] + trebleGain * 0.5),          // → 3.6 kHz (High-mids)
+      (_bands[8] + trebleGain * 0.8, _bands[9] + trebleGain), // → 14 kHz (Air/Highs)
     ];
     return pairs
         .map((p) => (p.$1 + p.$2) / 2.0 + _preamp)
-        .map((g) => g.clamp(-12.0, 12.0))
+        .map((g) => g.clamp(-15.0, 15.0))
         .toList();
   }
 

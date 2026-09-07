@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'database/database.dart';
 import 'database/preferences_service.dart';
 import 'database/db_executor.dart';
+import 'theme/app_skin_manager.dart';
 import 'platform_dirs.dart';
 import 'api_client.dart';
 import 'feature_registry.dart';
@@ -34,7 +35,9 @@ class AppInitializer {
 
     final prefsStart = s.elapsedMilliseconds;
     final dir = kIsWeb ? null : await prefsDir();
-    await PreferencesService.load(dir: dir);    debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
+    await PreferencesService.load(dir: dir);
+    AppSkinManager.init();
+    debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
     PreferencesService.cachedBaseUrl.value = base;
     PreferencesService.cachedDaemonUrl.value = daemon;
 

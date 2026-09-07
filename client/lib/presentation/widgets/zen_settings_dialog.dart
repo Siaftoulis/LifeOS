@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../theme/everforest_colors.dart';
+import '../../theme/app_skin_manager.dart';
+import 'preferences_setting/customization_settings_widget.dart';
 
 class ZenSettingsDialog extends StatefulWidget {
   const ZenSettingsDialog({super.key});
@@ -36,76 +37,78 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(24),
       child: Container(
-        width: 820,
-        height: 580,
+        width: 840,
+        height: 620,
         decoration: BoxDecoration(
-          color: EverforestColors.bg0,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: EverforestColors.bg2, width: 1),
+          color: skin.bg0,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: skin.bg2, width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 20,
+              blurRadius: 24,
               spreadRadius: 4,
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           child: Row(
             children: [
               // Left Sidebar
               Container(
                 width: 220,
-                color: EverforestColors.bg1,
+                color: skin.bg1,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Text(
                         'Options',
                         style: TextStyle(
-                          color: EverforestColors.grey,
+                          color: skin.textMuted,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                    ..._options.map((opt) => _buildSidebarItem(opt)),
+                    ..._options.map((opt) => _buildSidebarItem(opt, skin)),
                     const SizedBox(height: 12),
-                    const Divider(color: EverforestColors.bg2, height: 1),
+                    Divider(color: skin.bg2, height: 1),
                     const SizedBox(height: 12),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Text(
                         'Core plugins',
                         style: TextStyle(
-                          color: EverforestColors.grey,
+                          color: skin.textMuted,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                    ..._corePlugins.map((plugin) => _buildSidebarItem(plugin)),
+                    ..._corePlugins.map((plugin) => _buildSidebarItem(plugin, skin)),
                   ],
                 ),
               ),
 
               // Divider
-              Container(width: 1, color: EverforestColors.bg2),
+              Container(width: 1, color: skin.bg2),
 
               // Right Content Area
               Expanded(
                 child: Container(
-                  color: EverforestColors.bg0,
+                  color: skin.bg0,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -117,15 +120,15 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
                           children: [
                             Text(
                               _selectedCategory,
-                              style: const TextStyle(
-                                color: EverforestColors.fg,
+                              style: TextStyle(
+                                color: skin.fg,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.close, size: 20),
-                              color: EverforestColors.grey,
+                              color: skin.textMuted,
                               hoverColor: Colors.white10,
                               splashRadius: 18,
                               onPressed: () => Navigator.of(context).pop(),
@@ -133,11 +136,17 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
                           ],
                         ),
                       ),
-                      const Divider(color: EverforestColors.bg2, height: 1),
+                      Divider(color: skin.bg2, height: 1),
 
                       // Category Content
                       Expanded(
-                        child: _buildUnderConstructionPanel(),
+                        child: _selectedCategory == 'Appearance'
+                            ? const SingleChildScrollView(
+                                padding: EdgeInsets.all(20),
+                                physics: BouncingScrollPhysics(),
+                                child: CustomizationSettingsWidget(),
+                              )
+                            : _buildUnderConstructionPanel(skin),
                       ),
                     ],
                   ),
@@ -150,7 +159,7 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
     );
   }
 
-  Widget _buildSidebarItem(String title) {
+  Widget _buildSidebarItem(String title, dynamic skin) {
     final bool isSelected = _selectedCategory == title;
 
     return Material(
@@ -161,10 +170,10 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? EverforestColors.bg2 : Colors.transparent,
+            color: isSelected ? skin.bg2 : Colors.transparent,
             border: Border(
               left: BorderSide(
-                color: isSelected ? EverforestColors.green : Colors.transparent,
+                color: isSelected ? skin.accent : Colors.transparent,
                 width: 3,
               ),
             ),
@@ -172,7 +181,7 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
           child: Text(
             title,
             style: TextStyle(
-              color: isSelected ? EverforestColors.fg : EverforestColors.grey,
+              color: isSelected ? skin.fg : skin.textMuted,
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
@@ -182,21 +191,21 @@ class _ZenSettingsDialogState extends State<ZenSettingsDialog> {
     );
   }
 
-  Widget _buildUnderConstructionPanel() {
+  Widget _buildUnderConstructionPanel(dynamic skin) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.tune, size: 48, color: EverforestColors.grey),
+          Icon(Icons.tune, size: 48, color: skin.textMuted),
           const SizedBox(height: 16),
           Text(
             '$_selectedCategory Settings',
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(color: skin.fg, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'This category is configured according to standard AppFlowy defaults.',
-            style: TextStyle(color: EverforestColors.grey, fontSize: 13),
+            style: TextStyle(color: skin.textMuted, fontSize: 13),
           ),
         ],
       ),

@@ -2,7 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
 
 class MusicMiniPlayer extends StatelessWidget {
@@ -25,15 +26,15 @@ class MusicMiniPlayer extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onOpenLyrics;
 
-  Widget _buildMiniPlaceholder() {
+  Widget _buildMiniPlaceholder(AppSkin skin) {
     return Container(
-      decoration: const BoxDecoration(
-        color: EverforestColors.bg2,
-        borderRadius: BorderRadius.all(Radius.circular(12)),
+      decoration: BoxDecoration(
+        color: skin.bg2,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.graphic_eq_rounded,
-        color: EverforestColors.green,
+        color: skin.accent,
         size: 26,
       ),
     );
@@ -41,10 +42,15 @@ class MusicMiniPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final player = playbackController.player;
-    if (player == null ||
-        currentTrackId.isEmpty ||
-        playbackController.currentItem == null) {
+    final activeItem = playbackController.currentItem;
+    final effectiveTrackId = activeItem?.id.isNotEmpty == true ? activeItem!.id : currentTrackId;
+    final effectiveTitle = activeItem?.title.isNotEmpty == true ? activeItem!.title : currentTitle;
+    final effectiveArtist = activeItem?.artist.isNotEmpty == true ? activeItem!.artist : currentArtist;
+    final effectiveThumbnail = activeItem?.thumbnail.isNotEmpty == true ? activeItem!.thumbnail : currentThumbnail;
+
+    if (player == null || effectiveTrackId.isEmpty || activeItem == null) {
       return const SizedBox.shrink();
     }
 
@@ -70,14 +76,14 @@ class MusicMiniPlayer extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(
             decoration: BoxDecoration(
-              color: EverforestColors.bg1.withValues(alpha: 0.92),
+              color: skin.bg1.withValues(alpha: 0.92),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black45,
+                  color: Colors.black.withValues(alpha: skin.isOled ? 0.7 : 0.45),
                   blurRadius: 20,
-                  offset: Offset(0, 8),
+                  offset: const Offset(0, 8),
                 )
               ],
             ),
@@ -109,8 +115,7 @@ class MusicMiniPlayer extends StatelessWidget {
                             value: progress,
                             minHeight: 2.5,
                             backgroundColor: Colors.transparent,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                EverforestColors.green),
+                            valueColor: AlwaysStoppedAnimation<Color>(skin.accent),
                           ),
                         );
                       },
@@ -122,7 +127,7 @@ class MusicMiniPlayer extends StatelessWidget {
                         children: [
                           Hero(
                             tag:
-                                'now_playing_artwork_${currentTrackId.isEmpty ? "empty" : currentTrackId}',
+                                'now_playing_artwork_${effectiveTrackId.isEmpty ? "empty" : effectiveTrackId}',
                             child: Container(
                               width: 48,
                               height: 48,
@@ -130,25 +135,24 @@ class MusicMiniPlayer extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: EverforestColors.green
-                                        .withValues(alpha: 0.25),
+                                    color: skin.accent.withValues(alpha: 0.25),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   )
                                 ],
                               ),
-                              child: currentThumbnail.isNotEmpty
+                              child: effectiveThumbnail.isNotEmpty
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
                                       child: Image.network(
                                         sanitizeMusicThumbnailUrl(
-                                            currentThumbnail),
+                                            effectiveThumbnail),
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, __, ___) =>
-                                            _buildMiniPlaceholder(),
+                                            _buildMiniPlaceholder(skin),
                                       ),
                                     )
-                                  : _buildMiniPlaceholder(),
+                                  : _buildMiniPlaceholder(skin),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -158,11 +162,11 @@ class MusicMiniPlayer extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  currentTitle,
+                                  effectiveTitle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: EverforestColors.fg,
+                                  style: TextStyle(
+                                    color: skin.fg,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14.5,
                                     letterSpacing: -0.2,
@@ -175,14 +179,13 @@ class MusicMiniPlayer extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 4.5, vertical: 1),
                                       decoration: BoxDecoration(
-                                        color: EverforestColors.green
-                                            .withValues(alpha: 0.15),
+                                        color: skin.accent.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'DSP ACTIVE',
                                         style: TextStyle(
-                                          color: EverforestColors.green,
+                                          color: skin.accent,
                                           fontSize: 8.5,
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 0.5,
@@ -192,13 +195,13 @@ class MusicMiniPlayer extends StatelessWidget {
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
-                                        currentArtist.isNotEmpty
-                                            ? currentArtist
+                                        effectiveArtist.isNotEmpty
+                                            ? effectiveArtist
                                             : 'LifeOS Audio',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: EverforestColors.grey,
+                                        style: TextStyle(
+                                          color: skin.textMuted,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -210,7 +213,7 @@ class MusicMiniPlayer extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.lyrics_rounded),
-                            color: EverforestColors.grey,
+                            color: skin.textMuted,
                             iconSize: 22,
                             tooltip: 'Live Lyrics',
                             onPressed: onOpenLyrics,
@@ -219,19 +222,19 @@ class MusicMiniPlayer extends StatelessWidget {
                             iconSize: 38,
                             tooltip: playing ? 'Pause' : 'Play',
                             icon: loading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: EverforestColors.green,
+                                      color: skin.accent,
                                     ),
                                   )
                                 : Icon(
                                     playing
                                         ? Icons.pause_rounded
                                         : Icons.play_arrow_rounded,
-                                    color: EverforestColors.fg,
+                                    color: skin.fg,
                                     size: 32,
                                   ),
                             onPressed: loading
@@ -240,7 +243,7 @@ class MusicMiniPlayer extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.skip_next_rounded),
-                            color: EverforestColors.fg,
+                            color: skin.fg,
                             iconSize: 28,
                             tooltip: 'Next Track',
                             onPressed: playbackController.next,

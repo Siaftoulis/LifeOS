@@ -85,12 +85,20 @@ class PlaybackController extends ChangeNotifier {
     await _playAt(i);
   }
 
+  int _playToken = 0;
+
   Future<void> _playAt(int i) async {
+    final token = ++_playToken;
     final item = _state.queue[i];
     _userWantsPlay = true;
     _isLoadingTrack = true;
+    notifyListeners();
+
     try {
       await playbackEngine.setUrl(item.url);
+      if (token != _playToken) {
+        return; // Superseded by a newer skip request
+      }
       if (_userWantsPlay) {
         try {
           await playbackEngine.play();
@@ -102,8 +110,15 @@ class PlaybackController extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Music playback setUrl failed: $e');
-      _userWantsPlay = false;
-      _isLoadingTrack = false;
+      if (token == _playToken) {
+        _isLoadingTrack = false;
+        notifyListeners();
+        // Auto-skip failing track if user wanted to play and queue has more tracks
+        if (_userWantsPlay && _state.queue.length > 1 && i < _state.queue.length - 1) {
+          debugPrint('Music playback: auto-skipping unavailable track to next item');
+          await next();
+        }
+      }
     }
   }
 

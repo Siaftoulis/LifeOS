@@ -4,9 +4,11 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin.dart';
+import '../../../../theme/app_skin_manager.dart';
 import '../../../../core/audio_dsp_service.dart';
 import '../../../../core/domain_repositories.dart';
+import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../core/music_playback/playback_models.dart';
 import 'components/heart_button.dart';
 import 'playlists/add_to_playlist_sheet.dart';
@@ -39,6 +41,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onOpenQueue;
   final VoidCallback? onDownloadOffline;
+  final void Function(MusicTrack track)? onDownloadTrack;
+  final void Function(MusicTrack track)? onDownloadOfflineTrack;
+  final void Function(MusicTrack track)? onDeleteTrack;
   final bool isDownloaded;
   final bool isOfflineLocal;
 
@@ -69,6 +74,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     this.onOpenQueue,
     this.isDownloaded = false,
     this.onDownloadOffline,
+    this.onDownloadTrack,
+    this.onDownloadOfflineTrack,
+    this.onDeleteTrack,
     this.isOfflineLocal = false,
     this.queue,
     this.currentIndex = -1,
@@ -98,6 +106,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
     VoidCallback? onOpenQueue,
     bool isDownloaded = false,
     VoidCallback? onDownloadOffline,
+    void Function(MusicTrack track)? onDownloadTrack,
+    void Function(MusicTrack track)? onDownloadOfflineTrack,
+    void Function(MusicTrack track)? onDeleteTrack,
     bool isOfflineLocal = false,
     List<PlaybackItem>? queue,
     int currentIndex = -1,
@@ -131,6 +142,9 @@ class PowerampNowPlayingSheet extends StatefulWidget {
         onOpenQueue: onOpenQueue,
         isDownloaded: isDownloaded,
         onDownloadOffline: onDownloadOffline,
+        onDownloadTrack: onDownloadTrack,
+        onDownloadOfflineTrack: onDownloadOfflineTrack,
+        onDeleteTrack: onDeleteTrack,
         isOfflineLocal: isOfflineLocal,
         queue: queue,
         currentIndex: currentIndex,
@@ -153,6 +167,7 @@ class PowerampNowPlayingSheet extends StatefulWidget {
 class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     with SingleTickerProviderStateMixin {
   NowPlayingCardMode _cardMode = NowPlayingCardMode.artwork;
+  AudioVisualizerStyle _visualizerStyle = AudioVisualizerStyle.bars;
   int _desktopRightTab = 0; // 0 = Equalizer & DSP, 1 = Queue, 2 = Lyrics
   late bool _isShuffle;
   late PlaybackRepeat _repeat;
@@ -167,11 +182,58 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   final List<double> _peakCaps = List.filled(32, 0.0);
   final List<double> _capVelocities = List.filled(32, 0.0);
 
+  PlaybackItem? get _activeItem => PlaybackController.instance.currentItem;
+  String get _activeTitle =>
+      (_activeItem?.title.isNotEmpty == true) ? _activeItem!.title : widget.title;
+  String get _activeArtist =>
+      (_activeItem?.artist.isNotEmpty == true) ? _activeItem!.artist : widget.artist;
+  String get _activeAlbum =>
+      (_activeItem?.album.isNotEmpty == true) ? _activeItem!.album : widget.album;
+  String get _activeThumbnail =>
+      (_activeItem?.thumbnail.isNotEmpty == true)
+          ? _activeItem!.thumbnail
+          : widget.thumbnailUrl;
+  String get _activeTrackId =>
+      (_activeItem?.id.isNotEmpty == true) ? _activeItem!.id : widget.trackId;
+  String get _activeStreamUrl =>
+      (_activeItem?.url.isNotEmpty == true) ? _activeItem!.url : widget.streamUrl;
+
+  bool get _isCurrentDownloaded =>
+      MusicRepository.instance.tracks.value.any((t) => t.id == _activeTrackId);
+  bool get _isCurrentOfflineLocal =>
+      MusicRepository.instance.isOffline(_activeTrackId);
+
+  MusicTrack get _currentTrack {
+    final item = _activeItem;
+    if (item != null) {
+      return MusicTrack(
+        id: item.id,
+        title: item.title,
+        artist: item.artist,
+        album: item.album,
+        thumbnail: item.thumbnail,
+        duration: widget.player.duration?.inSeconds.toDouble() ?? 0,
+      );
+    }
+    return MusicTrack(
+      id: widget.trackId,
+      title: widget.title,
+      artist: widget.artist,
+      album: widget.album,
+      thumbnail: widget.thumbnailUrl,
+      duration: widget.player.duration?.inSeconds.toDouble() ?? 0,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    _isShuffle = widget.shuffle;
-    _repeat = widget.repeat;
+    _isShuffle = PlaybackController.instance.isAvailable
+        ? PlaybackController.instance.shuffle
+        : widget.shuffle;
+    _repeat = PlaybackController.instance.isAvailable
+        ? PlaybackController.instance.repeat
+        : widget.repeat;
     _visualizerAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 60),
@@ -179,6 +241,21 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     _syncVisualizerWithPlayer(widget.player.playerState);
     _playerStateSub =
         widget.player.playerStateStream.listen(_syncVisualizerWithPlayer);
+    PlaybackController.instance.addListener(_onPlaybackChanged);
+    MusicRepository.instance.tracks.addListener(_onTracksChanged);
+  }
+
+  void _onPlaybackChanged() {
+    if (!mounted) return;
+    setState(() {
+      _isShuffle = PlaybackController.instance.shuffle;
+      _repeat = PlaybackController.instance.repeat;
+    });
+  }
+
+  void _onTracksChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _syncVisualizerWithPlayer(PlayerState state) {
@@ -197,6 +274,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   @override
   void dispose() {
+    PlaybackController.instance.removeListener(_onPlaybackChanged);
+    MusicRepository.instance.tracks.removeListener(_onTracksChanged);
     _playerStateSub?.cancel();
     _visualizerAnim.dispose();
     _feedbackTimer?.cancel();
@@ -225,17 +304,6 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     final sign = delta.inSeconds >= 0 ? '+' : '';
     final icon = delta.inSeconds >= 0 ? Icons.fast_forward_rounded : Icons.fast_rewind_rounded;
     _showFeedback('$sign${delta.inSeconds}s', icon);
-  }
-
-  void _adjustVolume(double delta) {
-    final cur = widget.player.volume;
-    final next = (cur + delta).clamp(0.0, 1.0);
-    widget.player.setVolume(next);
-    final pct = (next * 100).round();
-    final icon = next == 0
-        ? Icons.volume_off_rounded
-        : (next < 0.5 ? Icons.volume_down_rounded : Icons.volume_up_rounded);
-    _showFeedback('Vol $pct%', icon);
   }
 
   void _startContinuousSeek(bool forward) {
@@ -283,40 +351,89 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   void _toggleLoopMode() {
-    setState(() {
-      if (_repeat == PlaybackRepeat.off) {
-        _repeat = PlaybackRepeat.all;
-        _showFeedback('Repeat All', Icons.repeat_rounded);
-      } else if (_repeat == PlaybackRepeat.all) {
-        _repeat = PlaybackRepeat.one;
-        _showFeedback('Repeat One', Icons.repeat_one_rounded);
-      } else {
-        _repeat = PlaybackRepeat.off;
-        _showFeedback('Repeat Off', Icons.repeat_rounded);
-      }
-      widget.onRepeatChanged?.call(_repeat);
-    });
+    PlaybackRepeat nextMode;
+    if (_repeat == PlaybackRepeat.off) {
+      nextMode = PlaybackRepeat.all;
+      _showFeedback('Repeat All', Icons.repeat_rounded);
+    } else if (_repeat == PlaybackRepeat.all) {
+      nextMode = PlaybackRepeat.one;
+      _showFeedback('Repeat One', Icons.repeat_one_rounded);
+    } else {
+      nextMode = PlaybackRepeat.off;
+      _showFeedback('Repeat Off', Icons.repeat_rounded);
+    }
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.setRepeat(nextMode);
+    }
+    widget.onRepeatChanged?.call(nextMode);
+    setState(() => _repeat = nextMode);
   }
 
   void _toggleShuffle() {
-    setState(() {
-      _isShuffle = !_isShuffle;
-      _showFeedback(_isShuffle ? 'Shuffle On' : 'Shuffle Off', Icons.shuffle_rounded);
-      widget.onShuffleChanged?.call(_isShuffle);
-    });
+    final nextVal = !_isShuffle;
+    _showFeedback(nextVal ? 'Shuffle On' : 'Shuffle Off', Icons.shuffle_rounded);
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.setShuffle(nextVal);
+    }
+    widget.onShuffleChanged?.call(nextVal);
+    setState(() => _isShuffle = nextVal);
   }
 
-  MusicTrack get _currentTrack => MusicTrack(
-        id: widget.trackId,
-        title: widget.title,
-        artist: widget.artist,
-        album: widget.album,
-        thumbnail: widget.thumbnailUrl,
-        duration: widget.player.duration?.inSeconds.toDouble() ?? 0,
-      );
+  void _handleNext() {
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.next();
+    } else {
+      widget.onNext();
+    }
+  }
+
+  void _handlePrev() {
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.previous();
+    } else {
+      widget.onPrev();
+    }
+  }
+
+  void _handleDownload() {
+    if (widget.onDownloadTrack != null) {
+      widget.onDownloadTrack!(_currentTrack);
+    } else {
+      widget.onDownload?.call();
+    }
+  }
+
+  void _handleDownloadOffline() {
+    if (widget.onDownloadOfflineTrack != null) {
+      widget.onDownloadOfflineTrack!(_currentTrack);
+    } else {
+      widget.onDownloadOffline?.call();
+    }
+  }
+
+  void _handleDelete() {
+    if (widget.onDeleteTrack != null) {
+      widget.onDeleteTrack!(_currentTrack);
+    } else {
+      widget.onDelete?.call();
+    }
+  }
+
+  void _openMetadataModal() {
+    TrackMetadataModal.show(
+      context,
+      title: _activeTitle,
+      artist: _activeArtist,
+      album: _activeAlbum,
+      trackId: _activeTrackId,
+      url: _activeStreamUrl,
+      duration: widget.player.duration ?? Duration.zero,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 820;
 
@@ -324,14 +441,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
       width: double.infinity,
       height: size.height * (isDesktop ? 0.95 : 0.94),
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Colors.black87,
+            color: Colors.black.withValues(alpha: skin.isOled ? 0.95 : 0.75),
             blurRadius: 50,
             spreadRadius: 8,
-            offset: Offset(0, -10),
+            offset: const Offset(0, -10),
           ),
         ],
       ),
@@ -354,8 +471,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           center: Alignment.topCenter,
                           radius: 1.4,
                           colors: [
-                            EverforestColors.green.withValues(alpha: 0.22),
-                            EverforestColors.aqua.withValues(alpha: 0.12),
+                            skin.accent.withValues(alpha: skin.isOled ? 0.08 : 0.22),
+                            skin.accentSecondary.withValues(alpha: skin.isOled ? 0.04 : 0.12),
                             Colors.transparent,
                           ],
                         ),
@@ -373,7 +490,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             // Content Body
             SafeArea(
               top: false,
-              child: isDesktop ? _buildDesktopStudio(size) : _buildMobileLayout(size),
+              child: isDesktop
+                  ? _buildDesktopStudio(size, skin)
+                  : _buildMobileLayout(size, skin),
             ),
           ],
         ),
@@ -384,7 +503,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   // ==========================================
   // DESKTOP FULL-WIDTH STUDIO VIEW
   // ==========================================
-  Widget _buildDesktopStudio(Size size) {
+  Widget _buildDesktopStudio(Size size, AppSkin skin) {
+    final activeQueue = PlaybackController.instance.isAvailable &&
+            PlaybackController.instance.queue.isNotEmpty
+        ? PlaybackController.instance.queue
+        : (widget.queue ?? []);
+
     return Column(
       children: [
         const SizedBox(height: 14),
@@ -403,14 +527,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.white10),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.keyboard_arrow_down_rounded, color: EverforestColors.fg, size: 20),
-                      SizedBox(width: 6),
+                      Icon(Icons.keyboard_arrow_down_rounded, color: skin.fg, size: 20),
+                      const SizedBox(width: 6),
                       Text(
                         'BACK TO LIBRARY',
                         style: TextStyle(
-                          color: EverforestColors.fg,
+                          color: skin.fg,
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.8,
@@ -435,16 +559,16 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     Container(
                       width: 7,
                       height: 7,
-                      decoration: const BoxDecoration(
-                        color: EverforestColors.green,
+                      decoration: BoxDecoration(
+                        color: skin.accent,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'STREAMING · DSP ACTIVE',
                       style: TextStyle(
-                        color: EverforestColors.fg,
+                        color: skin.fg,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
@@ -454,63 +578,57 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                 ),
               ),
               const Spacer(),
-              if (widget.isDownloaded && widget.onDelete != null)
+              if (_isCurrentDownloaded && (widget.onDelete != null || widget.onDeleteTrack != null))
                 IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 22),
+                  icon: Icon(Icons.delete_outline_rounded, color: skin.red, size: 22),
                   tooltip: 'Delete Song',
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        backgroundColor: EverforestColors.bg1,
-                        title: const Text('Delete Song', style: TextStyle(color: EverforestColors.fg)),
+                        backgroundColor: skin.bg1,
+                        title: Text('Delete Song', style: TextStyle(color: skin.fg)),
                         content: Text(
-                          'Delete "${widget.title}" from downloaded library?',
-                          style: const TextStyle(color: EverforestColors.grey),
+                          'Delete "$_activeTitle" from downloaded library?',
+                          style: TextStyle(color: skin.textMuted),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+                            child: Text('Cancel', style: TextStyle(color: skin.textMuted)),
                           ),
                           TextButton(
                             onPressed: () {
                               Navigator.pop(ctx);
-                              Navigator.pop(context);
-                              widget.onDelete?.call();
+                              _handleDelete();
                             },
-                            child: const Text('Delete', style: TextStyle(color: EverforestColors.red, fontWeight: FontWeight.bold)),
+                            child: Text('Delete',
+                                style: TextStyle(
+                                    color: skin.red,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                     );
                   },
                 )
-              else if (!widget.isDownloaded && widget.onDownload != null)
+              else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
                 IconButton(
-                  icon: const Icon(Icons.download_rounded, color: EverforestColors.green, size: 22),
+                  icon: Icon(Icons.download_rounded, color: skin.accent, size: 22),
                   tooltip: 'Download Song',
-                  onPressed: widget.onDownload,
+                  onPressed: _handleDownload,
                 ),
-              if (!widget.isOfflineLocal && widget.onDownloadOffline != null)
+              if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
                 IconButton(
-                  icon: const Icon(Icons.download_for_offline_rounded, color: EverforestColors.aqua, size: 22),
+                  icon: Icon(Icons.download_for_offline_rounded, color: skin.aqua, size: 22),
                   tooltip: 'Save to this device (offline)',
-                  onPressed: widget.onDownloadOffline,
+                  onPressed: _handleDownloadOffline,
                 ),
               const SizedBox(width: 4),
               IconButton(
-                icon: const Icon(Icons.info_outline_rounded, color: EverforestColors.grey, size: 22),
+                icon: Icon(Icons.info_outline_rounded, color: skin.textMuted, size: 22),
                 tooltip: 'Audio Specs',
-                onPressed: () => TrackMetadataModal.show(
-                  context,
-                  title: widget.title,
-                  artist: widget.artist,
-                  album: widget.album,
-                  trackId: widget.trackId,
-                  url: widget.streamUrl,
-                  duration: widget.player.duration ?? Duration.zero,
-                ),
+                onPressed: _openMetadataModal,
               ),
             ],
           ),
@@ -535,9 +653,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildHeroCard(cardSize: cardSize),
+                          _buildHeroCard(cardSize: cardSize, skin: skin),
                           const SizedBox(height: 12),
-                          _buildModeSelectorPills(),
+                          _buildModeSelectorPills(skin: skin),
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -546,12 +664,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  widget.title,
+                                  _activeTitle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: EverforestColors.fg,
+                                  style: TextStyle(
+                                    color: skin.fg,
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.4,
@@ -560,8 +678,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               ),
                               const SizedBox(width: 8),
                               IconButton(
-                                icon: const Icon(Icons.playlist_add_rounded,
-                                    color: EverforestColors.grey, size: 22),
+                                icon: Icon(Icons.playlist_add_rounded,
+                                    color: skin.textMuted, size: 22),
                                 tooltip: 'Add to Playlist',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -572,12 +690,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            widget.artist.isNotEmpty ? widget.artist : 'Unknown Artist',
+                            _activeArtist.isNotEmpty ? _activeArtist : 'Unknown Artist',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: EverforestColors.grey,
+                            style: TextStyle(
+                              color: skin.textMuted,
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -598,23 +716,24 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Segmented Tab Switcher (Only Equalizer & Queue)
+                      // Segmented Tab Switcher (Only Equalizer, Queue, Lyrics)
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: EverforestColors.bg1,
+                          color: skin.bg1,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                         ),
                         child: Row(
                           children: [
-                            _buildDesktopTabButton(0, Icons.equalizer_rounded, 'Equalizer & DSP'),
+                            _buildDesktopTabButton(0, Icons.equalizer_rounded, 'Equalizer & DSP', skin),
                             _buildDesktopTabButton(
                               1,
                               Icons.queue_music_rounded,
-                              'Queue (${widget.queue?.length ?? 0})',
+                              'Queue (${activeQueue.length})',
+                              skin,
                             ),
-                            _buildDesktopTabButton(2, Icons.lyrics_rounded, 'Lyrics'),
+                            _buildDesktopTabButton(2, Icons.lyrics_rounded, 'Lyrics', skin),
                           ],
                         ),
                       ),
@@ -625,12 +744,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: EverforestColors.bg1,
+                            color: skin.bg1,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: _buildDesktopRightTabContent(),
+                          child: _buildDesktopRightTabContent(skin),
                         ),
                       ),
                     ],
@@ -645,13 +764,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         Container(
           padding: const EdgeInsets.fromLTRB(36, 10, 36, 16),
           decoration: BoxDecoration(
-            color: EverforestColors.bg1,
+            color: skin.bg1,
             border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildWaveformBar(),
+              _buildWaveformBar(skin),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -662,7 +781,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       IconButton(
                         icon: Icon(
                           Icons.shuffle_rounded,
-                          color: _isShuffle ? EverforestColors.green : EverforestColors.grey,
+                          color: _isShuffle ? skin.accent : skin.textMuted,
                           size: 22,
                         ),
                         tooltip: 'Shuffle',
@@ -674,8 +793,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               ? Icons.repeat_one_rounded
                               : Icons.repeat_rounded,
                           color: _repeat != PlaybackRepeat.off
-                              ? EverforestColors.green
-                              : EverforestColors.grey,
+                              ? skin.accent
+                              : skin.textMuted,
                           size: 22,
                         ),
                         tooltip: 'Repeat',
@@ -692,21 +811,23 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                         onLongPressStart: (_) => _startContinuousSeek(false),
                         onLongPressEnd: (_) => _stopContinuousSeek(),
                         child: IconButton(
-                          icon: const Icon(Icons.skip_previous_rounded,
-                              color: EverforestColors.fg, size: 36),
-                          onPressed: widget.onPrev,
+                          icon: Icon(Icons.skip_previous_rounded,
+                              color: skin.fg, size: 36),
+                          tooltip: 'Previous Track',
+                          onPressed: _handlePrev,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      _buildPlayPauseCircle(size: 58),
+                      _buildPlayPauseCircle(skin, size: 58),
                       const SizedBox(width: 12),
                       GestureDetector(
                         onLongPressStart: (_) => _startContinuousSeek(true),
                         onLongPressEnd: (_) => _stopContinuousSeek(),
                         child: IconButton(
-                          icon: const Icon(Icons.skip_next_rounded,
-                              color: EverforestColors.fg, size: 36),
-                          onPressed: widget.onNext,
+                          icon: Icon(Icons.skip_next_rounded,
+                              color: skin.fg, size: 36),
+                          tooltip: 'Next Track',
+                          onPressed: _handleNext,
                         ),
                       ),
                     ],
@@ -717,21 +838,21 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     children: [
                       IconButton(
                         icon: Icon(
-                          widget.isOfflineLocal
+                          _isCurrentOfflineLocal
                               ? Icons.check_circle_rounded
                               : Icons.download_for_offline_rounded,
-                          color: widget.isOfflineLocal
-                              ? EverforestColors.green
-                              : EverforestColors.grey,
+                          color: _isCurrentOfflineLocal
+                              ? skin.accent
+                              : skin.textMuted,
                           size: 22,
                         ),
-                        tooltip: widget.isOfflineLocal
+                        tooltip: _isCurrentOfflineLocal
                             ? 'Saved on this device'
                             : 'Download for Offline',
-                        onPressed: widget.onDownloadOffline,
+                        onPressed: _handleDownloadOffline,
                       ),
                       const SizedBox(width: 8),
-                      _buildDesktopVolumeSlider(),
+                      _buildDesktopVolumeSlider(skin),
                     ],
                   ),
                 ],
@@ -743,7 +864,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildDesktopTabButton(int index, IconData icon, String label) {
+  Widget _buildDesktopTabButton(int index, IconData icon, String label, AppSkin skin) {
     final active = _desktopRightTab == index;
     return Expanded(
       child: InkWell(
@@ -752,10 +873,10 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: active ? EverforestColors.green.withValues(alpha: 0.15) : Colors.transparent,
+            color: active ? skin.accent.withValues(alpha: 0.15) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: active
-                ? Border.all(color: EverforestColors.green.withValues(alpha: 0.4))
+                ? Border.all(color: skin.accent.withValues(alpha: 0.4))
                 : null,
           ),
           child: Row(
@@ -763,14 +884,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             children: [
               Icon(
                 icon,
-                color: active ? EverforestColors.green : EverforestColors.grey,
+                color: active ? skin.accent : skin.textMuted,
                 size: 18,
               ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: active ? EverforestColors.green : EverforestColors.grey,
+                  color: active ? skin.accent : skin.textMuted,
                   fontWeight: active ? FontWeight.bold : FontWeight.w500,
                   fontSize: 12.5,
                 ),
@@ -782,12 +903,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildDesktopRightTabContent() {
+  Widget _buildDesktopRightTabContent(AppSkin skin) {
     switch (_desktopRightTab) {
       case 0:
         return const PowerampEqualizerModal(isEmbedded: true);
       case 1:
-        return _buildEmbeddedQueue();
+        return _buildEmbeddedQueue(skin);
       case 2:
         return _buildDesktopLyricsWorkstation();
       default:
@@ -797,8 +918,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   Widget _buildDesktopLyricsWorkstation() {
     return LyricsSyncViewer(
-      title: widget.title,
-      artist: widget.artist,
+      key: ValueKey('desktop_lyrics_$_activeTrackId'),
+      title: _activeTitle,
+      artist: _activeArtist,
       player: widget.player,
       isEmbedded: true,
     );
@@ -807,20 +929,28 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   String _formatDuration(double seconds) =>
       formatTrackDuration(seconds, allowEmpty: true);
 
-  Widget _buildEmbeddedQueue() {
-    final q = widget.queue ?? [];
+  Widget _buildEmbeddedQueue(AppSkin skin) {
+    final q = PlaybackController.instance.isAvailable &&
+            PlaybackController.instance.queue.isNotEmpty
+        ? PlaybackController.instance.queue
+        : (widget.queue ?? []);
+    final currentIdx = PlaybackController.instance.isAvailable &&
+            PlaybackController.instance.currentIndex >= 0
+        ? PlaybackController.instance.currentIndex
+        : widget.currentIndex;
+
     if (q.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.queue_music_rounded,
-                color: EverforestColors.grey, size: 40),
+            Icon(Icons.queue_music_rounded,
+                color: skin.textMuted, size: 40),
             const SizedBox(height: 8),
             Text(
               'Queue is empty',
               style: TextStyle(
-                  color: EverforestColors.grey.withValues(alpha: 0.8),
+                  color: skin.textMuted.withValues(alpha: 0.8),
                   fontSize: 13),
             ),
           ],
@@ -837,20 +967,24 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             children: [
               Text(
                 'UP NEXT (${q.length})',
-                style: const TextStyle(
-                  color: EverforestColors.grey,
+                style: TextStyle(
+                  color: skin.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.8,
                 ),
               ),
-              if (widget.onClearQueue != null)
-                TextButton(
-                  onPressed: widget.onClearQueue,
-                  child: const Text('Clear',
-                      style:
-                          TextStyle(color: EverforestColors.red, fontSize: 12)),
-                ),
+              TextButton(
+                onPressed: () {
+                  if (PlaybackController.instance.isAvailable) {
+                    PlaybackController.instance.clearQueue();
+                  } else {
+                    widget.onClearQueue?.call();
+                  }
+                },
+                child: Text('Clear',
+                    style: TextStyle(color: skin.red, fontSize: 12)),
+              ),
             ],
           ),
         ),
@@ -860,10 +994,16 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             padding: const EdgeInsets.symmetric(vertical: 6),
             itemCount: q.length,
             // ignore: deprecated_member_use
-            onReorder: widget.onReorder ?? (_, __) {},
+            onReorder: (oldIdx, newIdx) {
+              if (PlaybackController.instance.isAvailable) {
+                PlaybackController.instance.reorderQueue(oldIdx, newIdx);
+              } else {
+                widget.onReorder?.call(oldIdx, newIdx);
+              }
+            },
             itemBuilder: (context, i) {
               final item = q[i];
-              final isCurrent = i == widget.currentIndex;
+              final isCurrent = i == currentIdx;
               final meta =
                   MusicRepository.instance.getTrackMetadata(item.id);
               final thumbUrl = item.thumbnail.isNotEmpty
@@ -876,14 +1016,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               return Material(
                 key: ValueKey('queue_item_${item.id}_$i'),
                 color: isCurrent
-                    ? EverforestColors.green.withValues(alpha: 0.14)
+                    ? skin.accent.withValues(alpha: 0.14)
                     : Colors.transparent,
                 child: Container(
                   decoration: BoxDecoration(
                     border: isCurrent
-                        ? const Border(
+                        ? Border(
                             left: BorderSide(
-                              color: EverforestColors.green,
+                              color: skin.accent,
                               width: 3.5,
                             ),
                           )
@@ -900,12 +1040,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           width: 24,
                           child: Center(
                             child: isCurrent
-                                ? const Icon(Icons.volume_up_rounded,
-                                    color: EverforestColors.green, size: 18)
+                                ? Icon(Icons.volume_up_rounded,
+                                    color: skin.accent, size: 18)
                                 : Text(
                                     '${i + 1}',
-                                    style: const TextStyle(
-                                        color: EverforestColors.grey,
+                                    style: TextStyle(
+                                        color: skin.textMuted,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500),
                                   ),
@@ -917,22 +1057,22 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           child: Container(
                             width: 38,
                             height: 38,
-                            color: EverforestColors.bg0,
+                            color: skin.bg0,
                             child: thumbUrl.isNotEmpty
                                 ? Image.network(
                                     thumbUrl,
                                     width: 38,
                                     height: 38,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(
+                                    errorBuilder: (_, __, ___) => Icon(
                                       Icons.music_note_rounded,
-                                      color: EverforestColors.grey,
+                                      color: skin.textMuted,
                                       size: 18,
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.music_note_rounded,
-                                    color: EverforestColors.grey,
+                                    color: skin.textMuted,
                                     size: 18,
                                   ),
                           ),
@@ -945,8 +1085,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: isCurrent
-                            ? EverforestColors.green
-                            : EverforestColors.fg,
+                            ? skin.accent
+                            : skin.fg,
                         fontWeight:
                             isCurrent ? FontWeight.bold : FontWeight.w600,
                         fontSize: 13,
@@ -956,8 +1096,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       item.artist.isNotEmpty ? item.artist : 'LifeOS Library',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: EverforestColors.grey, fontSize: 11),
+                      style: TextStyle(
+                          color: skin.textMuted, fontSize: 11),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -967,27 +1107,38 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                             padding: const EdgeInsets.only(right: 8),
                             child: Text(
                               durText,
-                              style: const TextStyle(
-                                color: EverforestColors.grey,
+                              style: TextStyle(
+                                color: skin.textMuted,
                                 fontSize: 11,
                               ),
                             ),
                           ),
-                        if (widget.onRemove != null)
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded,
-                                color: EverforestColors.grey, size: 16),
-                            tooltip: 'Remove from queue',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => widget.onRemove!(i),
-                          ),
+                        IconButton(
+                          icon: Icon(Icons.close_rounded,
+                              color: skin.textMuted, size: 16),
+                          tooltip: 'Remove from queue',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            if (PlaybackController.instance.isAvailable) {
+                              PlaybackController.instance.removeAt(i);
+                            } else {
+                              widget.onRemove?.call(i);
+                            }
+                          },
+                        ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.drag_handle_rounded,
-                            color: EverforestColors.grey, size: 18),
+                        Icon(Icons.drag_handle_rounded,
+                            color: skin.textMuted, size: 18),
                       ],
                     ),
-                    onTap: () => widget.onPlayIndex?.call(i),
+                    onTap: () {
+                      if (PlaybackController.instance.isAvailable) {
+                        PlaybackController.instance.playAt(i);
+                      } else {
+                        widget.onPlayIndex?.call(i);
+                      }
+                    },
                   ),
                 ),
               );
@@ -998,7 +1149,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildDesktopVolumeSlider() {
+  Widget _buildDesktopVolumeSlider(AppSkin skin) {
     return StreamBuilder<double>(
       stream: widget.player.volumeStream,
       builder: (context, snap) {
@@ -1009,7 +1160,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             IconButton(
               icon: Icon(
                 vol == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                color: EverforestColors.grey,
+                color: skin.textMuted,
                 size: 20,
               ),
               onPressed: () => widget.player.setVolume(vol > 0 ? 0.0 : 1.0),
@@ -1021,7 +1172,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   trackHeight: 3,
                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                  activeTrackColor: EverforestColors.green,
+                  activeTrackColor: skin.accent,
                   inactiveTrackColor: Colors.white12,
                   thumbColor: Colors.white,
                 ),
@@ -1042,11 +1193,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   // ==========================================
   // MOBILE ADAPTIVE VIEW (Zero-Overflow)
   // ==========================================
-  Widget _buildMobileLayout(Size size) {
+  Widget _buildMobileLayout(Size size, AppSkin skin) {
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(bottom: 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1075,7 +1226,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             // Header Bar
             Padding(
@@ -1084,8 +1235,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: EverforestColors.fg, size: 28),
+                    icon: Icon(Icons.keyboard_arrow_down_rounded,
+                        color: skin.fg, size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Container(
@@ -1101,16 +1252,16 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
-                            color: EverforestColors.green,
+                          decoration: BoxDecoration(
+                            color: skin.accent,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           'STREAMING · DSP',
                           style: TextStyle(
-                            color: EverforestColors.fg,
+                            color: skin.fg,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
@@ -1122,37 +1273,36 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (widget.isDownloaded && widget.onDelete != null)
+                      if (_isCurrentDownloaded && (widget.onDelete != null || widget.onDeleteTrack != null))
                         IconButton(
-                          icon: const Icon(Icons.delete_outline_rounded,
-                              color: EverforestColors.red, size: 22),
+                          icon: Icon(Icons.delete_outline_rounded,
+                              color: skin.red, size: 22),
                           tooltip: 'Delete Song',
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                backgroundColor: EverforestColors.bg1,
-                                title: const Text('Delete Song',
-                                    style: TextStyle(color: EverforestColors.fg)),
+                                backgroundColor: skin.bg1,
+                                title: Text('Delete Song',
+                                    style: TextStyle(color: skin.fg)),
                                 content: Text(
-                                  'Delete "${widget.title}" from downloaded library?',
-                                  style: const TextStyle(color: EverforestColors.grey),
+                                  'Delete "$_activeTitle" from downloaded library?',
+                                  style: TextStyle(color: skin.textMuted),
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
-                                    child: const Text('Cancel',
-                                        style: TextStyle(color: EverforestColors.grey)),
+                                    child: Text('Cancel',
+                                        style: TextStyle(color: skin.textMuted)),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(ctx);
-                                      Navigator.pop(context);
-                                      widget.onDelete?.call();
+                                      _handleDelete();
                                     },
-                                    child: const Text('Delete',
+                                    child: Text('Delete',
                                         style: TextStyle(
-                                            color: EverforestColors.red,
+                                            color: skin.red,
                                             fontWeight: FontWeight.bold)),
                                   ),
                                 ],
@@ -1160,33 +1310,25 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                             );
                           },
                         )
-                      else if (!widget.isDownloaded && widget.onDownload != null)
+                      else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
                         IconButton(
-                          icon: const Icon(Icons.download_rounded,
-                              color: EverforestColors.green, size: 22),
+                          icon: Icon(Icons.download_rounded,
+                              color: skin.accent, size: 22),
                           tooltip: 'Download Song',
-                          onPressed: widget.onDownload,
+                          onPressed: _handleDownload,
                         ),
-                      if (!widget.isOfflineLocal && widget.onDownloadOffline != null)
+                      if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
                         IconButton(
-                          icon: const Icon(Icons.download_for_offline_rounded,
-                              color: EverforestColors.aqua, size: 22),
+                          icon: Icon(Icons.download_for_offline_rounded,
+                              color: skin.aqua, size: 22),
                           tooltip: 'Save to this device (offline)',
-                          onPressed: widget.onDownloadOffline,
+                          onPressed: _handleDownloadOffline,
                         ),
                       IconButton(
-                        icon: const Icon(Icons.info_outline_rounded,
-                            color: EverforestColors.grey, size: 22),
+                        icon: Icon(Icons.info_outline_rounded,
+                            color: skin.textMuted, size: 22),
                         tooltip: 'Audio Specs',
-                        onPressed: () => TrackMetadataModal.show(
-                          context,
-                          title: widget.title,
-                          artist: widget.artist,
-                          album: widget.album,
-                          trackId: widget.trackId,
-                          url: widget.streamUrl,
-                          duration: widget.player.duration ?? Duration.zero,
-                        ),
+                        onPressed: _openMetadataModal,
                       ),
                     ],
                   ),
@@ -1201,28 +1343,29 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: _buildHeroCard(
                 cardSize: math.min(size.width * 0.72, size.height * 0.32).clamp(170.0, 270.0),
+                skin: skin,
               ),
             ),
 
             const SizedBox(height: 8),
-            _buildModeSelectorPills(),
+            _buildModeSelectorPills(skin: skin),
 
             const SizedBox(height: 10),
-            _buildTrackInfo(),
+            _buildTrackInfo(skin: skin),
 
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: _buildWaveformBar(),
+              child: _buildWaveformBar(skin),
             ),
 
             const SizedBox(height: 8),
-            _buildMobileTransport(),
+            _buildMobileTransport(skin),
 
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildMobileDock(),
+              child: _buildMobileDock(skin),
             ),
           ],
         ),
@@ -1230,7 +1373,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildHeroCard({required double cardSize}) {
+  Widget _buildHeroCard({required double cardSize, required AppSkin skin}) {
     final isLyricsMode = _cardMode == NowPlayingCardMode.lyrics;
 
     return LayoutBuilder(
@@ -1238,51 +1381,17 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: isLyricsMode ? null : _cycleCardMode,
-          onDoubleTapDown: isLyricsMode
-              ? null
-              : (details) {
-                  final xFraction =
-                      details.localPosition.dx / constraints.maxWidth;
-                  if (xFraction < 0.35) {
-                    _seekRelative(const Duration(seconds: -10));
-                  } else if (xFraction > 0.65) {
-                    _seekRelative(const Duration(seconds: 10));
-                  } else {
-                    if (widget.player.playing) {
-                      widget.player.pause();
-                      _showFeedback('Paused', Icons.pause_rounded);
-                    } else {
-                      widget.player.play();
-                      _showFeedback('Playing', Icons.play_arrow_rounded);
-                    }
-                  }
-                },
-          onLongPress: isLyricsMode
-              ? null
-              : () => TrackMetadataModal.show(
-                    context,
-                    title: widget.title,
-                    artist: widget.artist,
-                    album: widget.album,
-                    trackId: widget.trackId,
-                    url: widget.streamUrl,
-                    duration: widget.player.duration ?? Duration.zero,
-                  ),
-          onVerticalDragUpdate: isLyricsMode
-              ? null
-              : (details) {
-                  final delta = -details.primaryDelta! / 200.0;
-                  _adjustVolume(delta);
-                },
-          onVerticalDragEnd: null,
+          onLongPress: isLyricsMode ? null : _openMetadataModal,
           onHorizontalDragEnd: isLyricsMode
               ? null
               : (details) {
                   if (details.primaryVelocity != null) {
                     if (details.primaryVelocity! < -200) {
-                      widget.onNext();
+                      _handleNext();
+                      _showFeedback('Next Track', Icons.skip_next_rounded);
                     } else if (details.primaryVelocity! > 200) {
-                      widget.onPrev();
+                      _handlePrev();
+                      _showFeedback('Previous Track', Icons.skip_previous_rounded);
                     }
                   }
                 },
@@ -1294,11 +1403,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                 transitionBuilder: (child, anim) => FadeTransition(
                   opacity: anim,
                   child: ScaleTransition(
-                    scale: Tween<double>(begin: 0.95, end: 1.0).animate(anim),
+                    scale: Tween<double>(begin: 0.96, end: 1.0).animate(anim),
                     child: child,
                   ),
                 ),
-                child: _buildCenterCardContent(cardSize),
+                child: _buildCenterCardContent(cardSize, skin),
               ),
 
               // HUD Feedback
@@ -1307,9 +1416,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.82),
+                      color: Colors.black.withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: EverforestColors.green.withValues(alpha: 0.5)),
+                      border: Border.all(color: skin.accent.withValues(alpha: 0.5)),
                       boxShadow: const [
                         BoxShadow(color: Colors.black54, blurRadius: 15),
                       ],
@@ -1318,13 +1427,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (_feedbackIcon != null) ...[
-                          Icon(_feedbackIcon, color: EverforestColors.green, size: 20),
+                          Icon(_feedbackIcon, color: skin.accent, size: 20),
                           const SizedBox(width: 8),
                         ],
                         Text(
                           _feedbackText!,
-                          style: const TextStyle(
-                            color: EverforestColors.fg,
+                          style: TextStyle(
+                            color: skin.fg,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -1340,53 +1449,63 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildCenterCardContent(double cardSize) {
+  Widget _buildCenterCardContent(double cardSize, AppSkin skin) {
     switch (_cardMode) {
       case NowPlayingCardMode.artwork:
-        return Container(
-          key: const ValueKey('artwork_card'),
-          width: cardSize,
-          height: cardSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.55),
-                blurRadius: 28,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: widget.thumbnailUrl.isNotEmpty
-                ? Image.network(
-                    (kIsWeb && Uri.base.scheme == 'https' && widget.thumbnailUrl.startsWith('http://'))
-                        ? widget.thumbnailUrl.replaceFirst('http://', 'https://')
-                        : widget.thumbnailUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildFallbackArt(),
-                  )
-                : _buildFallbackArt(),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: Container(
+            key: ValueKey('artwork_${_activeTrackId}_$_activeThumbnail'),
+            width: cardSize,
+            height: cardSize,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: skin.isOled ? 0.85 : 0.45),
+                  blurRadius: 28,
+                  offset: const Offset(0, 12),
+                ),
+                BoxShadow(
+                  color: skin.accent.withValues(alpha: 0.12),
+                  blurRadius: 36,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: _activeThumbnail.isNotEmpty
+                  ? Image.network(
+                      (kIsWeb && Uri.base.scheme == 'https' && _activeThumbnail.startsWith('http://'))
+                          ? _activeThumbnail.replaceFirst('http://', 'https://')
+                          : _activeThumbnail,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildFallbackArt(skin),
+                    )
+                  : _buildFallbackArt(skin),
+            ),
           ),
         );
 
       case NowPlayingCardMode.lyrics:
         return Container(
-          key: const ValueKey('lyrics_card'),
+          key: ValueKey('lyrics_card_${_activeTrackId}'),
           width: cardSize,
           height: cardSize,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: EverforestColors.bg1,
+            color: skin.bg1,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: LyricsSyncViewer(
-              title: widget.title,
-              artist: widget.artist,
+              key: ValueKey('lyrics_viewer_${_activeTrackId}'),
+              title: _activeTitle,
+              artist: _activeArtist,
               player: widget.player,
               isEmbedded: true,
             ),
@@ -1395,75 +1514,138 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
       case NowPlayingCardMode.visualizer:
         return Container(
-          key: const ValueKey('visualizer_card'),
+          key: ValueKey('visualizer_card_${_activeTrackId}'),
           width: cardSize,
           height: cardSize,
           decoration: BoxDecoration(
-            color: EverforestColors.bg1,
+            color: skin.bg1,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: StreamBuilder<Duration>(
-            stream: widget.player.positionStream,
-            builder: (context, posSnap) {
-              final pos = posSnap.data ?? Duration.zero;
-              return StreamBuilder<PlayerState>(
-                stream: widget.player.playerStateStream,
-                builder: (context, stateSnap) {
-                  final playing = stateSnap.data?.playing ?? false;
-                  return AnimatedBuilder(
-                    animation: _visualizerAnim,
-                    builder: (context, _) {
-                      return CustomPaint(
-                        painter: AudioReactiveSpectrogramPainter(
-                          position: pos,
-                          trackId: widget.trackId,
-                          playing: playing,
-                          peakCaps: _peakCaps,
-                          capVelocities: _capVelocities,
-                          dspGains: AudioDspService.instance.bands,
-                          bassBoost: AudioDspService.instance.bassBoost,
-                        ),
-                      );
-                    },
-                  );
-                },
-              );
-            },
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: StreamBuilder<Duration>(
+                  stream: widget.player.positionStream,
+                  builder: (context, posSnap) {
+                    final pos = posSnap.data ?? Duration.zero;
+                    return StreamBuilder<PlayerState>(
+                      stream: widget.player.playerStateStream,
+                      builder: (context, stateSnap) {
+                        final playing = stateSnap.data?.playing ?? false;
+                        return AnimatedBuilder(
+                          animation: _visualizerAnim,
+                          builder: (context, _) {
+                            return CustomPaint(
+                              painter: AudioReactiveSpectrogramPainter(
+                                position: pos,
+                                trackId: _activeTrackId,
+                                playing: playing,
+                                peakCaps: _peakCaps,
+                                capVelocities: _capVelocities,
+                                dspGains: AudioDspService.instance.bands,
+                                bassBoost: AudioDspService.instance.bassBoost,
+                                style: _visualizerStyle,
+                                skin: skin,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              Positioned(
+                top: 10,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: skin.bg0.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildVisualizerStylePill('BARS', AudioVisualizerStyle.bars, skin),
+                        const SizedBox(width: 4),
+                        _buildVisualizerStylePill('BEAM', AudioVisualizerStyle.beam, skin),
+                        const SizedBox(width: 4),
+                        _buildVisualizerStylePill('HALO', AudioVisualizerStyle.halo, skin),
+                        const SizedBox(width: 4),
+                        _buildVisualizerStylePill('VU', AudioVisualizerStyle.vu, skin),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
     }
   }
 
-  Widget _buildModeSelectorPills() {
+  Widget _buildVisualizerStylePill(String label, AudioVisualizerStyle style, AppSkin skin) {
+    final active = _visualizerStyle == style;
+    return GestureDetector(
+      onTap: () => setState(() => _visualizerStyle = style),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: active ? skin.accent.withValues(alpha: 0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: active ? skin.accent : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? skin.accent : skin.textMuted,
+            fontSize: 9.0,
+            fontWeight: active ? FontWeight.bold : FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeSelectorPills({required AppSkin skin}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildModeDot(NowPlayingCardMode.artwork),
+        _buildModeDot(NowPlayingCardMode.artwork, skin),
         const SizedBox(width: 6),
-        _buildModeDot(NowPlayingCardMode.lyrics),
+        _buildModeDot(NowPlayingCardMode.lyrics, skin),
         const SizedBox(width: 6),
-        _buildModeDot(NowPlayingCardMode.visualizer),
+        _buildModeDot(NowPlayingCardMode.visualizer, skin),
       ],
     );
   }
 
-  Widget _buildModeDot(NowPlayingCardMode mode) {
+  Widget _buildModeDot(NowPlayingCardMode mode, AppSkin skin) {
     final active = _cardMode == mode;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       width: active ? 16 : 6,
       height: 6,
       decoration: BoxDecoration(
-        color: active ? EverforestColors.green : Colors.white24,
+        color: active ? skin.accent : Colors.white24,
         borderRadius: BorderRadius.circular(3),
       ),
     );
   }
 
-  Widget _buildTrackInfo() {
+  Widget _buildTrackInfo({required AppSkin skin}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
           HeartButton(track: _currentTrack, size: 24),
@@ -1471,37 +1653,59 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           Expanded(
             child: Column(
               children: [
-                Text(
-                  widget.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: EverforestColors.fg,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.3,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Text(
+                    _activeTitle,
+                    key: ValueKey('title_${_activeTrackId}_$_activeTitle'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: skin.fg,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  widget.artist.isNotEmpty ? widget.artist : 'Unknown Artist',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: EverforestColors.grey,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w500,
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: Text(
+                    _activeArtist.isNotEmpty ? _activeArtist : 'Unknown Artist',
+                    key: ValueKey('artist_${_activeTrackId}_$_activeArtist'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: skin.textMuted,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
+                if (_activeAlbum.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    _activeAlbum,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: skin.textMuted.withValues(alpha: 0.65),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           const SizedBox(width: 12),
           IconButton(
-            icon: const Icon(Icons.playlist_add_rounded,
-                color: EverforestColors.grey, size: 24),
+            icon: Icon(Icons.playlist_add_rounded,
+                color: skin.textMuted, size: 24),
             tooltip: 'Add to Playlist',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -1513,7 +1717,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildWaveformBar() {
+  Widget _buildWaveformBar(AppSkin skin) {
     return StreamBuilder<Duration>(
       stream: widget.player.positionStream,
       builder: (context, posSnap) {
@@ -1525,9 +1729,10 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             return WaveformSeekbar(
               position: pos,
               duration: dur,
-              trackId: widget.trackId,
+              trackId: _activeTrackId,
+              audioUrl: _activeStreamUrl,
               height: 42,
-              activeColor: EverforestColors.green,
+              activeColor: skin.accent,
               inactiveColor: Colors.white.withValues(alpha: 0.15),
               onSeek: (target) => widget.player.seek(target),
             );
@@ -1537,7 +1742,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildPlayPauseCircle({double size = 58}) {
+  Widget _buildPlayPauseCircle(AppSkin skin, {double size = 58}) {
     return StreamBuilder<PlayerState>(
       stream: widget.player.playerStateStream,
       builder: (context, snap) {
@@ -1550,10 +1755,10 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: EverforestColors.green,
+            color: skin.accent,
             boxShadow: [
               BoxShadow(
-                color: EverforestColors.green.withValues(alpha: 0.38),
+                color: skin.accent.withValues(alpha: 0.38),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
@@ -1565,20 +1770,30 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               borderRadius: BorderRadius.circular(size / 2),
               onTap: loading
                   ? null
-                  : (playing ? widget.player.pause : widget.player.play),
+                  : () {
+                      if (PlaybackController.instance.isAvailable) {
+                        PlaybackController.instance.togglePlayPause();
+                      } else {
+                        if (playing) {
+                          widget.player.pause();
+                        } else {
+                          widget.player.play();
+                        }
+                      }
+                    },
               child: Center(
                 child: loading
                     ? SizedBox(
                         width: size * 0.42,
                         height: size * 0.42,
-                        child: const CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: EverforestColors.bg0,
+                          color: skin.bg0,
                         ),
                       )
                     : Icon(
                         playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: EverforestColors.bg0,
+                        color: skin.bg0,
                         size: size * 0.62,
                       ),
               ),
@@ -1589,37 +1804,40 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildMobileTransport() {
+  Widget _buildMobileTransport(AppSkin skin) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
             icon: Icon(
               Icons.shuffle_rounded,
-              color: _isShuffle ? EverforestColors.green : EverforestColors.grey,
+              color: _isShuffle ? skin.accent : skin.textMuted,
               size: 22,
             ),
+            tooltip: 'Shuffle',
             onPressed: _toggleShuffle,
           ),
           GestureDetector(
             onLongPressStart: (_) => _startContinuousSeek(false),
             onLongPressEnd: (_) => _stopContinuousSeek(),
             child: IconButton(
-              icon: const Icon(Icons.skip_previous_rounded,
-                  color: EverforestColors.fg, size: 34),
-              onPressed: widget.onPrev,
+              icon: Icon(Icons.skip_previous_rounded,
+                  color: skin.fg, size: 36),
+              tooltip: 'Previous Track',
+              onPressed: _handlePrev,
             ),
           ),
-          _buildPlayPauseCircle(size: 56),
+          _buildPlayPauseCircle(skin, size: 56),
           GestureDetector(
             onLongPressStart: (_) => _startContinuousSeek(true),
             onLongPressEnd: (_) => _stopContinuousSeek(),
             child: IconButton(
-              icon: const Icon(Icons.skip_next_rounded,
-                  color: EverforestColors.fg, size: 34),
-              onPressed: widget.onNext,
+              icon: Icon(Icons.skip_next_rounded,
+                  color: skin.fg, size: 36),
+              tooltip: 'Next Track',
+              onPressed: _handleNext,
             ),
           ),
           IconButton(
@@ -1628,10 +1846,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   ? Icons.repeat_one_rounded
                   : Icons.repeat_rounded,
               color: _repeat != PlaybackRepeat.off
-                  ? EverforestColors.green
-                  : EverforestColors.grey,
+                  ? skin.accent
+                  : skin.textMuted,
               size: 22,
             ),
+            tooltip: 'Repeat Mode',
             onPressed: _toggleLoopMode,
           ),
         ],
@@ -1639,11 +1858,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildMobileDock() {
+  Widget _buildMobileDock(AppSkin skin) {
+    final isOffline = _isCurrentOfflineLocal;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
-        color: EverforestColors.bg1,
+        color: skin.bg1,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
@@ -1652,6 +1872,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         children: [
           Expanded(
             child: _buildDockButton(
+              skin: skin,
               icon: Icons.lyrics_rounded,
               label: 'Lyrics',
               active: _cardMode == NowPlayingCardMode.lyrics,
@@ -1666,6 +1887,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           Expanded(
             child: _buildDockButton(
+              skin: skin,
               icon: Icons.graphic_eq_rounded,
               label: 'Spectrum',
               active: _cardMode == NowPlayingCardMode.visualizer,
@@ -1680,6 +1902,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           Expanded(
             child: _buildDockButton(
+              skin: skin,
               icon: Icons.equalizer_rounded,
               label: 'Equalizer',
               active: false,
@@ -1688,6 +1911,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           Expanded(
             child: _buildDockButton(
+              skin: skin,
               icon: Icons.queue_music_rounded,
               label: 'Queue',
               active: false,
@@ -1696,12 +1920,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           ),
           Expanded(
             child: _buildDockButton(
-              icon: widget.isOfflineLocal
+              skin: skin,
+              icon: isOffline
                   ? Icons.check_circle_rounded
                   : Icons.download_for_offline_rounded,
-              label: widget.isOfflineLocal ? 'On Device' : 'Download',
-              active: widget.isOfflineLocal,
-              onTap: widget.onDownloadOffline,
+              label: isOffline ? 'On Device' : 'Download',
+              active: isOffline,
+              onTap: _handleDownloadOffline,
             ),
           ),
         ],
@@ -1709,13 +1934,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildFallbackArt() {
+  Widget _buildFallbackArt(AppSkin skin) {
     return Container(
-      color: EverforestColors.bg1,
+      color: skin.bg1,
       child: Center(
         child: Icon(
           Icons.music_note_rounded,
-          color: EverforestColors.green.withValues(alpha: 0.8),
+          color: skin.accent.withValues(alpha: 0.8),
           size: 70,
         ),
       ),
@@ -1723,6 +1948,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   Widget _buildDockButton({
+    required AppSkin skin,
     required IconData icon,
     required String label,
     required bool active,
@@ -1738,7 +1964,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           children: [
             Icon(
               icon,
-              color: active ? EverforestColors.green : EverforestColors.grey,
+              color: active ? skin.accent : skin.textMuted,
               size: 19,
             ),
             const SizedBox(height: 3),
@@ -1747,7 +1973,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: active ? EverforestColors.green : EverforestColors.grey,
+                color: active ? skin.accent : skin.textMuted,
                 fontSize: 10,
                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
               ),
@@ -1758,4 +1984,5 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 }
+
 

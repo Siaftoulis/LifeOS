@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../theme/everforest_colors.dart';
+import '../../theme/app_skin_manager.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -40,16 +40,17 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
-      color: EverforestColors.bg0,
+      color: skin.bg0,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _formatTime(_now),
-              style: const TextStyle(
-                color: EverforestColors.fg,
+              style: TextStyle(
+                color: skin.fg,
                 fontSize: 84,
                 fontWeight: FontWeight.w200,
                 letterSpacing: 4.0,
@@ -58,8 +59,8 @@ class _HomeViewState extends State<HomeView> {
             const SizedBox(height: 8),
             Text(
               _formatDate(_now),
-              style: const TextStyle(
-                color: EverforestColors.grey,
+              style: TextStyle(
+                color: skin.textMuted,
                 fontSize: 16,
                 letterSpacing: 8.0,
                 fontWeight: FontWeight.w600,

@@ -17,6 +17,26 @@ class PlaybackItem {
     this.album = '',
     this.filePath = '',
   });
+
+  PlaybackItem copyWith({
+    String? id,
+    String? url,
+    String? title,
+    String? artist,
+    String? thumbnail,
+    String? album,
+    String? filePath,
+  }) {
+    return PlaybackItem(
+      id: id ?? this.id,
+      url: url ?? this.url,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      thumbnail: thumbnail ?? this.thumbnail,
+      album: album ?? this.album,
+      filePath: filePath ?? this.filePath,
+    );
+  }
 }
 
 /// Repeat semantics for the queue (generic — no just_audio types in the UI).

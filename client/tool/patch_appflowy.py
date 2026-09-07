@@ -161,7 +161,7 @@ try:
         os.makedirs(dummy_inc, exist_ok=True)
         none_h = os.path.join(dummy_inc, "none.h")
         with open(none_h, "w", encoding="utf-8") as f:
-            f.write("#pragma once\n#include <flutter/plugin_registrar_windows.h>\ninline void noneRegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar) {}\n")
+            f.write("#pragma once\n#include <flutter/plugin_registrar_windows.h>\n#include <flutter_plugin_registrar.h>\ninline void noneRegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar) {}\ninline void noneRegisterWithRegistrar(FlutterDesktopPluginRegistrarRef registrar) {}\n")
 
         dummy_cpp = os.path.join(dummy_dir, "dummy.cpp")
         with open(dummy_cpp, "w", encoding="utf-8") as f:

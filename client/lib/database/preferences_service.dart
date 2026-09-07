@@ -30,6 +30,7 @@ class PreferencesService {
   static final ValueNotifier<List<String>> zenFavorites = ValueNotifier([]);
   static final ValueNotifier<String> zenWorkspace = ValueNotifier('');
   static final ValueNotifier<double> zenScale = ValueNotifier(1.0);
+  static final ValueNotifier<String> activeSkin = ValueNotifier('everforest');
 
   // User Custom Layout & Style Presets (Never lost across updates)
   static final ValueNotifier<Map<String, dynamic>> savedPresets = ValueNotifier({});
@@ -100,6 +101,7 @@ class PreferencesService {
       if (data['zenFavorites'] != null) zenFavorites.value = List<String>.from(data['zenFavorites']);
       zenWorkspace.value = data['zenWorkspace'] ?? '';
       zenScale.value = (data['zenScale'] as num?)?.toDouble() ?? 1.0;
+      activeSkin.value = data['activeSkin'] ?? 'everforest';
       if (data['savedPresets'] != null) {
         savedPresets.value = Map<String, dynamic>.from(data['savedPresets']);
       }
@@ -132,6 +134,7 @@ class PreferencesService {
         'zenFavorites': zenFavorites.value,
         'zenWorkspace': zenWorkspace.value,
         'zenScale': zenScale.value,
+        'activeSkin': activeSkin.value,
         'savedPresets': savedPresets.value,
         'activePresetName': activePresetName.value,
       });
@@ -162,6 +165,7 @@ class PreferencesService {
       'zenFavorites': zenFavorites.value,
       'zenExpanded': zenExpanded.value,
       'zenScale': zenScale.value,
+      'activeSkin': activeSkin.value,
       'savedAt': DateTime.now().toIso8601String(),
     };
 
@@ -206,6 +210,9 @@ class PreferencesService {
     }
     if (preset['zenScale'] != null) {
       zenScale.value = (preset['zenScale'] as num).toDouble();
+    }
+    if (preset['activeSkin'] != null) {
+      activeSkin.value = preset['activeSkin'] as String;
     }
 
     activePresetName.value = name;
@@ -335,4 +342,5 @@ class PreferencesService {
   }
   static Future<void> setZenWorkspace(String v) async { zenWorkspace.value = v; await save(); }
   static Future<void> setZenScale(double v) async { zenScale.value = v.clamp(0.75, 1.75); await save(); }
+  static Future<void> setActiveSkin(String v) async { activeSkin.value = v; await save(); }
 }

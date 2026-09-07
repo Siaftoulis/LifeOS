@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'theme/everforest_colors.dart';
+import 'theme/app_skin_manager.dart';
 import 'presentation/engine/spatial_engine.dart';
 import 'core/dev_simulation_service.dart' as import_dev_sim;
 import 'app_module_router.dart';
@@ -25,7 +25,7 @@ class SpatialEngineScaffold extends StatelessWidget {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: EverforestColors.bg0,
+        backgroundColor: context.skin.bg0,
         body: SpatialEngine(
           key: spatialEngineKey,
           layout: layout,
