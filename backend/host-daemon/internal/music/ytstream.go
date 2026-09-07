@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	flightMu   sync.Mutex
-	flightLock = make(map[string]*sync.Mutex)
+	flightMu    sync.Mutex
+	flightLock  = make(map[string]*sync.Mutex)
+	precacheSem = make(chan struct{}, 2)
 )
 
 func getFlightLock(id string) *sync.Mutex {
@@ -50,9 +51,11 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
-	// If not cached, initiate background download with independent context
+	// If not cached, initiate background download with independent context throttled by precacheSem
 	if stat, err := os.Stat(cacheFilePath); err != nil || stat.Size() <= 50000 {
 		go func() {
+			precacheSem <- struct{}{}
+			defer func() { <-precacheSem }()
 			_ = downloadAndCache(context.Background(), id, cacheFilePath)
 		}()
 	}

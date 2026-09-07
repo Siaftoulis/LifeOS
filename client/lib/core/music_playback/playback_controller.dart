@@ -29,11 +29,14 @@ class PlaybackController extends ChangeNotifier {
   bool get shuffle => _state.shuffle;
   bool _infiniteRadio = true;
   bool get infiniteRadio => _infiniteRadio;
+  int _lookaheadWindow = 3;
+  int get lookaheadWindow => _lookaheadWindow;
 
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _infiniteRadio = prefs.getBool('music_infinite_radio') ?? true;
+      _lookaheadWindow = prefs.getInt('music_lookahead_window') ?? 3;
       notifyListeners();
     } catch (_) {}
   }
@@ -48,6 +51,14 @@ class PlaybackController extends ChangeNotifier {
 
   void toggleInfiniteRadio() {
     setInfiniteRadio(!_infiniteRadio);
+  }
+
+  void setLookaheadWindow(int count) {
+    _lookaheadWindow = count.clamp(1, 5);
+    notifyListeners();
+    SharedPreferences.getInstance()
+        .then((p) => p.setInt('music_lookahead_window', _lookaheadWindow))
+        .catchError((_) => false);
   }
 
   /// True only on native platforms (Windows/Linux/macOS/iOS/Android).
@@ -88,11 +99,12 @@ class PlaybackController extends ChangeNotifier {
   }
 
   /// Pre-caches upcoming items in the queue ahead of the current track.
-  void precacheUpcoming({int lookahead = 2}) {
+  void precacheUpcoming({int? lookahead}) {
+    final effectiveLookahead = lookahead ?? _lookaheadWindow;
     final q = _state.queue;
     final cur = _state.currentIndex;
     if (cur < 0) return;
-    for (int step = 1; step <= lookahead; step++) {
+    for (int step = 1; step <= effectiveLookahead; step++) {
       final targetIdx = cur + step;
       if (targetIdx < q.length) {
         precacheTrack(q[targetIdx].id);
@@ -123,8 +135,8 @@ class PlaybackController extends ChangeNotifier {
       if (!_hasPrecachedMidpoint && pos.inSeconds >= 20) {
         if (dur == null || pos.inSeconds >= dur.inSeconds ~/ 2) {
           _hasPrecachedMidpoint = true;
-          precacheUpcoming(lookahead: 2);
-          if (_infiniteRadio && _state.currentIndex >= _state.queue.length - 2) {
+          precacheUpcoming();
+          if (_infiniteRadio && _state.currentIndex >= _state.queue.length - (_lookaheadWindow + 1)) {
             _fetchAndAppendRadio();
           }
         }
@@ -234,7 +246,7 @@ class PlaybackController extends ChangeNotifier {
           }
         }
         // Eagerly pre-cache upcoming radio items immediately
-        precacheUpcoming(lookahead: 2);
+        precacheUpcoming();
       }
     } catch (e) {
       debugPrint('Error fetching infinite radio recommendations: $e');
@@ -244,8 +256,8 @@ class PlaybackController extends ChangeNotifier {
   }
 
   void _precacheNext(int i) {
-    precacheUpcoming(lookahead: 2);
-    if (_infiniteRadio && i >= _state.queue.length - 2) {
+    precacheUpcoming();
+    if (_infiniteRadio && i >= _state.queue.length - (_lookaheadWindow + 1)) {
       _fetchAndAppendRadio();
     }
   }

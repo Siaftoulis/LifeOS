@@ -1701,6 +1701,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   Widget _buildRadioChip(AppSkin skin) {
     final pc = PlaybackController.instance;
     final active = pc.infiniteRadio;
+    final lookahead = pc.lookaheadWindow;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1708,10 +1709,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           pc.toggleInfiniteRadio();
           setState(() {});
           _showFeedback(
-            pc.infiniteRadio ? 'Infinite Radio: ON' : 'Infinite Radio: OFF',
+            pc.infiniteRadio
+                ? 'Infinite Radio: ON (${pc.lookaheadWindow}x Pre-cache)'
+                : 'Infinite Radio: OFF',
             Icons.sensors_rounded,
           );
         },
+        onLongPress: () => _showLookaheadSelector(skin),
         borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -1736,7 +1740,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               ),
               const SizedBox(width: 4),
               Text(
-                'RADIO',
+                active ? 'RADIO (${lookahead}x)' : 'RADIO',
                 style: TextStyle(
                   color: active ? skin.accent : skin.textMuted,
                   fontSize: 10,
@@ -1747,6 +1751,124 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showLookaheadSelector(AppSkin skin) {
+    final pc = PlaybackController.instance;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+            decoration: BoxDecoration(
+              color: skin.bg0,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(Icons.fast_forward_rounded, color: skin.accent, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Lookahead Pre-caching Depth',
+                      style: TextStyle(
+                        color: skin.fg,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Select how many songs ahead should be pre-buffered in the background to ensure zero-lag instant transitions.',
+                  style: TextStyle(color: skin.textMuted, fontSize: 13),
+                ),
+                const SizedBox(height: 18),
+                ...[2, 3, 4].map((count) {
+                  final isSel = pc.lookaheadWindow == count;
+                  final label = count == 2
+                      ? '2 Songs (Standard - 0s lag on normal play)'
+                      : count == 3
+                          ? '3 Songs (Recommended - Balanced instant buffering)'
+                          : '4 Songs (Deep Buffer - Instant even on rapid skips)';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      onTap: () {
+                        pc.setLookaheadWindow(count);
+                        pc.precacheUpcoming();
+                        setModalState(() {});
+                        setState(() {});
+                        Navigator.pop(ctx);
+                        _showFeedback(
+                          'Pre-cache lookahead set to $count songs ahead',
+                          Icons.speed_rounded,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isSel
+                              ? skin.accent.withValues(alpha: 0.15)
+                              : skin.bg1,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSel ? skin.accent : Colors.transparent,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isSel
+                                  ? Icons.radio_button_checked_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: isSel ? skin.accent : skin.textMuted,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  color: isSel ? skin.fg : skin.textMuted,
+                                  fontWeight:
+                                      isSel ? FontWeight.w600 : FontWeight.normal,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
