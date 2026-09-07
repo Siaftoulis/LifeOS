@@ -30,6 +30,7 @@ class PowerampTrackContextSheet extends StatelessWidget {
     VoidCallback? onAddToQueue,
     VoidCallback? onDelete,
   }) {
+    PlaybackController.instance.precacheTrack(track.id);
     final skin = context.skin;
     showModalBottomSheet(
       context: context,

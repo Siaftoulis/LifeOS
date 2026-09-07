@@ -317,8 +317,10 @@ class MusicSearchResults extends StatelessWidget {
             final isItemDownloading =
                 activeQueueIds.contains(t.id) || downloading.contains(t.id);
 
-            return ListTile(
-              leading: _thumbnail(t.thumbnail, 48, skin),
+            return MouseRegion(
+              onEnter: (_) => playbackController.precacheTrack(t.id),
+              child: ListTile(
+                leading: _thumbnail(t.thumbnail, 48, skin),
               title: Text(t.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -391,7 +393,8 @@ class MusicSearchResults extends StatelessWidget {
                   ? () => playbackController
                       .playQueue(results.map(_itemFromTrack).toList(), startIndex: i)
                   : onWebNotice,
-            );
+            ),
+          );
           },
         );
       },

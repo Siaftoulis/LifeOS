@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
+import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
 import '../components/poweramp_track_context_sheet.dart';
@@ -119,9 +120,11 @@ class TrackTile extends StatelessWidget {
     final isWide = MediaQuery.of(context).size.width >= 720;
     final skin = context.skin;
 
-    return ListTile(
-      leading: GestureDetector(
-        onTap: () => _showMetadata(context),
+    return MouseRegion(
+      onEnter: (_) => PlaybackController.instance.precacheTrack(track.id),
+      child: ListTile(
+        leading: GestureDetector(
+          onTap: () => _showMetadata(context),
         child: TrackThumbnail(url: track.thumbnail, size: 48),
       ),
       title: Text(
@@ -266,7 +269,8 @@ class TrackTile extends StatelessWidget {
           onDelete: () => onDeleteTrack(track),
         );
       },
-    );
+    ),
+  );
   }
 }
 
