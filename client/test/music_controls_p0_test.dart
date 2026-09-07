@@ -40,6 +40,30 @@ void main() {
       pc.setRepeat(PlaybackRepeat.off);
       expect(pc.repeat, PlaybackRepeat.off);
     });
+
+    test('PlaybackController infinite radio controls function properly', () {
+      final pc = PlaybackController.instance;
+      pc.setInfiniteRadio(true);
+      expect(pc.infiniteRadio, isTrue);
+
+      pc.setInfiniteRadio(false);
+      expect(pc.infiniteRadio, isFalse);
+
+      pc.toggleInfiniteRadio();
+      expect(pc.infiniteRadio, isTrue);
+    });
+
+    test('PlaybackController lookahead precaching handles queue boundaries safely', () {
+      final pc = PlaybackController.instance;
+      pc.setQueue([
+        const PlaybackItem(id: 't1', url: 'https://example.com/1', title: 'Song 1', artist: 'Artist 1'),
+        const PlaybackItem(id: 't2', url: 'https://example.com/2', title: 'Song 2', artist: 'Artist 2'),
+      ], currentIndex: 0);
+
+      expect(() => pc.precacheUpcoming(lookahead: 2), returnsNormally);
+      expect(() => pc.precacheTrack('test_yt_id'), returnsNormally);
+      expect(() => pc.precacheTrack(''), returnsNormally);
+    });
   });
 
   group('P0-2: Download Queue Item & Metadata Tests', () {

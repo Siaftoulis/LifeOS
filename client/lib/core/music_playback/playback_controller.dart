@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' show AudioPlayer, ProcessingState;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../api_client.dart';
 import '../domain_repositories.dart';
 import 'playback_engine.dart';
@@ -13,7 +14,9 @@ import 'playback_models.dart';
 /// On Flutter Web the engine is a no-op: `isAvailable` is false and the UI
 /// must show the library without playback affordances.
 class PlaybackController extends ChangeNotifier {
-  PlaybackController._();
+  PlaybackController._() {
+    _loadPreferences();
+  }
   static final PlaybackController instance = PlaybackController._();
 
   PlaybackQueueState _state = const PlaybackQueueState();
@@ -26,13 +29,25 @@ class PlaybackController extends ChangeNotifier {
   bool get shuffle => _state.shuffle;
   bool _infiniteRadio = true;
   bool get infiniteRadio => _infiniteRadio;
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _infiniteRadio = prefs.getBool('music_infinite_radio') ?? true;
+      notifyListeners();
+    } catch (_) {}
+  }
+
   void setInfiniteRadio(bool enabled) {
     _infiniteRadio = enabled;
     notifyListeners();
+    SharedPreferences.getInstance()
+        .then((p) => p.setBool('music_infinite_radio', enabled))
+        .catchError((_) => false);
   }
+
   void toggleInfiniteRadio() {
-    _infiniteRadio = !_infiniteRadio;
-    notifyListeners();
+    setInfiniteRadio(!_infiniteRadio);
   }
 
   /// True only on native platforms (Windows/Linux/macOS/iOS/Android).
@@ -47,11 +62,48 @@ class PlaybackController extends ChangeNotifier {
 
   StreamSubscription<dynamic>? _processingSub;
   StreamSubscription<dynamic>? _playerStateSub;
+  StreamSubscription<dynamic>? _positionSub;
+  final Set<String> _precachedTrackIds = {};
+  bool _hasPrecachedMidpoint = false;
   final Random _rng = Random();
+
+  /// Eagerly pre-caches a single track on the server host daemon.
+  void precacheTrack(String trackId) {
+    if (trackId.isEmpty || _precachedTrackIds.contains(trackId)) return;
+    try {
+      final offline = MusicRepository.instance.offlineFilePath(trackId);
+      if (offline != null && offline.isNotEmpty) {
+        _precachedTrackIds.add(trackId);
+        return;
+      }
+    } catch (_) {}
+    _precachedTrackIds.add(trackId);
+    try {
+      if (ApiClient.hasInstance) {
+        ApiClient.instance
+            .getDaemonSlow('/api/v1/music/resolve?id=${Uri.encodeComponent(trackId)}')
+            .catchError((_) => null);
+      }
+    } catch (_) {}
+  }
+
+  /// Pre-caches upcoming items in the queue ahead of the current track.
+  void precacheUpcoming({int lookahead = 2}) {
+    final q = _state.queue;
+    final cur = _state.currentIndex;
+    if (cur < 0) return;
+    for (int step = 1; step <= lookahead; step++) {
+      final targetIdx = cur + step;
+      if (targetIdx < q.length) {
+        precacheTrack(q[targetIdx].id);
+      }
+    }
+  }
 
   void _bindPlayerStreams() {
     _processingSub?.cancel();
     _playerStateSub?.cancel();
+    _positionSub?.cancel();
     final p = player;
     if (p == null) return;
     _processingSub = p.processingStateStream.listen((state) {
@@ -63,6 +115,19 @@ class PlaybackController extends ChangeNotifier {
       if (state.playing) {
         _isLoadingTrack = false;
         _watchdogTimer?.cancel();
+      }
+    });
+    _positionSub = p.positionStream.listen((pos) {
+      final dur = p.duration;
+      // Mid-song lookahead: when reaching half duration (or >= 20s for streams without duration)
+      if (!_hasPrecachedMidpoint && pos.inSeconds >= 20) {
+        if (dur == null || pos.inSeconds >= dur.inSeconds ~/ 2) {
+          _hasPrecachedMidpoint = true;
+          precacheUpcoming(lookahead: 2);
+          if (_infiniteRadio && _state.currentIndex >= _state.queue.length - 2) {
+            _fetchAndAppendRadio();
+          }
+        }
       }
     });
   }
@@ -109,6 +174,7 @@ class PlaybackController extends ChangeNotifier {
     final item = _state.queue[i];
     _userWantsPlay = true;
     _isLoadingTrack = true;
+    _hasPrecachedMidpoint = false;
     notifyListeners();
 
     try {
@@ -167,6 +233,8 @@ class PlaybackController extends ChangeNotifier {
             ));
           }
         }
+        // Eagerly pre-cache upcoming radio items immediately
+        precacheUpcoming(lookahead: 2);
       }
     } catch (e) {
       debugPrint('Error fetching infinite radio recommendations: $e');
@@ -176,14 +244,10 @@ class PlaybackController extends ChangeNotifier {
   }
 
   void _precacheNext(int i) {
+    precacheUpcoming(lookahead: 2);
     if (_infiniteRadio && i >= _state.queue.length - 2) {
       _fetchAndAppendRadio();
     }
-    if (i + 1 >= _state.queue.length) return;
-    final next = _state.queue[i + 1];
-    ApiClient.instance
-        .getDaemonSlow('/api/v1/music/resolve?id=${next.id}')
-        .catchError((_) => null);
   }
 
   Future<void> togglePlayPause() async {
@@ -398,6 +462,7 @@ class PlaybackController extends ChangeNotifier {
     _watchdogTimer?.cancel();
     _processingSub?.cancel();
     _playerStateSub?.cancel();
+    _positionSub?.cancel();
     playbackEngine.dispose();
     super.dispose();
   }

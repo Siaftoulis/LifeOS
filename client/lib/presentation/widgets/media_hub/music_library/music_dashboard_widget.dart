@@ -308,13 +308,17 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         '/api/v1/music/search?q=${Uri.encodeComponent(q)}',
       );
       if (res is List && mounted) {
+        final tracks = res
+            .whereType<Map>()
+            .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
         setState(() {
-          _results = res
-              .whereType<Map>()
-              .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
-              .toList();
+          _results = tracks;
           _isSearching = false;
         });
+        if (tracks.isNotEmpty) {
+          PlaybackController.instance.precacheTrack(tracks.first.id);
+        }
       } else if (mounted) {
         setState(() {
           _results = [];

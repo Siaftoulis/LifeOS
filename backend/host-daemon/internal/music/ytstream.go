@@ -143,6 +143,7 @@ func downloadAndCache(parentCtx context.Context, id string, destPath string) err
 		"--js-runtimes", jsRuntimesArg(),
 		"--no-warnings",
 		"--no-check-certificates",
+		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
 		"-f", "bestaudio[ext=m4a]/140/bestaudio/ba/b",
 		"--no-playlist",
 		"-o", tmpFile,

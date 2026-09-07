@@ -66,6 +66,7 @@ func FetchYouTubeMusicRadio(ctx context.Context, seedID string, limit int) ([]Re
 	targetURL := fmt.Sprintf("https://music.youtube.com/watch?v=%s&list=RDAMVM%s", seedID, seedID)
 	args := []string{
 		"--js-runtimes", jsRuntimesArg(),
+		"--extractor-args", "youtube:player_client=mweb,web,ios,android,tv",
 		"--flat-playlist",
 		"--dump-single-json",
 		"--no-warnings",

@@ -31,6 +31,7 @@ class ApiClient {
     return _instance!;
   }
   static ApiClient get instance => _instance!;
+  static bool get hasInstance => _instance != null;
 
   static String _normalizeUrl(String url) {
     if (kIsWeb) {
