@@ -70,10 +70,8 @@ jobs:
           else
             VERSION=$(jq -r '.version // "1.5.18"' .agent/version.json)
             BUILD_NUM=$(jq -r '.build_number // 56' .agent/version.json)
-            cat <<EOF > release_notes.md
-            ## LifeOS v$VERSION (Build #$BUILD_NUM)
-            Official release for LifeOS v$VERSION.
-            EOF
+            echo "## LifeOS v$VERSION (Build #$BUILD_NUM)" > release_notes.md
+            echo "Official release for LifeOS v$VERSION." >> release_notes.md
           fi
 
       - name: Publish Android APK Immediately
@@ -137,6 +135,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: LifeOS ${{ github.ref_name }}
+          body_path: .agent/RELEASE_NOTES.md
           draft: false
           prerelease: false
           files: lifeos-windows-release.zip
