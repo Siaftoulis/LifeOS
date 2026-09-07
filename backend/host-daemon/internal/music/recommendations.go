@@ -277,13 +277,12 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 	// If radio extraction failed or no seed found, fall back to top music radio search
 	if err != nil || len(tracks) == 0 {
 		log.Printf("recommendations: radio fallback for seed %q (err: %v)", seed, err)
-		fallbackQuery := "ytsearch15:trending music radio"
+		fallbackQuery := "ytsearch15:trending music songs audio"
 		if seed != "" {
-			fallbackQuery = fmt.Sprintf("ytsearch15:%s similar music", seed)
+			fallbackQuery = fmt.Sprintf("ytsearch15:%s song audio", seed)
 		}
 		args := []string{
 			"--js-runtimes", jsRuntimesArg(),
-			"--extractor-args", "youtube:player_client=android,web",
 			"--flat-playlist",
 			"--dump-single-json",
 			"--no-warnings",
@@ -296,7 +295,7 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 			if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
 				tracks = make([]RecommendedTrack, 0, len(dump.Entries))
 				for _, e := range dump.Entries {
-					if e.ID == "" || e.Title == "" || e.Duration > maxSongSeconds {
+					if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds {
 						continue
 					}
 					tracks = append(tracks, RecommendedTrack{

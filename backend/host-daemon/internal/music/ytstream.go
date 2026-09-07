@@ -1,6 +1,7 @@
 package music
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -53,11 +55,17 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 
 	// If not cached, initiate background download with independent context throttled by precacheSem
 	if stat, err := os.Stat(cacheFilePath); err != nil || stat.Size() <= 50000 {
-		go func() {
-			precacheSem <- struct{}{}
-			defer func() { <-precacheSem }()
-			_ = downloadAndCache(context.Background(), id, cacheFilePath)
-		}()
+		select {
+		case precacheSem <- struct{}{}:
+			go func() {
+				defer func() { <-precacheSem }()
+				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+				defer cancel()
+				_ = downloadAndCache(ctx, id, cacheFilePath)
+			}()
+		default:
+			log.Printf("music ytstream: precache slots full, skipping background pre-cache for %s", id)
+		}
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
@@ -120,9 +128,25 @@ func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, st
 	}
 	defer file.Close()
 
-	w.Header().Set("Content-Type", "audio/mp4")
+	// Sniff first 512 bytes for exact audio container to prevent extractor mismatch
+	buf := make([]byte, 512)
+	n, _ := file.Read(buf)
+	_, _ = file.Seek(0, 0) // rewind
+
+	contentType := "audio/mp4"
+	if n >= 4 {
+		if bytes.HasPrefix(buf, []byte("\x1a\x45\xdf\xa3")) {
+			contentType = "audio/webm; codecs=\"opus\""
+		} else if bytes.HasPrefix(buf, []byte("ID3")) || (buf[0] == 0xff && (buf[1]&0xe0) == 0xe0) {
+			contentType = "audio/mpeg"
+		} else if n >= 8 && (string(buf[4:8]) == "ftyp" || bytes.Contains(buf[:n], []byte("ftyp"))) {
+			contentType = "audio/mp4"
+		}
+	}
+
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Accept-Ranges", "bytes")
-	http.ServeContent(w, r, "stream.m4a", stat.ModTime(), file)
+	http.ServeContent(w, r, filepath.Base(filePath), stat.ModTime(), file)
 }
 
 func downloadAndCache(parentCtx context.Context, id string, destPath string) error {
@@ -146,7 +170,9 @@ func downloadAndCache(parentCtx context.Context, id string, destPath string) err
 		"--js-runtimes", jsRuntimesArg(),
 		"--no-warnings",
 		"--no-check-certificates",
-		"--extractor-args", "youtube:player_client=android,web",
+		"--match-filter", "!is_live & !is_live_stream & !live_status & duration <= 900",
+		"--max-filesize", "60M",
+		"--no-live-chat",
 		"-f", "ba/b/bestaudio",
 		"--no-playlist",
 		"-o", tmpFile,

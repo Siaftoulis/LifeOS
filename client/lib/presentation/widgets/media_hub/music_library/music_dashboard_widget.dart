@@ -246,8 +246,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     _hasPrecachedMixesOnLaunch = true;
 
     // Immediately pre-cache top items from instant smart playlists
-    final quick = tracks.where((t) => t.duration > 0 && t.duration <= 210).take(2);
-    final recent = tracks.reversed.take(2);
+    final quick = tracks.where((t) => t.duration > 0 && t.duration <= 210).take(1);
+    final recent = tracks.where((t) => t.duration > 0 && t.duration <= 600).toList().reversed.take(1);
     for (final t in [...quick, ...recent]) {
       PlaybackController.instance.precacheTrack(t.id);
     }
@@ -261,7 +261,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       final recs = await MusicRepository.instance.getRecommendations(limit: 12);
       if (mounted && recs.isNotEmpty) {
         setState(() => _recommendedTracks = recs);
-        for (final t in recs.take(3)) {
+        for (final t in recs.where((t) => t.duration > 0 && t.duration <= 600).take(1)) {
           PlaybackController.instance.precacheTrack(t.id);
         }
       }
@@ -288,7 +288,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         final daily = await MusicRepository.instance.getDailyMix(seed: topArtist, limit: 20);
         if (mounted && daily.isNotEmpty) {
           setState(() => _dailyMixTracks = daily);
-          for (final t in daily.take(3)) {
+          for (final t in daily.where((t) => t.duration > 0 && t.duration <= 600).take(1)) {
             PlaybackController.instance.precacheTrack(t.id);
           }
         }
@@ -383,8 +383,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _isSearching = false;
         });
         if (tracks.isNotEmpty) {
-          for (final t in tracks.take(5)) {
-            PlaybackController.instance.precacheTrack(t.id);
+          final top = tracks.first;
+          if (top.duration > 0 && top.duration <= 900) {
+            PlaybackController.instance.precacheTrack(top.id);
           }
         }
       } else if (mounted) {
@@ -884,8 +885,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 if (t.$3 == 5) {
                   final currentTracks = MusicRepository.instance.tracks.value;
                   final mixes = _generateSmartMixes(currentTracks, skin);
-                  for (final mix in mixes.values) {
-                    for (final track in mix.list.take(2)) {
+                  for (final mix in mixes.values.take(2)) {
+                    for (final track in mix.list.where((x) => x.duration > 0 && x.duration <= 600).take(1)) {
                       PlaybackController.instance.precacheTrack(track.id);
                     }
                   }

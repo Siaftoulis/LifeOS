@@ -14,7 +14,7 @@ import (
 
 const (
 	defaultSearchTimeout   = 30 * time.Second
-	defaultStreamTimeout   = 2 * time.Minute
+	defaultStreamTimeout   = 45 * time.Second
 	defaultDownloadTimeout = 10 * time.Minute
 )
 

@@ -25,6 +25,8 @@ type flatEntry struct {
 	Title      string            `json:"title"`
 	Uploader   string            `json:"uploader"`
 	Duration   float64           `json:"duration"`
+	IsLive     bool              `json:"is_live"`
+	LiveStatus string            `json:"live_status"`
 	Thumbnails []json.RawMessage `json:"thumbnails"`
 }
 
@@ -147,7 +149,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	var dump flatDump
 	if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
 		for _, e := range dump.Entries {
-			if e.ID == "" || e.Title == "" || e.Duration > maxSongSeconds {
+			if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds {
 				continue
 			}
 			results = append(results, SearchResult{
@@ -161,7 +163,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	} else {
 		var single flatEntry
 		if err := json.Unmarshal(out, &single); err == nil && single.ID != "" && single.Title != "" {
-			if single.Duration <= maxSongSeconds {
+			if !single.IsLive && single.LiveStatus != "is_live" && single.Duration > 0 && single.Duration <= maxSongSeconds {
 				results = append(results, SearchResult{
 					ID:        single.ID,
 					Title:     single.Title,
