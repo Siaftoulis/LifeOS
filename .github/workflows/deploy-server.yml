@@ -1,11 +1,6 @@
 name: Deploy to Server (pds-laptop-old)
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 concurrency:
@@ -97,3 +92,7 @@ jobs:
           else
             echo "Warning: Received HTTP $HTTP_CODE"
           fi
+
+      - name: Disconnect & Deregister from Tailnet
+        if: always() && steps.check-secret.outputs.has_secret == 'true'
+        run: tailscale logout || true
