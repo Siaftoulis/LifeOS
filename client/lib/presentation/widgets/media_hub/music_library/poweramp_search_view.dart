@@ -34,6 +34,7 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
 
   final List<String> _categories = [
     'All',
+    'YouTube Music',
     'Albums',
     'Artists',
     'Album Artists',
@@ -222,8 +223,53 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                 children: [
-                  // 1. Albums Section
+                  // 0. YouTube Music Online Section (shown when All or YouTube Music is selected)
                   if ((_selectedFilterIndex == 0 || _selectedFilterIndex == 1) &&
+                      widget.remoteResults != null &&
+                      widget.remoteResults!.isNotEmpty) ...[
+                    _buildSectionHeader('YouTube Music Online', skin),
+                    ...widget.remoteResults!.map((t) => _buildRemoteTrackTile(t, skin)),
+                    const SizedBox(height: 12),
+                  ] else if (_selectedFilterIndex == 1) ...[
+                    if (widget.isSearching)
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(color: skin.accent),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Searching YouTube Music...',
+                                style: TextStyle(color: skin.textMuted, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.travel_explore_rounded, size: 48, color: skin.textMuted),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Search YouTube Music for online tracks, remixes & albums',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: skin.textMuted, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+
+                  // 1. Albums Section
+                  if ((_selectedFilterIndex == 0 || _selectedFilterIndex == 2) &&
                       albumsMap.isNotEmpty) ...[
                     _buildSectionHeader('Albums', skin),
                     ...albumsMap.entries.take(5).map((e) {
@@ -272,7 +318,7 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                   ],
 
                   // 2. Artists Section
-                  if ((_selectedFilterIndex == 0 || _selectedFilterIndex == 2) &&
+                  if ((_selectedFilterIndex == 0 || _selectedFilterIndex == 3) &&
                       artistsMap.isNotEmpty) ...[
                     _buildSectionHeader('Artists', skin),
                     ...artistsMap.entries.take(4).map((e) {
@@ -312,7 +358,7 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                   ],
 
                   // 3. All Songs Section
-                  if (_selectedFilterIndex == 0 || _selectedFilterIndex >= 3) ...[
+                  if (_selectedFilterIndex == 0 || _selectedFilterIndex >= 4) ...[
                     _buildSectionHeader('All Songs', skin),
                     ...combinedTracks.map((t) {
                       final isSelected = _selectedTrackIds.contains(t.id);
@@ -395,6 +441,106 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
             ),
           ],
         );
+      },
+    );
+  }
+
+  Widget _buildRemoteTrackTile(MusicTrack t, AppSkin skin) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 2),
+      leading: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              width: 44,
+              height: 44,
+              color: skin.bg2,
+              child: t.thumbnail.isNotEmpty
+                  ? Image.network(
+                      sanitizeMusicThumbnailUrl(t.thumbnail),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.music_note_rounded,
+                        color: skin.accent,
+                        size: 22,
+                      ),
+                    )
+                  : Icon(
+                      Icons.music_note_rounded,
+                      color: skin.accent,
+                      size: 22,
+                    ),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 10),
+            ),
+          ),
+        ],
+      ),
+      title: Text(
+        t.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: skin.fg,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+      subtitle: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: skin.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: skin.accent.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              'YTM ONLINE',
+              style: TextStyle(color: skin.accent, fontSize: 9, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '${t.artist.isNotEmpty ? t.artist : "YouTube Music"} · ${formatTrackDuration(t.duration)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: skin.textMuted, fontSize: 11.5),
+            ),
+          ),
+        ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.download_rounded, size: 20),
+        color: skin.accent,
+        tooltip: 'Download to LifeOS library',
+        onPressed: () {
+          MusicRepository.instance.download(t);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Downloading "${t.title}" to server library...'),
+              backgroundColor: skin.bg1,
+            ),
+          );
+        },
+      ),
+      onTap: () {
+        widget.onPlayTrack(t);
+      },
+      onLongPress: () {
+        PowerampTrackContextSheet.show(context, track: t);
       },
     );
   }

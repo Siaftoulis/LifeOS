@@ -21,6 +21,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
   final double bassBoost;
   final AudioVisualizerStyle style;
   final AppSkin? skin;
+  final double animTimeMs;
+  final double dt;
 
   AppSkin get _s => skin ?? AppSkinManager.currentSkin;
 
@@ -34,6 +36,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
     required this.bassBoost,
     this.style = AudioVisualizerStyle.bars,
     this.skin,
+    this.animTimeMs = 0.0,
+    this.dt = 0.016,
   });
 
   @override
@@ -63,7 +67,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
     final maxHeight = size.height * 0.75;
 
     final idSeed = trackId.hashCode.abs();
-    final elapsedMs = position.inMilliseconds;
+    final elapsedMs = animTimeMs > 0 ? animTimeMs : position.inMilliseconds.toDouble();
     const beatTempo = 120.0;
     const beatIntervalMs = (60000.0 / beatTempo);
     final beatPhase = (elapsedMs % beatIntervalMs) / beatIntervalMs;
@@ -120,8 +124,9 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
           peakCaps[i] = targetHeight;
           capVelocities[i] = 0.0;
         } else {
-          capVelocities[i] += 0.8;
-          peakCaps[i] = (peakCaps[i] - capVelocities[i]).clamp(size.height * 0.05, maxHeight);
+          const gravity = 650.0;
+          capVelocities[i] += gravity * dt;
+          peakCaps[i] = (peakCaps[i] - capVelocities[i] * dt).clamp(size.height * 0.05, maxHeight);
         }
       }
 
@@ -145,7 +150,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
   // ------------------------------------------------------------- 2. Beam (Oscilloscope)
   void _paintBeam(Canvas canvas, Size size) {
     final centerY = size.height * 0.5;
-    final elapsedMs = position.inMilliseconds;
+    final elapsedMs = animTimeMs > 0 ? animTimeMs : position.inMilliseconds.toDouble();
     final accentColor = _s.accent;
     final glowColor = _s.accentSecondary;
 
@@ -254,7 +259,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
     final minDimension = math.min(size.width, size.height);
     final innerRadius = minDimension * 0.24;
     final maxRayHeight = minDimension * 0.22;
-    final elapsedMs = position.inMilliseconds;
+    final elapsedMs = animTimeMs > 0 ? animTimeMs : position.inMilliseconds.toDouble();
 
     final accent = _s.accent;
     final secondary = _s.yellow;
@@ -340,7 +345,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
   }
 
   void _paintSingleVu(Canvas canvas, Rect rect, String label, {required bool isLeft}) {
-    final elapsedMs = position.inMilliseconds;
+    final elapsedMs = animTimeMs > 0 ? animTimeMs : position.inMilliseconds.toDouble();
     final accent = _s.accent;
 
     // Bezel Box

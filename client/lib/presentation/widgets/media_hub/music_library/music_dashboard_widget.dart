@@ -304,7 +304,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       _isSearching = true;
     });
     try {
-      final res = await ApiClient.instance.getDaemon(
+      final res = await ApiClient.instance.getDaemonSlow(
         '/api/v1/music/search?q=${Uri.encodeComponent(q)}',
       );
       if (res is List && mounted) {
@@ -321,7 +321,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _isSearching = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Music search error: $e');
       if (mounted) {
         setState(() {
           _isSearching = false;

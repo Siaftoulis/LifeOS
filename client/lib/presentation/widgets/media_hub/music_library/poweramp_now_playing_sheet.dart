@@ -179,6 +179,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   final List<double> _peakCaps = List.filled(32, 0.0);
   final List<double> _capVelocities = List.filled(32, 0.0);
+  int _lastTickMicros = 0;
+  final Stopwatch _visualizerStopwatch = Stopwatch();
 
   PlaybackItem? get _activeItem => PlaybackController.instance.currentItem;
   String get _activeTitle =>
@@ -234,7 +236,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
         : widget.repeat;
     _visualizerAnim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 60),
+      duration: const Duration(seconds: 3600),
     );
     _syncVisualizerWithPlayer(widget.player.playerState);
     _playerStateSub =
@@ -263,10 +265,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
       if (!_visualizerAnim.isAnimating) {
         _visualizerAnim.repeat();
       }
+      if (!_visualizerStopwatch.isRunning) {
+        _visualizerStopwatch.start();
+      }
     } else {
       if (_visualizerAnim.isAnimating) {
         _visualizerAnim.stop();
       }
+      _visualizerStopwatch.stop();
     }
   }
 
@@ -1348,28 +1354,30 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
       builder: (context, constraints) {
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onTap: isLyricsMode ? null : _cycleCardMode,
+          onTap: () {
+            if (isLyricsMode) {
+              setState(() => _cardMode = NowPlayingCardMode.artwork);
+            } else {
+              _cycleCardMode();
+            }
+          },
           onLongPress: isLyricsMode ? null : _openMetadataModal,
-          onVerticalDragEnd: isLyricsMode
-              ? null
-              : (details) {
-                  if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
-                    Navigator.of(context).pop();
-                  }
-                },
-          onHorizontalDragEnd: isLyricsMode
-              ? null
-              : (details) {
-                  if (details.primaryVelocity != null) {
-                    if (details.primaryVelocity! < -200) {
-                      _handleNext();
-                      _showFeedback('Next Track', Icons.skip_next_rounded);
-                    } else if (details.primaryVelocity! > 200) {
-                      _handlePrev();
-                      _showFeedback('Previous Track', Icons.skip_previous_rounded);
-                    }
-                  }
-                },
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
+              Navigator.of(context).pop();
+            }
+          },
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity != null) {
+              if (details.primaryVelocity! < -200) {
+                _handleNext();
+                _showFeedback('Next Track', Icons.skip_next_rounded);
+              } else if (details.primaryVelocity! > 200) {
+                _handlePrev();
+                _showFeedback('Previous Track', Icons.skip_previous_rounded);
+              }
+            }
+          },
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -1469,21 +1477,87 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           key: ValueKey('lyrics_card_${_activeTrackId}'),
           width: cardSize,
           height: cardSize,
-          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: skin.bg1,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: LyricsSyncViewer(
-              key: ValueKey('lyrics_viewer_${_activeTrackId}'),
-              title: _activeTitle,
-              artist: _activeArtist,
-              player: widget.player,
-              isEmbedded: true,
-            ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 36, left: 10, right: 10, bottom: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: LyricsSyncViewer(
+                      key: ValueKey('lyrics_viewer_${_activeTrackId}'),
+                      title: _activeTitle,
+                      artist: _activeArtist,
+                      player: widget.player,
+                      isEmbedded: true,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 12,
+                right: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => setState(() => _cardMode = NowPlayingCardMode.artwork),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 6)],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.album_rounded, size: 14, color: skin.accent),
+                            const SizedBox(width: 5),
+                            Text('Artwork',
+                                style: TextStyle(
+                                    color: skin.fg,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => setState(() => _cardMode = NowPlayingCardMode.visualizer),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white24),
+                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 6)],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.graphic_eq_rounded, size: 14, color: skin.yellow),
+                            const SizedBox(width: 5),
+                            Text('Spectrum',
+                                style: TextStyle(
+                                    color: skin.fg,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
 
@@ -1511,6 +1585,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                         return AnimatedBuilder(
                           animation: _visualizerAnim,
                           builder: (context, _) {
+                            final nowMicros = DateTime.now().microsecondsSinceEpoch;
+                            final dt = _lastTickMicros == 0
+                                ? 0.016
+                                : ((nowMicros - _lastTickMicros) / 1000000.0).clamp(0.001, 0.05);
+                            _lastTickMicros = nowMicros;
+                            final continuousMs = pos.inMilliseconds.toDouble() +
+                                (playing ? (_visualizerStopwatch.elapsedMilliseconds % 1000) : 0.0);
                             return CustomPaint(
                               painter: AudioReactiveSpectrogramPainter(
                                 position: pos,
@@ -1522,6 +1603,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                                 bassBoost: AudioDspService.instance.bassBoost,
                                 style: _visualizerStyle,
                                 skin: skin,
+                                animTimeMs: continuousMs,
+                                dt: dt,
                               ),
                             );
                           },
