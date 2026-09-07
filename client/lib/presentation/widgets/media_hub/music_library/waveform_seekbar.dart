@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'music_formatters.dart';
 
 /// In-memory bounded LRU cache for computed waveform samples per track.
@@ -46,7 +46,7 @@ class WaveformSeekbar extends StatefulWidget {
   final String trackId;
   final String? audioUrl; // Local file path or stream URL
   final double height;
-  final Color activeColor;
+  final Color? activeColor;
   final Color inactiveColor;
 
   static final BoundedWaveformCache waveformCache =
@@ -60,7 +60,7 @@ class WaveformSeekbar extends StatefulWidget {
     required this.trackId,
     this.audioUrl,
     this.height = 48,
-    this.activeColor = EverforestColors.green,
+    this.activeColor,
     this.inactiveColor = const Color(0x33FFFFFF),
   });
 
@@ -229,6 +229,7 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveActive = widget.activeColor ?? context.skin.accent;
     final currentMs = widget.duration.inMilliseconds > 0
         ? (_isDragging
             ? (_dragFraction * widget.duration.inMilliseconds).round()
@@ -277,15 +278,16 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: widget.activeColor,
+                            color: effectiveActive,
                           ),
                         ),
                       )
                     : CustomPaint(
+                        size: Size(double.infinity, widget.height),
                         painter: _WaveformPainter(
                           samples: _waveformSamples,
                           progress: progressFraction,
-                          activeColor: widget.activeColor,
+                          activeColor: effectiveActive,
                           inactiveColor: widget.inactiveColor,
                           isDragging: _isDragging,
                         ),
@@ -301,7 +303,7 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
             Text(
               formatDurationSpan(Duration(milliseconds: currentMs)),
               style: TextStyle(
-                color: _isDragging ? widget.activeColor : EverforestColors.grey,
+                color: _isDragging ? effectiveActive : context.skin.textMuted,
                 fontSize: 12,
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.w600,
@@ -309,8 +311,8 @@ class _WaveformSeekbarState extends State<WaveformSeekbar> {
             ),
             Text(
               '-${formatDurationSpan(remaining)}',
-              style: const TextStyle(
-                color: EverforestColors.grey,
+              style: TextStyle(
+                color: context.skin.textMuted,
                 fontSize: 12,
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.w600,

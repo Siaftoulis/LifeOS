@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 class MusicStatsSheet extends StatefulWidget {
   const MusicStatsSheet({super.key});
@@ -50,13 +50,14 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.78,
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: const [
@@ -89,23 +90,23 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: EverforestColors.purple.withValues(alpha: 0.15),
+                  color: skin.purple.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: EverforestColors.purple.withValues(alpha: 0.3)),
+                      color: skin.purple.withValues(alpha: 0.3)),
                 ),
-                child: const Icon(Icons.insights_rounded,
-                    color: EverforestColors.purple, size: 24),
+                child: Icon(Icons.insights_rounded,
+                    color: skin.purple, size: 24),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'LISTENING ANALYTICS',
                       style: TextStyle(
-                        color: EverforestColors.purple,
+                        color: skin.purple,
                         fontSize: 11,
                         letterSpacing: 1.2,
                         fontWeight: FontWeight.bold,
@@ -114,7 +115,7 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                     Text(
                       'Your Music Habits',
                       style: TextStyle(
-                        color: EverforestColors.fg,
+                        color: skin.fg,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -124,10 +125,10 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
               ),
               SegmentedButton<int>(
                 style: SegmentedButton.styleFrom(
-                  backgroundColor: EverforestColors.bg1,
-                  selectedBackgroundColor: EverforestColors.purple,
+                  backgroundColor: skin.bg1,
+                  selectedBackgroundColor: skin.purple,
                   selectedForegroundColor: Colors.white,
-                  foregroundColor: EverforestColors.grey,
+                  foregroundColor: skin.textMuted,
                 ),
                 segments: const [
                   ButtonSegment(value: 7, label: Text('7D')),
@@ -146,9 +147,9 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
 
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
-                        color: EverforestColors.purple),
+                        color: skin.purple),
                   )
                 : SingleChildScrollView(
                     child: Column(
@@ -167,25 +168,29 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                               'Total Plays',
                               '${_stats.totalPlays}',
                               Icons.play_arrow_rounded,
-                              EverforestColors.green,
+                              skin.accent,
+                              skin,
                             ),
                             _buildKpiCard(
                               'Time Listened',
                               _formatListeningTime(_stats.totalMs),
                               Icons.timer_rounded,
-                              EverforestColors.blue,
+                              skin.blue,
+                              skin,
                             ),
                             _buildKpiCard(
                               'Unique Artists',
                               '${_stats.uniqueArtists}',
                               Icons.person_rounded,
-                              EverforestColors.yellow,
+                              skin.yellow,
+                              skin,
                             ),
                             _buildKpiCard(
                               'Tracks Explored',
                               '${_stats.uniqueTracks}',
                               Icons.audiotrack_rounded,
-                              EverforestColors.aqua,
+                              skin.aqua,
+                              skin,
                             ),
                           ],
                         ),
@@ -193,10 +198,10 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
 
                         // Top Artists Section
                         if (_stats.topArtists.isNotEmpty) ...[
-                          const Text(
+                          Text(
                             'Top Artists',
                             style: TextStyle(
-                              color: EverforestColors.fg,
+                              color: skin.fg,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -210,23 +215,23 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: EverforestColors.bg1,
+                                  color: skin.bg1,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                      color: EverforestColors.purple
+                                      color: skin.purple
                                           .withValues(alpha: 0.25)),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.mic_rounded,
-                                        color: EverforestColors.purple,
+                                    Icon(Icons.mic_rounded,
+                                        color: skin.purple,
                                         size: 16),
                                     const SizedBox(width: 6),
                                     Text(
                                       artist,
-                                      style: const TextStyle(
-                                        color: EverforestColors.fg,
+                                      style: TextStyle(
+                                        color: skin.fg,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13,
                                       ),
@@ -241,10 +246,10 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
 
                         // Top Genres Section
                         if (_stats.topGenres.isNotEmpty) ...[
-                          const Text(
+                          Text(
                             'Top Genres & Styles',
                             style: TextStyle(
-                              color: EverforestColors.fg,
+                              color: skin.fg,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -258,23 +263,23 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: EverforestColors.bg1,
+                                  color: skin.bg1,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                      color: EverforestColors.aqua
+                                      color: skin.aqua
                                           .withValues(alpha: 0.25)),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.category_rounded,
-                                        color: EverforestColors.aqua,
+                                    Icon(Icons.category_rounded,
+                                        color: skin.aqua,
                                         size: 16),
                                     const SizedBox(width: 6),
                                     Text(
                                       genre,
-                                      style: const TextStyle(
-                                        color: EverforestColors.fg,
+                                      style: TextStyle(
+                                        color: skin.fg,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13,
                                       ),
@@ -295,11 +300,11 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
   }
 
   Widget _buildKpiCard(
-      String title, String value, IconData icon, Color color) {
+      String title, String value, IconData icon, Color color, AppSkin skin) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: EverforestColors.bg1,
+        color: skin.bg1,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
@@ -324,7 +329,7 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: EverforestColors.fg,
+                    color: skin.fg,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
@@ -334,8 +339,8 @@ class _MusicStatsSheetState extends State<MusicStatsSheet> {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: EverforestColors.grey,
+                  style: TextStyle(
+                    color: skin.textMuted,
                     fontSize: 11,
                   ),
                 ),

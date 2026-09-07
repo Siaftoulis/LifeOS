@@ -4,7 +4,7 @@ import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../database/database.dart' hide MusicTrack;
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
 import 'all_tracks_sliver.dart';
 
@@ -28,19 +28,20 @@ class OfflineTracksSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return ValueListenableBuilder<List<OfflineMusicTrack>>(
       valueListenable: MusicRepository.instance.offlineTracks,
       builder: (context, list, _) {
         if (list.isEmpty) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
               child: Center(
                 child: Text(
                   'Nothing saved to this device yet.\nTap the download icon on any song to make it\nplayable offline — no internet needed.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: EverforestColors.grey,
+                      color: skin.textMuted,
                       fontSize: 15,
                       height: 1.5),
                 ),
@@ -70,11 +71,11 @@ class OfflineTracksSliver extends StatelessWidget {
                   children: [
                     TrackThumbnail(url: o.thumbnail ?? '', size: 48),
                     if (isPlaying)
-                      const Positioned(
+                      Positioned(
                         right: 2,
                         bottom: 2,
                         child: Icon(Icons.graphic_eq_rounded,
-                            color: EverforestColors.green, size: 16),
+                            color: skin.accent, size: 16),
                       ),
                   ],
                 ),
@@ -83,39 +84,39 @@ class OfflineTracksSliver extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isPlaying
-                          ? EverforestColors.green
-                          : EverforestColors.fg,
+                          ? skin.accent
+                          : skin.fg,
                       fontWeight: FontWeight.w600,
                     )),
                 subtitle: Text(
                   '${o.artist ?? 'Unknown'}${o.duration > 0 ? ' · ${formatTrackDuration(o.duration)}' : ''} · 📱 On this device',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: EverforestColors.grey, fontSize: 13),
+                  style: TextStyle(
+                      color: skin.textMuted, fontSize: 13),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded,
-                          color: EverforestColors.grey, size: 20),
+                      icon: Icon(Icons.delete_outline_rounded,
+                          color: skin.textMuted, size: 20),
                       tooltip: 'Remove from this device',
                       onPressed: () => onDeleteOffline(o),
                     ),
                     if (canPlay)
                       IconButton(
-                        icon: const Icon(Icons.play_circle_fill_rounded,
-                            color: EverforestColors.fg, size: 32),
+                        icon: Icon(Icons.play_circle_fill_rounded,
+                            color: skin.fg, size: 32),
                         onPressed: () => playbackController.playQueue(playQueue,
                             startIndex: i),
                       )
                     else
-                      const Tooltip(
+                      Tooltip(
                         message:
                             'Playback is available in the LifeOS native app',
                         child: Icon(Icons.phonelink_lock_rounded,
-                            color: EverforestColors.grey, size: 20),
+                            color: skin.textMuted, size: 20),
                       ),
                   ],
                 ),
@@ -152,15 +153,16 @@ class PhoneSongsSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return SliverMainAxisGroup(
       slivers: [
-        const SliverToBoxAdapter(
+        SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
               'On This Phone',
               style: TextStyle(
-                color: EverforestColors.fg,
+                color: skin.fg,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -182,22 +184,22 @@ class PhoneSongsSliver extends StatelessWidget {
                       ))
                   .toList();
               return ListTile(
-                leading: const Icon(Icons.music_note_rounded,
-                    color: EverforestColors.blue, size: 40),
+                leading: Icon(Icons.music_note_rounded,
+                    color: skin.blue, size: 40),
                 title: Text(s.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: EverforestColors.fg,
+                    style: TextStyle(
+                        color: skin.fg,
                         fontWeight: FontWeight.w600)),
                 subtitle: Text(
                   '${s.artist} · ${_fmt((s.duration ?? 0).toDouble())}',
-                  style: const TextStyle(
-                      color: EverforestColors.grey, fontSize: 13),
+                  style: TextStyle(
+                      color: skin.textMuted, fontSize: 13),
                 ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.play_circle_fill_rounded,
-                      color: EverforestColors.fg, size: 32),
+                  icon: Icon(Icons.play_circle_fill_rounded,
+                      color: skin.fg, size: 32),
                   onPressed: () =>
                       playbackController.playQueue(phoneQueue, startIndex: i),
                 ),

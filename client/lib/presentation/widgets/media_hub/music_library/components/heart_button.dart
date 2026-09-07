@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 class HeartButton extends StatelessWidget {
   const HeartButton({
     super.key,
     required this.track,
     this.size = 22,
-    this.activeColor = EverforestColors.red,
-    this.inactiveColor = EverforestColors.grey,
+    this.activeColor,
+    this.inactiveColor,
   });
 
   final MusicTrack track;
   final double size;
-  final Color activeColor;
-  final Color inactiveColor;
+  final Color? activeColor;
+  final Color? inactiveColor;
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
+    final effectiveActiveColor = activeColor ?? skin.red;
+    final effectiveInactiveColor = inactiveColor ?? skin.textMuted;
+
     return ValueListenableBuilder<Set<String>>(
       valueListenable: MusicRepository.instance.likedTrackIds,
       builder: (context, likedIds, _) {
@@ -36,7 +40,7 @@ class HeartButton extends StatelessWidget {
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
               key: ValueKey<bool>(isLiked),
-              color: isLiked ? activeColor : inactiveColor,
+              color: isLiked ? effectiveActiveColor : effectiveInactiveColor,
               size: size,
             ),
           ),

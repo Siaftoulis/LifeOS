@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import 'create_playlist_dialog.dart';
 
 class AddToPlaylistSheet extends StatefulWidget {
@@ -87,12 +87,13 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.65,
       ),
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -126,10 +127,10 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Add to Playlist',
                         style: TextStyle(
-                          color: EverforestColors.fg,
+                          color: skin.fg,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -139,19 +140,19 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                         widget.track.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: EverforestColors.grey, fontSize: 13),
+                        style: TextStyle(
+                            color: skin.textMuted, fontSize: 13),
                       ),
                     ],
                   ),
                 ),
                 TextButton.icon(
-                  icon: const Icon(Icons.add,
-                      color: EverforestColors.green, size: 18),
-                  label: const Text(
+                  icon: Icon(Icons.add,
+                      color: skin.accent, size: 18),
+                  label: Text(
                     'New',
                     style: TextStyle(
-                        color: EverforestColors.green,
+                        color: skin.accent,
                         fontWeight: FontWeight.bold),
                   ),
                   onPressed: () async {
@@ -165,12 +166,12 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
               ],
             ),
           ),
-          const Divider(color: EverforestColors.bg2, height: 1),
+          Divider(color: skin.bg2, height: 1),
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
-                        color: EverforestColors.green),
+                        color: skin.accent),
                   )
                 : ValueListenableBuilder<List<Playlist>>(
                     valueListenable: MusicRepository.instance.playlists,
@@ -180,20 +181,20 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.queue_music_rounded,
-                                  color: EverforestColors.grey, size: 40),
+                              Icon(Icons.queue_music_rounded,
+                                  color: skin.textMuted, size: 40),
                               const SizedBox(height: 12),
-                              const Text('No playlists created yet',
+                              Text('No playlists created yet',
                                   style: TextStyle(
-                                      color: EverforestColors.grey,
+                                      color: skin.textMuted,
                                       fontSize: 14)),
                               const SizedBox(height: 12),
                               ElevatedButton.icon(
                                 icon: const Icon(Icons.add, size: 18),
                                 label: const Text('Create Playlist'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: EverforestColors.green,
-                                  foregroundColor: EverforestColors.bg0,
+                                  backgroundColor: skin.accent,
+                                  foregroundColor: skin.accentContrast,
                                 ),
                                 onPressed: () async {
                                   final created =
@@ -224,16 +225,16 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             tileColor: isInPlaylist
-                                ? EverforestColors.green.withValues(alpha: 0.1)
-                                : EverforestColors.bg1,
+                                ? skin.accent.withValues(alpha: 0.1)
+                                : skin.bg1,
                             leading: Container(
                               width: 42,
                               height: 42,
                               decoration: BoxDecoration(
                                 color: isInPlaylist
-                                    ? EverforestColors.green
+                                    ? skin.accent
                                         .withValues(alpha: 0.2)
-                                    : EverforestColors.bg2,
+                                    : skin.bg2,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
@@ -241,8 +242,8 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                                     ? Icons.auto_awesome_rounded
                                     : Icons.playlist_play_rounded,
                                 color: isInPlaylist
-                                    ? EverforestColors.green
-                                    : EverforestColors.grey,
+                                    ? skin.accent
+                                    : skin.textMuted,
                                 size: 22,
                               ),
                             ),
@@ -250,8 +251,8 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                               p.name,
                               style: TextStyle(
                                 color: isInPlaylist
-                                    ? EverforestColors.green
-                                    : EverforestColors.fg,
+                                    ? skin.accent
+                                    : skin.fg,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -259,13 +260,13 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
                               '${p.trackCount} tracks${p.description.isNotEmpty ? ' · ${p.description}' : ''}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: EverforestColors.grey, fontSize: 12),
+                              style: TextStyle(
+                                  color: skin.textMuted, fontSize: 12),
                             ),
                             trailing: Checkbox(
                               value: isInPlaylist,
-                              activeColor: EverforestColors.green,
-                              checkColor: EverforestColors.bg0,
+                              activeColor: skin.accent,
+                              checkColor: skin.accentContrast,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4)),
                               onChanged: (_) => _toggleMembership(p),

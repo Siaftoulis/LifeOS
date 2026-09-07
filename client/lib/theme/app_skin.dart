@@ -58,6 +58,7 @@ class AppSkin {
 
   bool get isDark => brightness == Brightness.dark;
   bool get isOled => id == 'oled';
+  Color get accentContrast => (accent.computeLuminance() > 0.5 || isOled) ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
 
   /// Generates a matching Flutter [ThemeData]
   ThemeData toThemeData() {

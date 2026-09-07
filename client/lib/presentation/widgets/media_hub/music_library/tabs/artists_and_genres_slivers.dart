@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import 'all_tracks_sliver.dart';
 
 class ArtistsSliver extends StatelessWidget {
@@ -31,6 +31,7 @@ class ArtistsSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     if (artistGroups.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox());
     }
@@ -45,14 +46,14 @@ class ArtistsSliver extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded,
-                        color: EverforestColors.fg),
+                    icon: Icon(Icons.arrow_back_rounded,
+                        color: skin.fg),
                     onPressed: onClearArtist,
                   ),
                   Text(
                     selectedArtist!,
-                    style: const TextStyle(
-                        color: EverforestColors.fg,
+                    style: TextStyle(
+                        color: skin.fg,
                         fontSize: 18,
                         fontWeight: FontWeight.bold),
                   ),
@@ -63,8 +64,8 @@ class ArtistsSliver extends StatelessWidget {
                       icon: const Icon(Icons.play_arrow_rounded, size: 18),
                       label: const Text('Play All'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: EverforestColors.green,
-                        foregroundColor: EverforestColors.bg0,
+                        backgroundColor: skin.accent,
+                        foregroundColor: skin.accentContrast,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
@@ -105,31 +106,31 @@ class ArtistsSliver extends StatelessWidget {
           final artist = artists[i];
           final tracks = artistGroups[artist]!;
           return ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: EverforestColors.bg2,
-              child: Icon(Icons.person_rounded, color: EverforestColors.aqua),
+            leading: CircleAvatar(
+              backgroundColor: skin.bg2,
+              child: Icon(Icons.person_rounded, color: skin.aqua),
             ),
             title: Text(
               artist,
-              style: const TextStyle(
-                  color: EverforestColors.fg,
+              style: TextStyle(
+                  color: skin.fg,
                   fontWeight: FontWeight.w600,
                   fontSize: 16),
             ),
             subtitle: Text(
               '${tracks.length} song${tracks.length > 1 ? 's' : ''}',
               style:
-                  const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                  TextStyle(color: skin.textMuted, fontSize: 13),
             ),
             trailing: canPlay
                 ? IconButton(
-                    icon: const Icon(Icons.play_circle_fill_rounded,
-                        color: EverforestColors.green, size: 34),
+                    icon: Icon(Icons.play_circle_fill_rounded,
+                        color: skin.accent, size: 34),
                     tooltip: 'Play $artist',
                     onPressed: () => onPlayTrackList(tracks, 0),
                   )
-                : const Icon(Icons.phonelink_lock_rounded,
-                    color: EverforestColors.grey, size: 20),
+                : Icon(Icons.phonelink_lock_rounded,
+                    color: skin.textMuted, size: 20),
             onTap: () => onSelectArtist(artist),
           );
         },
@@ -167,6 +168,7 @@ class GenresSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     if (genreGroups.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox());
     }
@@ -181,14 +183,14 @@ class GenresSliver extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded,
-                        color: EverforestColors.fg),
+                    icon: Icon(Icons.arrow_back_rounded,
+                        color: skin.fg),
                     onPressed: onClearGenre,
                   ),
                   Text(
                     selectedGenre!,
-                    style: const TextStyle(
-                        color: EverforestColors.fg,
+                    style: TextStyle(
+                        color: skin.fg,
                         fontSize: 18,
                         fontWeight: FontWeight.bold),
                   ),
@@ -199,8 +201,8 @@ class GenresSliver extends StatelessWidget {
                       icon: const Icon(Icons.play_arrow_rounded, size: 18),
                       label: const Text('Play Genre'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: EverforestColors.green,
-                        foregroundColor: EverforestColors.bg0,
+                        backgroundColor: skin.accent,
+                        foregroundColor: skin.accentContrast,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
@@ -255,7 +257,7 @@ class GenresSliver extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: EverforestColors.bg1,
+                  color: skin.bg1,
                   borderRadius: BorderRadius.circular(16),
                   border:
                       Border.all(color: Colors.white.withValues(alpha: 0.08)),
@@ -271,8 +273,8 @@ class GenresSliver extends StatelessWidget {
                             genre,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: EverforestColors.fg,
+                            style: TextStyle(
+                              color: skin.fg,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
@@ -280,22 +282,22 @@ class GenresSliver extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             '${tracks.length} tracks',
-                            style: const TextStyle(
-                                color: EverforestColors.grey, fontSize: 12),
+                            style: TextStyle(
+                                color: skin.textMuted, fontSize: 12),
                           ),
                         ],
                       ),
                     ),
                     if (canPlay)
                       IconButton(
-                        icon: const Icon(Icons.play_circle_fill_rounded,
-                            color: EverforestColors.green, size: 34),
+                        icon: Icon(Icons.play_circle_fill_rounded,
+                            color: skin.accent, size: 34),
                         tooltip: 'Play Mix',
                         onPressed: () => onPlayTrackList(tracks, 0),
                       )
                     else
-                      const Icon(Icons.phonelink_lock_rounded,
-                          color: EverforestColors.grey, size: 20),
+                      Icon(Icons.phonelink_lock_rounded,
+                          color: skin.textMuted, size: 20),
                   ],
                 ),
               ),

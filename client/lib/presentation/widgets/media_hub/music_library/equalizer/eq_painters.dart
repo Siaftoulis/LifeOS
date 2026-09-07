@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 class EqCurvePainter extends CustomPainter {
   final List<double> bands;
@@ -46,11 +46,12 @@ class EqCurvePainter extends CustomPainter {
       }
     }
 
-    final activeColor = curveColor ?? EverforestColors.green;
-    final activeGlow = glowColor ?? EverforestColors.green.withValues(alpha: 0.4);
+    final skin = AppSkinManager.currentSkin;
+    final activeColor = curveColor ?? skin.accent;
+    final activeGlow = glowColor ?? skin.accent.withValues(alpha: 0.4);
 
     final curvePaint = Paint()
-      ..color = enabled ? activeColor : EverforestColors.grey
+      ..color = enabled ? activeColor : skin.textMuted
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke;
 

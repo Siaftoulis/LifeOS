@@ -3,7 +3,7 @@ import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
 import 'heart_button.dart';
 
@@ -110,6 +110,7 @@ class MusicSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final isUrl = isDirectYouTubeUrl(query);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -118,23 +119,23 @@ class MusicSearchBar extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         textInputAction: TextInputAction.search,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
+        style: TextStyle(color: skin.fg, fontSize: 16),
         decoration: InputDecoration(
           hintText: 'Search or paste YouTube URL...',
-          hintStyle: const TextStyle(color: EverforestColors.grey),
+          hintStyle: TextStyle(color: skin.textMuted),
           prefixIcon: Icon(
             isUrl ? Icons.link_rounded : Icons.search,
-            color: isUrl ? EverforestColors.aqua : EverforestColors.green,
+            color: isUrl ? skin.aqua : skin.accent,
           ),
           suffixIcon: isSearching
-              ? const Padding(
-                  padding: EdgeInsets.all(12),
+              ? Padding(
+                  padding: const EdgeInsets.all(12),
                   child: SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: EverforestColors.green,
+                      color: skin.accent,
                     ),
                   ),
                 )
@@ -142,11 +143,11 @@ class MusicSearchBar extends StatelessWidget {
                   ? null
                   : IconButton(
                       icon:
-                          const Icon(Icons.clear, color: EverforestColors.grey),
+                          Icon(Icons.clear, color: skin.textMuted),
                       onPressed: onClear,
                     ),
           filled: true,
-          fillColor: EverforestColors.bg1,
+          fillColor: skin.bg1,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
@@ -185,18 +186,18 @@ class MusicSearchResults extends StatelessWidget {
   final VoidCallback onWebNotice;
   final void Function(MusicTrack track)? onAddToPlaylist;
 
-  Widget _thumbnail(String url, double size) {
+  Widget _thumbnail(String url, double size, AppSkin skin) {
     final secureUrl = sanitizeMusicThumbnailUrl(url);
     if (secureUrl.isEmpty) {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: EverforestColors.bg1,
+          color: skin.bg1,
           borderRadius: BorderRadius.circular(8),
         ),
         child:
-            const Icon(Icons.music_note_rounded, color: EverforestColors.blue),
+            Icon(Icons.music_note_rounded, color: skin.blue),
       );
     }
     return ClipRRect(
@@ -208,9 +209,9 @@ class MusicSearchResults extends StatelessWidget {
           errorBuilder: (_, __, ___) => Container(
                 width: size,
                 height: size,
-                color: EverforestColors.bg1,
-                child: const Icon(Icons.music_note_rounded,
-                    color: EverforestColors.blue),
+                color: skin.bg1,
+                child: Icon(Icons.music_note_rounded,
+                    color: skin.blue),
               )),
     );
   }
@@ -232,20 +233,21 @@ class MusicSearchResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     if (isSearching) {
       final isUrl = isDirectYouTubeUrl(query);
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(color: EverforestColors.green),
+            CircularProgressIndicator(color: skin.accent),
             const SizedBox(height: 16),
             Text(
               isUrl
                   ? 'Resolving YouTube link...'
                   : 'Searching YouTube Music...',
-              style: const TextStyle(
-                color: EverforestColors.fg,
+              style: TextStyle(
+                color: skin.fg,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
@@ -259,20 +261,20 @@ class MusicSearchResults extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: EverforestColors.red, size: 40),
+            Icon(Icons.error_outline_rounded,
+                color: skin.red, size: 40),
             const SizedBox(height: 12),
             Text(searchError!,
                 style:
-                    const TextStyle(color: EverforestColors.grey, fontSize: 14)),
+                    TextStyle(color: skin.textMuted, fontSize: 14)),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: EverforestColors.bg1,
-                foregroundColor: EverforestColors.fg,
+                backgroundColor: skin.bg1,
+                foregroundColor: skin.fg,
               ),
             ),
           ],
@@ -284,12 +286,12 @@ class MusicSearchResults extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.music_off_rounded,
-                color: EverforestColors.grey, size: 40),
+            Icon(Icons.music_off_rounded,
+                color: skin.textMuted, size: 40),
             const SizedBox(height: 12),
             Text('No results found for "$query"',
                 style:
-                    const TextStyle(color: EverforestColors.grey, fontSize: 15)),
+                    TextStyle(color: skin.textMuted, fontSize: 15)),
           ],
         ),
       );
@@ -316,16 +318,16 @@ class MusicSearchResults extends StatelessWidget {
                 activeQueueIds.contains(t.id) || downloading.contains(t.id);
 
             return ListTile(
-              leading: _thumbnail(t.thumbnail, 48),
+              leading: _thumbnail(t.thumbnail, 48, skin),
               title: Text(t.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: EverforestColors.fg, fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      color: skin.fg, fontWeight: FontWeight.w600)),
               subtitle: Text(
                 '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
                 style:
-                    const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                    TextStyle(color: skin.textMuted, fontSize: 13),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -333,52 +335,52 @@ class MusicSearchResults extends StatelessWidget {
                   HeartButton(track: t, size: 20),
                   const SizedBox(width: 4),
                   if (alreadyDownloaded)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Icon(Icons.check_circle_rounded,
-                          color: EverforestColors.green, size: 20),
+                          color: skin.accent, size: 20),
                     )
                   else if (isItemDownloading)
-                    const Padding(
-                      padding: EdgeInsets.all(10),
+                    Padding(
+                      padding: const EdgeInsets.all(10),
                       child: SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: EverforestColors.green),
+                            strokeWidth: 2, color: skin.accent),
                       ),
                     )
                   else
                     IconButton(
-                      icon: const Icon(Icons.download_rounded,
-                          color: EverforestColors.green),
+                      icon: Icon(Icons.download_rounded,
+                          color: skin.accent),
                       tooltip: 'Download to Library',
                       onPressed: () => onDownload(t),
                     ),
                   if (onAddToPlaylist != null)
                     IconButton(
-                      icon: const Icon(Icons.playlist_add_rounded,
-                          color: EverforestColors.grey, size: 22),
+                      icon: Icon(Icons.playlist_add_rounded,
+                          color: skin.textMuted, size: 22),
                       tooltip: 'Add to Playlist',
                       onPressed: () => onAddToPlaylist!(t),
                     ),
                   if (isWide) ...[
                     if (canPlay)
                       IconButton(
-                        icon: const Icon(Icons.play_circle_fill_rounded,
-                            color: EverforestColors.fg, size: 30),
+                        icon: Icon(Icons.play_circle_fill_rounded,
+                            color: skin.fg, size: 30),
                         tooltip: 'Play',
                         onPressed: () => playbackController.playQueue(
                             results.map(_itemFromTrack).toList(),
                             startIndex: i),
                       )
                     else
-                      const Tooltip(
+                      Tooltip(
                         message:
                             'Playback is available in the LifeOS native app',
                         child: Icon(
                           Icons.phonelink_lock_rounded,
-                          color: EverforestColors.grey,
+                          color: skin.textMuted,
                           size: 20,
                         ),
                       ),

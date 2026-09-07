@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../theme/everforest_colors.dart';
+import '../../../theme/app_skin_manager.dart';
 import 'music_library/music_dashboard_widget.dart';
 import 'movie_library/movie_library_dashboard.dart';
 import 'youtube_client/youtube_client_dashboard.dart';
@@ -10,25 +10,26 @@ class MediaHubDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: EverforestColors.bg0,
+        backgroundColor: skin.bg0,
         appBar: AppBar(
-          backgroundColor: EverforestColors.bg1,
-          title: const Text('Media Hub', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+          backgroundColor: skin.bg1,
+          title: Text('Media Hub', style: TextStyle(color: skin.fg, fontWeight: FontWeight.bold)),
           elevation: 0,
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true,
-            tabs: [
+            tabs: const [
               Tab(text: 'Music'),
               Tab(text: 'Movies'),
               Tab(text: 'Gallery'),
               Tab(text: 'YouTube'),
             ],
-            labelColor: EverforestColors.green,
-            unselectedLabelColor: EverforestColors.grey,
-            indicatorColor: EverforestColors.green,
+            labelColor: skin.accent,
+            unselectedLabelColor: skin.textMuted,
+            indicatorColor: skin.accent,
           ),
         ),
         body: const TabBarView(

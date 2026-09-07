@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import '../../../../core/music_playback/playback_models.dart';
 
 class PowerampQueueSheet extends StatefulWidget {
@@ -52,13 +52,14 @@ class PowerampQueueSheet extends StatefulWidget {
 class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final size = MediaQuery.of(context).size;
     final queue = widget.queue;
 
     return Container(
       height: size.height * 0.88,
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -93,12 +94,12 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: EverforestColors.green.withValues(alpha: 0.15),
+                    color: skin.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.queue_music_rounded,
-                    color: EverforestColors.green,
+                    color: skin.accent,
                     size: 22,
                   ),
                 ),
@@ -107,10 +108,10 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'PLAYING QUEUE',
                         style: TextStyle(
-                          color: EverforestColors.fg,
+                          color: skin.fg,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -118,8 +119,8 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                       ),
                       Text(
                         '${queue.length} Tracks in Queue',
-                        style: const TextStyle(
-                          color: EverforestColors.grey,
+                        style: TextStyle(
+                          color: skin.textMuted,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -133,8 +134,8 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                       widget.onClear();
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.clear_all_rounded, color: EverforestColors.red, size: 18),
-                    label: const Text('Clear', style: TextStyle(color: EverforestColors.red, fontSize: 13)),
+                    icon: Icon(Icons.clear_all_rounded, color: skin.red, size: 18),
+                    label: Text('Clear', style: TextStyle(color: skin.red, fontSize: 13)),
                   ),
               ],
             ),
@@ -146,15 +147,15 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
           // Reorderable List of Queue Tracks
           Expanded(
             child: queue.isEmpty
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.queue_music_rounded, color: EverforestColors.grey, size: 48),
-                        SizedBox(height: 12),
+                        Icon(Icons.queue_music_rounded, color: skin.textMuted, size: 48),
+                        const SizedBox(height: 12),
                         Text(
                           'Queue is empty',
-                          style: TextStyle(color: EverforestColors.grey, fontSize: 15),
+                          style: TextStyle(color: skin.textMuted, fontSize: 15),
                         ),
                       ],
                     ),
@@ -177,7 +178,7 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20),
-                          color: EverforestColors.red.withValues(alpha: 0.8),
+                          color: skin.red.withValues(alpha: 0.8),
                           child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
                         ),
                         onDismissed: (_) {
@@ -189,12 +190,12 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
                           decoration: BoxDecoration(
                             color: isCurrent
-                                ? EverforestColors.green.withValues(alpha: 0.12)
-                                : EverforestColors.bg1,
+                                ? skin.accent.withValues(alpha: 0.12)
+                                : skin.bg1,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: isCurrent
-                                  ? EverforestColors.green.withValues(alpha: 0.4)
+                                  ? skin.accent.withValues(alpha: 0.4)
                                   : Colors.white.withValues(alpha: 0.05),
                             ),
                           ),
@@ -205,9 +206,9 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                               children: [
                                 ReorderableDragStartListener(
                                   index: index,
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.drag_handle_rounded,
-                                    color: EverforestColors.grey,
+                                    color: skin.textMuted,
                                     size: 20,
                                   ),
                                 ),
@@ -223,9 +224,9 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                                                 ? item.thumbnail.replaceFirst('http://', 'https://')
                                                 : item.thumbnail,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                                            errorBuilder: (_, __, ___) => _buildPlaceholder(skin),
                                           )
-                                        : _buildPlaceholder(),
+                                        : _buildPlaceholder(skin),
                                   ),
                                 ),
                               ],
@@ -235,7 +236,7 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: isCurrent ? EverforestColors.green : EverforestColors.fg,
+                                color: isCurrent ? skin.accent : skin.fg,
                                 fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -244,8 +245,8 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                               item.artist.isNotEmpty ? item.artist : 'Unknown Artist',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: EverforestColors.grey,
+                              style: TextStyle(
+                                color: skin.textMuted,
                                 fontSize: 12,
                               ),
                             ),
@@ -253,20 +254,20 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
                                 ? Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: EverforestColors.green.withValues(alpha: 0.2),
+                                      color: skin.accent.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'PLAYING',
                                       style: TextStyle(
-                                        color: EverforestColors.green,
+                                        color: skin.accent,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   )
                                 : IconButton(
-                                    icon: const Icon(Icons.close_rounded, color: EverforestColors.grey, size: 18),
+                                    icon: Icon(Icons.close_rounded, color: skin.textMuted, size: 18),
                                     onPressed: () {
                                       setState(() {
                                         widget.onRemove(index);
@@ -287,11 +288,11 @@ class _PowerampQueueSheetState extends State<PowerampQueueSheet> {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(AppSkin skin) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [EverforestColors.blue, EverforestColors.purple],
+          colors: [skin.blue, skin.purple],
         ),
       ),
       child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),

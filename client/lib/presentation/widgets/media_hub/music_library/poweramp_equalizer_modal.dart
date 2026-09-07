@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/audio_dsp_service.dart';
-import '../../../../theme/app_skin.dart';
 import '../../../../theme/app_skin_manager.dart';
 import 'equalizer/eq_not_supported_sheet.dart';
 import 'equalizer/eq_painters.dart';

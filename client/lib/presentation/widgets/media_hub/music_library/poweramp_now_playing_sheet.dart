@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import '../../../../theme/app_skin.dart';
 import '../../../../theme/app_skin_manager.dart';
 import '../../../../core/audio_dsp_service.dart';
 import '../../../../core/domain_repositories.dart';
@@ -454,47 +452,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
       ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: Stack(
-          children: [
-            // Ambient Backdrop Glow
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: -120,
-                    left: 0,
-                    right: 0,
-                    height: 500,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment.topCenter,
-                          radius: 1.4,
-                          colors: [
-                            skin.accent.withValues(alpha: skin.isOled ? 0.08 : 0.22),
-                            skin.accentSecondary.withValues(alpha: skin.isOled ? 0.04 : 0.12),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-                    child: Container(color: Colors.transparent),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content Body
-            SafeArea(
-              top: false,
-              child: isDesktop
-                  ? _buildDesktopStudio(size, skin)
-                  : _buildMobileLayout(size, skin),
-            ),
-          ],
+        child: Container(
+          color: skin.bg0,
+          child: SafeArea(
+            top: false,
+            child: isDesktop
+                ? _buildDesktopStudio(size, skin)
+                : _buildMobileLayout(size, skin),
+          ),
         ),
       ),
     );
@@ -1194,181 +1159,184 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   // MOBILE ADAPTIVE VIEW (Zero-Overflow)
   // ==========================================
   Widget _buildMobileLayout(Size size, AppSkin skin) {
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            // Drag Handle with Fling Down Dismiss
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragEnd: (details) {
-                if (details.primaryVelocity != null &&
-                    details.primaryVelocity! > 150) {
-                  Navigator.pop(context);
-                }
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 48),
-                child: Center(
-                  child: Container(
-                    width: 48,
-                    height: 4.5,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          // Drag Handle with Fling Down Dismiss
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragEnd: (details) {
+              if (details.primaryVelocity != null &&
+                  details.primaryVelocity! > 150) {
+                Navigator.pop(context);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 48),
+              child: Center(
+                child: Container(
+                  width: 44,
+                  height: 4.5,
+                  decoration: BoxDecoration(
+                    color: skin.textMuted.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+          ),
+          const SizedBox(height: 4),
 
-            // Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.keyboard_arrow_down_rounded,
-                        color: skin.fg, size: 28),
-                    onPressed: () => Navigator.pop(context),
+          // Header Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.keyboard_arrow_down_rounded,
+                      color: skin.fg, size: 28),
+                  onPressed: () => Navigator.pop(context),
+                  tooltip: 'Dismiss',
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: skin.bg1,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: skin.bg2),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: skin.accent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'STREAMING · DSP',
-                          style: TextStyle(
-                            color: skin.fg,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_isCurrentDownloaded && (widget.onDelete != null || widget.onDeleteTrack != null))
-                        IconButton(
-                          icon: Icon(Icons.delete_outline_rounded,
-                              color: skin.red, size: 22),
-                          tooltip: 'Delete Song',
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                backgroundColor: skin.bg1,
-                                title: Text('Delete Song',
-                                    style: TextStyle(color: skin.fg)),
-                                content: Text(
-                                  'Delete "$_activeTitle" from downloaded library?',
-                                  style: TextStyle(color: skin.textMuted),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: Text('Cancel',
-                                        style: TextStyle(color: skin.textMuted)),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                      _handleDelete();
-                                    },
-                                    child: Text('Delete',
-                                        style: TextStyle(
-                                            color: skin.red,
-                                            fontWeight: FontWeight.bold)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        )
-                      else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
-                        IconButton(
-                          icon: Icon(Icons.download_rounded,
-                              color: skin.accent, size: 22),
-                          tooltip: 'Download Song',
-                          onPressed: _handleDownload,
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: skin.accent,
+                          shape: BoxShape.circle,
                         ),
-                      if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
-                        IconButton(
-                          icon: Icon(Icons.download_for_offline_rounded,
-                              color: skin.aqua, size: 22),
-                          tooltip: 'Save to this device (offline)',
-                          onPressed: _handleDownloadOffline,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'POWERAMP DSP',
+                        style: TextStyle(
+                          color: skin.fg,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
                         ),
-                      IconButton(
-                        icon: Icon(Icons.info_outline_rounded,
-                            color: skin.textMuted, size: 22),
-                        tooltip: 'Audio Specs',
-                        onPressed: _openMetadataModal,
                       ),
                     ],
                   ),
-                ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_isCurrentDownloaded && (widget.onDelete != null || widget.onDeleteTrack != null))
+                      IconButton(
+                        icon: Icon(Icons.delete_outline_rounded,
+                            color: skin.red, size: 22),
+                        tooltip: 'Delete Song',
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              backgroundColor: skin.bg1,
+                              title: Text('Delete Song',
+                                  style: TextStyle(color: skin.fg)),
+                              content: Text(
+                                'Delete "$_activeTitle" from downloaded library?',
+                                style: TextStyle(color: skin.textMuted),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: Text('Cancel',
+                                      style: TextStyle(color: skin.textMuted)),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    _handleDelete();
+                                  },
+                                  child: Text('Delete',
+                                      style: TextStyle(
+                                          color: skin.red,
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      )
+                    else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
+                      IconButton(
+                        icon: Icon(Icons.download_rounded,
+                            color: skin.accent, size: 22),
+                        tooltip: 'Download Song',
+                        onPressed: _handleDownload,
+                      ),
+                    if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
+                      IconButton(
+                        icon: Icon(Icons.download_for_offline_rounded,
+                            color: skin.aqua, size: 22),
+                        tooltip: 'Save to this device (offline)',
+                        onPressed: _handleDownloadOffline,
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded,
+                          color: skin.textMuted, size: 22),
+                      tooltip: 'Audio Specs',
+                      onPressed: _openMetadataModal,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          // Center Hero Area (Adaptive, zero overflow, scales dynamically)
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxSide = math.min(constraints.maxWidth, constraints.maxHeight);
+                    final clampedSide = maxSide.clamp(130.0, 275.0);
+                    return _buildHeroCard(cardSize: clampedSide, skin: skin);
+                  },
+                ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          _buildModeSelectorPills(skin: skin),
 
-            // Center Artwork Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: _buildHeroCard(
-                cardSize: math.min(size.width * 0.72, size.height * 0.32).clamp(170.0, 270.0),
-                skin: skin,
-              ),
-            ),
+          const SizedBox(height: 8),
+          _buildTrackInfo(skin: skin),
 
-            const SizedBox(height: 8),
-            _buildModeSelectorPills(skin: skin),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: _buildWaveformBar(skin),
+          ),
 
-            const SizedBox(height: 10),
-            _buildTrackInfo(skin: skin),
+          const SizedBox(height: 6),
+          _buildMobileTransport(skin),
 
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: _buildWaveformBar(skin),
-            ),
-
-            const SizedBox(height: 8),
-            _buildMobileTransport(skin),
-
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildMobileDock(skin),
-            ),
-          ],
-        ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _buildMobileDock(skin),
+          ),
+        ],
       ),
     );
   }
@@ -1618,27 +1586,67 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   Widget _buildModeSelectorPills({required AppSkin skin}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildModeDot(NowPlayingCardMode.artwork, skin),
-        const SizedBox(width: 6),
-        _buildModeDot(NowPlayingCardMode.lyrics, skin),
-        const SizedBox(width: 6),
-        _buildModeDot(NowPlayingCardMode.visualizer, skin),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      decoration: BoxDecoration(
+        color: skin.bg1,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: skin.bg2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildModeChip('ARTWORK', Icons.album_rounded, NowPlayingCardMode.artwork, skin),
+          const SizedBox(width: 4),
+          _buildModeChip('LYRICS', Icons.lyrics_rounded, NowPlayingCardMode.lyrics, skin),
+          const SizedBox(width: 4),
+          _buildModeChip('SPECTRUM', Icons.graphic_eq_rounded, NowPlayingCardMode.visualizer, skin),
+        ],
+      ),
     );
   }
 
-  Widget _buildModeDot(NowPlayingCardMode mode, AppSkin skin) {
+  Widget _buildModeChip(String label, IconData icon, NowPlayingCardMode mode, AppSkin skin) {
     final active = _cardMode == mode;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      width: active ? 16 : 6,
-      height: 6,
-      decoration: BoxDecoration(
-        color: active ? skin.accent : Colors.white24,
-        borderRadius: BorderRadius.circular(3),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => setState(() => _cardMode = mode),
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: active
+                ? skin.accent.withValues(alpha: skin.isOled ? 0.25 : 0.18)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: active ? skin.accent.withValues(alpha: 0.7) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 13,
+                color: active ? skin.accent : skin.textMuted,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? skin.accent : skin.textMuted,
+                  fontSize: 10,
+                  fontWeight: active ? FontWeight.bold : FontWeight.w600,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1742,13 +1750,16 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildPlayPauseCircle(AppSkin skin, {double size = 58}) {
+  Widget _buildPlayPauseCircle(AppSkin skin, {double size = 62}) {
     return StreamBuilder<PlayerState>(
       stream: widget.player.playerStateStream,
       builder: (context, snap) {
         final state = snap.data;
         final playing = state?.playing ?? false;
         final loading = state?.processingState == ProcessingState.loading;
+        final iconColor = skin.isOled
+            ? Colors.black
+            : (skin.isDark ? Colors.black : Colors.white);
 
         return Container(
           width: size,
@@ -1758,9 +1769,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             color: skin.accent,
             boxShadow: [
               BoxShadow(
-                color: skin.accent.withValues(alpha: 0.38),
-                blurRadius: 20,
-                spreadRadius: 2,
+                color: skin.accent.withValues(alpha: skin.isOled ? 0.2 : 0.38),
+                blurRadius: skin.isOled ? 10 : 20,
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -1788,12 +1799,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                         height: size * 0.42,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: skin.bg0,
+                          color: iconColor,
                         ),
                       )
                     : Icon(
                         playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: skin.bg0,
+                        color: iconColor,
                         size: size * 0.62,
                       ),
               ),
@@ -1806,41 +1817,54 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   Widget _buildMobileTransport(AppSkin skin) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           IconButton(
+            iconSize: 24,
+            padding: const EdgeInsets.all(12),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             icon: Icon(
               Icons.shuffle_rounded,
               color: _isShuffle ? skin.accent : skin.textMuted,
-              size: 22,
             ),
             tooltip: 'Shuffle',
             onPressed: _toggleShuffle,
           ),
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onLongPressStart: (_) => _startContinuousSeek(false),
             onLongPressEnd: (_) => _stopContinuousSeek(),
             child: IconButton(
+              iconSize: 38,
+              padding: const EdgeInsets.all(6),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: Icon(Icons.skip_previous_rounded,
-                  color: skin.fg, size: 36),
+                  color: skin.fg),
               tooltip: 'Previous Track',
               onPressed: _handlePrev,
             ),
           ),
-          _buildPlayPauseCircle(skin, size: 56),
+          _buildPlayPauseCircle(skin, size: 62),
           GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onLongPressStart: (_) => _startContinuousSeek(true),
             onLongPressEnd: (_) => _stopContinuousSeek(),
             child: IconButton(
+              iconSize: 38,
+              padding: const EdgeInsets.all(6),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: Icon(Icons.skip_next_rounded,
-                  color: skin.fg, size: 36),
+                  color: skin.fg),
               tooltip: 'Next Track',
               onPressed: _handleNext,
             ),
           ),
           IconButton(
+            iconSize: 24,
+            padding: const EdgeInsets.all(12),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             icon: Icon(
               _repeat == PlaybackRepeat.one
                   ? Icons.repeat_one_rounded
@@ -1848,7 +1872,6 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               color: _repeat != PlaybackRepeat.off
                   ? skin.accent
                   : skin.textMuted,
-              size: 22,
             ),
             tooltip: 'Repeat Mode',
             onPressed: _toggleLoopMode,
@@ -1861,11 +1884,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   Widget _buildMobileDock(AppSkin skin) {
     final isOffline = _isCurrentOfflineLocal;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
         color: skin.bg1,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: skin.bg2),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1954,31 +1977,37 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     required bool active,
     VoidCallback? onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: active ? skin.accent : skin.textMuted,
-              size: 19,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 52,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
                 color: active ? skin.accent : skin.textMuted,
-                fontSize: 10,
-                fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                size: 20,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: active ? skin.accent : skin.textMuted,
+                  fontSize: 10,
+                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

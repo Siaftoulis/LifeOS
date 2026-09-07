@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
-import '../../../../../theme/app_skin.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
 

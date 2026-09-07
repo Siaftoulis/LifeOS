@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 class DownloadQueueSheet extends StatefulWidget {
   const DownloadQueueSheet({super.key});
@@ -103,27 +103,28 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
     }
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(String status, AppSkin skin) {
     switch (status.toUpperCase()) {
       case 'DOWNLOADING':
-        return EverforestColors.aqua;
+        return skin.aqua;
       case 'COMPLETED':
-        return EverforestColors.green;
+        return skin.accent;
       case 'FAILED':
-        return EverforestColors.red;
+        return skin.red;
       case 'CANCELLED':
-        return EverforestColors.grey;
+        return skin.textMuted;
       default:
-        return EverforestColors.yellow;
+        return skin.yellow;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -154,28 +155,28 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: EverforestColors.aqua.withValues(alpha: 0.15),
+                    color: skin.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.download_rounded,
-                      color: EverforestColors.aqua, size: 22),
+                  child: Icon(Icons.download_rounded,
+                      color: skin.accent, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Download Manager',
                     style: TextStyle(
-                      color: EverforestColors.fg,
+                      color: skin.fg,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 TextButton.icon(
-                  icon: const Icon(Icons.clear_all_rounded,
-                      color: EverforestColors.grey, size: 18),
-                  label: const Text('Clear Done',
-                      style: TextStyle(color: EverforestColors.grey)),
+                  icon: Icon(Icons.clear_all_rounded,
+                      color: skin.textMuted, size: 18),
+                  label: Text('Clear Done',
+                      style: TextStyle(color: skin.textMuted)),
                   onPressed: () async {
                     await MusicRepository.instance.clearCompletedDownloads();
                     await MusicRepository.instance.loadDownloadQueue();
@@ -184,22 +185,22 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
               ],
             ),
           ),
-          const Divider(color: EverforestColors.bg2, height: 1),
+          Divider(color: skin.bg2, height: 1),
           Expanded(
             child: ValueListenableBuilder<List<DownloadQueueItem>>(
               valueListenable: MusicRepository.instance.downloadQueue,
               builder: (context, queue, _) {
                 if (queue.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.cloud_done_rounded,
-                            color: EverforestColors.grey, size: 44),
-                        SizedBox(height: 12),
+                            color: skin.textMuted, size: 44),
+                        const SizedBox(height: 12),
                         Text('Download queue is empty',
                             style: TextStyle(
-                                color: EverforestColors.grey, fontSize: 15)),
+                                color: skin.textMuted, fontSize: 15)),
                       ],
                     ),
                   );
@@ -214,7 +215,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final item = queue[i];
-                    final color = _statusColor(item.status);
+                    final color = _statusColor(item.status, skin);
                     final isFailed = item.status.toUpperCase() == 'FAILED';
                     final isPendingOrDownloading =
                         item.status.toUpperCase() == 'PENDING' ||
@@ -227,11 +228,11 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: EverforestColors.bg1,
+                        color: skin.bg1,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                             color: isFailed
-                                ? EverforestColors.red.withValues(alpha: 0.3)
+                                ? skin.red.withValues(alpha: 0.3)
                                 : Colors.white.withValues(alpha: 0.05)),
                       ),
                       child: Column(
@@ -250,10 +251,10 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                     errorBuilder: (_, __, ___) => Container(
                                       width: 38,
                                       height: 38,
-                                      color: EverforestColors.bg0,
-                                      child: const Icon(
+                                      color: skin.bg0,
+                                      child: Icon(
                                           Icons.music_note_rounded,
-                                          color: EverforestColors.aqua,
+                                          color: skin.aqua,
                                           size: 18),
                                     ),
                                   ),
@@ -268,8 +269,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                       title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: EverforestColors.fg,
+                                      style: TextStyle(
+                                        color: skin.fg,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                       ),
@@ -281,8 +282,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                           : 'LifeOS Library',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          color: EverforestColors.grey,
+                                      style: TextStyle(
+                                          color: skin.textMuted,
                                           fontSize: 12),
                                     ),
                                   ],
@@ -308,8 +309,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                               if (isPendingOrDownloading) ...[
                                 const SizedBox(width: 8),
                                 IconButton(
-                                  icon: const Icon(Icons.close_rounded,
-                                      color: EverforestColors.grey, size: 18),
+                                  icon: Icon(Icons.close_rounded,
+                                      color: skin.textMuted, size: 18),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                   tooltip: 'Cancel',
@@ -332,7 +333,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                         item.progress! > 0)
                                     ? item.progress
                                     : null,
-                                backgroundColor: EverforestColors.bg0,
+                                backgroundColor: skin.bg0,
                                 valueColor:
                                     AlwaysStoppedAnimation<Color>(color),
                                 minHeight: 4,
@@ -356,19 +357,19 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: EverforestColors.red
+                                  color: skin.red
                                       .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                      color: EverforestColors.red
+                                      color: skin.red
                                           .withValues(alpha: 0.25)),
                                 ),
                                 child: Row(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.error_outline_rounded,
-                                        color: EverforestColors.red,
+                                    Icon(Icons.error_outline_rounded,
+                                        color: skin.red,
                                         size: 15),
                                     const SizedBox(width: 6),
                                     Expanded(
@@ -378,8 +379,8 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                         overflow: isExpanded
                                             ? null
                                             : TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: EverforestColors.red,
+                                        style: TextStyle(
+                                          color: skin.red,
                                           fontSize: 11,
                                           height: 1.3,
                                         ),
@@ -390,7 +391,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                       isExpanded
                                           ? Icons.expand_less_rounded
                                           : Icons.expand_more_rounded,
-                                      color: EverforestColors.red,
+                                      color: skin.red,
                                       size: 16,
                                     ),
                                   ],

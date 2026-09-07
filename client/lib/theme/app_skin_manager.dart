@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_skin.dart';
+export 'app_skin.dart';
 import 'app_skin_registry.dart';
 import '../database/preferences_service.dart';
 

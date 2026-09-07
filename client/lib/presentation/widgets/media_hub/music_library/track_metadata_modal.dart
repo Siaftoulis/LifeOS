@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/domain_repositories.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'music_formatters.dart';
 
 /// Poweramp-style Audiophile Track Metadata Inspector modal.
@@ -19,7 +18,7 @@ class TrackMetadataModal extends StatelessWidget {
     super.key,
     required this.title,
     required this.artist,
-    required this.album,
+    this.album = '',
     required this.trackId,
     required this.url,
     required this.duration,
@@ -30,7 +29,7 @@ class TrackMetadataModal extends StatelessWidget {
     BuildContext context, {
     required String title,
     required String artist,
-    required String album,
+    String album = '',
     required String trackId,
     required String url,
     required Duration duration,
@@ -52,41 +51,33 @@ class TrackMetadataModal extends StatelessWidget {
     );
   }
 
-  String _getHighResCoverUrl(String url) {
-    if (url.isEmpty) return '';
-    if (kIsWeb && Uri.base.scheme == 'https' && url.startsWith('http://')) {
-      url = url.replaceFirst('http://', 'https://');
+  String _getHighResCoverUrl(String original) {
+    if (original.isEmpty) return '';
+    if (original.contains('googleusercontent.com') ||
+        original.contains('ggpht.com')) {
+      final base = original.split('=')[0];
+      return '$base=w800-h800-l90-rj';
     }
-    // Attempt highest quality YouTube thumbnail if applicable
-    if (url.contains('ytimg.com') || url.contains('ggpht.com')) {
-      return url.replaceAll('hqdefault.jpg', 'maxresdefault.jpg');
-    }
-    return url;
+    return original;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLocal = url.startsWith('file:') || !url.contains('ytstream');
+    final skin = context.skin;
     final t = track ??
-        MusicRepository.instance.tracks.value.firstWhere(
-          (item) => item.id == trackId,
-          orElse: () => MusicTrack(
-            id: trackId,
-            title: title,
-            artist: artist,
-            album: album,
-            thumbnail: '',
-            duration: duration.inSeconds.toDouble(),
-          ),
+        MusicRepository.instance.getTrackMetadata(trackId) ??
+        MusicTrack(
+          id: trackId,
+          title: title,
+          artist: artist,
+          album: album,
+          thumbnail: '',
+          duration: duration.inSeconds.toDouble(),
         );
 
-    final codec = t.codec.isNotEmpty
-        ? t.codec.toUpperCase()
-        : (url.endsWith('.mp3')
-            ? 'MPEG Audio Layer 3 (MP3)'
-            : 'Advanced Audio Coding (AAC-LC)');
-
-    final container = url.endsWith('.mp3') ? 'Audio / MP3' : 'MPEG-4 Audio (M4A)';
+    final isLocal = !url.startsWith('http');
+    final container = isLocal ? 'MPEG Audio Layer III (.mp3)' : 'MP4/AAC Audio Stream';
+    final codec = isLocal ? 'MP3 (MPEG-1/2 Audio Layer 3)' : 'AAC-LC (Advanced Audio Coding)';
     final bitrate = t.bitrate != null && t.bitrate! > 0
         ? '${t.bitrate} kbps'
         : (url.endsWith('.mp3') ? '320 kbps (CBR)' : '256 kbps (VBR)');
@@ -102,7 +93,7 @@ class TrackMetadataModal extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: const [
@@ -143,7 +134,7 @@ class TrackMetadataModal extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: EverforestColors.green.withValues(alpha: 0.25),
+                            color: skin.accent.withValues(alpha: 0.25),
                             blurRadius: 12,
                           ),
                         ],
@@ -154,9 +145,9 @@ class TrackMetadataModal extends StatelessWidget {
                           coverUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            color: EverforestColors.bg1,
-                            child: const Icon(Icons.music_note_rounded,
-                                color: EverforestColors.green),
+                            color: skin.bg1,
+                            child: Icon(Icons.music_note_rounded,
+                                color: skin.accent),
                           ),
                         ),
                       ),
@@ -166,23 +157,23 @@ class TrackMetadataModal extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: EverforestColors.green.withValues(alpha: 0.15),
+                      color: skin.accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: EverforestColors.green.withValues(alpha: 0.3)),
+                          color: skin.accent.withValues(alpha: 0.3)),
                     ),
-                    child: const Icon(Icons.info_outline_rounded,
-                        color: EverforestColors.green, size: 26),
+                    child: Icon(Icons.info_outline_rounded,
+                        color: skin.accent, size: 26),
                   ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'AUDIO SPECIFICATIONS',
                         style: TextStyle(
-                          color: EverforestColors.green,
+                          color: skin.accent,
                           fontSize: 11,
                           letterSpacing: 1.2,
                           fontWeight: FontWeight.bold,
@@ -193,8 +184,8 @@ class TrackMetadataModal extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: EverforestColors.fg,
+                        style: TextStyle(
+                          color: skin.fg,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
@@ -206,15 +197,15 @@ class TrackMetadataModal extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: EverforestColors.aqua.withValues(alpha: 0.2),
+                    color: skin.aqua.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: EverforestColors.aqua.withValues(alpha: 0.4)),
+                        color: skin.aqua.withValues(alpha: 0.4)),
                   ),
-                  child: const Text(
+                  child: Text(
                     'HI-RES',
                     style: TextStyle(
-                      color: EverforestColors.aqua,
+                      color: skin.aqua,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -229,41 +220,41 @@ class TrackMetadataModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: EverforestColors.bg1,
+                color: skin.bg1,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: Column(
                 children: [
                   _buildInfoRow(
-                      'Artist', artist.isNotEmpty ? artist : 'Unknown Artist'),
+                      'Artist', artist.isNotEmpty ? artist : 'Unknown Artist', skin),
                   const Divider(color: Colors.white10, height: 18),
                   _buildInfoRow(
-                      'Album', album.isNotEmpty ? album : 'Single / EP'),
+                      'Album', album.isNotEmpty ? album : 'Single / EP', skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Container', container),
+                  _buildInfoRow('Container', container, skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Audio Codec', codec),
+                  _buildInfoRow('Audio Codec', codec, skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Bitrate', bitrate),
+                  _buildInfoRow('Bitrate', bitrate, skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Sample Rate', sampleRate),
+                  _buildInfoRow('Sample Rate', sampleRate, skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Channels', channels),
+                  _buildInfoRow('Channels', channels, skin),
                   const Divider(color: Colors.white10, height: 18),
-                  _buildInfoRow('Duration', formatDurationSpan(duration)),
+                  _buildInfoRow('Duration', formatDurationSpan(duration), skin),
                   if (t.replayGainTrack != null) ...[
                     const Divider(color: Colors.white10, height: 18),
                     _buildInfoRow('ReplayGain Track',
-                        '${t.replayGainTrack! >= 0 ? '+' : ''}${t.replayGainTrack!.toStringAsFixed(2)} dB'),
+                        '${t.replayGainTrack! >= 0 ? '+' : ''}${t.replayGainTrack!.toStringAsFixed(2)} dB', skin),
                   ],
                   if (t.playCount > 0) ...[
                     const Divider(color: Colors.white10, height: 18),
-                    _buildInfoRow('Play Count', '${t.playCount} times'),
+                    _buildInfoRow('Play Count', '${t.playCount} times', skin),
                   ],
                   const Divider(color: Colors.white10, height: 18),
                   _buildInfoRow('Storage Source',
-                      isLocal ? 'Local Storage Vault' : 'YouTube Music (Direct Stream)'),
+                      isLocal ? 'Local Storage Vault' : 'YouTube Music (Direct Stream)', skin),
                 ],
               ),
             ),
@@ -274,10 +265,10 @@ class TrackMetadataModal extends StatelessWidget {
               onTap: () {
                 Clipboard.setData(ClipboardData(text: url));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Stream URL copied to clipboard'),
-                    duration: Duration(seconds: 2),
-                    backgroundColor: EverforestColors.bg1,
+                  SnackBar(
+                    content: const Text('Stream URL copied to clipboard'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: skin.bg1,
                   ),
                 );
               },
@@ -292,22 +283,22 @@ class TrackMetadataModal extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.link_rounded,
-                        color: EverforestColors.grey, size: 18),
+                    Icon(Icons.link_rounded,
+                        color: skin.textMuted, size: 18),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         url,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: EverforestColors.grey,
+                        style: TextStyle(
+                            color: skin.textMuted,
                             fontSize: 12,
                             fontFamily: 'monospace'),
                       ),
                     ),
-                    const Icon(Icons.copy_rounded,
-                        color: EverforestColors.grey, size: 16),
+                    Icon(Icons.copy_rounded,
+                        color: skin.textMuted, size: 16),
                   ],
                 ),
               ),
@@ -345,14 +336,14 @@ class TrackMetadataModal extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, AppSkin skin) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: EverforestColors.grey,
+          style: TextStyle(
+            color: skin.textMuted,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -361,8 +352,8 @@ class TrackMetadataModal extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.end,
-            style: const TextStyle(
-              color: EverforestColors.fg,
+            style: TextStyle(
+              color: skin.fg,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),

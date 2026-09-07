@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 class CreatePlaylistDialog extends StatefulWidget {
   const CreatePlaylistDialog({
@@ -84,32 +84,33 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final isEditing = widget.initialPlaylist != null;
     return AlertDialog(
-      backgroundColor: EverforestColors.bg1,
+      backgroundColor: skin.bg1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: EverforestColors.bg2),
+        side: BorderSide(color: skin.bg2),
       ),
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: EverforestColors.green.withValues(alpha: 0.15),
+              color: skin.accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               isEditing ? Icons.edit_rounded : Icons.playlist_add_rounded,
-              color: EverforestColors.green,
+              color: skin.accent,
               size: 22,
             ),
           ),
           const SizedBox(width: 12),
           Text(
             isEditing ? 'Edit Playlist' : 'New Playlist',
-            style: const TextStyle(
-              color: EverforestColors.fg,
+            style: TextStyle(
+              color: skin.fg,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -124,15 +125,15 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
             TextField(
               controller: _titleCtrl,
               autofocus: true,
-              style: const TextStyle(color: EverforestColors.fg),
+              style: TextStyle(color: skin.fg),
               decoration: InputDecoration(
                 labelText: 'Playlist Name',
-                labelStyle: const TextStyle(color: EverforestColors.grey),
+                labelStyle: TextStyle(color: skin.textMuted),
                 hintText: 'e.g. Midnight Grooves, Study Session',
                 hintStyle:
-                    const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                    TextStyle(color: skin.textMuted, fontSize: 13),
                 filled: true,
-                fillColor: EverforestColors.bg0,
+                fillColor: skin.bg0,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -143,12 +144,12 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
             TextField(
               controller: _descCtrl,
               maxLines: 2,
-              style: const TextStyle(color: EverforestColors.fg),
+              style: TextStyle(color: skin.fg),
               decoration: InputDecoration(
                 labelText: 'Description (Optional)',
-                labelStyle: const TextStyle(color: EverforestColors.grey),
+                labelStyle: TextStyle(color: skin.textMuted),
                 filled: true,
-                fillColor: EverforestColors.bg0,
+                fillColor: skin.bg0,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -159,20 +160,20 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
               const SizedBox(height: 12),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                title: Text(
                   'Smart Dynamic Playlist',
                   style: TextStyle(
-                      color: EverforestColors.fg,
+                      color: skin.fg,
                       fontSize: 13,
                       fontWeight: FontWeight.w600),
                 ),
-                subtitle: const Text(
+                subtitle: Text(
                   'Auto-updates based on rules and genre tags',
                   style:
-                      TextStyle(color: EverforestColors.grey, fontSize: 11),
+                      TextStyle(color: skin.textMuted, fontSize: 11),
                 ),
                 value: _isSmart,
-                activeThumbColor: EverforestColors.green,
+                activeThumbColor: skin.accent,
                 onChanged: (val) => setState(() => _isSmart = val),
               ),
             ],
@@ -182,23 +183,23 @@ class _CreatePlaylistDialogState extends State<CreatePlaylistDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel',
-              style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Cancel',
+              style: TextStyle(color: skin.textMuted)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: EverforestColors.green,
-            foregroundColor: EverforestColors.bg0,
+            backgroundColor: skin.accent,
+            foregroundColor: skin.accentContrast,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           onPressed: _isSubmitting ? null : _submit,
           child: _isSubmitting
-              ? const SizedBox(
+              ? SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: EverforestColors.bg0),
+                      strokeWidth: 2, color: skin.accentContrast),
                 )
               : Text(isEditing ? 'Save Changes' : 'Create Playlist'),
         ),

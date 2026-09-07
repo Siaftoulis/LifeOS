@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 /// Shown when EQ is opened on platforms that don't support DSP (Web, macOS, iOS).
 class EqNotSupportedSheet extends StatelessWidget {
@@ -7,10 +7,11 @@ class EqNotSupportedSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
       height: MediaQuery.of(context).size.height * 0.45,
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -36,13 +37,13 @@ class EqNotSupportedSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Icon(Icons.equalizer_rounded,
-              color: EverforestColors.grey, size: 48),
+          Icon(Icons.equalizer_rounded,
+              color: skin.textMuted, size: 48),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Equalizer Not Available',
             style: TextStyle(
-              color: EverforestColors.fg,
+              color: skin.fg,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -55,15 +56,15 @@ class EqNotSupportedSheet extends StatelessWidget {
               'On this platform, audio plays through the system mixer without EQ.',
               textAlign: TextAlign.center,
               style:
-                  const TextStyle(color: EverforestColors.grey, fontSize: 14),
+                  TextStyle(color: skin.textMuted, fontSize: 14),
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: EverforestColors.green,
-              foregroundColor: EverforestColors.bg0,
+              backgroundColor: skin.accent,
+              foregroundColor: skin.accentContrast,
               padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
               shape: RoundedRectangleBorder(

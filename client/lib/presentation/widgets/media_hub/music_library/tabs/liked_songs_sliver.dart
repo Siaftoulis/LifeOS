@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import 'all_tracks_sliver.dart';
 
 class LikedSongsSliver extends StatelessWidget {
@@ -25,33 +25,34 @@ class LikedSongsSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return ValueListenableBuilder<List<MusicTrack>>(
       valueListenable: MusicRepository.instance.likedTracks,
       builder: (context, likedTracks, _) {
         if (likedTracks.isEmpty) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 48),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 48),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.favorite_border_rounded,
-                        color: EverforestColors.grey, size: 48),
-                    SizedBox(height: 16),
+                        color: skin.textMuted, size: 48),
+                    const SizedBox(height: 16),
                     Text(
                       'No liked songs yet',
                       style: TextStyle(
-                          color: EverforestColors.fg,
+                          color: skin.fg,
                           fontSize: 18,
                           fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Tap the heart icon on any song to save it to your favorites!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: EverforestColors.grey, fontSize: 14),
+                          color: skin.textMuted, fontSize: 14),
                     ),
                   ],
                 ),
@@ -72,15 +73,15 @@ class LikedSongsSliver extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        EverforestColors.red.withValues(alpha: 0.25),
-                        EverforestColors.bg1,
+                        skin.red.withValues(alpha: 0.25),
+                        skin.bg1,
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: EverforestColors.red.withValues(alpha: 0.3)),
+                        color: skin.red.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -88,21 +89,21 @@ class LikedSongsSliver extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: EverforestColors.red.withValues(alpha: 0.2),
+                          color: skin.red.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.favorite_rounded,
-                            color: EverforestColors.red, size: 30),
+                        child: Icon(Icons.favorite_rounded,
+                            color: skin.red, size: 30),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Liked Songs',
                               style: TextStyle(
-                                color: EverforestColors.fg,
+                                color: skin.fg,
                                 fontSize: 19,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -110,16 +111,16 @@ class LikedSongsSliver extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               '${likedTracks.length} favorite songs',
-                              style: const TextStyle(
-                                  color: EverforestColors.grey, fontSize: 13),
+                              style: TextStyle(
+                                  color: skin.textMuted, fontSize: 13),
                             ),
                           ],
                         ),
                       ),
                       if (canPlay) ...[
                         IconButton(
-                          icon: const Icon(Icons.play_circle_fill_rounded,
-                              color: EverforestColors.green, size: 38),
+                          icon: Icon(Icons.play_circle_fill_rounded,
+                              color: skin.accent, size: 38),
                           tooltip: 'Play All Liked',
                           onPressed: () => onPlayTrackList(likedTracks, 0),
                         ),

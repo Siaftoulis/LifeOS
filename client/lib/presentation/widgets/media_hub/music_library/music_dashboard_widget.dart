@@ -10,7 +10,7 @@ import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../core/music_playback/playback_models.dart';
 import '../../../../core/telemetry/telemetry_reporter.dart';
 import '../../../../database/database.dart' hide MusicTrack;
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'components/download_queue_sheet.dart';
 import 'components/music_mini_player.dart';
 import 'components/music_search_bar.dart';
@@ -324,7 +324,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Downloading "${track.title}" to server library...'),
-            backgroundColor: EverforestColors.bg1,
+            backgroundColor: context.skin.bg1,
           ),
         );
       }
@@ -334,7 +334,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Download failed: $e'),
-            backgroundColor: EverforestColors.red,
+            backgroundColor: context.skin.red,
           ),
         );
       }
@@ -349,7 +349,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Saved "${track.title}" for offline playback'),
-            backgroundColor: EverforestColors.bg1,
+            backgroundColor: context.skin.bg1,
           ),
         );
       }
@@ -358,7 +358,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Offline download failed: $e'),
-            backgroundColor: EverforestColors.red,
+            backgroundColor: context.skin.red,
           ),
         );
       }
@@ -397,11 +397,11 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
   void _webPlaybackNotice() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
+      SnackBar(
+        content: const Text(
           'Music playback is available in the LifeOS Android and Windows native apps.',
         ),
-        backgroundColor: EverforestColors.bg1,
+        backgroundColor: context.skin.bg1,
       ),
     );
   }
@@ -486,7 +486,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       builder: (_) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: EverforestColors.bg0,
+          color: context.skin.bg0,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
@@ -517,37 +517,38 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   void _confirmDeleteOffline(OfflineMusicTrack o) {
+    final skin = context.skin;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: EverforestColors.bg1,
-        title: const Row(
+        backgroundColor: skin.bg1,
+        title: Row(
           children: [
             Icon(Icons.phonelink_erase_rounded,
-                color: EverforestColors.yellow, size: 24),
-            SizedBox(width: 8),
+                color: skin.yellow, size: 24),
+            const SizedBox(width: 8),
             Text('Remove from Device',
                 style: TextStyle(
-                    color: EverforestColors.fg,
+                    color: skin.fg,
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
           ],
         ),
         content: Text(
           'Remove "${o.title}" from this device? The song stays in your server library.',
-          style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
+          style: TextStyle(color: skin.textMuted, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel',
+                style: TextStyle(color: skin.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: EverforestColors.red.withValues(alpha: 0.2),
-              foregroundColor: EverforestColors.red,
-              side: const BorderSide(color: EverforestColors.red, width: 1),
+              backgroundColor: skin.red.withValues(alpha: 0.2),
+              foregroundColor: skin.red,
+              side: BorderSide(color: skin.red, width: 1),
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -556,7 +557,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Removed "${o.title}" from this device'),
-                    backgroundColor: EverforestColors.bg1,
+                    backgroundColor: skin.bg1,
                   ),
                 );
               }
@@ -569,37 +570,38 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   void _confirmDeleteTrack(MusicTrack t) {
+    final skin = context.skin;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: EverforestColors.bg1,
-        title: const Row(
+        backgroundColor: skin.bg1,
+        title: Row(
           children: [
             Icon(Icons.delete_outline_rounded,
-                color: EverforestColors.red, size: 24),
-            SizedBox(width: 8),
+                color: skin.red, size: 24),
+            const SizedBox(width: 8),
             Text('Delete Song',
                 style: TextStyle(
-                    color: EverforestColors.fg,
+                    color: skin.fg,
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
           ],
         ),
         content: Text(
           'Delete "${t.title}" from your downloaded library and disk?',
-          style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
+          style: TextStyle(color: skin.textMuted, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel',
+                style: TextStyle(color: skin.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: EverforestColors.red.withValues(alpha: 0.2),
-              foregroundColor: EverforestColors.red,
-              side: const BorderSide(color: EverforestColors.red, width: 1),
+              backgroundColor: skin.red.withValues(alpha: 0.2),
+              foregroundColor: skin.red,
+              side: BorderSide(color: skin.red, width: 1),
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -611,7 +613,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                         ? 'Deleted "${t.title}" from library'
                         : 'Could not delete "${t.title}"'),
                     backgroundColor:
-                        ok ? EverforestColors.bg1 : EverforestColors.red,
+                        ok ? skin.bg1 : skin.red,
                   ),
                 );
               }
@@ -676,7 +678,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   Map<String, ({String desc, IconData icon, Color color, List<MusicTrack> list})>
-      _generateSmartMixes(List<MusicTrack> tracks) {
+      _generateSmartMixes(List<MusicTrack> tracks, AppSkin skin) {
     final quick = tracks.where((t) => t.duration > 0 && t.duration <= 210).toList();
     final deep = tracks.where((t) => t.duration > 300).toList();
     final shuffled = List<MusicTrack>.from(tracks)..shuffle();
@@ -686,32 +688,32 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       '⚡ Quick Hits': (
         desc: 'Upbeat tracks under 3.5 minutes',
         icon: Icons.bolt_rounded,
-        color: EverforestColors.yellow,
+        color: skin.yellow,
         list: quick,
       ),
       '🧘 Deep Sessions': (
         desc: 'Extended tracks & deep sessions',
         icon: Icons.headphones_rounded,
-        color: EverforestColors.purple,
+        color: skin.purple,
         list: deep,
       ),
       '🎲 Discovery Shuffle': (
         desc: 'Dynamic random library mix',
         icon: Icons.shuffle_rounded,
-        color: EverforestColors.blue,
+        color: skin.blue,
         list: shuffled,
       ),
       '📥 Recent Downloads': (
         desc: 'Newest additions to your vault',
         icon: Icons.history_rounded,
-        color: EverforestColors.green,
+        color: skin.accent,
         list: recent,
       ),
     };
   }
 
   Widget _buildLibraryTabs(
-      int trackCount, int artistCount, int genreCount, int mixCount) {
+      int trackCount, int artistCount, int genreCount, int mixCount, AppSkin skin) {
     final offlineCount =
         MusicRepository.instance.offlineTracks.value.length;
     final likedCount = MusicRepository.instance.likedTracks.value.length;
@@ -733,16 +735,19 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       child: Row(
         children: tabs.map((t) {
           final isSelected = _libraryTab == t.$3;
+          final chipTextColor = isSelected
+              ? (skin.isOled ? Colors.black : skin.bg0)
+              : skin.fg;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
               avatar: Icon(t.$2,
                   size: 16,
                   color: isSelected
-                      ? EverforestColors.bg0
+                      ? (skin.isOled ? Colors.black : skin.bg0)
                       : (t.$3 == 1
-                          ? EverforestColors.red
-                          : EverforestColors.grey)),
+                          ? skin.red
+                          : skin.textMuted)),
               label: Text(t.$1),
               selected: isSelected,
               onSelected: (_) {
@@ -752,12 +757,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                   _selectedGenre = null;
                 });
               },
-              selectedColor: EverforestColors.green,
-              backgroundColor: EverforestColors.bg1,
+              selectedColor: skin.accent,
+              backgroundColor: skin.bg1,
               labelStyle: TextStyle(
-                color: isSelected
-                    ? EverforestColors.bg0
-                    : EverforestColors.fg,
+                color: chipTextColor,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 fontSize: 13,
               ),
@@ -771,7 +774,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     );
   }
 
-  Widget _buildLibrary() {
+  Widget _buildLibrary(AppSkin skin) {
     return ValueListenableBuilder<List<MusicTrack>>(
       valueListenable: MusicRepository.instance.tracks,
       builder: (context, tracks, _) {
@@ -782,7 +785,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
         final artistGroups = _groupTracksByArtist(list);
         final genreGroups = _groupTracksByGenre(list);
-        final smartMixes = _generateSmartMixes(list);
+        final smartMixes = _generateSmartMixes(list, skin);
 
         return CustomScrollView(
           slivers: [
@@ -794,13 +797,13 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                     child: Row(
                       children: [
-                        const Icon(Icons.library_music_rounded,
-                            color: EverforestColors.green, size: 24),
+                        Icon(Icons.library_music_rounded,
+                            color: skin.accent, size: 24),
                         const SizedBox(width: 10),
-                        const Text(
+                        Text(
                           'Music Vault',
                           style: TextStyle(
-                            color: EverforestColors.fg,
+                            color: skin.fg,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -0.4,
@@ -808,20 +811,20 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                         ),
                         const Spacer(),
                         IconButton(
-                          icon: const Icon(Icons.insights_rounded,
-                              color: EverforestColors.purple, size: 22),
+                          icon: Icon(Icons.insights_rounded,
+                              color: skin.purple, size: 22),
                           tooltip: 'Listening Analytics',
                           onPressed: () => MusicStatsSheet.show(context),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.download_rounded,
-                              color: EverforestColors.aqua, size: 22),
+                          icon: Icon(Icons.download_rounded,
+                              color: skin.aqua, size: 22),
                           tooltip: 'Download Manager',
                           onPressed: () => DownloadQueueSheet.show(context),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.refresh_rounded,
-                              color: EverforestColors.grey, size: 20),
+                          icon: Icon(Icons.refresh_rounded,
+                              color: skin.textMuted, size: 20),
                           tooltip: 'Refresh Library',
                           onPressed: () =>
                               MusicRepository.instance.refresh(),
@@ -830,7 +833,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                     ),
                   ),
                   _buildLibraryTabs(list.length, artistGroups.length,
-                      genreGroups.length, smartMixes.length),
+                      genreGroups.length, smartMixes.length, skin),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -946,63 +949,69 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final searching = _query.trim().isNotEmpty;
-    return Scaffold(
-      backgroundColor: EverforestColors.bg0,
-      body: Stack(
-        children: [
-          Column(
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) {
+        final skin = AppSkinManager.currentSkin;
+        final searching = _query.trim().isNotEmpty;
+        return Scaffold(
+          backgroundColor: skin.bg0,
+          body: Stack(
             children: [
-              MusicSearchBar(
-                controller: _searchCtrl,
-                isSearching: _isSearching,
-                query: _query,
-                onChanged: _onSearchChanged,
-                onSubmitted: (val) {
-                  _debounceTimer?.cancel();
-                  _search(val.trim());
-                },
-                onClear: () {
-                  _searchCtrl.clear();
-                  _onSearchChanged('');
-                },
+              Column(
+                children: [
+                  MusicSearchBar(
+                    controller: _searchCtrl,
+                    isSearching: _isSearching,
+                    query: _query,
+                    onChanged: _onSearchChanged,
+                    onSubmitted: (val) {
+                      _debounceTimer?.cancel();
+                      _search(val.trim());
+                    },
+                    onClear: () {
+                      _searchCtrl.clear();
+                      _onSearchChanged('');
+                    },
+                  ),
+                  Expanded(
+                    child: searching
+                        ? MusicSearchResults(
+                            isSearching: _isSearching,
+                            searchError: _searchError,
+                            query: _query,
+                            results: _results,
+                            downloading: _downloading,
+                            canPlay: _canPlay,
+                            playbackController: _pc,
+                            onRetry: () => _search(_query.trim()),
+                            onDownload: _download,
+                            onWebNotice: _webPlaybackNotice,
+                            onAddToPlaylist: _addToPlaylist,
+                          )
+                        : _buildLibrary(skin),
+                  ),
+                ],
               ),
-              Expanded(
-                child: searching
-                    ? MusicSearchResults(
-                        isSearching: _isSearching,
-                        searchError: _searchError,
-                        query: _query,
-                        results: _results,
-                        downloading: _downloading,
-                        canPlay: _canPlay,
-                        playbackController: _pc,
-                        onRetry: () => _search(_query.trim()),
-                        onDownload: _download,
-                        onWebNotice: _webPlaybackNotice,
-                        onAddToPlaylist: _addToPlaylist,
-                      )
-                    : _buildLibrary(),
-              ),
+              if (_hasActivePlayback)
+                Positioned(
+                  left: 14,
+                  right: 14,
+                  bottom: 18,
+                  child: MusicMiniPlayer(
+                    playbackController: _pc,
+                    currentTrackId: _pc.currentItem?.id.isNotEmpty == true ? _pc.currentItem!.id : _currentTrackId,
+                    currentTitle: _pc.currentItem?.title.isNotEmpty == true ? _pc.currentItem!.title : _currentTitle,
+                    currentArtist: _pc.currentItem?.artist.isNotEmpty == true ? _pc.currentItem!.artist : _currentArtist,
+                    currentThumbnail: _pc.currentItem?.thumbnail.isNotEmpty == true ? _pc.currentItem!.thumbnail : _currentThumbnail,
+                    onTap: _openNowPlaying,
+                    onOpenLyrics: _openLyrics,
+                  ),
+                ),
             ],
           ),
-          if (_hasActivePlayback)
-            Positioned(
-              left: 14,
-              right: 14,
-              bottom: 18,
-              child: MusicMiniPlayer(
-                playbackController: _pc,
-                currentTrackId: _pc.currentItem?.id.isNotEmpty == true ? _pc.currentItem!.id : _currentTrackId,
-                currentTitle: _pc.currentItem?.title.isNotEmpty == true ? _pc.currentItem!.title : _currentTitle,
-                currentArtist: _pc.currentItem?.artist.isNotEmpty == true ? _pc.currentItem!.artist : _currentArtist,
-                currentThumbnail: _pc.currentItem?.thumbnail.isNotEmpty == true ? _pc.currentItem!.thumbnail : _currentThumbnail,
-                onTap: _openNowPlaying,
-                onOpenLyrics: _openLyrics,
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

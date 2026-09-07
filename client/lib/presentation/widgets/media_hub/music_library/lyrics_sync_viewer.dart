@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import '../../../../api_client.dart';
 import '../../../../core/telemetry/telemetry_reporter.dart';
 
@@ -150,8 +150,9 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
     final msg = awarded > 0
         ? (balance != null ? '+2 stars earned! Balance: $balance' : '+2 stars earned!')
         : 'Already counted today - nice studying!';
+    final skin = context.skin;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: EverforestColors.bg1),
+      SnackBar(content: Text(msg), backgroundColor: skin.bg1),
     );
   }
 
@@ -165,14 +166,15 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     if (widget.isEmbedded) {
-      return _buildCenteredLyricsBody();
+      return _buildCenteredLyricsBody(skin);
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: EverforestColors.bg0,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: skin.bg0,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       height: MediaQuery.of(context).size.height * 0.65,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -189,8 +191,8 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
                       widget.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: EverforestColors.fg,
+                      style: TextStyle(
+                        color: skin.fg,
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
@@ -199,7 +201,7 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
                       widget.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                      style: TextStyle(color: skin.textMuted, fontSize: 13),
                     ),
                   ],
                 ),
@@ -207,19 +209,19 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
               const SizedBox(width: 8),
               ElevatedButton.icon(
                 icon: _studying
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: EverforestColors.bg0,
+                          color: skin.accentContrast,
                         ),
                       )
                     : const Icon(Icons.star_rounded, size: 16),
                 label: const Text('Study (+2)', style: TextStyle(fontSize: 11)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: EverforestColors.yellow,
-                  foregroundColor: EverforestColors.bg0,
+                  backgroundColor: skin.yellow,
+                  foregroundColor: skin.bg0,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 ),
                 onPressed: _studyCheck,
@@ -227,27 +229,27 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
             ],
           ),
           const SizedBox(height: 14),
-          Expanded(child: _buildCenteredLyricsBody()),
+          Expanded(child: _buildCenteredLyricsBody(skin)),
         ],
       ),
     );
   }
 
-  Widget _buildCenteredLyricsBody() {
+  Widget _buildCenteredLyricsBody(AppSkin skin) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: skin.accent));
     }
     if (_lines.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lyrics_rounded, color: EverforestColors.grey, size: 36),
+            Icon(Icons.lyrics_rounded, color: skin.textMuted, size: 36),
             const SizedBox(height: 8),
             Text(
               'No synchronized lyrics available',
               style: TextStyle(
-                color: EverforestColors.grey.withValues(alpha: 0.8),
+                color: skin.textMuted.withValues(alpha: 0.8),
                 fontSize: 13,
               ),
             ),
@@ -291,7 +293,7 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
               return InkWell(
                 onTap: time >= 0 ? () => _seekToLine(i) : null,
                 borderRadius: BorderRadius.circular(16),
-                splashColor: EverforestColors.green.withValues(alpha: 0.12),
+                splashColor: skin.accent.withValues(alpha: 0.12),
                 child: Container(
                   height: _kItemHeight,
                   alignment: Alignment.center,
@@ -302,19 +304,19 @@ class _LyricsSyncViewerState extends State<LyricsSyncViewer> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: time < 0
-                          ? EverforestColors.grey
+                          ? skin.textMuted
                           : isActive
-                              ? EverforestColors.green
+                              ? skin.accent
                               : isPast
-                                  ? EverforestColors.fg.withValues(alpha: 0.30)
-                                  : EverforestColors.fg.withValues(alpha: 0.50),
+                                  ? skin.fg.withValues(alpha: 0.30)
+                                  : skin.fg.withValues(alpha: 0.50),
                       fontSize: isActive ? 21 : 14.5,
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
                       letterSpacing: isActive ? -0.3 : 0,
                       shadows: isActive
                           ? [
                               Shadow(
-                                color: EverforestColors.green.withValues(alpha: 0.6),
+                                color: skin.accent.withValues(alpha: 0.6),
                                 blurRadius: 18,
                               ),
                             ]

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../../theme/app_skin.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 /// Supported visualizer display modes
 enum AudioVisualizerStyle {
@@ -22,6 +21,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
   final double bassBoost;
   final AudioVisualizerStyle style;
   final AppSkin? skin;
+
+  AppSkin get _s => skin ?? AppSkinManager.currentSkin;
 
   AudioReactiveSpectrogramPainter({
     required this.position,
@@ -68,9 +69,9 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
     final beatPhase = (elapsedMs % beatIntervalMs) / beatIntervalMs;
     final beatPulse = math.exp(-beatPhase * 4.0);
 
-    final colorTop = skin?.yellow ?? EverforestColors.yellow;
-    final colorMid = skin?.accent ?? EverforestColors.aqua;
-    final colorBot = skin?.green ?? EverforestColors.green;
+    final colorTop = _s.yellow;
+    final colorMid = _s.accent;
+    final colorBot = _s.green;
 
     final barPaint = Paint()
       ..shader = LinearGradient(
@@ -145,8 +146,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
   void _paintBeam(Canvas canvas, Size size) {
     final centerY = size.height * 0.5;
     final elapsedMs = position.inMilliseconds;
-    final accentColor = skin?.accent ?? EverforestColors.aqua;
-    final glowColor = skin?.accentSecondary ?? skin?.purple ?? EverforestColors.green;
+    final accentColor = _s.accent;
+    final glowColor = _s.accentSecondary;
 
     // Reticle Grid Lines
     final gridPaint = Paint()
@@ -255,8 +256,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
     final maxRayHeight = minDimension * 0.22;
     final elapsedMs = position.inMilliseconds;
 
-    final accent = skin?.accent ?? EverforestColors.aqua;
-    final secondary = skin?.yellow ?? EverforestColors.yellow;
+    final accent = _s.accent;
+    final secondary = _s.yellow;
 
     const beatIntervalMs = (60000.0 / 120.0);
     final beatPhase = (elapsedMs % beatIntervalMs) / beatIntervalMs;
@@ -340,7 +341,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
 
   void _paintSingleVu(Canvas canvas, Rect rect, String label, {required bool isLeft}) {
     final elapsedMs = position.inMilliseconds;
-    final accent = skin?.accent ?? EverforestColors.aqua;
+    final accent = _s.accent;
 
     // Bezel Box
     final bgPaint = Paint()
@@ -348,8 +349,8 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          skin?.bg0 ?? const Color(0xFF16191E),
-          skin?.bg1 ?? const Color(0xFF1E232B),
+          _s.bg0,
+          _s.bg1,
         ],
       ).createShader(rect);
 
@@ -432,7 +433,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
 
     // Pivot cap
     final pivotPaint = Paint()
-      ..color = skin?.bg2 ?? const Color(0xFF2D353B)
+      ..color = _s.bg2
       ..style = PaintingStyle.fill;
     canvas.drawCircle(pivot, 5, pivotPaint);
     final pivotRing = Paint()
@@ -446,7 +447,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
       text: TextSpan(
         text: label,
         style: TextStyle(
-          color: skin?.textMuted ?? EverforestColors.grey,
+          color: _s.textMuted,
           fontSize: 8.0,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
@@ -459,7 +460,7 @@ class AudioReactiveSpectrogramPainter extends CustomPainter {
 
     // Peak LED
     final isPeak = fraction > 0.72;
-    final peakLedColor = isPeak ? (skin?.red ?? const Color(0xFFE67E80)) : Colors.white10;
+    final peakLedColor = isPeak ? _s.red : Colors.white10;
     final ledCenter = Offset(rect.right - 14, rect.top + 14);
 
     if (isPeak) {

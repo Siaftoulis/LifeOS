@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 
 typedef SmartMixEntry = ({
   String desc,
@@ -23,6 +23,7 @@ class SmartMixesSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final keys = smartMixes.keys.toList();
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -46,7 +47,7 @@ class SmartMixesSliver extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: EverforestColors.bg1,
+                  color: skin.bg1,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: mix.color.withValues(alpha: 0.25)),
                 ),
@@ -71,8 +72,8 @@ class SmartMixesSliver extends StatelessWidget {
                             key,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: EverforestColors.fg,
+                            style: TextStyle(
+                              color: skin.fg,
                               fontWeight: FontWeight.bold,
                               fontSize: 14.5,
                             ),
@@ -82,8 +83,8 @@ class SmartMixesSliver extends StatelessWidget {
                             '${mix.list.length} tracks · ${mix.desc}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: EverforestColors.grey, fontSize: 11.5),
+                            style: TextStyle(
+                                color: skin.textMuted, fontSize: 11.5),
                           ),
                         ],
                       ),
@@ -98,8 +99,8 @@ class SmartMixesSliver extends StatelessWidget {
                             : null,
                       )
                     else
-                      const Icon(Icons.phonelink_lock_rounded,
-                          color: EverforestColors.grey, size: 20),
+                      Icon(Icons.phonelink_lock_rounded,
+                          color: skin.textMuted, size: 20),
                   ],
                 ),
               ),

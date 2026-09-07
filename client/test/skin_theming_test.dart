@@ -32,7 +32,7 @@ void main() {
       expect(oled.isOled, isTrue);
       expect(oled.isDark, isTrue);
       expect(oled.bg0, const Color(0xFF000000)); // Pure black
-      expect(oled.fg, const Color(0xFFFFFFFF)); // Pure white
+      expect(oled.fg, const Color(0xFFEDEDED)); // Soft white without blinding glare
       expect(oled.tags.contains('OLED'), isTrue);
     });
 

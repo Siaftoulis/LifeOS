@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
 import '../music_formatters.dart';
 import '../tabs/all_tracks_sliver.dart';
@@ -155,27 +155,28 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
   }
 
   void _confirmDeletePlaylist() {
+    final skin = context.skin;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: EverforestColors.bg1,
-        title: const Text('Delete Playlist',
+        backgroundColor: skin.bg1,
+        title: Text('Delete Playlist',
             style: TextStyle(
-                color: EverforestColors.red, fontWeight: FontWeight.bold)),
+                color: skin.red, fontWeight: FontWeight.bold)),
         content: Text(
           'Are you sure you want to delete "${_currentPlaylist.name}"? Songs in this playlist will remain in your library.',
-          style: const TextStyle(color: EverforestColors.grey),
+          style: TextStyle(color: skin.textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel',
+                style: TextStyle(color: skin.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: EverforestColors.red.withValues(alpha: 0.2),
-              foregroundColor: EverforestColors.red,
+              backgroundColor: skin.red.withValues(alpha: 0.2),
+              foregroundColor: skin.red,
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -192,10 +193,11 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
       decoration: BoxDecoration(
-        color: EverforestColors.bg0,
+        color: skin.bg0,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: const [
@@ -229,16 +231,16 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: EverforestColors.green.withValues(alpha: 0.15),
+                    color: skin.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: EverforestColors.green.withValues(alpha: 0.3)),
+                        color: skin.accent.withValues(alpha: 0.3)),
                   ),
                   child: Icon(
                     _currentPlaylist.isSmart
                         ? Icons.auto_awesome_rounded
                         : Icons.playlist_play_rounded,
-                    color: EverforestColors.green,
+                    color: skin.accent,
                     size: 38,
                   ),
                 ),
@@ -254,14 +256,14 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: EverforestColors.yellow
+                                color: skin.yellow
                                     .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'SMART MIX',
                                 style: TextStyle(
-                                  color: EverforestColors.yellow,
+                                  color: skin.yellow,
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -274,8 +276,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                               _currentPlaylist.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: EverforestColors.fg,
+                              style: TextStyle(
+                                color: skin.fg,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -290,14 +292,14 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                             : '${_fullTracks.length} tracks',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: EverforestColors.grey, fontSize: 13),
+                        style: TextStyle(
+                            color: skin.textMuted, fontSize: 13),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         '${_fullTracks.length} songs',
-                        style: const TextStyle(
-                          color: EverforestColors.green,
+                        style: TextStyle(
+                          color: skin.accent,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -306,8 +308,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_rounded,
-                      color: EverforestColors.grey, size: 20),
+                  icon: Icon(Icons.edit_rounded,
+                      color: skin.textMuted, size: 20),
                   tooltip: 'Edit Details',
                   onPressed: () async {
                     final updated = await CreatePlaylistDialog.show(
@@ -320,8 +322,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      color: EverforestColors.red, size: 20),
+                  icon: Icon(Icons.delete_outline_rounded,
+                      color: skin.red, size: 20),
                   tooltip: 'Delete Playlist',
                   onPressed: _confirmDeletePlaylist,
                 ),
@@ -340,8 +342,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                     label: const Text('Play All',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: EverforestColors.green,
-                      foregroundColor: EverforestColors.bg0,
+                      backgroundColor: skin.accent,
+                      foregroundColor: skin.accentContrast,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -356,8 +358,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                     label: const Text('Shuffle',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: EverforestColors.fg,
-                      side: const BorderSide(color: EverforestColors.bg2),
+                      foregroundColor: skin.fg,
+                      side: BorderSide(color: skin.bg2),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -371,22 +373,22 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
             ),
           ),
 
-          const Divider(color: EverforestColors.bg2, height: 16),
+          Divider(color: skin.bg2, height: 16),
 
           // Reorderable Track List
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
-                        color: EverforestColors.green),
+                        color: skin.accent),
                   )
                 : _fullTracks.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No songs in this playlist yet.\nTap ... on any track to add it!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: EverforestColors.grey, fontSize: 14),
+                              color: skin.textMuted, fontSize: 14),
                         ),
                       )
                     : ReorderableListView.builder(
@@ -403,8 +405,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                               children: [
                                 ReorderableDragStartListener(
                                   index: i,
-                                  child: const Icon(Icons.drag_handle_rounded,
-                                      color: EverforestColors.grey, size: 20),
+                                  child: Icon(Icons.drag_handle_rounded,
+                                      color: skin.textMuted, size: 20),
                                 ),
                                 const SizedBox(width: 10),
                                 TrackThumbnail(url: t.thumbnail, size: 40),
@@ -414,24 +416,24 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                               t.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: EverforestColors.fg,
+                              style: TextStyle(
+                                  color: skin.fg,
                                   fontWeight: FontWeight.w600),
                             ),
                             subtitle: Text(
                               '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: EverforestColors.grey, fontSize: 12),
+                              style: TextStyle(
+                                  color: skin.textMuted, fontSize: 12),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 HeartButton(track: t, size: 18),
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline,
-                                      color: EverforestColors.grey, size: 18),
+                                  icon: Icon(Icons.remove_circle_outline,
+                                      color: skin.textMuted, size: 18),
                                   tooltip: 'Remove from playlist',
                                   onPressed: () => _deleteTrack(i),
                                 ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
 import '../music_formatters.dart';
 import '../track_metadata_modal.dart';
@@ -20,17 +20,18 @@ class TrackThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final secureUrl = sanitizeMusicThumbnailUrl(url);
     if (secureUrl.isEmpty) {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: EverforestColors.bg1,
+          color: skin.bg1,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
         child:
-            const Icon(Icons.music_note_rounded, color: EverforestColors.blue),
+            Icon(Icons.music_note_rounded, color: skin.blue),
       );
     }
     return Container(
@@ -56,9 +57,12 @@ class TrackThumbnail extends StatelessWidget {
           errorBuilder: (_, __, ___) => Container(
             width: size,
             height: size,
-            color: EverforestColors.bg1,
-            child: const Icon(Icons.music_note_rounded,
-                color: EverforestColors.blue),
+            decoration: BoxDecoration(
+              color: skin.bg1,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Icon(Icons.music_note_rounded,
+                color: skin.blue),
           ),
         ),
       ),
@@ -112,6 +116,7 @@ class TrackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 720;
+    final skin = context.skin;
 
     return ListTile(
       leading: GestureDetector(
@@ -122,14 +127,14 @@ class TrackTile extends StatelessWidget {
         track.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-            color: EverforestColors.fg, fontWeight: FontWeight.w600),
+        style: TextStyle(
+            color: skin.fg, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
         '${track.artist}${track.album.isNotEmpty ? ' · ${track.album}' : ''}${track.duration > 0 ? ' · ${formatTrackDuration(track.duration)}' : ''}${isOfflineLocal ? ' · 📱 On device' : ''}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+        style: TextStyle(color: skin.textMuted, fontSize: 13),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -137,54 +142,54 @@ class TrackTile extends StatelessWidget {
           HeartButton(track: track, size: 20),
           const SizedBox(width: 4),
           if (isOfflineLocal)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Icon(Icons.download_done_rounded,
-                  color: EverforestColors.green, size: 20),
+                  color: skin.accent, size: 20),
             )
           else if (isDownloadingOffline)
-            const Padding(
-              padding: EdgeInsets.all(10),
+            Padding(
+              padding: const EdgeInsets.all(10),
               child: SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: EverforestColors.aqua),
+                    strokeWidth: 2, color: skin.aqua),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.download_for_offline_rounded,
-                  color: EverforestColors.aqua, size: 20),
+              icon: Icon(Icons.download_for_offline_rounded,
+                  color: skin.aqua, size: 20),
               tooltip: 'Save to this device (offline)',
               onPressed: () => onDownloadOffline(track),
             ),
           if (isWide) ...[
             if (onAddToPlaylist != null)
               IconButton(
-                icon: const Icon(Icons.playlist_add_rounded,
-                    color: EverforestColors.grey, size: 22),
+                icon: Icon(Icons.playlist_add_rounded,
+                    color: skin.textMuted, size: 22),
                 tooltip: 'Add to Playlist',
                 onPressed: onAddToPlaylist,
               ),
             IconButton(
-              icon: const Icon(Icons.info_outline_rounded,
-                  color: EverforestColors.grey, size: 20),
+              icon: Icon(Icons.info_outline_rounded,
+                  color: skin.textMuted, size: 20),
               tooltip: 'Inspect Audio Specs',
               onPressed: () => _showMetadata(context),
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded,
-                  color: EverforestColors.red, size: 20),
+              icon: Icon(Icons.delete_outline_rounded,
+                  color: skin.red, size: 20),
               tooltip: 'Delete Song',
               onPressed: () => onDeleteTrack(track),
             ),
           ] else ...[
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded,
-                  color: EverforestColors.grey, size: 20),
+              icon: Icon(Icons.more_vert_rounded,
+                  color: skin.textMuted, size: 20),
               tooltip: 'More actions',
-              color: EverforestColors.bg1,
+              color: skin.bg1,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -200,43 +205,44 @@ class TrackTile extends StatelessWidget {
               },
               itemBuilder: (ctx) => [
                 if (onAddToPlaylist != null)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'playlist',
                     child: Row(
                       children: [
                         Icon(Icons.playlist_add_rounded,
-                            color: EverforestColors.fg, size: 20),
-                        SizedBox(width: 10),
+                            color: skin.fg, size: 20),
+                        const SizedBox(width: 10),
                         Text('Add to Playlist',
-                            style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                            style: TextStyle(color: skin.fg, fontSize: 13)),
                       ],
                     ),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'specs',
                   child: Row(
                     children: [
                       Icon(Icons.info_outline_rounded,
-                          color: EverforestColors.fg, size: 20),
-                      SizedBox(width: 10),
-                      Text('Audio Specs & Info',
-                          style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                          color: skin.fg, size: 20),
+                      const SizedBox(width: 10),
+                      Text('Audio Specs',
+                          style: TextStyle(color: skin.fg, fontSize: 13)),
                     ],
                   ),
                 ),
-                const PopupMenuDivider(height: 8),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
                       Icon(Icons.delete_outline_rounded,
-                          color: EverforestColors.red, size: 20),
-                      SizedBox(width: 10),
-                      Text('Delete from Library',
-                          style: TextStyle(
-                              color: EverforestColors.red,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13)),
+                          color: skin.red, size: 20),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Delete Song',
+                        style: TextStyle(
+                            color: skin.red,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                      ),
                     ],
                   ),
                 ),
@@ -245,7 +251,13 @@ class TrackTile extends StatelessWidget {
           ],
         ],
       ),
-      onTap: canPlay ? () => onPlay(currentList, index) : onWebNotice,
+      onTap: () {
+        if (!canPlay) {
+          onWebNotice();
+          return;
+        }
+        onPlay(currentList, index);
+      },
       onLongPress: () => _showMetadata(context),
     );
   }
@@ -328,6 +340,7 @@ class AllTracksFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     final isFiltered = controller.text.trim().isNotEmpty;
 
     return Padding(
@@ -335,39 +348,39 @@ class AllTracksFilterBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: EverforestColors.bg1,
+          color: skin.bg1,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.search_rounded,
-                color: EverforestColors.grey, size: 18),
+            Icon(Icons.search_rounded,
+                color: skin.textMuted, size: 18),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
                 controller: controller,
                 onChanged: onQueryChanged,
-                style: const TextStyle(
-                  color: EverforestColors.fg,
+                style: TextStyle(
+                  color: skin.fg,
                   fontSize: 13,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Filter tracks, artists, albums...',
                   hintStyle: TextStyle(
-                    color: EverforestColors.grey,
+                    color: skin.textMuted,
                     fontSize: 13,
                   ),
                   border: InputBorder.none,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 ),
               ),
             ),
             if (isFiltered)
               IconButton(
-                icon: const Icon(Icons.close_rounded,
-                    color: EverforestColors.grey, size: 16),
+                icon: Icon(Icons.close_rounded,
+                    color: skin.textMuted, size: 16),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 tooltip: 'Clear filter',
@@ -377,12 +390,12 @@ class AllTracksFilterBar extends StatelessWidget {
             Container(
               height: 16,
               width: 1,
-              color: EverforestColors.bg2,
+              color: skin.bg2,
             ),
             const SizedBox(width: 6),
             PopupMenuButton<TrackSortOption>(
               tooltip: 'Sort tracks: ${sortOption.label}',
-              color: EverforestColors.bg1,
+              color: skin.bg1,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -396,16 +409,16 @@ class AllTracksFilterBar extends StatelessWidget {
                     children: [
                       Icon(opt.icon,
                           color: isSelected
-                              ? EverforestColors.aqua
-                              : EverforestColors.grey,
+                              ? skin.accent
+                              : skin.textMuted,
                           size: 18),
                       const SizedBox(width: 10),
                       Text(
                         opt.label,
                         style: TextStyle(
                           color: isSelected
-                              ? EverforestColors.aqua
-                              : EverforestColors.fg,
+                              ? skin.accent
+                              : skin.fg,
                           fontSize: 13,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
@@ -421,12 +434,12 @@ class AllTracksFilterBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(sortOption.icon,
-                        color: EverforestColors.aqua, size: 16),
+                        color: skin.accent, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       isFiltered ? '$filteredCount/$totalCount' : '$totalCount',
-                      style: const TextStyle(
-                        color: EverforestColors.grey,
+                      style: TextStyle(
+                        color: skin.textMuted,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -477,7 +490,7 @@ class AllTracksSliver extends StatelessWidget {
               emptyMessage ??
                   'No downloaded songs yet.\nSearch YouTube Music above to download!',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
+              style: TextStyle(color: context.skin.textMuted, fontSize: 14),
             ),
           ),
         ),

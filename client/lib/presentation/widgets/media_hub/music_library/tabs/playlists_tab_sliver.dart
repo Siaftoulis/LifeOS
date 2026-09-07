@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
-import '../../../../../theme/everforest_colors.dart';
+import '../../../../../theme/app_skin_manager.dart';
 import '../playlists/create_playlist_dialog.dart';
 import '../playlists/playlist_detail_sheet.dart';
 
@@ -21,6 +21,7 @@ class PlaylistsTabSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final skin = context.skin;
     return ValueListenableBuilder<List<Playlist>>(
       valueListenable: MusicRepository.instance.playlists,
       builder: (context, playlists, _) {
@@ -30,10 +31,10 @@ class PlaylistsTabSliver extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 260,
-              mainAxisExtent: 140,
-              crossAxisSpacing: 12,
+              maxCrossAxisExtent: 220,
               mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.15,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -45,10 +46,10 @@ class PlaylistsTabSliver extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: EverforestColors.bg1,
+                        color: skin.bg1,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: EverforestColors.green.withValues(alpha: 0.4),
+                          color: skin.accent.withValues(alpha: 0.4),
                           width: 1.5,
                         ),
                       ),
@@ -58,18 +59,18 @@ class PlaylistsTabSliver extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: EverforestColors.green
+                              color: skin.accent
                                   .withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.add_rounded,
-                                color: EverforestColors.green, size: 28),
+                            child: Icon(Icons.add_rounded,
+                                color: skin.accent, size: 28),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
+                          Text(
                             'Create Playlist',
                             style: TextStyle(
-                              color: EverforestColors.green,
+                              color: skin.accent,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -96,7 +97,7 @@ class PlaylistsTabSliver extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: EverforestColors.bg1,
+                      color: skin.bg1,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                           color: Colors.white.withValues(alpha: 0.08)),
@@ -111,9 +112,9 @@ class PlaylistsTabSliver extends StatelessWidget {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: playlist.isSmart
-                                    ? EverforestColors.yellow
+                                    ? skin.yellow
                                         .withValues(alpha: 0.15)
-                                    : EverforestColors.bg2,
+                                    : skin.bg2,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
@@ -121,8 +122,8 @@ class PlaylistsTabSliver extends StatelessWidget {
                                     ? Icons.auto_awesome_rounded
                                     : Icons.playlist_play_rounded,
                                 color: playlist.isSmart
-                                    ? EverforestColors.yellow
-                                    : EverforestColors.green,
+                                    ? skin.yellow
+                                    : skin.accent,
                                 size: 22,
                               ),
                             ),
@@ -132,14 +133,14 @@ class PlaylistsTabSliver extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: EverforestColors.yellow
+                                  color: skin.yellow
                                       .withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'SMART',
                                   style: TextStyle(
-                                    color: EverforestColors.yellow,
+                                    color: skin.yellow,
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -154,8 +155,8 @@ class PlaylistsTabSliver extends StatelessWidget {
                               playlist.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: EverforestColors.fg,
+                              style: TextStyle(
+                                color: skin.fg,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
@@ -163,8 +164,8 @@ class PlaylistsTabSliver extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               '${playlist.trackCount} songs',
-                              style: const TextStyle(
-                                color: EverforestColors.grey,
+                              style: TextStyle(
+                                color: skin.textMuted,
                                 fontSize: 12,
                               ),
                             ),
