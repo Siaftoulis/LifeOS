@@ -317,7 +317,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _isSearching = false;
         });
         if (tracks.isNotEmpty) {
-          for (final t in tracks.take(3)) {
+          for (final t in tracks.take(5)) {
             PlaybackController.instance.precacheTrack(t.id);
           }
         }
