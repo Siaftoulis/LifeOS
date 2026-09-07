@@ -50,11 +50,12 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/music/history", HandleGetHistory)
 	mux.HandleFunc("GET /api/v1/music/stats", HandleGetStats)
 
-	// Smart Playlists
+	// Smart Playlists & Algorithmic Recommendations
 	mux.HandleFunc("GET /api/v1/music/smart/discovery-weekly", HandleDiscoveryWeekly)
 	mux.HandleFunc("GET /api/v1/music/smart/daily-mix", HandleDailyMix)
 	mux.HandleFunc("GET /api/v1/music/smart/release-radar", HandleReleaseRadar)
 	mux.HandleFunc("GET /api/v1/music/smart/recommendations", HandleRecommendations)
+	mux.HandleFunc("GET /api/v1/music/recommendations", HandleRecommendations)
 
 	StartQueueWorker()
 }

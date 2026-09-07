@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../core/update/ota_update_service.dart';
 import '../../../theme/everforest_colors.dart';
@@ -310,10 +311,51 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                         const SizedBox(height: 12),
                         Expanded(
                           child: SingleChildScrollView(
-                            child: Text(
-                              _latestRelease!.body.isNotEmpty ? _latestRelease!.body : 'No detailed changelog provided for this release.',
-                              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.5),
-                            ),
+                            child: _latestRelease!.body.trim().isNotEmpty
+                                ? MarkdownBody(
+                                    data: _latestRelease!.body,
+                                    selectable: true,
+                                    onTapLink: (text, href, title) {
+                                      if (href != null && href.isNotEmpty) {
+                                        launchUrlString(href, mode: LaunchMode.externalApplication);
+                                      }
+                                    },
+                                    styleSheet: MarkdownStyleSheet(
+                                      p: const TextStyle(color: EverforestColors.fg, fontSize: 12.5, height: 1.55),
+                                      h1: const TextStyle(color: EverforestColors.green, fontSize: 16, fontWeight: FontWeight.bold),
+                                      h2: const TextStyle(color: EverforestColors.aqua, fontSize: 14, fontWeight: FontWeight.bold),
+                                      h3: const TextStyle(color: EverforestColors.yellow, fontSize: 13, fontWeight: FontWeight.w600),
+                                      h4: const TextStyle(color: EverforestColors.fg, fontSize: 12.5, fontWeight: FontWeight.w600),
+                                      code: const TextStyle(
+                                        color: EverforestColors.orange,
+                                        backgroundColor: EverforestColors.bg1,
+                                        fontFamily: 'monospace',
+                                        fontSize: 11.5,
+                                      ),
+                                      codeblockDecoration: BoxDecoration(
+                                        color: EverforestColors.bg1,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: EverforestColors.bg2),
+                                      ),
+                                      blockquote: const TextStyle(color: EverforestColors.grey, fontStyle: FontStyle.italic, fontSize: 12),
+                                      blockquoteDecoration: BoxDecoration(
+                                        border: const Border(left: BorderSide(color: EverforestColors.aqua, width: 3)),
+                                        color: EverforestColors.bg1.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      listBullet: const TextStyle(color: EverforestColors.aqua, fontSize: 12),
+                                      strong: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                                      em: const TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic),
+                                      a: const TextStyle(color: EverforestColors.blue, decoration: TextDecoration.underline),
+                                      horizontalRuleDecoration: const BoxDecoration(
+                                        border: Border(top: BorderSide(color: EverforestColors.bg2, width: 1)),
+                                      ),
+                                    ),
+                                  )
+                                : const Text(
+                                    'No detailed changelog provided for this release.',
+                                    style: TextStyle(color: EverforestColors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+                                  ),
                           ),
                         ),
                       ],

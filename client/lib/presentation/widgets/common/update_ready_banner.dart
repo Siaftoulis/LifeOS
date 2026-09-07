@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/update/ota_update_service.dart';
 import '../../../theme/everforest_colors.dart';
+import 'release_notes_sheet.dart';
 
 class UpdateReadyBanner extends StatelessWidget {
   const UpdateReadyBanner({super.key});
@@ -51,47 +52,53 @@ class UpdateReadyBanner extends StatelessWidget {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'Update Ready',
-                              style: TextStyle(
-                                color: EverforestColors.fg,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: EverforestColors.green,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                release.tagName,
-                                style: const TextStyle(
-                                  color: EverforestColors.bg0,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => ReleaseNotesSheet.show(context, release),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Update Ready',
+                                style: TextStyle(
+                                  color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 11,
+                                  fontSize: 14,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Tap to apply update seamlessly',
-                          style: TextStyle(
-                            color: EverforestColors.grey.withValues(alpha: 0.9),
-                            fontSize: 12,
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: EverforestColors.green,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  release.tagName,
+                                  style: const TextStyle(
+                                    color: EverforestColors.bg0,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.info_outline_rounded, size: 14, color: EverforestColors.aqua),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            'Tap to view notes & changelog',
+                            style: TextStyle(
+                              color: EverforestColors.grey.withValues(alpha: 0.9),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),

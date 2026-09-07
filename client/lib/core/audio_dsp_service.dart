@@ -28,6 +28,26 @@ class AudioDspService {
   double _spatial3d = 0.30; // 0.0 to 1.0
   List<double> _bands = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
+  // Poweramp 1:1 Tone & Reverb parameters
+  bool _reverbEnabled = false;
+  double _reverbDamp = 0.41;
+  double _reverbFilter = 0.70;
+  double _reverbFade = 0.50;
+  double _reverbPreDelay = 0.12;
+  double _reverbPreDelayMix = 0.43;
+  double _reverbSize = 0.24;
+  double _reverbMix = 0.56;
+  String _reverbPreset = 'Small Room';
+
+  static const Map<String, ({double damp, double filter, double fade, double preDelay, double preDelayMix, double size, double mix})> kReverbPresets = {
+    'Small Room': (damp: 0.41, filter: 0.70, fade: 0.50, preDelay: 0.12, preDelayMix: 0.43, size: 0.24, mix: 0.56),
+    'Medium Room': (damp: 0.50, filter: 0.65, fade: 0.60, preDelay: 0.20, preDelayMix: 0.50, size: 0.45, mix: 0.50),
+    'Large Hall': (damp: 0.35, filter: 0.80, fade: 0.75, preDelay: 0.35, preDelayMix: 0.60, size: 0.75, mix: 0.60),
+    'Cathedral': (damp: 0.20, filter: 0.85, fade: 0.90, preDelay: 0.50, preDelayMix: 0.70, size: 0.95, mix: 0.70),
+    'Plate': (damp: 0.70, filter: 0.50, fade: 0.40, preDelay: 0.05, preDelayMix: 0.30, size: 0.30, mix: 0.45),
+    'Studio': (damp: 0.60, filter: 0.75, fade: 0.35, preDelay: 0.08, preDelayMix: 0.35, size: 0.20, mix: 0.40),
+  };
+
   AndroidEqualizer? _androidEqualizer;
   AudioPlayer? _activePlayer;
   bool _prefsLoaded = false;
@@ -42,6 +62,16 @@ class AudioDspService {
   double get trebleBoost => _trebleBoost;
   double get spatial3d => _spatial3d;
   List<double> get bands => List.unmodifiable(_bands);
+
+  bool get reverbEnabled => _reverbEnabled;
+  double get reverbDamp => _reverbDamp;
+  double get reverbFilter => _reverbFilter;
+  double get reverbFade => _reverbFade;
+  double get reverbPreDelay => _reverbPreDelay;
+  double get reverbPreDelayMix => _reverbPreDelayMix;
+  double get reverbSize => _reverbSize;
+  double get reverbMix => _reverbMix;
+  String get reverbPreset => _reverbPreset;
 
   /// Disables Android hardware EQ if the device sound system rejects it.
   void disableHardwareEq() {
@@ -98,6 +128,15 @@ class AudioDspService {
       _bassBoost = map['bass'] as double? ?? 0.25;
       _trebleBoost = map['treble'] as double? ?? 0.15;
       _spatial3d = map['spatial'] as double? ?? 0.30;
+      _reverbEnabled = (map['rv_en'] as double?)?.round() == 1;
+      _reverbDamp = map['rv_damp'] as double? ?? 0.41;
+      _reverbFilter = map['rv_filter'] as double? ?? 0.70;
+      _reverbFade = map['rv_fade'] as double? ?? 0.50;
+      _reverbPreDelay = map['rv_pdel'] as double? ?? 0.12;
+      _reverbPreDelayMix = map['rv_pdmix'] as double? ?? 0.43;
+      _reverbSize = map['rv_size'] as double? ?? 0.24;
+      _reverbMix = map['rv_mix'] as double? ?? 0.56;
+
       final bands = (map['bands'] as double?) ?? 0.0;
       if (bands > 0 && bands <= 10) {
         _bands.clear();
@@ -125,6 +164,15 @@ class AudioDspService {
     double? trebleBoost,
     double? spatial3d,
     List<double>? bands,
+    bool? reverbEnabled,
+    double? reverbDamp,
+    double? reverbFilter,
+    double? reverbFade,
+    double? reverbPreDelay,
+    double? reverbPreDelayMix,
+    double? reverbSize,
+    double? reverbMix,
+    String? reverbPreset,
   }) {
     if (enabled != null) _enabled = enabled;
     if (preamp != null) _preamp = preamp;
@@ -133,10 +181,52 @@ class AudioDspService {
     if (spatial3d != null) _spatial3d = spatial3d;
     if (bands != null) _bands = List.from(bands);
 
+    if (reverbEnabled != null) _reverbEnabled = reverbEnabled;
+    if (reverbDamp != null) _reverbDamp = reverbDamp.clamp(0.0, 1.0);
+    if (reverbFilter != null) _reverbFilter = reverbFilter.clamp(0.0, 1.0);
+    if (reverbFade != null) _reverbFade = reverbFade.clamp(0.0, 1.0);
+    if (reverbPreDelay != null) _reverbPreDelay = reverbPreDelay.clamp(0.0, 1.0);
+    if (reverbPreDelayMix != null) _reverbPreDelayMix = reverbPreDelayMix.clamp(0.0, 1.0);
+    if (reverbSize != null) _reverbSize = reverbSize.clamp(0.0, 1.0);
+    if (reverbMix != null) _reverbMix = reverbMix.clamp(0.0, 1.0);
+    if (reverbPreset != null) _reverbPreset = reverbPreset;
+
     _applyToNative();
     _persist();
     _changeController.add(null);
   }
+
+  /// Applies a named reverb preset
+  void applyReverbPreset(String name) {
+    final p = kReverbPresets[name];
+    if (p == null) return;
+    updateSettings(
+      reverbPreset: name,
+      reverbDamp: p.damp,
+      reverbFilter: p.filter,
+      reverbFade: p.fade,
+      reverbPreDelay: p.preDelay,
+      reverbPreDelayMix: p.preDelayMix,
+      reverbSize: p.size,
+      reverbMix: p.mix,
+    );
+  }
+
+  void setReverbEnabled(bool val) => updateSettings(reverbEnabled: val);
+
+  void resetReverb() => updateSettings(
+        reverbEnabled: false,
+        reverbDamp: 0.5,
+        reverbFilter: 0.5,
+        reverbFade: 0.5,
+        reverbPreDelay: 0.1,
+        reverbPreDelayMix: 0.3,
+        reverbSize: 0.5,
+        reverbMix: 0.0,
+        reverbPreset: 'Default',
+      );
+
+  String buildMpvFilterString() => _buildMpvFilterString();
 
   /// Reapplies current DSP filters to all active native players (e.g. after track changes)
   void reapply() {
@@ -152,6 +242,14 @@ class AudioDspService {
         'bass=$_bassBoost',
         'treble=$_trebleBoost',
         'spatial=$_spatial3d',
+        'rv_en=${_reverbEnabled ? 1 : 0}',
+        'rv_damp=$_reverbDamp',
+        'rv_filter=$_reverbFilter',
+        'rv_fade=$_reverbFade',
+        'rv_pdel=$_reverbPreDelay',
+        'rv_pdmix=$_reverbPreDelayMix',
+        'rv_size=$_reverbSize',
+        'rv_mix=$_reverbMix',
         'bands=${_bands.length}',
       ];
       for (int i = 0; i < _bands.length; i++) {
@@ -195,9 +293,21 @@ class AudioDspService {
     for (int i = 0; i < _bands.length && i < freqs.length; i++) {
       final gain = _bands[i];
       if (gain.abs() > 0.1) {
-        filters.add('equalizer=f=${freqs[i]}:width_type=o:width=1.0:g=${gain.toStringAsFixed(1)}');
+        filters.add('equalizer=f=${freqs[i]}:width_type=q:w=1.414:g=${gain.toStringAsFixed(1)}');
       }
     }
+
+    // 6. Poweramp-style Reverb & Spatial Reflections
+    if (_reverbEnabled && _reverbMix > 0.01) {
+      final room = _reverbSize.clamp(0.05, 1.0).toStringAsFixed(2);
+      final damp = _reverbDamp.clamp(0.0, 1.0).toStringAsFixed(2);
+      final wet = _reverbMix.clamp(0.05, 1.0).toStringAsFixed(2);
+      final dry = (1.0 - (_reverbMix * 0.5)).clamp(0.1, 1.0).toStringAsFixed(2);
+      filters.add('freeverb=roomsize=$room:damping=$damp:wet=$wet:dry=$dry');
+    }
+
+    // 7. Dynamic Audiophile Limiter / Headroom Guard (eliminates clipping & crackle)
+    filters.add('alimiter=limit=0.98:attack=5:release=50');
 
     if (filters.isEmpty) return '';
     return 'lavfi=[${filters.join(',')}]';

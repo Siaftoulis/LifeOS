@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lifeos_client/core/audio_dsp_service.dart';
@@ -9,6 +10,13 @@ void main() {
 
   setUpAll(() {
     SharedPreferences.setMockInitialValues({});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.ryanheise.just_audio.methods'),
+      (call) async {
+        return {};
+      },
+    );
   });
 
   group('Poweramp DSP & Audio Architecture Tests', () {
@@ -82,6 +90,52 @@ void main() {
       expect(dsp.trebleBoost, 0.0);
       expect(dsp.preamp, 0.0);
     });
+
+    test('Poweramp Reverb parameters and presets behave accurately', () {
+      dsp.setReverbEnabled(true);
+      expect(dsp.reverbEnabled, isTrue);
+
+      dsp.applyReverbPreset('Small Room');
+      expect(dsp.reverbPreset, 'Small Room');
+      expect(dsp.reverbDamp, 0.41);
+      expect(dsp.reverbFilter, 0.70);
+      expect(dsp.reverbFade, 0.50);
+      expect(dsp.reverbPreDelay, 0.12);
+      expect(dsp.reverbPreDelayMix, 0.43);
+      expect(dsp.reverbSize, 0.24);
+      expect(dsp.reverbMix, 0.56);
+
+      dsp.applyReverbPreset('Cathedral');
+      expect(dsp.reverbPreset, 'Cathedral');
+      expect(dsp.reverbSize, 0.95);
+
+      // Reset reverb
+      dsp.resetReverb();
+      expect(dsp.reverbPreset, 'Default');
+      expect(dsp.reverbMix, 0.0);
+    });
+
+    test('buildMpvFilterString generates freeverb and alimiter audio protection', () {
+      dsp.updateSettings(
+        enabled: true,
+        preamp: 3.0,
+        bassBoost: 0.5,
+        trebleBoost: 0.5,
+        spatial3d: 0.4,
+        reverbEnabled: true,
+        reverbDamp: 0.41,
+        reverbSize: 0.24,
+        reverbMix: 0.56,
+      );
+
+      final filterStr = dsp.buildMpvFilterString();
+      expect(filterStr.contains('volume='), isTrue);
+      expect(filterStr.contains('bass='), isTrue);
+      expect(filterStr.contains('treble='), isTrue);
+      expect(filterStr.contains('stereotools='), isTrue);
+      expect(filterStr.contains('freeverb='), isTrue);
+      expect(filterStr.contains('alimiter='), isTrue);
+    });
   });
 
   group('Music Playback Queue & Metadata Reactive Tests', () {
@@ -103,6 +157,13 @@ void main() {
       artist: 'Audiophile Master',
       album: 'Deep Sound',
       thumbnail: 'https://images.example.com/cover_b.jpg',
+    );
+
+    const trackC = PlaybackItem(
+      id: 'song_c',
+      url: 'http://localhost/c.mp3',
+      title: 'Aurora Lights',
+      artist: 'Ambient Sound',
     );
 
     test('PlaybackItem model holds metadata, artwork and stream targets', () {
@@ -146,9 +207,29 @@ void main() {
       expect(state.current, isNull);
     });
 
-    test('PlaybackController shuffle and repeat mode transitions', () {
-      final pc = PlaybackController.instance;
+    test('PlaybackController insertNext and addToQueue operations', () {
+      pc.setQueue([trackA, trackB], currentIndex: 0);
+      expect(pc.queue.length, 2);
+      expect(pc.currentItem?.id, 'song_a');
 
+      // Insert trackC as next song
+      pc.insertNext(trackC);
+      expect(pc.queue.length, 3);
+      expect(pc.queue[1].id, 'song_c');
+
+      // Add another track to end of queue
+      const trackD = PlaybackItem(
+        id: 'song_d',
+        url: 'http://localhost/d.mp3',
+        title: 'Deep Wave',
+        artist: 'Echo',
+      );
+      pc.addToQueue(trackD);
+      expect(pc.queue.length, 4);
+      expect(pc.queue.last.id, 'song_d');
+    });
+
+    test('PlaybackController shuffle and repeat mode transitions', () {
       pc.setShuffle(true);
       expect(pc.shuffle, isTrue);
       pc.setShuffle(false);
@@ -163,4 +244,5 @@ void main() {
     });
   });
 }
+
 

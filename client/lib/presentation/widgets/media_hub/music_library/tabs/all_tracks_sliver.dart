@@ -3,6 +3,7 @@ import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
+import '../components/poweramp_track_context_sheet.dart';
 import '../music_formatters.dart';
 import '../track_metadata_modal.dart';
 
@@ -258,7 +259,13 @@ class TrackTile extends StatelessWidget {
         }
         onPlay(currentList, index);
       },
-      onLongPress: () => _showMetadata(context),
+      onLongPress: () {
+        PowerampTrackContextSheet.show(
+          context,
+          track: track,
+          onDelete: () => onDeleteTrack(track),
+        );
+      },
     );
   }
 }

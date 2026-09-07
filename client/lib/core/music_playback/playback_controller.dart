@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart' show AudioPlayer, ProcessingState;
 import '../../api_client.dart';
+import '../domain_repositories.dart';
 import 'playback_engine.dart';
 import 'playback_models.dart';
 
@@ -23,6 +24,16 @@ class PlaybackController extends ChangeNotifier {
   int get currentIndex => _state.currentIndex;
   PlaybackRepeat get repeat => _state.repeat;
   bool get shuffle => _state.shuffle;
+  bool _infiniteRadio = true;
+  bool get infiniteRadio => _infiniteRadio;
+  void setInfiniteRadio(bool enabled) {
+    _infiniteRadio = enabled;
+    notifyListeners();
+  }
+  void toggleInfiniteRadio() {
+    _infiniteRadio = !_infiniteRadio;
+    notifyListeners();
+  }
 
   /// True only on native platforms (Windows/Linux/macOS/iOS/Android).
   bool get isAvailable => playbackEngine.isAvailable;
@@ -68,6 +79,12 @@ class PlaybackController extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------- queue
+
+  void setQueue(List<PlaybackItem> items, {int currentIndex = 0}) {
+    final safeStart = items.isEmpty ? -1 : currentIndex.clamp(0, items.length - 1);
+    _state = _state.copyWith(queue: List.of(items), currentIndex: safeStart);
+    notifyListeners();
+  }
 
   Future<void> playQueue(List<PlaybackItem> items, {int startIndex = 0}) async {
     if (!isAvailable || items.isEmpty) return;
@@ -122,7 +139,46 @@ class PlaybackController extends ChangeNotifier {
     }
   }
 
+  bool _isFetchingRadio = false;
+
+  Future<void> _fetchAndAppendRadio() async {
+    if (_isFetchingRadio || _state.queue.isEmpty) return;
+    _isFetchingRadio = true;
+    try {
+      final lastItem = _state.queue.last;
+      final recs = await MusicRepository.instance.getRecommendations(
+        seedTrackId: lastItem.id,
+        limit: 10,
+      );
+      if (recs.isNotEmpty) {
+        final existingIds = _state.queue.map((i) => i.id).toSet();
+        for (final r in recs) {
+          if (!existingIds.contains(r.id)) {
+            final streamUrl = r.filePath.isNotEmpty
+                ? r.filePath
+                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}';
+            addToQueue(PlaybackItem(
+              id: r.id,
+              url: streamUrl,
+              title: r.title,
+              artist: r.artist,
+              thumbnail: r.thumbnail,
+              album: r.album,
+            ));
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching infinite radio recommendations: $e');
+    } finally {
+      _isFetchingRadio = false;
+    }
+  }
+
   void _precacheNext(int i) {
+    if (_infiniteRadio && i >= _state.queue.length - 2) {
+      _fetchAndAppendRadio();
+    }
     if (i + 1 >= _state.queue.length) return;
     final next = _state.queue[i + 1];
     ApiClient.instance
@@ -164,6 +220,13 @@ class PlaybackController extends ChangeNotifier {
       target = idx + 1;
     } else if (_state.repeat == PlaybackRepeat.all) {
       target = 0;
+    } else if (_infiniteRadio && q.isNotEmpty) {
+      await _fetchAndAppendRadio();
+      if (_state.currentIndex < _state.queue.length - 1) {
+        target = _state.currentIndex + 1;
+      } else {
+        return;
+      }
     } else {
       return; // at the end, nothing to advance to
     }
@@ -246,6 +309,24 @@ class PlaybackController extends ChangeNotifier {
     } else {
       _state = _state.copyWith(queue: q);
     }
+    notifyListeners();
+  }
+
+  void insertNext(PlaybackItem item) {
+    final q = List<PlaybackItem>.of(_state.queue);
+    final idx = _state.currentIndex;
+    if (idx >= 0 && idx < q.length) {
+      q.insert(idx + 1, item);
+    } else {
+      q.add(item);
+    }
+    _state = _state.copyWith(queue: q);
+    notifyListeners();
+  }
+
+  void addToQueue(PlaybackItem item) {
+    final q = List<PlaybackItem>.of(_state.queue)..add(item);
+    _state = _state.copyWith(queue: q);
     notifyListeners();
   }
 

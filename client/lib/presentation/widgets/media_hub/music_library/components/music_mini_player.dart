@@ -98,51 +98,23 @@ class MusicMiniPlayer extends StatelessWidget {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    StreamBuilder<Duration>(
-                      stream: player.positionStream,
-                      builder: (context, posSnap) {
-                        final pos = posSnap.data ?? Duration.zero;
-                        final dur = player.duration ?? Duration.zero;
-                        final progress = (dur.inMilliseconds > 0)
-                            ? (pos.inMilliseconds / dur.inMilliseconds)
-                                .clamp(0.0, 1.0)
-                            : 0.0;
-                        return ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(20)),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 2.5,
-                            backgroundColor: Colors.transparent,
-                            valueColor: AlwaysStoppedAnimation<Color>(skin.accent),
-                          ),
-                        );
-                      },
-                    ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
                       child: Row(
                         children: [
                           Hero(
                             tag:
                                 'now_playing_artwork_${effectiveTrackId.isEmpty ? "empty" : effectiveTrackId}',
                             child: Container(
-                              width: 48,
-                              height: 48,
+                              width: 42,
+                              height: 42,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: skin.accent.withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  )
-                                ],
+                                color: skin.bg2,
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: effectiveThumbnail.isNotEmpty
                                   ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(6),
                                       child: Image.network(
                                         sanitizeMusicThumbnailUrl(
                                             effectiveThumbnail),
@@ -154,7 +126,7 @@ class MusicMiniPlayer extends StatelessWidget {
                                   : _buildMiniPlaceholder(skin),
                             ),
                           ),
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,58 +139,29 @@ class MusicMiniPlayer extends StatelessWidget {
                                   style: TextStyle(
                                     color: skin.fg,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14.5,
+                                    fontSize: 14,
                                     letterSpacing: -0.2,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.5, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: skin.accent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'DSP ACTIVE',
-                                        style: TextStyle(
-                                          color: skin.accent,
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        effectiveArtist.isNotEmpty
-                                            ? effectiveArtist
-                                            : 'LifeOS Audio',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: skin.textMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  effectiveArtist.isNotEmpty
+                                      ? effectiveArtist
+                                      : 'LifeOS Audio',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: skin.textMuted,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.lyrics_rounded),
-                            color: skin.textMuted,
-                            iconSize: 22,
-                            tooltip: 'Live Lyrics',
-                            onPressed: onOpenLyrics,
-                          ),
-                          IconButton(
-                            iconSize: 38,
+                            iconSize: 32,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                             tooltip: playing ? 'Pause' : 'Play',
                             icon: loading
                                 ? SizedBox(
@@ -234,22 +177,47 @@ class MusicMiniPlayer extends StatelessWidget {
                                         ? Icons.pause_rounded
                                         : Icons.play_arrow_rounded,
                                     color: skin.fg,
-                                    size: 32,
+                                    size: 30,
                                   ),
                             onPressed: loading
                                 ? null
                                 : playbackController.togglePlayPause,
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.skip_next_rounded),
-                            color: skin.fg,
-                            iconSize: 28,
-                            tooltip: 'Next Track',
-                            onPressed: playbackController.next,
-                          ),
                         ],
                       ),
                     ),
+                    // Poweramp 1:1 Progress Scrubber Track
+                    StreamBuilder<Duration>(
+                      stream: player.positionStream,
+                      builder: (context, posSnap) {
+                        final pos = posSnap.data ?? Duration.zero;
+                        final dur = player.duration ?? Duration.zero;
+                        final totalMs = dur.inMilliseconds.toDouble();
+                        final currentMs = pos.inMilliseconds.toDouble().clamp(0.0, totalMs > 0 ? totalMs : 1.0);
+                        return SizedBox(
+                          height: 16,
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 3.0,
+                              activeTrackColor: skin.fg.withValues(alpha: 0.75),
+                              inactiveTrackColor: Colors.white12,
+                              thumbColor: skin.fg,
+                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+                            ),
+                            child: Slider(
+                              value: currentMs,
+                              min: 0.0,
+                              max: totalMs > 0 ? totalMs : 1.0,
+                              onChanged: (v) {
+                                playbackController.seek(Duration(milliseconds: v.round()));
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 2),
                   ],
                 );
               },

@@ -20,7 +20,7 @@ func HandleReleaseRadar(w http.ResponseWriter, r *http.Request) {
 	handleSmartPlaylist(w, r, "release_radar")
 }
 
-func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
+func HandleLocalRecommendations(w http.ResponseWriter, r *http.Request) {
 	handleSmartPlaylist(w, r, "recommendations")
 }
 
@@ -38,6 +38,11 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 		if v, err := strconv.Atoi(l); err == nil {
 			limit = v
 		}
+	}
+
+	if DB == nil {
+		json.NewEncoder(w).Encode([]Track{})
+		return
 	}
 
 	const smartCols = `mt.id, mt.title, mt.artist, mt.album, mt.album_artist, mt.track_number, mt.disc_number, mt.year, mt.genre,

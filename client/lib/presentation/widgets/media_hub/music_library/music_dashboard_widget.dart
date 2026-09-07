@@ -13,12 +13,15 @@ import '../../../../database/database.dart' hide MusicTrack;
 import '../../../../theme/app_skin_manager.dart';
 import 'components/download_queue_sheet.dart';
 import 'components/music_mini_player.dart';
-import 'components/music_search_bar.dart';
 import 'components/music_stats_sheet.dart';
+import 'components/poweramp_bottom_nav_bar.dart';
+import 'components/poweramp_menu_sheet.dart';
 import 'lyrics_sync_viewer.dart';
 import 'playlists/add_to_playlist_sheet.dart';
+import 'poweramp_equalizer_modal.dart';
 import 'poweramp_now_playing_sheet.dart';
 import 'poweramp_queue_sheet.dart';
+import 'poweramp_search_view.dart';
 import 'tabs/all_tracks_sliver.dart';
 import 'tabs/artists_and_genres_slivers.dart';
 import 'tabs/liked_songs_sliver.dart';
@@ -147,9 +150,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
   List<MusicTrack> _results = [];
   List<SongModel> _phoneSongs = [];
-  String _query = '';
   bool _isSearching = false;
-  String? _searchError;
   Timer? _debounceTimer;
 
   String _currentTitle = '';
@@ -168,6 +169,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   PlaybackController get _pc => PlaybackController.instance;
 
   int _libraryTab = 0;
+  int _bottomNavIndex = 0;
+  late final PageController _pageController;
   String? _selectedArtist;
   String? _selectedGenre;
   String _localTrackFilter = '';
@@ -177,6 +180,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: 0);
     unawaited(AudioDspService.instance.init());
     unawaited(_pc.ensureInitialized());
     _loadPhoneSongs();
@@ -254,7 +258,21 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     _pc.removeListener(_playbackChanged);
     _searchCtrl.dispose();
     _localFilterCtrl.dispose();
+    _pageController.dispose();
     super.dispose();
+  }
+
+  void _onBottomNavTap(int index) {
+    if (index == 3) {
+      PowerampMenuSheet.show(context);
+    } else {
+      setState(() => _bottomNavIndex = index);
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
   Future<void> _loadPhoneSongs() async {
@@ -267,13 +285,11 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   }
 
   void _onSearchChanged(String val) {
-    setState(() => _query = val);
     _debounceTimer?.cancel();
     if (val.trim().isEmpty) {
       setState(() {
         _results = [];
         _isSearching = false;
-        _searchError = null;
       });
       return;
     }
@@ -286,7 +302,6 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     if (q.isEmpty) return;
     setState(() {
       _isSearching = true;
-      _searchError = null;
     });
     try {
       final res = await ApiClient.instance.getDaemon(
@@ -306,10 +321,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
           _isSearching = false;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _searchError = 'Search failed. Is the host daemon running?';
           _isSearching = false;
         });
       }
@@ -940,7 +954,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 playbackController: _pc,
               ),
             SliverToBoxAdapter(
-                child: SizedBox(height: _hasActivePlayback ? 130 : 24)),
+                child: SizedBox(height: _hasActivePlayback ? 140 : 80)),
           ],
         );
       },
@@ -953,61 +967,100 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       listenable: AppSkinManager.currentSkinNotifier,
       builder: (context, _) {
         final skin = AppSkinManager.currentSkin;
-        final searching = _query.trim().isNotEmpty;
         return Scaffold(
           backgroundColor: skin.bg0,
           body: Stack(
             children: [
-              Column(
+              // Main Swipeable Views: 0 = Library, 1 = Equalizer & Tone/Reverb, 2 = 1:1 Poweramp Search
+              PageView(
+                controller: _pageController,
+                onPageChanged: (idx) {
+                  if (_bottomNavIndex != idx) {
+                    setState(() => _bottomNavIndex = idx);
+                  }
+                },
                 children: [
-                  MusicSearchBar(
-                    controller: _searchCtrl,
-                    isSearching: _isSearching,
-                    query: _query,
-                    onChanged: _onSearchChanged,
-                    onSubmitted: (val) {
-                      _debounceTimer?.cancel();
-                      _search(val.trim());
-                    },
-                    onClear: () {
-                      _searchCtrl.clear();
-                      _onSearchChanged('');
-                    },
+                  // Page 0: Library / Vault
+                  _buildLibrary(skin),
+
+                  // Page 1: Equalizer & Tone/Reverb (Embedded 1:1 Poweramp Mode)
+                  SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: _hasActivePlayback ? 140 : 70,
+                      ),
+                      child: const PowerampEqualizerModal(
+                        isEmbedded: true,
+                        initialMode: 1,
+                      ),
+                    ),
                   ),
-                  Expanded(
-                    child: searching
-                        ? MusicSearchResults(
-                            isSearching: _isSearching,
-                            searchError: _searchError,
-                            query: _query,
-                            results: _results,
-                            downloading: _downloading,
-                            canPlay: _canPlay,
-                            playbackController: _pc,
-                            onRetry: () => _search(_query.trim()),
-                            onDownload: _download,
-                            onWebNotice: _webPlaybackNotice,
-                            onAddToPlaylist: _addToPlaylist,
-                          )
-                        : _buildLibrary(skin),
+
+                  // Page 2: 1:1 Poweramp Search & Categories (Screenshots 2 & 3)
+                  SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: _hasActivePlayback ? 140 : 70,
+                      ),
+                      child: PowerampSearchView(
+                        controller: _searchCtrl,
+                        remoteResults: _results,
+                        isSearching: _isSearching,
+                        onQueryChanged: _onSearchChanged,
+                        onClear: () {
+                          _searchCtrl.clear();
+                          _onSearchChanged('');
+                        },
+                        onPlayTrack: (t) => _playTrackList([t], 0),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              if (_hasActivePlayback)
-                Positioned(
-                  left: 14,
-                  right: 14,
-                  bottom: 18,
-                  child: MusicMiniPlayer(
-                    playbackController: _pc,
-                    currentTrackId: _pc.currentItem?.id.isNotEmpty == true ? _pc.currentItem!.id : _currentTrackId,
-                    currentTitle: _pc.currentItem?.title.isNotEmpty == true ? _pc.currentItem!.title : _currentTitle,
-                    currentArtist: _pc.currentItem?.artist.isNotEmpty == true ? _pc.currentItem!.artist : _currentArtist,
-                    currentThumbnail: _pc.currentItem?.thumbnail.isNotEmpty == true ? _pc.currentItem!.thumbnail : _currentThumbnail,
-                    onTap: _openNowPlaying,
-                    onOpenLyrics: _openLyrics,
-                  ),
+
+              // Persistent Bottom Dock: Poweramp Mini Player + 4-Destination Bottom Nav Bar
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_hasActivePlayback)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 4),
+                        child: GestureDetector(
+                          onVerticalDragEnd: (details) {
+                            if (details.primaryVelocity != null && details.primaryVelocity! < -200) {
+                              _openNowPlaying();
+                            }
+                          },
+                          child: MusicMiniPlayer(
+                            playbackController: _pc,
+                            currentTrackId: _pc.currentItem?.id.isNotEmpty == true
+                                ? _pc.currentItem!.id
+                                : _currentTrackId,
+                            currentTitle: _pc.currentItem?.title.isNotEmpty == true
+                                ? _pc.currentItem!.title
+                                : _currentTitle,
+                            currentArtist: _pc.currentItem?.artist.isNotEmpty == true
+                                ? _pc.currentItem!.artist
+                                : _currentArtist,
+                            currentThumbnail: _pc.currentItem?.thumbnail.isNotEmpty == true
+                                ? _pc.currentItem!.thumbnail
+                                : _currentThumbnail,
+                            onTap: _openNowPlaying,
+                            onOpenLyrics: _openLyrics,
+                          ),
+                        ),
+                      ),
+                    PowerampBottomNavBar(
+                      currentIndex: _bottomNavIndex,
+                      onTap: _onBottomNavTap,
+                    ),
+                  ],
                 ),
+              ),
             ],
           ),
         );

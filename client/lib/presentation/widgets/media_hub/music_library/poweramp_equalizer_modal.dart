@@ -5,17 +5,24 @@ import '../../../../theme/app_skin_manager.dart';
 import 'equalizer/eq_not_supported_sheet.dart';
 import 'equalizer/eq_painters.dart';
 import 'equalizer/eq_presets.dart';
+import 'equalizer/poweramp_tone_reverb_view.dart';
 
 export 'equalizer/eq_not_supported_sheet.dart';
 export 'equalizer/eq_painters.dart';
 export 'equalizer/eq_presets.dart';
+export 'equalizer/poweramp_tone_reverb_view.dart';
 
 class PowerampEqualizerModal extends StatefulWidget {
   final bool isEmbedded;
+  final int initialMode;
 
-  const PowerampEqualizerModal({super.key, this.isEmbedded = false});
+  const PowerampEqualizerModal({
+    super.key,
+    this.isEmbedded = false,
+    this.initialMode = 1,
+  });
 
-  static void show(BuildContext context) {
+  static void show(BuildContext context, {int initialMode = 1}) {
     final dsp = AudioDspService.instance;
     if (!dsp.isSupportedOnPlatform) {
       showModalBottomSheet(
@@ -30,7 +37,7 @@ class PowerampEqualizerModal extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const PowerampEqualizerModal(),
+      builder: (_) => PowerampEqualizerModal(initialMode: initialMode),
     );
   }
 
@@ -39,6 +46,7 @@ class PowerampEqualizerModal extends StatefulWidget {
 }
 
 class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
+  late int _eqMode; // 0 = Sliders EQ, 1 = Tone & Reverb, 2 = Spatial & Limiter
   late bool _eqEnabled;
   late double _preamp;
   late double _bassBoost;
@@ -50,6 +58,7 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
   @override
   void initState() {
     super.initState();
+    _eqMode = widget.initialMode;
     final dsp = AudioDspService.instance;
     _eqEnabled = dsp.enabled;
     _preamp = dsp.preamp;
@@ -159,86 +168,133 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             ),
           ],
 
-          // Studio Header Bar
+          // Top Poweramp 3-Mode Selector Bar (Screenshot 1)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _eqEnabled
-                        ? skin.accent.withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.equalizer_rounded,
-                    color: _eqEnabled ? skin.accent : skin.textMuted,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'POWERAMP EQUALIZER',
-                        style: TextStyle(
-                          color: skin.fg,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: skin.bg1,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(22)),
+                      onTap: () => setState(() => _eqMode = 0),
+                      child: Center(
+                        child: Icon(
+                          Icons.tune_rounded,
+                          size: 22,
+                          color: _eqMode == 0 ? skin.accent : skin.textMuted,
                         ),
                       ),
-                      Text(
-                        _eqEnabled
-                            ? '10-Band Studio DSP Active'
-                            : 'DSP Bypass Mode',
-                        style: TextStyle(
-                          color: _eqEnabled ? skin.green : skin.textMuted,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        AudioDspService.instance.isSupportedOnPlatform
-                            ? 'Platform: ${_platformName()} · DSP Active'
-                            : 'Platform: ${_platformName()} · EQ Not Supported',
-                        style: TextStyle(
-                          color: AudioDspService.instance.isSupportedOnPlatform
-                              ? skin.green
-                              : skin.orange,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                Switch(
-                  value: _eqEnabled,
-                  activeThumbColor: skin.accent,
-                  onChanged: (val) {
-                    setState(() => _eqEnabled = val);
-                    _syncDsp();
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.refresh_rounded,
-                      color: skin.textMuted, size: 20),
-                  tooltip: 'Reset EQ',
-                  onPressed: _resetEq,
-                ),
-              ],
+                  Container(width: 1, height: 22, color: Colors.white10),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => setState(() => _eqMode = 1),
+                      child: Center(
+                        child: Icon(
+                          Icons.radio_button_checked_rounded,
+                          size: 22,
+                          color: _eqMode == 1 ? skin.accent : skin.textMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(width: 1, height: 22, color: Colors.white10),
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(22)),
+                      onTap: () => setState(() => _eqMode = 2),
+                      child: Center(
+                        child: Icon(
+                          Icons.surround_sound_rounded,
+                          size: 24,
+                          color: _eqMode == 2 ? skin.accent : skin.textMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          const SizedBox(height: 6),
+          if (_eqMode == 1)
+            const Expanded(child: PowerampToneReverbView())
+          else if (_eqMode == 2)
+            Expanded(child: _buildSpatialModeView(skin))
+          else ...[
+            // Studio Header Bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 16, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _eqEnabled
+                          ? skin.accent.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.equalizer_rounded,
+                      color: _eqEnabled ? skin.accent : skin.textMuted,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'POWERAMP EQUALIZER',
+                          style: TextStyle(
+                            color: skin.fg,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          '${_platformName()} · ${_eqEnabled ? "DSP Active" : "Bypass Mode"}',
+                          style: TextStyle(
+                            color: _eqEnabled ? skin.green : skin.textMuted,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _eqEnabled,
+                    activeThumbColor: skin.accent,
+                    onChanged: (val) {
+                      setState(() => _eqEnabled = val);
+                      _syncDsp();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.refresh_rounded,
+                        color: skin.textMuted, size: 20),
+                    tooltip: 'Reset EQ',
+                    onPressed: _resetEq,
+                  ),
+                ],
+              ),
+            ),
 
-          // Presets Horizontal Selector
+            const SizedBox(height: 4),
+
+            // Presets Horizontal Selector
           SizedBox(
             height: 36,
             child: ListView.separated(
@@ -511,6 +567,184 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               ],
             ),
           ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpatialModeView(AppSkin skin) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: skin.bg1,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.surround_sound_rounded, color: skin.accent, size: 24),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SPATIAL 3D SOUNDSTAGE',
+                            style: TextStyle(
+                              color: skin.fg,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            'Stereo field width & ambient acoustic immersion',
+                            style: TextStyle(color: skin.textMuted, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '${(_stereoExpansion * 100).round()}%',
+                      style: TextStyle(
+                        color: skin.accent,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 110,
+                  height: 110,
+                  child: CustomPaint(
+                    painter: KnobDialPainter(
+                      fraction: _stereoExpansion,
+                      color: skin.accent,
+                      backgroundColor: skin.isOled ? const Color(0xFF141414) : skin.bg2,
+                      showTicks: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 3.5,
+                    activeTrackColor: skin.accent,
+                    inactiveTrackColor: Colors.white12,
+                    thumbColor: skin.accent,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  ),
+                  child: Slider(
+                    value: _stereoExpansion,
+                    min: 0.0,
+                    max: 1.0,
+                    onChanged: (v) {
+                      setState(() => _stereoExpansion = v);
+                      _syncDsp();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: skin.bg1,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('BASS BOOST', style: TextStyle(color: skin.fg, fontSize: 12, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('${(_bassBoost * 100).round()}%', style: TextStyle(color: skin.yellow, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Slider(
+                        value: _bassBoost,
+                        activeColor: skin.yellow,
+                        inactiveColor: Colors.white12,
+                        onChanged: (v) {
+                          setState(() => _bassBoost = v);
+                          _syncDsp();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: skin.bg1,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('TREBLE AIR', style: TextStyle(color: skin.fg, fontSize: 12, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('${(_trebleBoost * 100).round()}%', style: TextStyle(color: skin.aqua, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Slider(
+                        value: _trebleBoost,
+                        activeColor: skin.aqua,
+                        inactiveColor: Colors.white12,
+                        onChanged: (v) {
+                          setState(() => _trebleBoost = v);
+                          _syncDsp();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: skin.bg1,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.shield_rounded, color: skin.green, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Audiophile Limiter & Headroom Guard',
+                        style: TextStyle(color: skin.fg, fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Active - prevents digital clipping and distortion at high gains',
+                        style: TextStyle(color: skin.textMuted, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

@@ -1350,6 +1350,13 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           behavior: HitTestBehavior.translucent,
           onTap: isLyricsMode ? null : _cycleCardMode,
           onLongPress: isLyricsMode ? null : _openMetadataModal,
+          onVerticalDragEnd: isLyricsMode
+              ? null
+              : (details) {
+                  if (details.primaryVelocity != null && details.primaryVelocity! > 200) {
+                    Navigator.of(context).pop();
+                  }
+                },
           onHorizontalDragEnd: isLyricsMode
               ? null
               : (details) {
@@ -1601,7 +1608,62 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
           _buildModeChip('LYRICS', Icons.lyrics_rounded, NowPlayingCardMode.lyrics, skin),
           const SizedBox(width: 4),
           _buildModeChip('SPECTRUM', Icons.graphic_eq_rounded, NowPlayingCardMode.visualizer, skin),
+          const SizedBox(width: 4),
+          _buildRadioChip(skin),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRadioChip(AppSkin skin) {
+    final pc = PlaybackController.instance;
+    final active = pc.infiniteRadio;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          pc.toggleInfiniteRadio();
+          setState(() {});
+          _showFeedback(
+            pc.infiniteRadio ? 'Infinite Radio: ON' : 'Infinite Radio: OFF',
+            Icons.sensors_rounded,
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: active
+                ? skin.accent.withValues(alpha: skin.isOled ? 0.25 : 0.18)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: active ? skin.accent.withValues(alpha: 0.7) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.sensors_rounded,
+                size: 13,
+                color: active ? skin.accent : skin.textMuted,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'RADIO',
+                style: TextStyle(
+                  color: active ? skin.accent : skin.textMuted,
+                  fontSize: 10,
+                  fontWeight: active ? FontWeight.bold : FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

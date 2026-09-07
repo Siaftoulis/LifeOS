@@ -546,14 +546,27 @@ class MusicRepository extends DaemonRepository {
     return const [];
   }
 
-  Future<List<MusicTrack>> getRecommendations({int limit = 50}) async {
+  Future<List<MusicTrack>> getRecommendations({
+    String? seedTrackId,
+    int limit = 20,
+    String? mode,
+  }) async {
     try {
-      final res = await ApiClient.instance.getDaemon('/api/v1/music/smart/recommendations?limit=$limit');
+      var endpoint = '/api/v1/music/recommendations?limit=$limit';
+      if (seedTrackId != null && seedTrackId.isNotEmpty) {
+        endpoint += '&id=${Uri.encodeComponent(seedTrackId)}';
+      }
+      if (mode != null && mode.isNotEmpty) {
+        endpoint += '&mode=${Uri.encodeComponent(mode)}';
+      }
+      final res = await ApiClient.instance.getDaemon(endpoint);
       if (res is List) {
-        return res
+        final list = res
             .whereType<Map>()
             .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        rememberTracks(list);
+        return list;
       }
     } catch (e) {
       debugPrint('Get recommendations error: $e');
