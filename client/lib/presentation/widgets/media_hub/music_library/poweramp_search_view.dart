@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/domain_repositories.dart';
+import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../theme/app_skin_manager.dart';
 import 'components/poweramp_track_context_sheet.dart';
 import 'music_formatters.dart';
@@ -113,6 +114,10 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                           isDense: true,
                         ),
                         onChanged: (val) {
+                          setState(() {});
+                          widget.onQueryChanged(val);
+                        },
+                        onSubmitted: (val) {
                           setState(() {});
                           widget.onQueryChanged(val);
                         },
@@ -230,6 +235,27 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                     _buildSectionHeader('YouTube Music Online', skin),
                     ...widget.remoteResults!.map((t) => _buildRemoteTrackTile(t, skin)),
                     const SizedBox(height: 12),
+                  ] else if (widget.isSearching && (_selectedFilterIndex == 0 || _selectedFilterIndex == 1)) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(color: skin.accent, strokeWidth: 2.2),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Searching YouTube Music Online...',
+                              style: TextStyle(color: skin.textMuted, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ] else if (_selectedFilterIndex == 1) ...[
                     if (widget.isSearching)
                       Padding(
@@ -446,102 +472,105 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
   }
 
   Widget _buildRemoteTrackTile(MusicTrack t, AppSkin skin) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 2),
-      leading: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Container(
-              width: 44,
-              height: 44,
-              color: skin.bg2,
-              child: t.thumbnail.isNotEmpty
-                  ? Image.network(
-                      sanitizeMusicThumbnailUrl(t.thumbnail),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
+    return MouseRegion(
+      onEnter: (_) => PlaybackController.instance.precacheTrack(t.id),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 2),
+        leading: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                width: 44,
+                height: 44,
+                color: skin.bg2,
+                child: t.thumbnail.isNotEmpty
+                    ? Image.network(
+                        sanitizeMusicThumbnailUrl(t.thumbnail),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.music_note_rounded,
+                          color: skin.accent,
+                          size: 22,
+                        ),
+                      )
+                    : Icon(
                         Icons.music_note_rounded,
                         color: skin.accent,
                         size: 22,
                       ),
-                    )
-                  : Icon(
-                      Icons.music_note_rounded,
-                      color: skin.accent,
-                      size: 22,
-                    ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: Colors.redAccent,
-                borderRadius: BorderRadius.circular(4),
               ),
-              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 10),
             ),
-          ),
-        ],
-      ),
-      title: Text(
-        t.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: skin.fg,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 10),
+              ),
+            ),
+          ],
         ),
-      ),
-      subtitle: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: skin.accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: skin.accent.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              'YTM ONLINE',
-              style: TextStyle(color: skin.accent, fontSize: 9, fontWeight: FontWeight.bold),
-            ),
+        title: Text(
+          t.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: skin.fg,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              '${t.artist.isNotEmpty ? t.artist : "YouTube Music"} · ${formatTrackDuration(t.duration)}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: skin.textMuted, fontSize: 11.5),
+        ),
+        subtitle: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: skin.accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: skin.accent.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                'YTM ONLINE',
+                style: TextStyle(color: skin.accent, fontSize: 9, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        ],
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.download_rounded, size: 20),
-        color: skin.accent,
-        tooltip: 'Download to LifeOS library',
-        onPressed: () {
-          MusicRepository.instance.download(t);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Downloading "${t.title}" to server library...'),
-              backgroundColor: skin.bg1,
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '${t.artist.isNotEmpty ? t.artist : "YouTube Music"} · ${formatTrackDuration(t.duration)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: skin.textMuted, fontSize: 11.5),
+              ),
             ),
-          );
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.download_rounded, size: 20),
+          color: skin.accent,
+          tooltip: 'Download to LifeOS library',
+          onPressed: () {
+            MusicRepository.instance.download(t);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Downloading "${t.title}" to server library...'),
+                backgroundColor: skin.bg1,
+              ),
+            );
+          },
+        ),
+        onTap: () {
+          widget.onPlayTrack(t);
+        },
+        onLongPress: () {
+          PowerampTrackContextSheet.show(context, track: t);
         },
       ),
-      onTap: () {
-        widget.onPlayTrack(t);
-      },
-      onLongPress: () {
-        PowerampTrackContextSheet.show(context, track: t);
-      },
     );
   }
 

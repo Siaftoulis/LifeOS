@@ -22,6 +22,7 @@ import 'poweramp_equalizer_modal.dart';
 import 'poweramp_now_playing_sheet.dart';
 import 'poweramp_queue_sheet.dart';
 import 'poweramp_search_view.dart';
+import 'track_metadata_modal.dart';
 import 'tabs/all_tracks_sliver.dart';
 import 'tabs/artists_and_genres_slivers.dart';
 import 'tabs/liked_songs_sliver.dart';
@@ -460,12 +461,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     if (offline != null && offline.isNotEmpty) {
       return offline;
     }
-    return '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=$trackId';
+    return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=$trackId';
   }
 
   void _playTrackList(List<MusicTrack> list, int startIndex) {
     if (!_canPlay) {
-      _webPlaybackNotice();
+      _webPlaybackNotice(list.isNotEmpty && startIndex >= 0 && startIndex < list.length ? list[startIndex] : null);
       return;
     }
     final queue = list
@@ -481,15 +482,34 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     _pc.playQueue(queue, startIndex: startIndex);
   }
 
-  void _webPlaybackNotice() {
+  void _webPlaybackNotice([MusicTrack? track]) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
           'Music playback is available in the LifeOS Android and Windows native apps.',
         ),
         backgroundColor: context.skin.bg1,
+        action: track != null
+            ? SnackBarAction(
+                label: 'Download',
+                textColor: context.skin.accent,
+                onPressed: () => _download(track),
+              )
+            : null,
       ),
     );
+    if (track != null) {
+      TrackMetadataModal.show(
+        context,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        trackId: track.id,
+        url: _streamUrlFor(track.id),
+        duration: Duration(seconds: track.duration.round()),
+        track: track,
+      );
+    }
   }
 
   void _openNowPlaying() {
@@ -1111,7 +1131,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                           _searchCtrl.clear();
                           _onSearchChanged('');
                         },
-                        onPlayTrack: (t) => _playTrackList([t], 0),
+                        onPlayTrack: (t) {
+                          _playTrackList([t], 0);
+                          if (_canPlay) {
+                            _openNowPlaying();
+                          }
+                        },
                       ),
                     ),
                   ),
