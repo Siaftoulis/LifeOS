@@ -177,6 +177,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   TrackSortOption _trackSortOption = TrackSortOption.titleAsc;
   final TextEditingController _localFilterCtrl = TextEditingController();
 
+  bool _hasPrecachedMixesOnLaunch = false;
+  List<MusicTrack> _recommendedTracks = [];
+  List<MusicTrack> _dailyMixTracks = [];
+
   @override
   void initState() {
     super.initState();
@@ -190,6 +194,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     MusicRepository.instance.downloadQueue.addListener(_downloadQueueChanged);
     _pc.addListener(_playbackChanged);
     _playbackChanged();
+    _triggerSmartMixesPrecache(MusicRepository.instance.tracks.value);
   }
 
   void _playbackChanged() {
@@ -224,11 +229,71 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   void _tracksChanged() {
     _lastGroupedTracks = null;
     _cachedGenreGroups = null;
-    final libraryIds =
-        MusicRepository.instance.tracks.value.map((t) => t.id).toSet();
+    final currentTracks = MusicRepository.instance.tracks.value;
+    final libraryIds = currentTracks.map((t) => t.id).toSet();
     final done = _downloading.intersection(libraryIds);
     if (done.isNotEmpty) {
       setState(() => _downloading.removeAll(done));
+    }
+    if (currentTracks.isNotEmpty) {
+      _triggerSmartMixesPrecache(currentTracks);
+    }
+  }
+
+  void _triggerSmartMixesPrecache(List<MusicTrack> tracks) {
+    if (tracks.isEmpty || _hasPrecachedMixesOnLaunch) return;
+    _hasPrecachedMixesOnLaunch = true;
+
+    // Immediately pre-cache top items from instant smart playlists
+    final quick = tracks.where((t) => t.duration > 0 && t.duration <= 210).take(2);
+    final recent = tracks.reversed.take(2);
+    for (final t in [...quick, ...recent]) {
+      PlaybackController.instance.precacheTrack(t.id);
+    }
+
+    // Eagerly fetch remote recommendations and daily mix from host daemon
+    _loadRecommendationsAndDailyMix(tracks);
+  }
+
+  Future<void> _loadRecommendationsAndDailyMix(List<MusicTrack> tracks) async {
+    try {
+      final recs = await MusicRepository.instance.getRecommendations(limit: 12);
+      if (mounted && recs.isNotEmpty) {
+        setState(() => _recommendedTracks = recs);
+        for (final t in recs.take(3)) {
+          PlaybackController.instance.precacheTrack(t.id);
+        }
+      }
+    } catch (e) {
+      debugPrint('Precache recommendations error: $e');
+    }
+
+    try {
+      String? topArtist;
+      if (tracks.isNotEmpty) {
+        final counts = <String, int>{};
+        for (final t in tracks) {
+          final a = t.artist.trim();
+          if (a.isNotEmpty && a.toLowerCase() != 'unknown' && a.toLowerCase() != 'unknown artist') {
+            counts[a] = (counts[a] ?? 0) + 1;
+          }
+        }
+        if (counts.isNotEmpty) {
+          topArtist = counts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+        }
+      }
+
+      if (topArtist != null && topArtist.isNotEmpty) {
+        final daily = await MusicRepository.instance.getDailyMix(seed: topArtist, limit: 20);
+        if (mounted && daily.isNotEmpty) {
+          setState(() => _dailyMixTracks = daily);
+          for (final t in daily.take(3)) {
+            PlaybackController.instance.precacheTrack(t.id);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Precache daily mix error: $e');
     }
   }
 
@@ -705,7 +770,26 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     final shuffled = List<MusicTrack>.from(tracks)..shuffle();
     final recent = tracks.reversed.take(30).toList();
 
+    final playedTracks = tracks.where((t) => t.playCount > 0).toList()
+      ..sort((a, b) => b.playCount.compareTo(a.playCount));
+    final dailyList = _dailyMixTracks.isNotEmpty
+        ? _dailyMixTracks
+        : (playedTracks.isNotEmpty ? playedTracks : recent);
+
     return {
+      '🌅 Daily Mix': (
+        desc: 'Personalized mix of your favorites & top artists',
+        icon: Icons.wb_sunny_rounded,
+        color: skin.orange,
+        list: dailyList,
+      ),
+      if (_recommendedTracks.isNotEmpty)
+        '✨ For You / Radar': (
+          desc: 'Algorithmic recommendations tuned to your taste',
+          icon: Icons.auto_awesome_rounded,
+          color: skin.purple,
+          list: _recommendedTracks,
+        ),
       '⚡ Quick Hits': (
         desc: 'Upbeat tracks under 3.5 minutes',
         icon: Icons.bolt_rounded,
@@ -715,7 +799,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       '🧘 Deep Sessions': (
         desc: 'Extended tracks & deep sessions',
         icon: Icons.headphones_rounded,
-        color: skin.purple,
+        color: skin.aqua,
         list: deep,
       ),
       '🎲 Discovery Shuffle': (
@@ -777,6 +861,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                   _selectedArtist = null;
                   _selectedGenre = null;
                 });
+                if (t.$3 == 5) {
+                  final currentTracks = MusicRepository.instance.tracks.value;
+                  final mixes = _generateSmartMixes(currentTracks, skin);
+                  for (final mix in mixes.values) {
+                    for (final track in mix.list.take(2)) {
+                      PlaybackController.instance.precacheTrack(track.id);
+                    }
+                  }
+                }
               },
               selectedColor: skin.accent,
               backgroundColor: skin.bg1,

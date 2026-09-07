@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
+import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../theme/app_skin_manager.dart';
 
 typedef SmartMixEntry = ({
@@ -38,10 +39,16 @@ class SmartMixesSliver extends StatelessWidget {
           (context, i) {
             final key = keys[i];
             final mix = smartMixes[key]!;
-            return InkWell(
-              onTap: canPlay && mix.list.isNotEmpty
-                  ? () => onPlayTrackList(mix.list, 0)
-                  : null,
+            return MouseRegion(
+              onEnter: (_) {
+                for (final t in mix.list.take(3)) {
+                  PlaybackController.instance.precacheTrack(t.id);
+                }
+              },
+              child: InkWell(
+                onTap: canPlay && mix.list.isNotEmpty
+                    ? () => onPlayTrackList(mix.list, 0)
+                    : null,
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding:
@@ -104,8 +111,9 @@ class SmartMixesSliver extends StatelessWidget {
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          );
+        },
           childCount: keys.length,
         ),
       ),

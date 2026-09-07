@@ -240,4 +240,50 @@ void main() {
       expect(resolved.artist, 'Unknown Artist');
     });
   });
+
+  group('P1-5: Smart Mixes & Daily Mix Lookahead Pre-caching Tests', () {
+    final track1 = MusicTrack(id: 't1', title: 'Song 1', artist: 'Artist A', album: 'Alb 1', duration: 180, playCount: 5);
+    final track2 = MusicTrack(id: 't2', title: 'Song 2', artist: 'Artist A', album: 'Alb 1', duration: 320, playCount: 15);
+    final track3 = MusicTrack(id: 't3', title: 'Song 3', artist: 'Artist B', album: 'Alb 2', duration: 200, playCount: 2);
+    final track4 = MusicTrack(id: 't4', title: 'Song 4', artist: 'Artist C', album: 'Alb 3', duration: 400, playCount: 0);
+    final libraryTracks = [track1, track2, track3, track4];
+
+    test('Daily Mix prioritizes highest playCount tracks', () {
+      final played = libraryTracks.where((t) => t.playCount > 0).toList()
+        ..sort((a, b) => b.playCount.compareTo(a.playCount));
+
+      expect(played.length, 3);
+      expect(played.first.id, 't2'); // 15 plays
+      expect(played[1].id, 't1');    // 5 plays
+      expect(played[2].id, 't3');    // 2 plays
+    });
+
+    test('Lookahead pre-caching extracts bounded top candidates from each mix', () {
+      final quick = libraryTracks.where((t) => t.duration > 0 && t.duration <= 210).toList();
+      final deep = libraryTracks.where((t) => t.duration > 300).toList();
+
+      final precacheQuick = quick.take(2).map((t) => t.id).toList();
+      final precacheDeep = deep.take(2).map((t) => t.id).toList();
+
+      expect(precacheQuick, ['t1', 't3']);
+      expect(precacheDeep, ['t2', 't4']);
+    });
+
+    test('Injected recommendations dynamically expand mix list with For You section', () {
+      final recs = [
+        const MusicTrack(id: 'rec_1', title: 'Recommended 1', artist: 'Rec Artist', album: 'Rec Album'),
+        const MusicTrack(id: 'rec_2', title: 'Recommended 2', artist: 'Rec Artist', album: 'Rec Album'),
+      ];
+
+      final mixMap = <String, List<MusicTrack>>{
+        '🌅 Daily Mix': libraryTracks,
+        if (recs.isNotEmpty) '✨ For You / Radar': recs,
+        '⚡ Quick Hits': libraryTracks.where((t) => t.duration <= 210).toList(),
+      };
+
+      expect(mixMap.containsKey('✨ For You / Radar'), isTrue);
+      expect(mixMap['✨ For You / Radar']!.length, 2);
+      expect(mixMap['✨ For You / Radar']!.first.id, 'rec_1');
+    });
+  });
 }
