@@ -8,6 +8,7 @@ import '../../../../core/audio_dsp_service.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../core/music_playback/playback_models.dart';
+import 'components/download_quality_dialog.dart';
 import 'components/heart_button.dart';
 import 'playlists/add_to_playlist_sheet.dart';
 import 'waveform_seekbar.dart';
@@ -399,11 +400,22 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     }
   }
 
-  void _handleDownload() {
-    if (widget.onDownloadTrack != null) {
-      widget.onDownloadTrack!(_currentTrack);
+  Future<void> _handleDownload() async {
+    final track = _currentTrack;
+    final mode = await DownloadQualitySheet.show(context, track: track);
+    if (mode == null || !mounted) return;
+    if (mode == 'offline') {
+      if (widget.onDownloadOfflineTrack != null) {
+        widget.onDownloadOfflineTrack!(track);
+      } else {
+        widget.onDownloadOffline?.call();
+      }
     } else {
-      widget.onDownload?.call();
+      if (widget.onDownloadTrack != null) {
+        widget.onDownloadTrack!(track);
+      } else {
+        widget.onDownload?.call();
+      }
     }
   }
 
@@ -583,17 +595,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     );
                   },
                 )
-              else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
+              else if (!_isCurrentDownloaded && !_isCurrentOfflineLocal)
                 IconButton(
                   icon: Icon(Icons.download_rounded, color: skin.accent, size: 22),
                   tooltip: 'Download Song',
                   onPressed: _handleDownload,
-                ),
-              if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
-                IconButton(
-                  icon: Icon(Icons.download_for_offline_rounded, color: skin.aqua, size: 22),
-                  tooltip: 'Save to this device (offline)',
-                  onPressed: _handleDownloadOffline,
                 ),
               const SizedBox(width: 4),
               IconButton(
@@ -1278,19 +1284,12 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                           );
                         },
                       )
-                    else if (!_isCurrentDownloaded && (widget.onDownload != null || widget.onDownloadTrack != null))
+                    else if (!_isCurrentDownloaded && !_isCurrentOfflineLocal)
                       IconButton(
                         icon: Icon(Icons.download_rounded,
                             color: skin.accent, size: 22),
                         tooltip: 'Download Song',
                         onPressed: _handleDownload,
-                      ),
-                    if (!_isCurrentOfflineLocal && (widget.onDownloadOffline != null || widget.onDownloadOfflineTrack != null))
-                      IconButton(
-                        icon: Icon(Icons.download_for_offline_rounded,
-                            color: skin.aqua, size: 22),
-                        tooltip: 'Save to this device (offline)',
-                        onPressed: _handleDownloadOffline,
                       ),
                     IconButton(
                       icon: Icon(Icons.info_outline_rounded,

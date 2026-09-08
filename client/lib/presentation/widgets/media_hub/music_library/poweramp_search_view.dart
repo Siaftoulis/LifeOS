@@ -21,9 +21,12 @@ class PowerampSearchView extends StatefulWidget {
     required this.onQueryChanged,
     required this.onClear,
     required this.onPlayTrack,
+    this.onPlayTrackList,
     this.remoteResults,
     this.isSearching = false,
   });
+
+  final void Function(List<MusicTrack> tracks, int index)? onPlayTrackList;
 
   @override
   State<PowerampSearchView> createState() => _PowerampSearchViewState();
@@ -454,7 +457,12 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                               }
                             });
                           } else {
-                            widget.onPlayTrack(t);
+                            if (widget.onPlayTrackList != null) {
+                              final idx = combinedTracks.indexOf(t);
+                              widget.onPlayTrackList!(combinedTracks, idx >= 0 ? idx : 0);
+                            } else {
+                              widget.onPlayTrack(t);
+                            }
                           }
                         },
                         onLongPress: () {
@@ -571,7 +579,13 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
           },
         ),
         onTap: () {
-          widget.onPlayTrack(t);
+          final rem = widget.remoteResults ?? [t];
+          if (widget.onPlayTrackList != null) {
+            final idx = rem.indexOf(t);
+            widget.onPlayTrackList!(rem, idx >= 0 ? idx : 0);
+          } else {
+            widget.onPlayTrack(t);
+          }
         },
         onLongPress: () {
           PowerampTrackContextSheet.show(context, track: t);

@@ -146,22 +146,30 @@ func ensureNewPipeBridge() error {
 		return fmt.Errorf("newpipe-bridge jar not found; set NEWPIPE_BRIDGE_JAR")
 	}
 
-	log.Printf("music: starting in-memory newpipe-bridge: java -jar %s --port %s", jarPath, bridgePort)
-	cmd := exec.Command("java", "-jar", jarPath, "--port", bridgePort)
+	javaBin := "java"
+	for _, candidate := range []string{"/usr/lib/jvm/java-17-openjdk-amd64/bin/java", "/usr/bin/java", "java"} {
+		if _, err := os.Stat(candidate); err == nil {
+			javaBin = candidate
+			break
+		}
+	}
+
+	log.Printf("music: starting in-memory newpipe-bridge: %s -jar %s --port %s", javaBin, jarPath, bridgePort)
+	cmd := exec.Command(javaBin, "-jar", jarPath, "--port", bridgePort)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("spawn newpipe-bridge failed: %w", err)
 	}
 	bridgeCmd = cmd
 
-	for i := 0; i < 40; i++ {
-		time.Sleep(250 * time.Millisecond)
+	for i := 0; i < 35; i++ {
+		time.Sleep(150 * time.Millisecond)
 		if isBridgeAlive() {
 			log.Printf("music: newpipe-bridge is online on port %s", bridgePort)
 			return nil
 		}
 	}
 
-	return fmt.Errorf("newpipe-bridge did not report healthy within 10s")
+	return fmt.Errorf("newpipe-bridge did not report healthy within 5s")
 }
 
 type bridgeStreamsResponse struct {

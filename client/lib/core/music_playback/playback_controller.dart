@@ -204,31 +204,40 @@ class PlaybackController extends ChangeNotifier {
     _hasPrecachedMidpoint = false;
     _hasPrecachedEightyPercent = false;
 
+    String playUrl = item.url;
     final offline = MusicRepository.instance.offlineFilePath(item.id);
     if (offline != null && offline.isNotEmpty) {
+      playUrl = offline;
       _activeStreamType = 'OFFLINE';
       _activeBitrate = 320000;
-    } else {
+    } else if (ApiClient.hasInstance) {
       _activeStreamType = 'OPUS';
       _activeBitrate = 160000;
-      if (ApiClient.hasInstance) {
-        ApiClient.instance
+      try {
+        final res = await ApiClient.instance
             .getDaemon('/api/v1/music/resolve?id=${Uri.encodeComponent(item.id)}')
-            .then((res) {
-          if (res is Map && token == _playToken) {
-            final st = res['stream_type']?.toString();
-            final br = (res['bitrate'] as num?)?.toInt();
-            if (st != null && st.isNotEmpty) _activeStreamType = st.toUpperCase();
-            if (br != null && br > 0) _activeBitrate = br;
-            notifyListeners();
+            .timeout(const Duration(milliseconds: 3500));
+        if (res is Map && token == _playToken) {
+          final direct = res['direct_url']?.toString();
+          if (direct != null && direct.startsWith('http')) {
+            playUrl = direct;
           }
-        }).catchError((_) => null);
+          final st = res['stream_type']?.toString();
+          final br = (res['bitrate'] as num?)?.toInt();
+          if (st != null && st.isNotEmpty) _activeStreamType = st.toUpperCase();
+          if (br != null && br > 0) _activeBitrate = br;
+        }
+      } catch (e) {
+        debugPrint('Music resolve note: $e, using stream endpoint');
       }
+    }
+    if (token != _playToken) {
+      return; // Superseded by a newer skip request
     }
     notifyListeners();
 
     try {
-      await playbackEngine.setUrl(item.url);
+      await playbackEngine.setUrl(playUrl);
       if (token != _playToken) {
         return; // Superseded by a newer skip request
       }
@@ -334,15 +343,18 @@ class PlaybackController extends ChangeNotifier {
       target = idx + 1;
     } else if (_state.repeat == PlaybackRepeat.all) {
       target = 0;
-    } else if (_infiniteRadio && q.isNotEmpty) {
+    } else if (q.isNotEmpty) {
+      // Auto-fetch recommendations/radio when reaching queue end
       await _fetchAndAppendRadio();
       if (_state.currentIndex < _state.queue.length - 1) {
         target = _state.currentIndex + 1;
+      } else if (q.length > 1) {
+        target = 0; // Wrap around if no new recommendations could be appended
       } else {
         return;
       }
     } else {
-      return; // at the end, nothing to advance to
+      return;
     }
     await playAt(target);
   }

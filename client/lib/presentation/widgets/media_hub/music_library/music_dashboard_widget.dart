@@ -410,6 +410,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     if (qualityMode == null) {
       final selected = await DownloadQualitySheet.show(context, track: track);
       if (selected == null) return;
+      if (selected == 'offline') {
+        await _downloadOffline(track);
+        return;
+      }
       mode = selected;
     }
     setState(() => _downloading.add(track.id));
@@ -521,19 +525,27 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
   }
 
-  void _openNowPlaying() {
+  void _openNowPlaying([MusicTrack? specificTrack]) {
     if (!_canPlay || _pc.player == null) {
-      _webPlaybackNotice();
+      _webPlaybackNotice(specificTrack);
       return;
     }
-    final curTrack = MusicRepository.instance.tracks.value.firstWhere(
-      (t) => t.id == _currentTrackId,
+    final activeItem = _pc.currentItem;
+    final trackId = specificTrack?.id ?? (activeItem?.id.isNotEmpty == true ? activeItem!.id : _currentTrackId);
+    final title = specificTrack?.title ?? (activeItem?.title.isNotEmpty == true ? activeItem!.title : _currentTitle);
+    final artist = specificTrack?.artist ?? (activeItem?.artist.isNotEmpty == true ? activeItem!.artist : _currentArtist);
+    final album = specificTrack?.album ?? (activeItem?.album.isNotEmpty == true ? activeItem!.album : _currentAlbum);
+    final thumb = specificTrack?.thumbnail ?? (activeItem?.thumbnail.isNotEmpty == true ? activeItem!.thumbnail : _currentThumbnail);
+    final streamUrl = specificTrack != null ? _streamUrlFor(specificTrack.id) : (activeItem?.url.isNotEmpty == true ? activeItem!.url : _currentStreamUrl);
+
+    final curTrack = specificTrack ?? MusicRepository.instance.tracks.value.firstWhere(
+      (t) => t.id == trackId,
       orElse: () => MusicTrack(
-        id: _currentTrackId,
-        title: _currentTitle,
-        artist: _currentArtist,
-        album: _currentAlbum,
-        thumbnail: _currentThumbnail,
+        id: trackId,
+        title: title,
+        artist: artist,
+        album: album,
+        thumbnail: thumb,
         duration: 0,
       ),
     );
@@ -544,15 +556,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       backgroundColor: Colors.transparent,
       builder: (_) => PowerampNowPlayingSheet(
         player: _pc.player!,
-        title: _currentTitle,
-        artist: _currentArtist,
-        album: _currentAlbum,
-        trackId: _currentTrackId,
-        streamUrl: _currentStreamUrl,
-        thumbnailUrl: _currentThumbnail,
+        title: title,
+        artist: artist,
+        album: album,
+        trackId: trackId,
+        streamUrl: streamUrl,
+        thumbnailUrl: thumb,
         isDownloaded: MusicRepository.instance.tracks.value
-            .any((t) => t.id == _currentTrackId),
-        isOfflineLocal: MusicRepository.instance.isOffline(_currentTrackId),
+            .any((t) => t.id == trackId),
+        isOfflineLocal: MusicRepository.instance.isOffline(trackId),
         queue: _pc.queue,
         currentIndex: _pc.currentIndex,
         onNext: _pc.next,
@@ -1141,9 +1153,17 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                           _onSearchChanged('');
                         },
                         onPlayTrack: (t) {
-                          _playTrackList([t], 0);
+                          final list = _results.isNotEmpty && _results.contains(t) ? _results : [t];
+                          final idx = list.indexOf(t);
+                          _playTrackList(list, idx >= 0 ? idx : 0);
                           if (_canPlay) {
-                            _openNowPlaying();
+                            _openNowPlaying(t);
+                          }
+                        },
+                        onPlayTrackList: (list, index) {
+                          _playTrackList(list, index);
+                          if (_canPlay && index >= 0 && index < list.length) {
+                            _openNowPlaying(list[index]);
                           }
                         },
                       ),

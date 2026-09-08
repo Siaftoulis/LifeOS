@@ -180,6 +180,21 @@ class DownloadQualitySheet extends StatelessWidget {
               skin: skin,
               onTap: () => Navigator.of(context).pop('fast'),
             ),
+
+            const SizedBox(height: 10),
+
+            // Option 3: Save to Device (Offline)
+            _QualityOptionTile(
+              icon: Icons.offline_pin_rounded,
+              iconColor: skin.aqua,
+              title: 'Save to Device (Offline)',
+              tag: '📱 OFFLINE LOCAL',
+              description:
+                  'Store directly on this device for offline playback anywhere without Wi-Fi or mobile data.',
+              isRecommended: false,
+              skin: skin,
+              onTap: () => Navigator.of(context).pop('offline'),
+            ),
           ],
         ),
       ),
