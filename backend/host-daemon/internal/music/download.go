@@ -24,8 +24,9 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var payload struct {
-		VideoID   string `json:"video_id"`
-		Thumbnail string `json:"thumbnail"`
+		VideoID     string `json:"video_id"`
+		Thumbnail   string `json:"thumbnail"`
+		QualityMode string `json:"quality_mode"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.VideoID == "" {
 		http.Error(w, "Missing video_id", http.StatusBadRequest)
@@ -34,7 +35,7 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 
 	username, _ := r.Context().Value(middleware.UserContextKey).(string)
 
-	queueID, err := EnqueueDownload(payload.VideoID, payload.Thumbnail, 0, username)
+	queueID, err := EnqueueDownload(payload.VideoID, payload.Thumbnail, 0, username, payload.QualityMode)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

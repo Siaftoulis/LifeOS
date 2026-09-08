@@ -178,14 +178,18 @@ class MusicRepository extends DaemonRepository {
   }
 
   /// Download a search result to the daemon's library (artist folders).
-  Future<void> download(MusicTrack track) async {
+  Future<void> download(MusicTrack track, {String qualityMode = 'best'}) async {
     rememberTrack(track);
     try {
       await ApiClient.instance.postDaemon('/api/v1/music/download', {
         'video_id': track.id,
         'thumbnail': track.thumbnail,
+        'quality_mode': qualityMode,
       });
-      TelemetryReporter.instance.track('music', 'download_started', {'track_id': track.id});
+      TelemetryReporter.instance.track('music', 'download_started', {
+        'track_id': track.id,
+        'quality_mode': qualityMode,
+      });
       await loadDownloadQueue();
     } catch (_) {}
   }

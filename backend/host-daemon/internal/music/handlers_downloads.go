@@ -19,7 +19,7 @@ func HandleGetDownloadQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := r.URL.Query().Get("status")
-	query := "SELECT id, track_id, url, destination_path, status, priority, retry_count, total_bytes, downloaded_bytes, error_message, wifi_only, charging_only, created_at, started_at, completed_at FROM download_queue"
+	query := "SELECT id, track_id, url, destination_path, status, priority, retry_count, total_bytes, downloaded_bytes, error_message, wifi_only, charging_only, COALESCE(quality_mode, 'best'), COALESCE(stage, 'pending'), created_at, started_at, completed_at FROM download_queue"
 	var args []any
 	if status != "" {
 		query += " WHERE status = ?"
@@ -37,14 +37,16 @@ func HandleGetDownloadQueue(w http.ResponseWriter, r *http.Request) {
 	var items []DownloadQueueItem
 	for rows.Next() {
 		var item DownloadQueueItem
-		var destPath, errMsg sql.NullString
+		var destPath, errMsg, qMode, stage sql.NullString
 		var totalBytes sql.NullInt64
 		var startedAt, completedAt sql.NullInt64
 		var wifiOnly, chargingOnly int
 		if err := rows.Scan(&item.ID, &item.TrackID, &item.URL, &destPath, &item.Status, &item.Priority, &item.RetryCount,
-			&totalBytes, &item.DownloadedBytes, &errMsg, &wifiOnly, &chargingOnly, &item.CreatedAt, &startedAt, &completedAt); err == nil {
+			&totalBytes, &item.DownloadedBytes, &errMsg, &wifiOnly, &chargingOnly, &qMode, &stage, &item.CreatedAt, &startedAt, &completedAt); err == nil {
 			item.DestinationPath = destPath.String
 			item.ErrorMessage = errMsg.String
+			item.QualityMode = qMode.String
+			item.Stage = stage.String
 			if totalBytes.Valid {
 				item.TotalBytes = totalBytes.Int64
 			}
@@ -80,6 +82,7 @@ func HandleEnqueueDownload(w http.ResponseWriter, r *http.Request) {
 		Priority     int    `json:"priority"`
 		WiFiOnly     bool   `json:"wifi_only"`
 		ChargingOnly bool   `json:"charging_only"`
+		QualityMode  string `json:"quality_mode"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.TrackID == "" || req.URL == "" {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -96,9 +99,14 @@ func HandleEnqueueDownload(w http.ResponseWriter, r *http.Request) {
 	if req.ChargingOnly {
 		charging = 1
 	}
-	_, err := DB.Exec(`INSERT INTO download_queue (id, track_id, url, status, priority, wifi_only, charging_only, created_at)
-		VALUES (?, ?, ?, 'pending', ?, ?, ?, ?)`,
-		id, req.TrackID, req.URL, req.Priority, wifi, charging, now)
+	qMode := strings.TrimSpace(req.QualityMode)
+	if qMode == "" {
+		qMode = "best"
+	}
+
+	_, err := DB.Exec(`INSERT INTO download_queue (id, track_id, url, status, priority, wifi_only, charging_only, quality_mode, stage, created_at)
+		VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, 'pending', ?)`,
+		id, req.TrackID, req.URL, req.Priority, wifi, charging, qMode, now)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

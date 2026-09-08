@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../theme/app_skin_manager.dart';
+import 'components/download_quality_dialog.dart';
 import 'components/poweramp_track_context_sheet.dart';
 import 'music_formatters.dart';
 
@@ -554,14 +555,19 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
           icon: const Icon(Icons.download_rounded, size: 20),
           color: skin.accent,
           tooltip: 'Download to LifeOS library',
-          onPressed: () {
-            MusicRepository.instance.download(t);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Downloading "${t.title}" to server library...'),
-                backgroundColor: skin.bg1,
-              ),
-            );
+          onPressed: () async {
+            final mode = await DownloadQualitySheet.show(context, track: t);
+            if (mode == null) return;
+            MusicRepository.instance.download(t, qualityMode: mode);
+            if (context.mounted) {
+              final label = mode == 'best' ? 'Lossless/HQ' : 'Fast';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Downloading "${t.title}" ($label)...'),
+                  backgroundColor: skin.bg1,
+                ),
+              );
+            }
           },
         ),
         onTap: () {

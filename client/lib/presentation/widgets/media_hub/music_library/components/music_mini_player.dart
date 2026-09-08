@@ -41,19 +41,22 @@ class MusicMiniPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final skin = context.skin;
-    final player = playbackController.player;
-    final activeItem = playbackController.currentItem;
-    final effectiveTrackId = activeItem?.id.isNotEmpty == true ? activeItem!.id : currentTrackId;
-    final effectiveTitle = activeItem?.title.isNotEmpty == true ? activeItem!.title : currentTitle;
-    final effectiveArtist = activeItem?.artist.isNotEmpty == true ? activeItem!.artist : currentArtist;
-    final effectiveThumbnail = activeItem?.thumbnail.isNotEmpty == true ? activeItem!.thumbnail : currentThumbnail;
+    return ListenableBuilder(
+      listenable: playbackController,
+      builder: (context, _) {
+        final skin = context.skin;
+        final player = playbackController.player;
+        final activeItem = playbackController.currentItem;
+        final effectiveTrackId = activeItem?.id.isNotEmpty == true ? activeItem!.id : currentTrackId;
+        final effectiveTitle = activeItem?.title.isNotEmpty == true ? activeItem!.title : currentTitle;
+        final effectiveArtist = activeItem?.artist.isNotEmpty == true ? activeItem!.artist : currentArtist;
+        final effectiveThumbnail = activeItem?.thumbnail.isNotEmpty == true ? activeItem!.thumbnail : currentThumbnail;
 
-    if (player == null || effectiveTrackId.isEmpty || activeItem == null) {
-      return const SizedBox.shrink();
-    }
+        if (player == null || effectiveTrackId.isEmpty || activeItem == null) {
+          return const SizedBox.shrink();
+        }
 
-    return GestureDetector(
+        return GestureDetector(
       onTap: onTap,
       onVerticalDragEnd: (details) {
         if (details.primaryVelocity != null && details.primaryVelocity! < -150) {
@@ -144,16 +147,53 @@ class MusicMiniPlayer extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                Text(
-                                  effectiveArtist.isNotEmpty
-                                      ? effectiveArtist
-                                      : 'LifeOS Audio',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: skin.textMuted,
-                                    fontSize: 12,
-                                  ),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        effectiveArtist.isNotEmpty
+                                            ? effectiveArtist
+                                            : 'LifeOS Audio',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: skin.textMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    if (playbackController.activeStreamType.isNotEmpty) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: skin.accent.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: skin.accent.withValues(alpha: 0.35),
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.bolt_rounded, size: 10, color: skin.accent),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '${playbackController.activeStreamType.toUpperCase()}${playbackController.activeBitrate > 0 ? " ${playbackController.activeBitrate ~/ 1000}K" : ""}',
+                                              style: TextStyle(
+                                                color: skin.accent,
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w700,
+                                                letterSpacing: 0.2,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),
@@ -225,6 +265,8 @@ class MusicMiniPlayer extends StatelessWidget {
           ),
         ),
       ),
+        );
+      },
     );
   }
 }

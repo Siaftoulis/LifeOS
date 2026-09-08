@@ -59,9 +59,15 @@ tar -cf "$tmp\web.tar" -C "$webSrc" .
 Write-Host "4. Deploying to pds-laptop-old (/var/lib/lifeos-host-daemon)..." -ForegroundColor Yellow
 cmd /c "tailscale ssh root@pds-laptop-old ""cd /var/lib/lifeos-host-daemon && rm -rf web && mkdir -p web && tar -xf - -C web && rm -f web/flutter_service_worker.js"" < $tmp\web.tar"
 
-# Deploy Linux daemon binary
+# Deploy Linux daemon binary (and newpipe-bridge.jar if available)
 Write-Host "5. Uploading lifeos-linux daemon binary & updating service..." -ForegroundColor Yellow
-tar -cf "$tmp\bin.tar" -C "$tmp" lifeos-linux
+$jarSrc = "$workspaceRoot\backend\newpipe-bridge\build\libs\newpipe-bridge.jar"
+if (Test-Path $jarSrc) {
+    Copy-Item $jarSrc "$tmp\newpipe-bridge.jar" -Force
+    tar -cf "$tmp\bin.tar" -C "$tmp" lifeos-linux newpipe-bridge.jar
+} else {
+    tar -cf "$tmp\bin.tar" -C "$tmp" lifeos-linux
+}
 cmd /c "tailscale ssh root@pds-laptop-old ""cd /var/lib/lifeos-host-daemon && tar -xf - && systemctl stop lifeos-host-daemon && cp lifeos-linux /usr/local/bin/lifeos-host-daemon && chmod +x /usr/local/bin/lifeos-host-daemon lifeos-linux && systemctl start lifeos-host-daemon"" < $tmp\bin.tar"
 
 # 6. Verification

@@ -32,6 +32,8 @@ type DownloadQueueItem struct {
 	ErrorMessage    string `json:"error_message"`
 	WiFiOnly        bool   `json:"wifi_only"`
 	ChargingOnly    bool   `json:"charging_only"`
+	QualityMode     string `json:"quality_mode,omitempty"`
+	Stage           string `json:"stage,omitempty"`
 	CreatedAt       int64  `json:"created_at"`
 	StartedAt       int64  `json:"started_at"`
 	CompletedAt     int64  `json:"completed_at"`

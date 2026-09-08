@@ -1974,6 +1974,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                     ),
                   ),
                 ],
+                const SizedBox(height: 6),
+                _buildStreamQualityBadge(skin),
               ],
             ),
           ),
@@ -1986,6 +1988,57 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             constraints: const BoxConstraints(),
             onPressed: () =>
                 AddToPlaylistSheet.show(context, _currentTrack),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStreamQualityBadge(AppSkin skin) {
+    String label = '';
+    IconData icon = Icons.bolt_rounded;
+    Color color = skin.accent;
+
+    if (_isCurrentOfflineLocal) {
+      label = 'OFFLINE LOCAL';
+      icon = Icons.offline_pin_rounded;
+      color = const Color(0xFF10B981);
+    } else if (_isCurrentDownloaded) {
+      label = 'LIBRARY AUDIO';
+      icon = Icons.library_music_rounded;
+      color = const Color(0xFF6366F1);
+    } else if (PlaybackController.instance.activeStreamType.isNotEmpty) {
+      final type = PlaybackController.instance.activeStreamType.toUpperCase();
+      final kbps = PlaybackController.instance.activeBitrate > 0
+          ? ' ${PlaybackController.instance.activeBitrate ~/ 1000}K'
+          : '';
+      label = '$type$kbps';
+      icon = Icons.bolt_rounded;
+      color = skin.accent;
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.75),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+            ),
           ),
         ],
       ),

@@ -184,6 +184,8 @@ class DownloadQueueItem {
     this.errorMessage = '',
     this.wifiOnly = true,
     this.chargingOnly = false,
+    this.qualityMode = 'best',
+    this.stage = 'pending',
     required this.createdAt,
     this.startedAt,
     this.completedAt,
@@ -205,6 +207,8 @@ class DownloadQueueItem {
         errorMessage: json['error_message']?.toString() ?? '',
         wifiOnly: json['wifi_only'] == true,
         chargingOnly: json['charging_only'] == true,
+        qualityMode: json['quality_mode']?.toString() ?? 'best',
+        stage: json['stage']?.toString() ?? 'pending',
         createdAt: (json['created_at'] as num?)?.toInt() ?? 0,
         startedAt: (json['started_at'] as num?)?.toInt(),
         completedAt: (json['completed_at'] as num?)?.toInt(),
@@ -225,6 +229,8 @@ class DownloadQueueItem {
   final String errorMessage;
   final bool wifiOnly;
   final bool chargingOnly;
+  final String qualityMode;
+  final String stage;
   final int createdAt;
   final int? startedAt;
   final int? completedAt;

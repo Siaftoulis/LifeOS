@@ -76,6 +76,11 @@ class PlaybackController extends ChangeNotifier {
   StreamSubscription<dynamic>? _positionSub;
   final Set<String> _precachedTrackIds = {};
   bool _hasPrecachedMidpoint = false;
+  bool _hasPrecachedEightyPercent = false;
+  String _activeStreamType = 'OPUS';
+  String get activeStreamType => _activeStreamType;
+  int _activeBitrate = 160000;
+  int get activeBitrate => _activeBitrate;
   final Random _rng = Random();
 
   /// Eagerly pre-caches a single track on the server host daemon.
@@ -141,6 +146,16 @@ class PlaybackController extends ChangeNotifier {
           }
         }
       }
+      // 80% duration pre-fetch for gapless stream transitions
+      if (!_hasPrecachedEightyPercent && dur != null && dur.inSeconds > 15) {
+        if (pos.inSeconds >= (dur.inSeconds * 0.8).toInt()) {
+          _hasPrecachedEightyPercent = true;
+          final nextIdx = _state.currentIndex + 1;
+          if (nextIdx < _state.queue.length) {
+            precacheTrack(_state.queue[nextIdx].id);
+          }
+        }
+      }
     });
   }
 
@@ -187,6 +202,29 @@ class PlaybackController extends ChangeNotifier {
     _userWantsPlay = true;
     _isLoadingTrack = true;
     _hasPrecachedMidpoint = false;
+    _hasPrecachedEightyPercent = false;
+
+    final offline = MusicRepository.instance.offlineFilePath(item.id);
+    if (offline != null && offline.isNotEmpty) {
+      _activeStreamType = 'OFFLINE';
+      _activeBitrate = 320000;
+    } else {
+      _activeStreamType = 'OPUS';
+      _activeBitrate = 160000;
+      if (ApiClient.hasInstance) {
+        ApiClient.instance
+            .getDaemon('/api/v1/music/resolve?id=${Uri.encodeComponent(item.id)}')
+            .then((res) {
+          if (res is Map && token == _playToken) {
+            final st = res['stream_type']?.toString();
+            final br = (res['bitrate'] as num?)?.toInt();
+            if (st != null && st.isNotEmpty) _activeStreamType = st.toUpperCase();
+            if (br != null && br > 0) _activeBitrate = br;
+            notifyListeners();
+          }
+        }).catchError((_) => null);
+      }
+    }
     notifyListeners();
 
     try {

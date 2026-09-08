@@ -99,6 +99,8 @@ func createTables() error {
 		error_message TEXT DEFAULT '',
 		wifi_only BOOLEAN NOT NULL DEFAULT 1,
 		charging_only BOOLEAN NOT NULL DEFAULT 0,
+		quality_mode TEXT NOT NULL DEFAULT 'best',
+		stage TEXT NOT NULL DEFAULT 'pending',
 		created_at INTEGER NOT NULL,
 		started_at INTEGER,
 		completed_at INTEGER
@@ -139,6 +141,18 @@ func createTables() error {
 		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('music_tracks') WHERE name=?", col.name).Scan(&has); err == nil && has == 0 {
 			if _, err := DB.Exec(col.ddl); err != nil {
 				return fmt.Errorf("failed to migrate music_tracks (%s): %v", col.name, err)
+			}
+		}
+	}
+
+	for _, col := range []struct{ name, ddl string }{
+		{"quality_mode", "ALTER TABLE download_queue ADD COLUMN quality_mode TEXT NOT NULL DEFAULT 'best'"},
+		{"stage", "ALTER TABLE download_queue ADD COLUMN stage TEXT NOT NULL DEFAULT 'pending'"},
+	} {
+		var has int
+		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('download_queue') WHERE name=?", col.name).Scan(&has); err == nil && has == 0 {
+			if _, err := DB.Exec(col.ddl); err != nil {
+				return fmt.Errorf("failed to migrate download_queue (%s): %v", col.name, err)
 			}
 		}
 	}

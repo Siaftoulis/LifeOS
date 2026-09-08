@@ -11,6 +11,7 @@ import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
 import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.search.SearchExtractor;
+import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
@@ -128,6 +129,19 @@ public class Bridge {
     static String doStreams(String id) throws Exception {
         StreamInfo info = StreamInfo.getInfo("https://www.youtube.com/watch?v=" + id);
         boolean live = info.getStreamType() == StreamType.LIVE_STREAM;
+        AudioStream bestAud = bestAudio(info.getAudioStreams());
+        String audioUrl = bestAud != null ? bestAud.getUrl() : "";
+        String audioCodec = bestAud != null && bestAud.getCodec() != null ? bestAud.getCodec() : "";
+        int audioBitrate = bestAud != null ? (bestAud.getBitrate() > 0 ? bestAud.getBitrate() : bestAud.getAverageBitrate()) : 0;
+        int audioItag = bestAud != null ? bestAud.getItag() : 0;
+        String mp4Url = bestProgressive(info.getVideoStreams());
+        if (audioUrl.isEmpty() && mp4Url != null && !mp4Url.isEmpty()) {
+            audioUrl = mp4Url;
+            audioCodec = "mp4a";
+            audioBitrate = 128000;
+            audioItag = 18;
+        }
+
         StringBuilder out = new StringBuilder();
         out.append("{\"id\":\"").append(esc(id))
            .append("\",\"title\":\"").append(esc(info.getName()))
@@ -137,8 +151,37 @@ public class Bridge {
            .append(",\"live\":").append(live)
            .append(",\"hls\":\"").append(esc(live ? info.getHlsUrl() : ""))
            .append("\",\"mp4\":\"").append(esc(bestProgressive(info.getVideoStreams())))
-           .append("\"}");
+           .append("\",\"audio_url\":\"").append(esc(audioUrl))
+           .append("\",\"audio_codec\":\"").append(esc(audioCodec))
+           .append("\",\"audio_bitrate\":").append(audioBitrate)
+           .append(",\"audio_itag\":").append(audioItag)
+           .append("}");
         return out.toString();
+    }
+
+    static AudioStream bestAudio(List<AudioStream> streams) {
+        if (streams == null || streams.isEmpty()) return null;
+        AudioStream opus251 = null;
+        AudioStream aac140 = null;
+        AudioStream highest = null;
+        int maxBitrate = 0;
+        for (AudioStream as : streams) {
+            if (as.getUrl() == null || as.getUrl().isEmpty()) continue;
+            int itag = as.getItag();
+            int br = as.getBitrate() > 0 ? as.getBitrate() : as.getAverageBitrate();
+            if (itag == 251) {
+                opus251 = as;
+            } else if (itag == 140) {
+                aac140 = as;
+            }
+            if (br > maxBitrate) {
+                maxBitrate = br;
+                highest = as;
+            }
+        }
+        if (opus251 != null) return opus251;
+        if (aac140 != null) return aac140;
+        return highest != null ? highest : streams.get(0);
     }
 
     // Progressive mp4 (audio+video) with the highest resolution; live streams

@@ -76,7 +76,7 @@ func StopQueueWorker() {
 }
 
 // EnqueueDownload registers a track into the download_queue table and notifies the worker.
-func EnqueueDownload(videoID string, thumbnail string, priority int, user string) (string, error) {
+func EnqueueDownload(videoID string, thumbnail string, priority int, user string, qualityMode ...string) (string, error) {
 	if DB == nil {
 		return "", fmt.Errorf("database not initialized")
 	}
@@ -86,12 +86,17 @@ func EnqueueDownload(videoID string, thumbnail string, priority int, user string
 		rawURL = "https://www.youtube.com/watch?v=" + rawURL
 	}
 
+	qMode := "best"
+	if len(qualityMode) > 0 && strings.TrimSpace(qualityMode[0]) != "" {
+		qMode = strings.TrimSpace(qualityMode[0])
+	}
+
 	id := "dl-" + strconv.FormatInt(time.Now().UnixNano(), 36)
 	now := time.Now().UnixMilli()
 
-	_, err := DB.Exec(`INSERT INTO download_queue (id, track_id, url, status, priority, wifi_only, charging_only, created_at)
-		VALUES (?, ?, ?, 'pending', ?, 0, 0, ?)`,
-		id, videoID, rawURL, priority, now)
+	_, err := DB.Exec(`INSERT INTO download_queue (id, track_id, url, status, priority, wifi_only, charging_only, quality_mode, stage, created_at)
+		VALUES (?, ?, ?, 'pending', ?, 0, 0, ?, 'pending', ?)`,
+		id, videoID, rawURL, priority, qMode, now)
 	if err != nil {
 		return "", fmt.Errorf("enqueue failed: %w", err)
 	}
@@ -121,7 +126,7 @@ func CancelDownload(id string) error {
 	}
 
 	now := time.Now().UnixMilli()
-	_, err := DB.Exec("UPDATE download_queue SET status = 'cancelled', completed_at = ?, error_message = 'Cancelled by user' WHERE id = ?", now, id)
+	_, err := DB.Exec("UPDATE download_queue SET status = 'cancelled', stage = 'cancelled', completed_at = ?, error_message = 'Cancelled by user' WHERE id = ?", now, id)
 	return err
 }
 
@@ -146,20 +151,20 @@ func queueWorkerLoop() {
 	}
 }
 
-// processNextDownload selects and executes the next pending download item.
+// processNextDownload selects and executes the next pending download item with multi-source waterfall resolution.
 func processNextDownload(baseCtx context.Context) (bool, error) {
 	if DB == nil {
 		return false, nil
 	}
 
-	var id, trackID, rawURL string
+	var id, trackID, rawURL, qualityMode string
 	var priority int
 	err := DB.QueryRow(`
-		SELECT id, track_id, url, priority FROM download_queue
+		SELECT id, track_id, url, priority, COALESCE(quality_mode, 'best') FROM download_queue
 		WHERE status = 'pending'
 		ORDER BY priority DESC, created_at ASC
 		LIMIT 1
-	`).Scan(&id, &trackID, &rawURL, &priority)
+	`).Scan(&id, &trackID, &rawURL, &priority, &qualityMode)
 
 	if err == sql.ErrNoRows {
 		return false, nil
@@ -169,7 +174,7 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 	}
 
 	now := time.Now().UnixMilli()
-	res, err := DB.Exec("UPDATE download_queue SET status = 'downloading', started_at = ? WHERE id = ? AND status = 'pending'", now, id)
+	res, err := DB.Exec("UPDATE download_queue SET status = 'downloading', stage = 'resolving', started_at = ? WHERE id = ? AND status = 'pending'", now, id)
 	if err != nil {
 		return false, err
 	}
@@ -198,15 +203,38 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 		log.Printf("music download %s: mkdir failed: %v", trackID, mkErr)
 	}
 
+	// Phase 1: Metadata Enrichment
+	var knownTitle, knownArtist string
+	_ = DB.QueryRow("SELECT title, artist FROM music_tracks WHERE id = ?", trackID).Scan(&knownTitle, &knownArtist)
+	enriched := EnrichMetadata(ctx, knownTitle, knownArtist)
+
+	// Phase 2: Multi-Source Waterfall Discovery
+	source := ResolveWaterfall(ctx, enriched, rawURL, qualityMode)
+	log.Printf("music download %s: waterfall resolved tier=%s, format=%s, lossless=%v", trackID, source.Tier, source.Format, source.IsLossless)
+
+	// Phase 3: Extraction
+	_, _ = DB.Exec("UPDATE download_queue SET stage = 'downloading' WHERE id = ?", id)
+
+	var audioFormatArgs []string
+	if source.IsLossless || qualityMode == "best" {
+		audioFormatArgs = []string{"-x", "--audio-format", "flac", "--audio-quality", "0"}
+	} else {
+		// Native container copy to prevent lossy re-encoding quality degradation
+		audioFormatArgs = []string{"-f", "bestaudio/best", "-x", "--audio-format", "copy"}
+	}
+
 	args := []string{
 		"--js-runtimes", jsRuntimesArg(),
 		"--no-warnings",
 		"--no-check-certificates",
-		"--match-filter", "!is_live & !is_live_stream & !live_status & duration <= 1200",
-		"--max-filesize", "100M",
+		"--match-filter", "!is_live & !is_live_stream & !live_status & duration <= 1800",
+		"--max-filesize", "150M",
 		"--no-live-chat",
-		"-x", "--audio-format", "mp3", "--audio-quality", "0",
+	}
+	args = append(args, audioFormatArgs...)
+	args = append(args,
 		"--embed-metadata", "--embed-thumbnail", "--add-metadata",
+		"--parse-metadata", "title:%(title)s",
 		"--print", "after_move:filepath",
 		"--print", "after_move:title",
 		"--print", "after_move:artist",
@@ -215,22 +243,22 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 		"--print", "after_move:uploader",
 		"--print", "after_move:thumbnail",
 		"-o", filepath.Join(outDir, "%(artist,uploader)s", "%(title)s [%(id)s].%(ext)s"),
-		rawURL,
-	}
+		source.ResolvedURL,
+	)
 
 	out, err := ExecYtDlp(ctx, "download", trackID, args)
 	completedAt := time.Now().UnixMilli()
 
 	if errors.Is(ctx.Err(), context.Canceled) {
 		log.Printf("music download %s: cancelled", trackID)
-		_, _ = DB.Exec("UPDATE download_queue SET status = 'cancelled', completed_at = ?, error_message = 'Download cancelled' WHERE id = ?", completedAt, id)
+		_, _ = DB.Exec("UPDATE download_queue SET status = 'cancelled', stage = 'cancelled', completed_at = ?, error_message = 'Download cancelled' WHERE id = ?", completedAt, id)
 		return true, nil
 	}
 
 	if err != nil {
 		errMsg := err.Error()
 		log.Printf("music download %s failed: %s", trackID, errMsg)
-		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, errMsg, id)
+		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', stage = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, errMsg, id)
 		return true, err
 	}
 
@@ -238,9 +266,12 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 	if len(lines) < 6 || lines[0] == "" {
 		errMsg := fmt.Sprintf("unexpected yt-dlp output format (%d lines)", len(lines))
 		log.Printf("music download %s: %s", trackID, errMsg)
-		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, errMsg, id)
+		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', stage = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, errMsg, id)
 		return true, fmt.Errorf("%s", errMsg)
 	}
+
+	// Phase 4: Full Metadata & Asset Injection
+	_, _ = DB.Exec("UPDATE download_queue SET stage = 'tagging' WHERE id = ?", id)
 
 	clean := func(s string) string {
 		s = strings.TrimSpace(s)
@@ -252,8 +283,17 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 
 	savedPath := clean(lines[0])
 	title := clean(lines[1])
+	if enriched.Title != "" {
+		title = enriched.Title
+	}
 	artist := clean(lines[2])
+	if enriched.Artist != "" {
+		artist = enriched.Artist
+	}
 	album := clean(lines[3])
+	if enriched.Album != "" {
+		album = enriched.Album
+	}
 	duration := 0.0
 	if d, parseErr := strconv.ParseFloat(strings.TrimSpace(lines[4]), 64); parseErr == nil {
 		duration = d
@@ -263,28 +303,31 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 		artist = uploader
 	}
 	thumb := ""
-	if len(lines) >= 7 {
+	if enriched.CoverArtURL != "" {
+		thumb = enriched.CoverArtURL
+	} else if len(lines) >= 7 {
 		thumb = clean(lines[6])
 	}
 	if thumb == "" {
 		thumb = "https://i.ytimg.com/vi/" + trackID + "/hqdefault.jpg"
 	}
 
-	// Update music_tracks table with canonical thumbnail and thumbnail_url
-	_, dbErr := DB.Exec(`INSERT INTO music_tracks (id, title, artist, album, file_path, duration, thumbnail, thumbnail_url)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	// Update music_tracks table with canonical thumbnail and metadata
+	_, dbErr := DB.Exec(`INSERT INTO music_tracks (id, title, artist, album, album_artist, genre, year, file_path, duration, thumbnail, thumbnail_url)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET title=excluded.title, artist=excluded.artist,
-		album=excluded.album, file_path=excluded.file_path, duration=excluded.duration,
+		album=excluded.album, album_artist=excluded.album_artist, genre=excluded.genre,
+		year=excluded.year, file_path=excluded.file_path, duration=excluded.duration,
 		thumbnail=excluded.thumbnail, thumbnail_url=excluded.thumbnail_url`,
-		trackID, title, artist, album, savedPath, duration, thumb, thumb)
+		trackID, title, artist, album, enriched.AlbumArtist, enriched.Genre, enriched.Year, savedPath, duration, thumb, thumb)
 	if dbErr != nil {
 		log.Printf("music download %s: db insert failed: %v", trackID, dbErr)
-		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, dbErr.Error(), id)
+		_, _ = DB.Exec("UPDATE download_queue SET status = 'failed', stage = 'failed', completed_at = ?, error_message = ? WHERE id = ?", completedAt, dbErr.Error(), id)
 		return true, dbErr
 	}
 
 	// Update queue status to completed
-	_, _ = DB.Exec("UPDATE download_queue SET status = 'completed', completed_at = ?, destination_path = ? WHERE id = ?", completedAt, savedPath, id)
+	_, _ = DB.Exec("UPDATE download_queue SET status = 'completed', stage = 'completed', completed_at = ?, destination_path = ? WHERE id = ?", completedAt, savedPath, id)
 
 	queuedUsersMu.Lock()
 	user := queuedUsers[id]

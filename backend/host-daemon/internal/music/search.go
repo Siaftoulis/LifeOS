@@ -122,61 +122,47 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultSearchTimeout)
 	defer cancel()
 
-	target := "ytsearch15:" + query
 	if isDirectYouTubeURL(query) {
-		target = query
+		// Extract video ID from URL
+		u, _ := url.Parse(query)
+		var vid string
+		if strings.Contains(u.Host, "youtu.be") {
+			parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+			if len(parts) >= 1 {
+				vid = parts[0]
+			}
+		} else if u.Path == "/watch" {
+			vid = u.Query().Get("v")
+		} else {
+			parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+			if len(parts) >= 2 {
+				vid = parts[1]
+			}
+		}
+		if len(vid) == 11 {
+			results := []SearchResult{
+				{
+					ID:        vid,
+					Title:     "Direct Link Track",
+					Artist:    "YouTube",
+					Duration:  0,
+					Thumbnail: "https://i.ytimg.com/vi/" + vid + "/hqdefault.jpg",
+				},
+			}
+			json.NewEncoder(w).Encode(results)
+			return
+		}
 	}
 
-	args := []string{
-		"--js-runtimes", jsRuntimesArg(),
-		"--flat-playlist",
-		"--dump-single-json",
-		"--no-playlist",
-		"--skip-download",
-		"--no-warnings",
-		"--no-check-certificates",
-		"--default-search", "ytsearch",
-		target,
-	}
-
-	out, err := ExecYtDlp(ctx, "search", query, args)
+	results, err := SearchInnerTube(ctx, query)
 	if err != nil {
+		log.Printf("music innertube search failed for %q: %v", query, err)
 		http.Error(w, "Search failed", http.StatusBadGateway)
 		return
 	}
 
-	results := make([]SearchResult, 0)
-	var dump flatDump
-	if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
-		for _, e := range dump.Entries {
-			if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds {
-				continue
-			}
-			results = append(results, SearchResult{
-				ID:        e.ID,
-				Title:     e.Title,
-				Artist:    e.Uploader,
-				Duration:  e.Duration,
-				Thumbnail: extractThumbnail(e.Thumbnails, e.ID),
-			})
-		}
-	} else {
-		var single flatEntry
-		if err := json.Unmarshal(out, &single); err == nil && single.ID != "" && single.Title != "" {
-			if !single.IsLive && single.LiveStatus != "is_live" && single.Duration > 0 && single.Duration <= maxSongSeconds {
-				results = append(results, SearchResult{
-					ID:        single.ID,
-					Title:     single.Title,
-					Artist:    single.Uploader,
-					Duration:  single.Duration,
-					Thumbnail: extractThumbnail(single.Thumbnails, single.ID),
-				})
-			}
-		} else {
-			log.Printf("music search: parse failed for %q: %v", query, err)
-			http.Error(w, "Search failed", http.StatusBadGateway)
-			return
-		}
+	if results == nil {
+		results = []SearchResult{}
 	}
 
 	json.NewEncoder(w).Encode(results)

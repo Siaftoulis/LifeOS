@@ -11,6 +11,7 @@ import '../../../../core/music_playback/playback_models.dart';
 import '../../../../core/telemetry/telemetry_reporter.dart';
 import '../../../../database/database.dart' hide MusicTrack;
 import '../../../../theme/app_skin_manager.dart';
+import 'components/download_quality_dialog.dart';
 import 'components/download_queue_sheet.dart';
 import 'components/music_mini_player.dart';
 import 'components/music_stats_sheet.dart';
@@ -359,7 +360,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       });
       return;
     }
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 200), () {
       _search(val.trim());
     });
   }
@@ -404,14 +405,21 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     }
   }
 
-  Future<void> _download(MusicTrack track) async {
+  Future<void> _download(MusicTrack track, [String? qualityMode]) async {
+    String mode = qualityMode ?? 'best';
+    if (qualityMode == null) {
+      final selected = await DownloadQualitySheet.show(context, track: track);
+      if (selected == null) return;
+      mode = selected;
+    }
     setState(() => _downloading.add(track.id));
     try {
-      await MusicRepository.instance.download(track);
+      await MusicRepository.instance.download(track, qualityMode: mode);
       if (mounted) {
+        final modeLabel = mode == 'best' ? 'Lossless / Best' : 'Fast';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Downloading "${track.title}" to server library...'),
+            content: Text('Downloading "${track.title}" ($modeLabel)...'),
             backgroundColor: context.skin.bg1,
           ),
         );

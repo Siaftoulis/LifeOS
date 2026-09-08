@@ -118,6 +118,21 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
     }
   }
 
+  String _stageText(DownloadQueueItem item) {
+    final s = item.status.toUpperCase();
+    if (s == 'DOWNLOADING') {
+      switch (item.stage.toLowerCase()) {
+        case 'resolving':
+          return 'RESOLVING SOURCE';
+        case 'tagging':
+          return 'TAGGING & ART';
+        default:
+          return 'DOWNLOADING';
+      }
+    }
+    return s;
+  }
+
   @override
   Widget build(BuildContext context) {
     final skin = context.skin;
@@ -289,7 +304,24 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              if (item.qualityMode.isNotEmpty) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: (item.qualityMode == 'best' ? skin.accent : Colors.blueAccent).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    item.qualityMode == 'best' ? '💎 BEST' : '⚡ FAST',
+                                    style: TextStyle(
+                                      color: item.qualityMode == 'best' ? skin.accent : Colors.blueAccent,
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
@@ -298,7 +330,7 @@ class _DownloadQueueSheetState extends State<DownloadQueueSheet> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  item.status.toUpperCase(),
+                                  _stageText(item),
                                   style: TextStyle(
                                     color: color,
                                     fontSize: 9,

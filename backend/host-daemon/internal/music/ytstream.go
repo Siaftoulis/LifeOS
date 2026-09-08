@@ -2,34 +2,15 @@ package music
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"time"
 )
-
-var (
-	flightMu    sync.Mutex
-	flightLock  = make(map[string]*sync.Mutex)
-	precacheSem = make(chan struct{}, 2)
-)
-
-func getFlightLock(id string) *sync.Mutex {
-	flightMu.Lock()
-	defer flightMu.Unlock()
-	if lock, exists := flightLock[id]; exists {
-		return lock
-	}
-	lock := &sync.Mutex{}
-	flightLock[id] = lock
-	return lock
-}
 
 // HandleResolveStreamURL returns a JSON response containing the stream endpoint URL and starts caching.
 func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
@@ -49,33 +30,26 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cacheDir := getCacheDir()
-	_ = os.MkdirAll(cacheDir, 0755)
-	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
-
-	// If not cached, initiate background download with independent context throttled by precacheSem
-	if stat, err := os.Stat(cacheFilePath); err != nil || stat.Size() <= 50000 {
-		select {
-		case precacheSem <- struct{}{}:
-			go func() {
-				defer func() { <-precacheSem }()
-				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-				defer cancel()
-				_ = downloadAndCache(ctx, id, cacheFilePath)
-			}()
-		default:
-			log.Printf("music ytstream: precache slots full, skipping background pre-cache for %s", id)
-		}
+	stream, err := ResolveAudioStream(r.Context(), id)
+	if err != nil {
+		log.Printf("music ytstream resolve %s error: %v", id, err)
+		http.Error(w, fmt.Sprintf(`{"error":%q}`, err.Error()), http.StatusBadGateway)
+		return
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"url":       fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
-		"is_cached": true,
+		"url":         fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
+		"direct_url":  stream.URL,
+		"stream_type": stream.StreamType,
+		"bitrate":     stream.Bitrate,
+		"itag":        stream.Itag,
+		"is_cached":   true,
 	})
 }
 
-// HandleYTStream serves the audio stream directly from local disk cache with HTTP 206 Range support.
-// If the track is not yet cached, it downloads it with yt-dlp first and then serves it progressively.
+// HandleYTStream serves the audio stream. If locally archived/downloaded on disk, serves with 206 Range.
+// Otherwise, it immediately resolves the direct signed stream URL and redirects (HTTP 307) or proxies with 206 Range,
+// completely eliminating yt-dlp CLI subprocess execution and disk buffering.
 func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
@@ -103,21 +77,53 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	_ = os.MkdirAll(cacheDir, 0755)
 	cacheFilePath := filepath.Join(cacheDir, fmt.Sprintf("%s.mp4", id))
 
-	// 1. If already saved to disk cache, serve directly with byte range seeking
+	// 1. If saved to local disk (e.g. offline downloaded), serve directly with byte range seeking
 	if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
 		serveCachedFile(w, r, cacheFilePath, stat)
 		return
 	}
 
-	// 2. Not cached yet: download & cache cleanly using request context
-	if err := downloadAndCache(r.Context(), id, cacheFilePath); err == nil {
-		if stat, err := os.Stat(cacheFilePath); err == nil && stat.Size() > 50000 {
-			serveCachedFile(w, r, cacheFilePath, stat)
-			return
-		}
+	// 2. Resolve direct signed audio stream URL via in-memory cache/bridge (Zero CLI subprocesses)
+	stream, err := ResolveAudioStream(r.Context(), id)
+	if err != nil {
+		log.Printf("music ytstream %s failed to resolve: %v", id, err)
+		http.Error(w, "Failed to fetch audio stream", http.StatusBadGateway)
+		return
 	}
 
-	http.Error(w, "Failed to fetch audio stream", http.StatusBadGateway)
+	// 3. If client requests direct proxy or does not follow redirects, stream through reverse proxy
+	if r.URL.Query().Get("proxy") == "true" {
+		proxyLiveAudio(w, r, stream.URL)
+		return
+	}
+
+	// 4. Default: HTTP 307 Temporary Redirect for instant sub-second playback start
+	http.Redirect(w, r, stream.URL, http.StatusTemporaryRedirect)
+}
+
+func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
+	outReq, err := http.NewRequestWithContext(r.Context(), r.Method, directURL, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if rangeHeader := r.Header.Get("Range"); rangeHeader != "" {
+		outReq.Header.Set("Range", rangeHeader)
+	}
+
+	resp, err := http.DefaultClient.Do(outReq)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	for k, v := range resp.Header {
+		w.Header()[k] = v
+	}
+	w.WriteHeader(resp.StatusCode)
+	io.Copy(w, resp.Body)
 }
 
 func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, stat os.FileInfo) {
@@ -147,53 +153,4 @@ func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, st
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Accept-Ranges", "bytes")
 	http.ServeContent(w, r, filepath.Base(filePath), stat.ModTime(), file)
-}
-
-func downloadAndCache(parentCtx context.Context, id string, destPath string) error {
-	lock := getFlightLock(id)
-	lock.Lock()
-	defer lock.Unlock()
-
-	if stat, err := os.Stat(destPath); err == nil && stat.Size() > 50000 {
-		return nil
-	}
-
-	tmpFile := destPath + ".tmp"
-	_ = os.Remove(tmpFile)
-
-	log.Printf("music ytstream: downloading & caching %s...", id)
-
-	ctx, cancel := context.WithTimeout(parentCtx, defaultStreamTimeout)
-	defer cancel()
-
-	args := []string{
-		"--js-runtimes", jsRuntimesArg(),
-		"--no-warnings",
-		"--no-check-certificates",
-		"--match-filter", "!is_live & !is_live_stream & !live_status & duration <= 900",
-		"--max-filesize", "60M",
-		"--no-live-chat",
-		"-f", "ba/b/bestaudio",
-		"--no-playlist",
-		"-o", tmpFile,
-		"https://www.youtube.com/watch?v=" + id,
-	}
-
-	_, err := ExecYtDlp(ctx, "ytstream", id, args)
-	if err != nil {
-		_ = os.Remove(tmpFile)
-		return err
-	}
-
-	if stat, err := os.Stat(tmpFile); err == nil && stat.Size() > 50000 {
-		if err := os.Rename(tmpFile, destPath); err != nil {
-			_ = os.Remove(tmpFile)
-			return err
-		}
-		log.Printf("music ytstream: successfully cached %s (%d bytes)", id, stat.Size())
-		return nil
-	}
-
-	_ = os.Remove(tmpFile)
-	return fmt.Errorf("downloaded file invalid or too small")
 }
