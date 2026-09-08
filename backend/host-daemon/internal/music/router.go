@@ -57,6 +57,11 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/music/smart/recommendations", HandleRecommendations)
 	mux.HandleFunc("GET /api/v1/music/recommendations", HandleRecommendations)
 
+	// Lossless & Engine Settings
+	mux.HandleFunc("GET /api/v1/music/config", HandleGetConfig)
+	mux.HandleFunc("POST /api/v1/music/config", HandleSaveConfig)
+	mux.HandleFunc("POST /api/v1/music/config/test-slskd", HandleTestSlskd)
+
 	StartQueueWorker()
 }
 

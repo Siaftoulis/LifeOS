@@ -36,13 +36,19 @@ type SlskdFileMatch struct {
 
 // NewSlskdClient creates a new client referencing SLSKD_URL (default: http://localhost:5030).
 func NewSlskdClient() *SlskdClient {
-	baseURL := os.Getenv("SLSKD_URL")
+	baseURL := GetMusicConfig("slskd_url")
+	if baseURL == "" {
+		baseURL = os.Getenv("SLSKD_URL")
+	}
 	if baseURL == "" {
 		baseURL = "http://localhost:5030"
 	}
 	baseURL = strings.TrimRight(baseURL, "/")
 
-	apiKey := os.Getenv("SLSKD_API_KEY")
+	apiKey := GetMusicConfig("slskd_api_key")
+	if apiKey == "" {
+		apiKey = os.Getenv("SLSKD_API_KEY")
+	}
 
 	return &SlskdClient{
 		BaseURL: baseURL,

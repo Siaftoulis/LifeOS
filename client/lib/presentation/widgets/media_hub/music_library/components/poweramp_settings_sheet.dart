@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../../../../../theme/app_skin_registry.dart';
 import '../poweramp_equalizer_modal.dart';
+import 'lossless_sources_modal.dart';
 
 /// 1:1 Poweramp Settings screen matching Screenshot 4.
 class PowerampSettingsSheet extends StatelessWidget {
@@ -38,6 +39,15 @@ class PowerampSettingsSheet extends StatelessWidget {
         desc: 'Crossfade, replay gain, volume, output',
         onTap: () {
           PowerampEqualizerModal.show(context, initialMode: 1);
+        },
+      ),
+      (
+        icon: Icons.hub_rounded,
+        iconColor: const Color(0xFF38BDF8),
+        title: 'Lossless Sources & Integrations',
+        desc: 'Soulseek (slskd) P2P, Tidal, Deezer HiFi credentials',
+        onTap: () {
+          LosslessSourcesModal.show(context);
         },
       ),
       (

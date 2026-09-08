@@ -57,17 +57,19 @@ func ResolveWaterfall(ctx context.Context, meta EnrichedMetadata, fallbackURL st
 	}
 
 	// Tier 1A: Soulseek P2P Lossless FLAC (via slskd)
-	slskd := NewSlskdClient()
-	if slskd.IsAvailable(ctx) {
-		if match, err := slskd.SearchFLAC(ctx, meta.Artist, meta.Title); err == nil && match != nil {
-			log.Printf("waterfall: found Soulseek P2P FLAC match: user=%s file=%s (size=%d, bitrate=%d)", match.Username, match.Filename, match.Size, match.BitRate)
-			// Enqueue download via slskd
-			if err := slskd.EnqueueDownload(ctx, match); err == nil {
-				return WaterfallSource{
-					ResolvedURL: fmt.Sprintf("slskd://%s/%s", match.Username, match.Filename),
-					Tier:        "tier1_soulseek_flac",
-					IsLossless:  true,
-					Format:      "flac",
+	if GetMusicConfig("slskd_enabled") != "false" {
+		slskd := NewSlskdClient()
+		if slskd.IsAvailable(ctx) {
+			if match, err := slskd.SearchFLAC(ctx, meta.Artist, meta.Title); err == nil && match != nil {
+				log.Printf("waterfall: found Soulseek P2P FLAC match: user=%s file=%s (size=%d, bitrate=%d)", match.Username, match.Filename, match.Size, match.BitRate)
+				// Enqueue download via slskd
+				if err := slskd.EnqueueDownload(ctx, match); err == nil {
+					return WaterfallSource{
+						ResolvedURL: fmt.Sprintf("slskd://%s/%s", match.Username, match.Filename),
+						Tier:        "tier1_soulseek_flac",
+						IsLossless:  true,
+						Format:      "flac",
+					}
 				}
 			}
 		}
@@ -104,8 +106,14 @@ func ResolveWaterfall(ctx context.Context, meta EnrichedMetadata, fallbackURL st
 
 // checkAuthenticatedHiFi checks if optional Tidal/Deezer credentials are provided in env.
 func checkAuthenticatedHiFi(ctx context.Context, meta EnrichedMetadata) (WaterfallSource, bool) {
-	tidalToken := os.Getenv("TIDAL_TOKEN")
-	deezerARL := os.Getenv("DEEZER_ARL")
+	tidalToken := GetMusicConfig("tidal_token")
+	if tidalToken == "" {
+		tidalToken = os.Getenv("TIDAL_TOKEN")
+	}
+	deezerARL := GetMusicConfig("deezer_arl")
+	if deezerARL == "" {
+		deezerARL = os.Getenv("DEEZER_ARL")
+	}
 
 	if tidalToken != "" {
 		log.Printf("waterfall: Tidal authentication token detected, checking Tidal HiFi catalog for ISRC=%s", meta.ISRC)

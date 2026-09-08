@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
+import 'lossless_sources_modal.dart';
 
 /// Modal bottom sheet allowing users to select download quality mode:
 /// - "best": Multi-source waterfall (FLAC lossless -> 320k HQ -> YouTube Pristine Opus)
@@ -113,14 +114,42 @@ class DownloadQualitySheet extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-            Text(
-              'SELECT AUDIO QUALITY',
-              style: TextStyle(
-                color: skin.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'SELECT AUDIO QUALITY',
+                  style: TextStyle(
+                    color: skin.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    LosslessSourcesModal.show(context);
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Row(
+                      children: [
+                        Icon(Icons.tune_rounded, size: 12, color: skin.accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Configure Sources',
+                          style: TextStyle(
+                            color: skin.accent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 

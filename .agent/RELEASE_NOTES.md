@@ -1,32 +1,34 @@
-## LifeOS v1.5.29 (Build #67) — Soulseek P2P Lossless FLAC, Archive.org Direct FLAC & SoundCloud HQ Waterfall
+## LifeOS v1.5.30 (Build #68) — Lossless Sources Configuration UI & Soulseek / Tidal / Deezer Settings
 
-Welcome to **LifeOS v1.5.29**! This update integrates deeper lossless audio networks directly into the Multi-Source Quality Waterfall:
+Welcome to **LifeOS v1.5.30**! This release introduces a comprehensive settings interface and backend configuration subsystem for managing lossless audio sources, Soulseek P2P connections, and HiFi credentials.
 
 ---
 
 ### Highlights & What's New
 
-#### 🌐 Soulseek (`slskd`) P2P Lossless FLAC Client
-* **Native slskd Client**: Direct integration with the `slskd` REST API on `localhost:5030` or configured `SLSKD_URL`.
-* **Automated Network Queries**: Issues automated peer queries for `Artist - Title flac` across the Soulseek P2P network.
-* **Intelligent Peer Selection**: Prioritizes peers with free upload slots, highest bandwidth transfer speed, and uncompressed 16-bit/24-bit FLAC audio.
-* **Automatic Peer Download Enqueueing**: Enqueues lossless tracks directly to the background downloader.
+#### 🎛️ Lossless Sources & Integrations UI Modal
+* **Dedicated Configuration Interface**: Accessible directly from **Poweramp Settings** (`Lossless Sources & Integrations`) and the **Download Quality Sheet** (`Configure Sources` header button).
+* **Soulseek (`slskd`) Management**:
+  * Toggle switch to enable/disable Soulseek network querying.
+  * Custom `slskd` daemon URL configuration (defaulting to `http://localhost:5030`).
+  * API key authorization input for secured `slskd` setups.
+  * Live **"Test Soulseek Connection"** button with instant visual connection status badge (`Connected` vs `Offline`).
+* **Tidal HiFi Credentials**:
+  * Input field for Tidal token / Client ID to unlock master quality FLAC streams.
+* **Deezer HiFi Credentials**:
+  * Input field for Deezer ARL cookie to enable 1411kbps lossless FLAC streaming.
 
 ---
 
-#### 🏛️ Archive.org Direct Lossless FLAC Stream Extractor
-* **Direct File Metadata Inspection**: Upgraded Archive.org queries to parse item file tables at `archive.org/metadata/{id}/files`.
-* **Direct Download URLs**: Extracts direct `https://archive.org/download/{id}/{filename.flac}` URLs instead of metadata pages.
-* **Pristine Container Retention**: Audio files download directly without transcoding.
-
----
-
-#### ☁️ SoundCloud HQ 320k Stream Discovery & Premium Hooks
-* **SoundCloud HQ Discovery**: Seamless fallback to 320kbps streams via verified native search selectors.
-* **Tidal & Deezer Credentials Support**: Built-in environment hooks (`TIDAL_TOKEN`, `DEEZER_ARL`) to enable master quality streams when credentials are provided.
+#### 💾 Persistent Music Engine Configuration
+* **Database Persistence**: Introduced `music_config` table in `media.db` for reliable, cross-restart storage of all audio provider credentials.
+* **Dedicated Backend Endpoints**:
+  * `GET /api/v1/music/config` — Retrieves current integration configuration with sensible defaults.
+  * `POST /api/v1/music/config` — Updates and persists provider settings.
+  * `POST /api/v1/music/config/test-slskd` — Tests daemon connectivity and reports active status.
 
 ---
 
 ### Verification & Performance
-* **Automated Unit Tests**: 20/20 unit tests passed (`slskd_test.go`, `waterfall_test.go`, `innertube_test.go`, `stream_cache_test.go`, `enrichment_test.go`).
-* **Offline Resilience**: Instant sub-800ms fallback when external daemons are offline.
+* **Automated Unit Tests**: All 20 backend music tests passed (`slskd_test.go`, `waterfall_test.go`, etc.).
+* **Zero Client Lint Errors**: Clean Flutter analysis across all newly created and updated UI components.

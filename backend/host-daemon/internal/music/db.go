@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -123,6 +124,12 @@ func createTables() error {
 		url TEXT NOT NULL,
 		date TEXT NOT NULL
 	);
+
+	CREATE TABLE IF NOT EXISTS music_config (
+		key TEXT PRIMARY KEY,
+		value TEXT NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
 	`
 
 	_, err := DB.Exec(query)
@@ -187,3 +194,48 @@ func seedMedia() {
 		}
 	}
 }
+
+// GetMusicConfig retrieves a stored configuration value from music_config.
+func GetMusicConfig(key string) string {
+	if DB == nil {
+		return ""
+	}
+	var val string
+	_ = DB.QueryRow("SELECT value FROM music_config WHERE key = ?", key).Scan(&val)
+	return val
+}
+
+// SetMusicConfig sets or updates a configuration value in music_config.
+func SetMusicConfig(key, val string) error {
+	if DB == nil {
+		return fmt.Errorf("media db is nil")
+	}
+	now := time.Now().UnixMilli()
+	_, err := DB.Exec(`INSERT INTO music_config (key, value, updated_at)
+		VALUES (?, ?, ?)
+		ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at`,
+		key, val, now)
+	return err
+}
+
+// GetAllMusicConfig returns all stored music configuration key-values.
+func GetAllMusicConfig() map[string]string {
+	res := make(map[string]string)
+	if DB == nil {
+		return res
+	}
+	rows, err := DB.Query("SELECT key, value FROM music_config")
+	if err != nil {
+		return res
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var k, v string
+		if err := rows.Scan(&k, &v); err == nil {
+			res[k] = v
+		}
+	}
+	return res
+}
+
