@@ -131,7 +131,7 @@ class DownloadQualitySheet extends StatelessWidget {
               title: 'Automatic Best Quality',
               tag: '💎 LOSSLESS / HQ',
               description:
-                  'Waterfall search across open lossless sources (FLAC/ALAC), 320k streams, or pristine Opus with HD cover art.',
+                  'Multi-source waterfall across Soulseek P2P, Archive.org direct FLAC, SoundCloud 320k, or pristine Opus with HD cover art.',
               isRecommended: true,
               skin: skin,
               onTap: () => Navigator.of(context).pop('best'),
