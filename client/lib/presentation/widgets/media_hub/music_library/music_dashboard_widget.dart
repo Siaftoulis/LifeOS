@@ -165,7 +165,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   final Set<String> _downloading = {};
   final Set<String> _offlineDownloading = {};
 
-  bool get _canPlay => !kIsWeb;
+  bool get _canPlay => _pc.isAvailable;
   bool get _hasActivePlayback =>
       _canPlay && _currentTrackId.isNotEmpty && _pc.currentItem != null;
   PlaybackController get _pc => PlaybackController.instance;
@@ -474,7 +474,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     if (offline != null && offline.isNotEmpty) {
       return offline;
     }
-    return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=$trackId';
+    return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=$trackId${kIsWeb ? '&proxy=true' : ''}';
   }
 
   void _playTrackList(List<MusicTrack> list, int startIndex) {
@@ -499,7 +499,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
-          'Music playback is available in the LifeOS Android and Windows native apps.',
+          'Audio playback engine is currently initializing or unavailable.',
         ),
         backgroundColor: context.skin.bg1,
         action: track != null

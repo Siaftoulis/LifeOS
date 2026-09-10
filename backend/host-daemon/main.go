@@ -220,7 +220,7 @@ func main() {
 	// login, register (public by design), the OAuth entry points and the collab
 	// websocket (browsers can't set WS headers; HandleCollab validates the
 	// ?token= query param itself).
-	handler := middleware.WithAuthGate([]string{
+	authGated := middleware.WithAuthGate([]string{
 		"/api/v1/ping",
 		"/api/v1/auth/login",
 		"/api/v1/auth/register",
@@ -237,6 +237,9 @@ func main() {
 		"/api/v1/gallery/*",
 		"/api/v1/system/updates/*",
 	}, mux)
+
+	// Global CORS middleware: handles preflight OPTIONS and adds CORS headers for Web clients
+	handler := withCORS(authGated)
 
 	// ponytail: Funnel upstream — public traffic arrives here via Tailscale
 	// Funnel (RemoteAddr looks like a tailnet peer), so password auth and
@@ -276,4 +279,22 @@ func main() {
 	if err := http.ListenAndServe(port, handler); err != nil {
 		log.Fatalf("Host Daemon execution failed: %v", err)
 	}
+}
+
+// withCORS handles preflight OPTIONS and injects standard CORS headers for web client calls
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, Range, X-Requested-With, Cache-Control")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

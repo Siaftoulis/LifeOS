@@ -49,7 +49,7 @@ LifeOS — self-hosted, offline-first Flutter + Go monorepo (Windows client prim
 - DSP: `client/lib/core/audio_dsp_service.dart` — Windows applies `af` filter string via libmpv FFI on all live mpv handles (`audio_dsp_native.dart`, Windows-only; hacks media_kit internal temp-file handle registry — fail silently, keep it defensive). Android uses `AndroidEqualizer` from just_audio.
 - Offline device downloads: Drift table `OfflineMusicTracks` + files in `getApplicationDocumentsDirectory()/music_offline/`; platform split via conditional export pattern (`offline_music_download.dart` → `_io.dart` / `_web.dart`).
 - **Gotcha:** importing `database/database.dart` into any file using domain `MusicTrack` requires `hide MusicTrack` (Drift generates a same-named class).
-- **Product decision (2026-08):** music must NOT play in the web portal — web shows UI + downloaded items only. Playback (and offline play-from-file, EQ, DSP) is native apps only (Windows/Linux/macOS/Android/iOS). Don't build web audio paths.
+- **Web Music Support (2026-09):** Music playback is supported in the web portal via HTTP audio streaming (`proxy=true` on `/api/v1/music/ytstream/` or `/api/v1/music/stream/`) and `just_audio_web`. Native DSP and hardware EQ remain native-only (Windows/Linux/Android).
 
 ## Other gotchas
 

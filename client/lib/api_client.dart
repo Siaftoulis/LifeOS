@@ -37,20 +37,31 @@ class ApiClient {
     if (kIsWeb) {
       if (Uri.base.origin.isNotEmpty) {
         final origin = Uri.base.origin;
-        if (url.isEmpty ||
-            url.contains('localhost') ||
-            url.contains('127.0.0.1') ||
-            url.contains('0.0.0.0')) {
-          return origin;
-        }
-        final parsed = Uri.tryParse(url);
-        if (parsed != null && Uri.base.host != parsed.host) {
-          final isPrivate = parsed.host.startsWith('192.168.') ||
-              parsed.host.startsWith('10.') ||
-              parsed.host.startsWith('172.16.') ||
-              parsed.host.endsWith('.local');
-          if (isPrivate) {
+        final baseIsDevServer = (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') &&
+            Uri.base.port != 50051;
+
+        if (baseIsDevServer) {
+          if (url.isEmpty) return 'http://localhost:50051';
+          if (url.contains(':50051')) return url;
+          if (url.contains('localhost') || url.contains('127.0.0.1') || url.contains('0.0.0.0')) {
+            return 'http://localhost:50051';
+          }
+        } else {
+          if (url.isEmpty ||
+              url.contains('localhost') ||
+              url.contains('127.0.0.1') ||
+              url.contains('0.0.0.0')) {
             return origin;
+          }
+          final parsed = Uri.tryParse(url);
+          if (parsed != null && Uri.base.host != parsed.host) {
+            final isPrivate = parsed.host.startsWith('192.168.') ||
+                parsed.host.startsWith('10.') ||
+                parsed.host.startsWith('172.16.') ||
+                parsed.host.endsWith('.local');
+            if (isPrivate) {
+              return origin;
+            }
           }
         }
       }

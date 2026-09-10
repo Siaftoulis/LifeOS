@@ -226,3 +226,13 @@ func HandleDeleteTrack(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(map[string]any{"status": "deleted", "id": id})
 }
+
+// HandleMusicOptions satisfies CORS preflight requests for music endpoints.
+func HandleMusicOptions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, Range, X-Requested-With, Cache-Control")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
+	w.Header().Set("Access-Control-Max-Age", "86400")
+	w.WriteHeader(http.StatusOK)
+}

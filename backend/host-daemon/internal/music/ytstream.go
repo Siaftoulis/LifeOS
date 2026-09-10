@@ -91,8 +91,13 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. If client requests direct proxy or does not follow redirects, stream through reverse proxy
-	if r.URL.Query().Get("proxy") == "true" {
+	// 3. If client requests direct proxy or does not follow redirects, or if request originates from web/browser, stream through reverse proxy
+	isWeb := r.URL.Query().Get("proxy") == "true" ||
+		r.Header.Get("Origin") != "" ||
+		r.Header.Get("Sec-Fetch-Dest") == "audio" ||
+		r.Header.Get("Sec-Fetch-Mode") == "cors" ||
+		r.Header.Get("Sec-Fetch-Mode") == "no-cors"
+	if isWeb {
 		proxyLiveAudio(w, r, stream.URL)
 		return
 	}
@@ -108,6 +113,7 @@ func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
 		return
 	}
 
+	outReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36")
 	if rangeHeader := r.Header.Get("Range"); rangeHeader != "" {
 		outReq.Header.Set("Range", rangeHeader)
 	}
@@ -122,6 +128,14 @@ func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
 	for k, v := range resp.Header {
 		w.Header()[k] = v
 	}
+
+	// Explicitly ensure CORS & byte-range streaming headers are set for web browsers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
+	w.Header().Set("Accept-Ranges", "bytes")
+
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
 }

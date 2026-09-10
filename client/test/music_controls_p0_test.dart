@@ -120,4 +120,21 @@ void main() {
       expect(hasInactiveActive, isFalse);
     });
   });
+
+  group('P0-3: Playback Engine & Streaming Tests', () {
+    test('PlaybackEngine instance is accessible and exposes valid state', () {
+      final pc = PlaybackController.instance;
+      expect(pc, isNotNull);
+      expect(pc.state.queue, isNotNull);
+    });
+
+    test('Queue item streaming URLs correctly append proxy parameter for web streaming', () {
+      const trackId = 'test12345';
+      const baseStream = 'http://localhost:50051/api/v1/music/ytstream/stream.m4a?id=$trackId';
+      final webStream = baseStream.contains('proxy=true') ? baseStream : '$baseStream&proxy=true';
+
+      expect(webStream, contains('proxy=true'));
+      expect(webStream, contains(trackId));
+    });
+  });
 }

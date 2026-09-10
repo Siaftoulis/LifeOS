@@ -206,10 +206,20 @@ class PlaybackController extends ChangeNotifier {
 
     String playUrl = item.url;
     final offline = MusicRepository.instance.offlineFilePath(item.id);
-    if (offline != null && offline.isNotEmpty) {
+    if (offline != null && offline.isNotEmpty && !kIsWeb) {
       playUrl = offline;
       _activeStreamType = 'OFFLINE';
       _activeBitrate = 320000;
+    } else if (kIsWeb) {
+      _activeStreamType = 'OPUS';
+      _activeBitrate = 160000;
+      if (item.url.contains('/api/v1/music/')) {
+        playUrl = item.url.contains('proxy=true')
+            ? item.url
+            : (item.url.contains('?') ? '${item.url}&proxy=true' : '${item.url}?proxy=true');
+      } else {
+        playUrl = '${ApiClient.instance.daemonUrl}/api/v1/music/stream/?id=${Uri.encodeComponent(item.id)}&proxy=true';
+      }
     } else if (ApiClient.hasInstance) {
       _activeStreamType = 'OPUS';
       _activeBitrate = 160000;
@@ -279,9 +289,9 @@ class PlaybackController extends ChangeNotifier {
         final existingIds = _state.queue.map((i) => i.id).toSet();
         for (final r in recs) {
           if (!existingIds.contains(r.id)) {
-            final streamUrl = r.filePath.isNotEmpty
+            final streamUrl = r.filePath.isNotEmpty && !kIsWeb
                 ? r.filePath
-                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}';
+                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}${kIsWeb ? '&proxy=true' : ''}';
             addToQueue(PlaybackItem(
               id: r.id,
               url: streamUrl,
