@@ -225,7 +225,7 @@ class PlaybackController extends ChangeNotifier {
       }
 
       // Standby player lookahead preload (~12-15s ahead of song end or 85%)
-      if (!_hasPreloadedStandby && dur != null && dur.inSeconds > 20) {
+      if (!kIsWeb && !_hasPreloadedStandby && dur != null && dur.inSeconds > 20) {
         final preloadTriggerSec = (dur.inSeconds - _crossfadeDuration - 12).clamp(5, dur.inSeconds);
         if (pos.inSeconds >= preloadTriggerSec) {
           final nextIdx = computeNextIndex();
@@ -239,7 +239,8 @@ class PlaybackController extends ChangeNotifier {
       }
 
       // Pro DJ Crossfade auto-trigger at (Duration - CrossfadeDuration)
-      if (!_isCrossfadingTrack &&
+      if (!kIsWeb &&
+          !_isCrossfadingTrack &&
           _crossfadeEnabled &&
           _crossfadeDuration > 0 &&
           _state.repeat != PlaybackRepeat.one &&
@@ -315,6 +316,11 @@ class PlaybackController extends ChangeNotifier {
     _hasPrecachedEightyPercent = false;
     _hasPreloadedStandby = false;
     _isCrossfadingTrack = false;
+
+    // Immediately silence existing playback so manual navigation has 0ms audio lag
+    try {
+      await playbackEngine.stop();
+    } catch (_) {}
 
     final playUrl = _resolvePlaybackUrl(item);
 
@@ -570,17 +576,8 @@ class PlaybackController extends ChangeNotifier {
       }
     }
 
-    final isPlaying = player?.playing ?? false;
-    if (userInitiated &&
-        _djTransitions &&
-        _crossfadeEnabled &&
-        _crossfadeDuration > 0 &&
-        isPlaying) {
-      // Pro DJ 1.2s smooth blend on manual skip!
-      await _performCrossfadeTransition(target, const Duration(milliseconds: 1200));
-    } else {
-      await playAt(target);
-    }
+    // Manual skip is always instant with zero delay
+    await playAt(target);
   }
 
   Future<void> previous() async {
