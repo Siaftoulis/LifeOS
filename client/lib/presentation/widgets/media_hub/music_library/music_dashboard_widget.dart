@@ -142,6 +142,12 @@ class MusicDashboardWidget extends StatefulWidget {
     _trackGenreCache.clear();
   }
 
+  static _MusicDashboardWidgetState? activeInstance;
+
+  static void openNowPlayingGlobal([MusicTrack? track]) {
+    activeInstance?._openNowPlaying(track);
+  }
+
   @override
   State<MusicDashboardWidget> createState() => _MusicDashboardWidgetState();
 }
@@ -186,6 +192,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   @override
   void initState() {
     super.initState();
+    MusicDashboardWidget.activeInstance = this;
     _pageController = PageController(initialPage: 0);
     unawaited(AudioDspService.instance.init());
     unawaited(_pc.ensureInitialized());
@@ -319,6 +326,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
   @override
   void dispose() {
+    if (MusicDashboardWidget.activeInstance == this) {
+      MusicDashboardWidget.activeInstance = null;
+    }
     _debounceTimer?.cancel();
     MusicRepository.instance.tracks.removeListener(_tracksChanged);
     MusicRepository.instance.downloadQueue.removeListener(_downloadQueueChanged);

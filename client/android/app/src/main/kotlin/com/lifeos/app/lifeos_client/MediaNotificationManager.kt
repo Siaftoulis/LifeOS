@@ -109,7 +109,11 @@ object MediaNotificationManager {
 
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, builder.build())
+        try {
+            notificationManager.notify(NOTIFICATION_ID, builder.build())
+        } catch (e: Throwable) {
+            android.util.Log.w("MediaNotificationMgr", "Failed to post media notification: ${e.message}")
+        }
     }
 
     fun cancelNotification(context: Context) {

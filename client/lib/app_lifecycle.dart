@@ -5,6 +5,9 @@ import 'database/preferences_service.dart';
 import 'theme/app_skin_manager.dart';
 import 'auth_service.dart';
 import 'core/p2p_transfer_service.dart';
+import 'core/music_playback/android_media_bridge.dart';
+import 'presentation/widgets/media_hub/media_hub_dashboard.dart';
+import 'presentation/widgets/media_hub/music_library/music_dashboard_widget.dart';
 import 'global_keys.dart';
 import 'p2p_dialog_handler.dart';
 import 'notification_poll_service.dart';
@@ -22,6 +25,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
   bool _isUnlocked = false;
   final _pollService = NotificationPollService();
   final _sessionGuard = WebSessionGuard(onExpire: () => AuthService.instance.logout());
+  Map<String, dynamic>? _pendingWidgetLaunch;
 
   @override
   void initState() {
@@ -39,6 +43,10 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
     AuthService.instance.currentUser.addListener(_handleAuthChange);
     _pollService.start();
     P2PTransferService.instance.onReceiveRequest = _handleP2PReceiveRequest;
+    AndroidMediaBridge.latestLaunchIntent.addListener(_handleWidgetLaunchIntent);
+    if (AndroidMediaBridge.latestLaunchIntent.value != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _handleWidgetLaunchIntent());
+    }
   }
 
   @override
@@ -52,10 +60,58 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     AuthService.instance.currentUser.removeListener(_handleAuthChange);
+    AndroidMediaBridge.latestLaunchIntent.removeListener(_handleWidgetLaunchIntent);
     _pollService.stop();
     P2PTransferService.instance.onReceiveRequest = null;
     _sessionGuard.detach();
     super.dispose();
+  }
+
+  void _handleWidgetLaunchIntent() {
+    final args = AndroidMediaBridge.latestLaunchIntent.value;
+    if (args == null) return;
+    if (!_isUnlocked) {
+      _pendingWidgetLaunch = args;
+      return;
+    }
+    _executeWidgetLaunch(args);
+  }
+
+  void _executeWidgetLaunch(Map<String, dynamic> args) {
+    final targetTab = args['target_tab'] as String? ?? 'music_player';
+    final openNowPlaying = args['open_now_playing'] as bool? ?? (targetTab == 'music_player');
+
+    if (targetTab == 'home') {
+      spatialEngineKey.currentState?.navigateToModule('home');
+      return;
+    }
+
+    spatialEngineKey.currentState?.navigateToModule('media_hub');
+
+    int tabIndex = 0;
+    switch (targetTab) {
+      case 'movies':
+        tabIndex = 1;
+        break;
+      case 'gallery':
+        tabIndex = 2;
+        break;
+      case 'youtube':
+        tabIndex = 3;
+        break;
+      case 'music':
+      case 'music_player':
+      default:
+        tabIndex = 0;
+        break;
+    }
+    MediaHubDashboard.switchTab(tabIndex);
+
+    if (tabIndex == 0 && openNowPlaying) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        MusicDashboardWidget.openNowPlayingGlobal();
+      });
+    }
   }
 
   void _handleP2PReceiveRequest(String senderName, String fileName, int fileSize, dynamic socket) {
@@ -76,6 +132,11 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
       // ponytail: web-only — idle watchdog runs only while unlocked
       if (authenticated) {
         _sessionGuard.attach();
+        if (_pendingWidgetLaunch != null) {
+          final pending = _pendingWidgetLaunch!;
+          _pendingWidgetLaunch = null;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _executeWidgetLaunch(pending));
+        }
       } else {
         _sessionGuard.detach();
       }
@@ -114,6 +175,11 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
                       FocusManager.instance.primaryFocus?.unfocus();
                       _sessionGuard.attach();
                       setState(() => _isUnlocked = true);
+                      if (_pendingWidgetLaunch != null) {
+                        final pending = _pendingWidgetLaunch!;
+                        _pendingWidgetLaunch = null;
+                        WidgetsBinding.instance.addPostFrameCallback((_) => _executeWidgetLaunch(pending));
+                      }
                     },
                   ),
                 );

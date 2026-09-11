@@ -24,6 +24,8 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
   bool _showArtwork = true;
   int _opacity = 90;
   String _themeStyle = 'glass'; // 'glass', 'oled', 'accent', 'border'
+  String _targetTab = 'music_player'; // 'music_player', 'music', 'movies', 'gallery', 'youtube', 'home'
+  String _widgetType = 'standard'; // 'standard', 'compact'
   bool _isLoading = true;
 
   @override
@@ -39,6 +41,8 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
         _showArtwork = prefs.getBool('widget_show_art') ?? true;
         _opacity = prefs.getInt('widget_bg_opacity') ?? 90;
         _themeStyle = prefs.getString('widget_theme_style') ?? 'glass';
+        _targetTab = prefs.getString('widget_target_tab') ?? 'music_player';
+        _widgetType = prefs.getString('widget_type') ?? 'standard';
         _isLoading = false;
       });
     }
@@ -49,12 +53,35 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
     await prefs.setBool('widget_show_art', _showArtwork);
     await prefs.setInt('widget_bg_opacity', _opacity);
     await prefs.setString('widget_theme_style', _themeStyle);
+    await prefs.setString('widget_target_tab', _targetTab);
+    await prefs.setString('widget_type', _widgetType);
 
     AndroidMediaBridge.instance.updateWidgetConfig(
       showArtwork: _showArtwork,
       opacity: _opacity,
       themeStyle: _themeStyle,
+      targetTab: _targetTab,
+      widgetType: _widgetType,
     );
+  }
+
+  String _destinationLabel(String key) {
+    switch (key) {
+      case 'music_player':
+        return 'Now Playing (At Play)';
+      case 'music':
+        return 'Music Library';
+      case 'movies':
+        return 'Movies & Series';
+      case 'gallery':
+        return 'Gallery';
+      case 'youtube':
+        return 'YouTube';
+      case 'home':
+        return 'LifeOS Home';
+      default:
+        return 'Now Playing';
+    }
   }
 
   Color _computePreviewBg(AppSkin skin) {
@@ -167,7 +194,7 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Widget Tag
+                        // Widget Tag & Destination Badge
                         Row(
                           children: [
                             Text(
@@ -179,12 +206,36 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
                                 letterSpacing: 0.1,
                               ),
                             ),
-                            const Text(
-                              ' • MUSIC',
-                              style: TextStyle(
+                            Text(
+                              _widgetType == 'compact' ? ' • COMPACT' : ' • MUSIC',
+                              style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 11,
                                 letterSpacing: 0.08,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: skin.accent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: skin.accent.withValues(alpha: 0.4), width: 0.8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.touch_app_rounded, color: skin.accent, size: 11),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _destinationLabel(_targetTab),
+                                    style: TextStyle(
+                                      color: skin.accent,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -245,22 +296,74 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildPreviewBtn(Icons.skip_previous_rounded, 38),
-                            const SizedBox(width: 18),
+                            if (_widgetType != 'compact') ...[
+                              _buildPreviewBtn(Icons.skip_previous_rounded, 38),
+                              const SizedBox(width: 18),
+                            ],
                             _buildPreviewBtn(Icons.play_arrow_rounded, 44, isPlay: true, accent: skin.accent),
-                            const SizedBox(width: 18),
-                            _buildPreviewBtn(Icons.skip_next_rounded, 38),
+                            if (_widgetType != 'compact') ...[
+                              const SizedBox(width: 18),
+                              _buildPreviewBtn(Icons.skip_next_rounded, 38),
+                            ],
                           ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 24),
-                  const Divider(color: Colors.white12),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 22),
 
-                  // 1. ALBUM ART TOGGLE
+                  // 1. TAP DESTINATION SELECTOR
+                  const Text(
+                    'Tap Action (Open Directly To)',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Choose where LifeOS navigates when you tap the widget on your home screen',
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildChoiceChip('music_player', '🎵 Now Playing (At Play)', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                      _buildChoiceChip('music', '🎶 Music Library', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                      _buildChoiceChip('movies', '🎬 Movies & Series', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                      _buildChoiceChip('gallery', '🖼️ Gallery', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                      _buildChoiceChip('youtube', '📺 YouTube', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                      _buildChoiceChip('home', '🏠 LifeOS Home', skin, _targetTab, (k) => setState(() => _targetTab = k)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 2. WIDGET LAYOUT STYLE
+                  const Text(
+                    'Widget Layout Style',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Full player with 3 controls or sleek minimalist single-button compact bar',
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildChoiceChip('standard', '📻 Full Media Player (3 Buttons)', skin, _widgetType, (k) => setState(() => _widgetType = k)),
+                      _buildChoiceChip('compact', '⚡ Compact Bar (Quick Play)', skin, _widgetType, (k) => setState(() => _widgetType = k)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white12),
+                  const SizedBox(height: 12),
+
+                  // 3. ALBUM ART TOGGLE
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     activeThumbColor: skin.accent,
@@ -281,7 +384,7 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
 
                   const SizedBox(height: 16),
 
-                  // 2. TRANSPARENCY SLIDER
+                  // 4. TRANSPARENCY SLIDER
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -312,7 +415,7 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
 
                   const SizedBox(height: 16),
 
-                  // 3. THEME STYLE CHOICES
+                  // 5. THEME STYLE CHOICES
                   const Text(
                     'Widget Theme Style',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -360,6 +463,33 @@ class _HomeWidgetCustomizerSheetState extends State<HomeWidgetCustomizerSheet> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildChoiceChip(
+    String key,
+    String label,
+    AppSkin skin,
+    String selectedValue,
+    ValueChanged<String> onSelected,
+  ) {
+    final selected = selectedValue == key;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      selectedColor: skin.accent,
+      backgroundColor: skin.bg1,
+      labelStyle: TextStyle(
+        color: selected ? Colors.black : Colors.white70,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      onSelected: (val) {
+        if (val) {
+          onSelected(key);
+          _saveAndSync();
+        }
+      },
     );
   }
 

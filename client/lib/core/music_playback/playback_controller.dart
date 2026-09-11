@@ -131,23 +131,20 @@ class PlaybackController extends ChangeNotifier {
     if (offline != null && offline.isNotEmpty && !kIsWeb) {
       return offline;
     }
-    if (kIsWeb) {
-      if (item.url.contains('/api/v1/music/')) {
-        return item.url.contains('proxy=true')
-            ? item.url
-            : (item.url.contains('?') ? '${item.url}&proxy=true' : '${item.url}?proxy=true');
-      }
-      return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}&proxy=true';
-    }
+    String url = item.url.trim();
     if (ApiClient.hasInstance) {
-      if (item.url.contains('/api/v1/music/')) {
-        return item.url.contains('proxy=true')
-            ? item.url
-            : (item.url.contains('?') ? '${item.url}&proxy=true' : '${item.url}?proxy=true');
+      final daemon = ApiClient.instance.daemonUrl;
+      if (url.startsWith('/')) {
+        url = '$daemon$url';
+      } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+        url = '$daemon/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}';
       }
-      return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}&proxy=true';
+      if (url.contains('/api/v1/music/') && !url.contains('proxy=true')) {
+        url = url.contains('?') ? '$url&proxy=true' : '$url?proxy=true';
+      }
+      return url;
     }
-    return item.url;
+    return url;
   }
 
   /// Eagerly pre-caches a single track on the server host daemon.

@@ -19,6 +19,7 @@ import java.io.File
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.lifeos.app/ota_installer"
+    private var pendingLaunchArgs: Map<String, Any>? = null
 
     companion object {
         private const val MEDIA_CHANNEL = "com.lifeos.app/media_session"
@@ -37,6 +38,29 @@ class MainActivity : FlutterActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         hideSystemUI()
+        handleLaunchIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleLaunchIntent(intent)
+    }
+
+    private fun handleLaunchIntent(intent: Intent?) {
+        if (intent == null) return
+        val targetTab = intent.getStringExtra("target_tab")
+        val openNowPlaying = intent.getBooleanExtra("open_now_playing", false)
+        if (targetTab != null || openNowPlaying) {
+            val args = mapOf(
+                "target_tab" to (targetTab ?: "music_player"),
+                "open_now_playing" to openNowPlaying
+            )
+            pendingLaunchArgs = args
+            activityInstance?.runOnUiThread {
+                mediaMethodChannel?.invokeMethod("onWidgetLaunch", args)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -170,16 +194,24 @@ class MainActivity : FlutterActivity() {
                     )
                     result.success(true)
                 }
+                "getInitialWidgetLaunch" -> {
+                    result.success(pendingLaunchArgs)
+                    pendingLaunchArgs = null
+                }
                 "updateWidgetConfig" -> {
                     val showArtwork = call.argument<Boolean>("showArtwork") ?: true
                     val opacity = call.argument<Int>("opacity") ?: 90
                     val themeStyle = call.argument<String>("themeStyle") ?: "glass"
+                    val targetTab = call.argument<String>("targetTab") ?: "music_player"
+                    val widgetType = call.argument<String>("widgetType") ?: "standard"
 
                     LifeOSWidgetProvider.updateConfig(
                         applicationContext,
                         showArtwork,
                         opacity,
-                        themeStyle
+                        themeStyle,
+                        targetTab,
+                        widgetType
                     )
                     result.success(true)
                 }

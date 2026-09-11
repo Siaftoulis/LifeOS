@@ -67,6 +67,9 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
         const val KEY_SHOW_ARTWORK = "show_artwork"
         const val KEY_BG_OPACITY = "bg_opacity"
         const val KEY_THEME_STYLE = "theme_style"
+        const val KEY_TARGET_TAB = "target_tab"
+        const val KEY_WIDGET_TYPE = "widget_type"
+        const val ACTION_OPEN_TAB = "com.lifeos.app.ACTION_OPEN_TAB"
 
         fun updateWidget(
             context: Context,
@@ -97,13 +100,17 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             context: Context,
             showArtwork: Boolean,
             opacity: Int,
-            themeStyle: String
+            themeStyle: String,
+            targetTab: String = "music_player",
+            widgetType: String = "standard"
         ) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit()
                 .putBoolean(KEY_SHOW_ARTWORK, showArtwork)
                 .putInt(KEY_BG_OPACITY, opacity.coerceIn(0, 100))
                 .putString(KEY_THEME_STYLE, themeStyle)
+                .putString(KEY_TARGET_TAB, targetTab)
+                .putString(KEY_WIDGET_TYPE, widgetType)
                 .apply()
 
             refreshAllWidgets(context)
@@ -138,7 +145,8 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val showArtwork = prefs.getBoolean(KEY_SHOW_ARTWORK, true)
             val opacity = prefs.getInt(KEY_BG_OPACITY, 90).coerceIn(0, 100)
-            val themeStyle = prefs.getString(KEY_THEME_STYLE, "glass") ?: "glass"
+            val targetTab = prefs.getString(KEY_TARGET_TAB, "music_player") ?: "music_player"
+            val widgetType = prefs.getString(KEY_WIDGET_TYPE, "standard") ?: "standard"
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
 
@@ -181,20 +189,34 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
                 }
             }
 
+            // Compact vs standard controls visibility
+            if (widgetType == "compact") {
+                views.setViewVisibility(R.id.widget_btn_prev, View.GONE)
+                views.setViewVisibility(R.id.widget_btn_next, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_btn_prev, View.VISIBLE)
+                views.setViewVisibility(R.id.widget_btn_next, View.VISIBLE)
+            }
+
             val playPauseIcon = if (isPlaying) R.drawable.ic_music_pause else R.drawable.ic_music_play
             views.setImageViewResource(R.id.widget_btn_play_pause, playPauseIcon)
 
-            // Tap root / info -> opens MainActivity
+            // Tap root / info -> opens MainActivity with deep link into configured tab & Now Playing
             val launchIntent = Intent(context, MainActivity::class.java).apply {
+                action = ACTION_OPEN_TAB
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("target_tab", targetTab)
+                putExtra("open_now_playing", targetTab == "music_player")
+                data = android.net.Uri.parse("lifeos://tab/$targetTab")
             }
             val pLaunch = PendingIntent.getActivity(
                 context,
-                0,
+                widgetId,
                 launchIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_root, pLaunch)
+            views.setOnClickPendingIntent(R.id.widget_info_container, pLaunch)
 
             // Previous button PendingIntent
             val prevIntent = Intent(context, MediaActionReceiver::class.java).apply {

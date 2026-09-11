@@ -10,6 +10,8 @@ class AndroidMediaBridge {
 
   static const MethodChannel _channel = MethodChannel('com.lifeos.app/media_session');
 
+  static final ValueNotifier<Map<String, dynamic>?> latestLaunchIntent = ValueNotifier(null);
+
   bool _initialized = false;
   String _lastTitle = '';
   String _lastArtist = '';
@@ -23,9 +25,22 @@ class AndroidMediaBridge {
     _initialized = true;
     _channel.setMethodCallHandler(_handleNativeCall);
     PlaybackController.instance.addListener(_syncStateToNative);
+
+    _channel.invokeMethod('getInitialWidgetLaunch').then((res) {
+      if (res != null && res is Map) {
+        latestLaunchIntent.value = Map<String, dynamic>.from(res);
+      }
+    }).catchError((_) => null);
   }
 
   Future<dynamic> _handleNativeCall(MethodCall call) async {
+    if (call.method == 'onWidgetLaunch') {
+      final args = call.arguments;
+      if (args != null && args is Map) {
+        latestLaunchIntent.value = Map<String, dynamic>.from(args);
+      }
+      return;
+    }
     if (call.method == 'onMediaAction') {
       final action = call.arguments as String?;
       switch (action) {
@@ -79,11 +94,13 @@ class AndroidMediaBridge {
     }
   }
 
-  /// Sends updated widget appearance config to Android AppWidget
+  /// Sends updated widget appearance and destination config to Android AppWidget
   Future<void> updateWidgetConfig({
     required bool showArtwork,
     required int opacity,
     required String themeStyle,
+    String targetTab = 'music_player',
+    String widgetType = 'standard',
   }) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
@@ -91,6 +108,8 @@ class AndroidMediaBridge {
         'showArtwork': showArtwork,
         'opacity': opacity,
         'themeStyle': themeStyle,
+        'targetTab': targetTab,
+        'widgetType': widgetType,
       });
     } catch (_) {}
   }

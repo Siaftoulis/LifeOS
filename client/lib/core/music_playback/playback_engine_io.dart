@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import '../../api_client.dart';
 import '../audio_dsp_service.dart';
 
 /// Native audio engine backed by just_audio with Dual-Player DJ Crossfading.
@@ -104,13 +105,20 @@ class PlaybackEngine {
   }
 
   Future<void> _loadSource(AudioPlayer p, String url) async {
-    if (url.startsWith('file://')) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      await p.setUrl(url);
+    } else if (url.startsWith('file://')) {
       final filePath = Uri.parse(url).toFilePath();
       await p.setFilePath(filePath);
-    } else if (url.startsWith('/') || (url.length > 2 && url[1] == ':')) {
+    } else if (url.startsWith('/') && !url.startsWith('/api/')) {
+      await p.setFilePath(url);
+    } else if (url.length > 2 && url[1] == ':') {
       await p.setFilePath(url);
     } else {
-      await p.setUrl(url);
+      final resolved = (url.startsWith('/') && ApiClient.hasInstance)
+          ? '${ApiClient.instance.daemonUrl}$url'
+          : url;
+      await p.setUrl(resolved);
     }
   }
 
