@@ -232,14 +232,35 @@ class PlaybackController extends ChangeNotifier {
         playUrl = '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}&proxy=true';
       }
       try {
+        final resolveUri = '/api/v1/music/resolve?id=${Uri.encodeComponent(item.id)}&title=${Uri.encodeComponent(item.title)}&artist=${Uri.encodeComponent(item.artist)}';
         final res = await ApiClient.instance
-            .getDaemon('/api/v1/music/resolve?id=${Uri.encodeComponent(item.id)}')
+            .getDaemon(resolveUri)
             .timeout(const Duration(milliseconds: 3500));
         if (res is Map && token == _playToken) {
           final st = res['stream_type']?.toString();
           final br = (res['bitrate'] as num?)?.toInt();
           if (st != null && st.isNotEmpty) _activeStreamType = st.toUpperCase();
           if (br != null && br > 0) _activeBitrate = br;
+
+          // Instant artwork & metadata enrichment
+          final enrichedCover = res['cover_art_url']?.toString();
+          final enrichedAlbum = res['album']?.toString();
+          final enrichedGenre = res['genre']?.toString();
+          final enrichedYear = (res['year'] as num?)?.toInt();
+
+          if ((enrichedCover != null && enrichedCover.isNotEmpty) ||
+              (enrichedAlbum != null && enrichedAlbum.isNotEmpty && item.album.isEmpty) ||
+              (enrichedGenre != null && enrichedGenre.isNotEmpty && item.genre.isEmpty)) {
+            final updatedItem = item.copyWith(
+              thumbnail: (enrichedCover != null && enrichedCover.isNotEmpty) ? enrichedCover : item.thumbnail,
+              album: (enrichedAlbum != null && enrichedAlbum.isNotEmpty) ? enrichedAlbum : item.album,
+              genre: (enrichedGenre != null && enrichedGenre.isNotEmpty) ? enrichedGenre : item.genre,
+              year: (enrichedYear != null && enrichedYear > 0) ? enrichedYear : item.year,
+            );
+            final newQ = List<PlaybackItem>.from(_state.queue);
+            newQ[i] = updatedItem;
+            _state = _state.copyWith(queue: newQ);
+          }
         }
       } catch (e) {
         debugPrint('Music resolve note: $e, using stream endpoint');
@@ -287,6 +308,8 @@ class PlaybackController extends ChangeNotifier {
       final lastItem = _state.queue.last;
       final recs = await MusicRepository.instance.getRecommendations(
         seedTrackId: lastItem.id,
+        artist: lastItem.artist,
+        genre: lastItem.genre,
         limit: 10,
       );
       if (recs.isNotEmpty) {
@@ -303,6 +326,8 @@ class PlaybackController extends ChangeNotifier {
               artist: r.artist,
               thumbnail: r.thumbnail,
               album: r.album,
+              genre: r.genre,
+              year: r.year ?? 0,
             ));
           }
         }
@@ -375,8 +400,36 @@ class PlaybackController extends ChangeNotifier {
     return 0;
   }
 
-  Future<void> next() async {
+  void _recordCurrentTrackTelemetry({bool skipped = false}) {
+    final cur = currentItem;
+    final p = player;
+    if (cur == null || p == null) return;
+    final posMs = p.position.inMilliseconds;
+    final durMs = (p.duration ?? Duration.zero).inMilliseconds;
+    if (durMs <= 0 && posMs <= 3000) return;
+
+    final compRate = durMs > 0 ? (posMs / durMs).clamp(0.0, 1.0) : 1.0;
+    MusicRepository.instance.recordListening(
+      ListeningEvent(
+        id: '',
+        trackId: cur.id,
+        playedAt: DateTime.now().millisecondsSinceEpoch,
+        positionMs: posMs,
+        durationMs: durMs > 0 ? durMs : null,
+        completionRate: compRate,
+        skipped: skipped,
+        source: 'player',
+      ),
+      artist: cur.artist,
+      genre: cur.genre,
+    );
+  }
+
+  Future<void> next({bool userInitiated = true}) async {
     if (!isAvailable || _state.queue.isEmpty) return;
+    if (userInitiated) {
+      _recordCurrentTrackTelemetry(skipped: true);
+    }
     int? target = computeNextIndex();
 
     if (target == null) {
@@ -412,6 +465,7 @@ class PlaybackController extends ChangeNotifier {
 
   Future<void> _onTrackCompleted() async {
     if (!_userWantsPlay) return;
+    _recordCurrentTrackTelemetry(skipped: false);
     final p = player;
     if (_state.repeat == PlaybackRepeat.one && p != null) {
       await p.seek(Duration.zero);
@@ -422,7 +476,7 @@ class PlaybackController extends ChangeNotifier {
       }
       return;
     }
-    await next();
+    await next(userInitiated: false);
   }
 
   // ------------------------------------------------------------- controls

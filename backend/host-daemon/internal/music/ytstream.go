@@ -2,6 +2,7 @@ package music
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // HandleResolveStreamURL returns a JSON response containing the stream endpoint URL and starts caching.
@@ -37,14 +39,61 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]any{
+	title := strings.TrimSpace(r.URL.Query().Get("title"))
+	artist := strings.TrimSpace(r.URL.Query().Get("artist"))
+
+	var enrichedCover, enrichedAlbum, enrichedGenre string
+	var enrichedYear int
+
+	// 1. Check local SQLite DB first
+	if DB != nil {
+		_ = DB.QueryRowContext(r.Context(),
+			"SELECT album, genre, year, COALESCE(NULLIF(thumbnail, ''), thumbnail_url, '') FROM music_tracks WHERE id = ? OR yt_dlp_id = ? LIMIT 1",
+			id, id,
+		).Scan(&enrichedAlbum, &enrichedGenre, &enrichedYear, &enrichedCover)
+	}
+
+	// 2. Query Deezer/iTunes concurrent enrichment if tags are missing and title/artist provided
+	if (enrichedCover == "" || enrichedGenre == "") && (title != "" || artist != "") {
+		enrichCtx, cancel := context.WithTimeout(r.Context(), 1500*time.Millisecond)
+		meta := EnrichMetadata(enrichCtx, title, artist)
+		cancel()
+		if meta.CoverArtURL != "" && enrichedCover == "" {
+			enrichedCover = meta.CoverArtURL
+		}
+		if meta.Album != "" && enrichedAlbum == "" {
+			enrichedAlbum = meta.Album
+		}
+		if meta.Genre != "" && enrichedGenre == "" {
+			enrichedGenre = meta.Genre
+		}
+		if meta.Year > 0 && enrichedYear == 0 {
+			enrichedYear = meta.Year
+		}
+	}
+
+	resp := map[string]any{
 		"url":         fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s&proxy=true", id),
 		"direct_url":  stream.URL,
 		"stream_type": stream.StreamType,
 		"bitrate":     stream.Bitrate,
 		"itag":        stream.Itag,
 		"is_cached":   true,
-	})
+	}
+	if enrichedCover != "" {
+		resp["cover_art_url"] = enrichedCover
+	}
+	if enrichedAlbum != "" {
+		resp["album"] = enrichedAlbum
+	}
+	if enrichedGenre != "" {
+		resp["genre"] = enrichedGenre
+	}
+	if enrichedYear > 0 {
+		resp["year"] = enrichedYear
+	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 // HandleYTStream serves the audio stream. If locally archived/downloaded on disk, serves with 206 Range.

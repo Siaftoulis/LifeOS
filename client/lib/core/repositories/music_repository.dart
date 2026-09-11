@@ -467,9 +467,12 @@ class MusicRepository extends DaemonRepository {
   }
 
   // --- Listening History ---
-  Future<bool> recordListening(ListeningEvent event) async {
+  Future<bool> recordListening(ListeningEvent event, {String? artist, String? genre}) async {
     try {
-      await ApiClient.instance.postDaemon('/api/v1/music/history', event.toJson());
+      final jsonMap = event.toJson();
+      if (artist != null && artist.isNotEmpty) jsonMap['artist'] = artist;
+      if (genre != null && genre.isNotEmpty) jsonMap['genre'] = genre;
+      await ApiClient.instance.postDaemon('/api/v1/music/history', jsonMap);
       return true;
     } catch (e) {
       debugPrint('Record listening error: $e');
@@ -504,22 +507,6 @@ class MusicRepository extends DaemonRepository {
     return MusicStats.empty();
   }
 
-  // --- Smart Playlists ---
-  Future<List<MusicTrack>> getDiscoveryWeekly({int limit = 30}) async {
-    try {
-      final res = await ApiClient.instance.getDaemon('/api/v1/music/smart/discovery-weekly?limit=$limit');
-      if (res is List) {
-        return res
-            .whereType<Map>()
-            .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
-            .toList();
-      }
-    } catch (e) {
-      debugPrint('Get discovery weekly error: $e');
-    }
-    return const [];
-  }
-
   Future<List<MusicTrack>> getDailyMix({required String seed, int limit = 50}) async {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/smart/daily-mix?seed=${Uri.encodeComponent(seed)}&limit=$limit');
@@ -552,6 +539,8 @@ class MusicRepository extends DaemonRepository {
 
   Future<List<MusicTrack>> getRecommendations({
     String? seedTrackId,
+    String? artist,
+    String? genre,
     int limit = 20,
     String? mode,
   }) async {
@@ -559,6 +548,12 @@ class MusicRepository extends DaemonRepository {
       var endpoint = '/api/v1/music/recommendations?limit=$limit';
       if (seedTrackId != null && seedTrackId.isNotEmpty) {
         endpoint += '&id=${Uri.encodeComponent(seedTrackId)}';
+      }
+      if (artist != null && artist.isNotEmpty) {
+        endpoint += '&artist=${Uri.encodeComponent(artist)}';
+      }
+      if (genre != null && genre.isNotEmpty) {
+        endpoint += '&genre=${Uri.encodeComponent(genre)}';
       }
       if (mode != null && mode.isNotEmpty) {
         endpoint += '&mode=${Uri.encodeComponent(mode)}';

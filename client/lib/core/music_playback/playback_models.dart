@@ -6,6 +6,8 @@ class PlaybackItem {
   final String artist;
   final String thumbnail;
   final String album;
+  final String genre;
+  final int year;
   final String filePath;
 
   const PlaybackItem({
@@ -15,6 +17,8 @@ class PlaybackItem {
     required this.artist,
     this.thumbnail = '',
     this.album = '',
+    this.genre = '',
+    this.year = 0,
     this.filePath = '',
   });
 
@@ -25,6 +29,8 @@ class PlaybackItem {
     String? artist,
     String? thumbnail,
     String? album,
+    String? genre,
+    int? year,
     String? filePath,
   }) {
     return PlaybackItem(
@@ -34,6 +40,8 @@ class PlaybackItem {
       artist: artist ?? this.artist,
       thumbnail: thumbnail ?? this.thumbnail,
       album: album ?? this.album,
+      genre: genre ?? this.genre,
+      year: year ?? this.year,
       filePath: filePath ?? this.filePath,
     );
   }

@@ -550,9 +550,12 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       ),
     );
 
+    final isDesktop = MediaQuery.of(context).size.width >= 820;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      constraints: BoxConstraints(maxWidth: isDesktop ? 1040 : double.infinity),
       backgroundColor: Colors.transparent,
       builder: (_) => PowerampNowPlayingSheet(
         player: _pc.player!,

@@ -93,3 +93,45 @@ func indexOf(s, substr string) int {
 	}
 	return -1
 }
+
+func TestSmartVibeScoringAndAffinity(t *testing.T) {
+	profile := UserAffinityProfile{
+		ArtistScores: map[string]float64{
+			"adele": 1.5,
+			"bad artist": -1.5,
+		},
+		GenreScores: map[string]float64{
+			"soul": 2.0,
+		},
+	}
+
+	goodTrack := RecommendedTrack{
+		ID:     "t1",
+		Title:  "Someone Like You",
+		Artist: "Adele",
+	}
+
+	serendipityTrack := RecommendedTrack{
+		ID:     "t2",
+		Title:  "Stay With Me",
+		Artist: "Sam Smith",
+	}
+
+	skippedTrack := RecommendedTrack{
+		ID:     "t3",
+		Title:  "Random Track",
+		Artist: "Bad Artist",
+	}
+
+	scoreGood := ScoreRecommendation(goodTrack, "Adele", "Soul", profile, false)
+	scoreSerendipity := ScoreRecommendation(serendipityTrack, "Adele", "Soul", profile, true)
+	scoreSkipped := ScoreRecommendation(skippedTrack, "Adele", "Soul", profile, false)
+
+	if scoreGood <= scoreSkipped {
+		t.Fatalf("expected good track score (%f) to be higher than skipped track score (%f)", scoreGood, scoreSkipped)
+	}
+
+	if scoreSerendipity <= 0 {
+		t.Fatalf("expected positive score for serendipity track, got %f", scoreSerendipity)
+	}
+}

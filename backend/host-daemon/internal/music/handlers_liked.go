@@ -78,6 +78,8 @@ func HandleToggleLiked(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		art, gen := FindTrackArtistAndGenre(r.Context(), req.TrackID)
+		UpdateUserAffinity(r.Context(), art, gen, 1.0, false, true)
 		json.NewEncoder(w).Encode(map[string]any{"status": "liked", "track_id": req.TrackID})
 		return
 	}
@@ -91,6 +93,8 @@ func HandleToggleLiked(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	art, gen := FindTrackArtistAndGenre(r.Context(), req.TrackID)
+	UpdateUserAffinity(r.Context(), art, gen, 0.0, false, false)
 	json.NewEncoder(w).Encode(map[string]any{"status": "unliked", "track_id": req.TrackID})
 }
 

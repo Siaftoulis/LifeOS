@@ -19,6 +19,8 @@ func HandleRecordHistory(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
 		TrackID        string  `json:"track_id"`
+		Artist         string  `json:"artist,omitempty"`
+		Genre          string  `json:"genre,omitempty"`
 		PositionMs     int64   `json:"position_ms"`
 		DurationMs     int64   `json:"duration_ms"`
 		CompletionRate float64 `json:"completion_rate"`
@@ -42,6 +44,20 @@ func HandleRecordHistory(w http.ResponseWriter, r *http.Request) {
 
 	// Update track play count and last played
 	DB.Exec("UPDATE music_tracks SET play_count = play_count + 1, last_played_at = ? WHERE id = ?", now, req.TrackID)
+
+	// Update dynamic taste affinities
+	artist := req.Artist
+	genre := req.Genre
+	if artist == "" || genre == "" {
+		dbArt, dbGen := FindTrackArtistAndGenre(r.Context(), req.TrackID)
+		if artist == "" {
+			artist = dbArt
+		}
+		if genre == "" {
+			genre = dbGen
+		}
+	}
+	UpdateUserAffinity(r.Context(), artist, genre, req.CompletionRate, req.Skipped, false)
 
 	json.NewEncoder(w).Encode(map[string]any{"id": id, "status": "recorded"})
 }

@@ -16,8 +16,10 @@ type SearchResult struct {
 	ID        string  `json:"id"`
 	Title     string  `json:"title"`
 	Artist    string  `json:"artist"`
+	Album     string  `json:"album,omitempty"`
 	Duration  float64 `json:"duration"`
 	Thumbnail string  `json:"thumbnail"`
+	Views     string  `json:"views,omitempty"`
 }
 
 type flatEntry struct {

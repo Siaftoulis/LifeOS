@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -172,7 +173,7 @@ func parseCardShelf(card map[string]any) SearchResult {
 		}
 	}
 
-	// Subtitle runs: Artist, Album, Duration
+	// Subtitle runs: Artist, Album, Duration, Views
 	if subObj, ok := card["subtitle"].(map[string]any); ok {
 		if runs, ok := subObj["runs"].([]any); ok {
 			var artistParts []string
@@ -182,18 +183,22 @@ func parseCardShelf(card map[string]any) SearchResult {
 					continue
 				}
 				txt, _ := rMap["text"].(string)
-				txt = strings.TrimSpace(txt)
-				if txt == "" || txt == "•" || strings.EqualFold(txt, "Song") || strings.EqualFold(txt, "Video") {
+				txtTrimmed := strings.TrimSpace(txt)
+				if txtTrimmed == "" || txtTrimmed == "•" || strings.EqualFold(txtTrimmed, "Song") || strings.EqualFold(txtTrimmed, "Video") {
 					continue
 				}
-				if strings.Contains(txt, ":") && isDurationString(txt) {
-					track.Duration = parseDurationString(txt)
+				if strings.Contains(txtTrimmed, ":") && isDurationString(txtTrimmed) {
+					track.Duration = parseDurationString(txtTrimmed)
 					continue
 				}
-				artistParts = append(artistParts, txt)
+				if isViewOrCountToken(txtTrimmed) {
+					track.Views = txtTrimmed
+					continue
+				}
+				artistParts = append(artistParts, txtTrimmed)
 			}
 			if len(artistParts) > 0 {
-				track.Artist = strings.Join(artistParts, " ")
+				track.Artist = joinArtistTokens(artistParts)
 			}
 		}
 	}
@@ -259,13 +264,33 @@ func parseResponsiveListItem(renderer map[string]any) SearchResult {
 						track.Duration = parseDurationString(txtTrimmed)
 						continue
 					}
-					// Only append non-delimiter tokens or cleanly formatted names
-					if txt != " • " {
-						artistParts = append(artistParts, txt)
+					if isViewOrCountToken(txtTrimmed) {
+						track.Views = txtTrimmed
+						continue
+					}
+					// Check navigation endpoint for page type (artist vs album)
+					if nav, ok := rMap["navigationEndpoint"].(map[string]any); ok {
+						if browse, ok := nav["browseEndpoint"].(map[string]any); ok {
+							pageType := extractPageType(browse)
+							if strings.Contains(pageType, "ARTIST") || strings.Contains(pageType, "USER") {
+								artistParts = append(artistParts, txtTrimmed)
+								continue
+							} else if strings.Contains(pageType, "ALBUM") {
+								track.Album = txtTrimmed
+								continue
+							}
+						}
+					}
+					if len(artistParts) == 0 {
+						artistParts = append(artistParts, txtTrimmed)
+					} else if track.Album == "" && looksLikeAlbum(txtTrimmed) {
+						track.Album = txtTrimmed
+					} else {
+						artistParts = append(artistParts, txtTrimmed)
 					}
 				}
 				if len(artistParts) > 0 {
-					track.Artist = strings.TrimSpace(strings.Join(artistParts, ""))
+					track.Artist = joinArtistTokens(artistParts)
 				}
 			}
 		}
@@ -317,6 +342,78 @@ func extractRunsText(v any) string {
 	return sb.String()
 }
 
+var rxThumbSize = regexp.MustCompile(`=w\d+-h\d+`)
+
+func upgradeThumbnailQuality(u string) string {
+	if strings.Contains(u, "googleusercontent.com") {
+		if rxThumbSize.MatchString(u) {
+			return rxThumbSize.ReplaceAllString(u, "=w800-h800")
+		}
+		if idx := strings.LastIndex(u, "=s"); idx != -1 {
+			return u[:idx] + "=s800-c"
+		}
+	}
+	return u
+}
+
+func isViewOrCountToken(s string) bool {
+	lower := strings.ToLower(strings.TrimSpace(s))
+	if strings.HasSuffix(lower, "views") || strings.HasSuffix(lower, "view") ||
+		strings.HasSuffix(lower, "plays") || strings.HasSuffix(lower, "play") ||
+		strings.HasSuffix(lower, "subscribers") || strings.HasSuffix(lower, "subscriber") {
+		return true
+	}
+	return false
+}
+
+func extractPageType(browse map[string]any) string {
+	if configs, ok := browse["browseEndpointContextSupportedConfigs"].(map[string]any); ok {
+		if musicConfig, ok := configs["browseEndpointContextMusicConfig"].(map[string]any); ok {
+			if pt, ok := musicConfig["pageType"].(string); ok {
+				return pt
+			}
+		}
+	}
+	return ""
+}
+
+func looksLikeAlbum(s string) bool {
+	if len(s) == 4 {
+		if _, err := strconv.Atoi(s); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func joinArtistTokens(tokens []string) string {
+	var clean []string
+	for _, t := range tokens {
+		t = strings.TrimSpace(t)
+		if t == "" || t == "•" {
+			continue
+		}
+		clean = append(clean, t)
+	}
+	if len(clean) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	for i, t := range clean {
+		if i > 0 {
+			if t == "&" || t == "feat." || t == "ft." || t == "with" {
+				b.WriteString(" ")
+			} else if strings.HasSuffix(b.String(), " ") {
+				// already trailing space
+			} else {
+				b.WriteString(", ")
+			}
+		}
+		b.WriteString(t)
+	}
+	return strings.TrimSpace(b.String())
+}
+
 func extractThumbnailFromObj(thumbObj map[string]any, id string) string {
 	var thumbs []any
 	if musicThumb, ok := thumbObj["musicThumbnailRenderer"].(map[string]any); ok {
@@ -330,7 +427,7 @@ func extractThumbnailFromObj(thumbObj map[string]any, id string) string {
 	if len(thumbs) > 0 {
 		last := thumbs[len(thumbs)-1].(map[string]any)
 		if u, ok := last["url"].(string); ok && u != "" {
-			return u
+			return upgradeThumbnailQuality(u)
 		}
 	}
 	if id != "" {

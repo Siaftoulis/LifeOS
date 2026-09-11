@@ -130,6 +130,34 @@ func createTables() error {
 		value TEXT NOT NULL,
 		updated_at INTEGER NOT NULL
 	);
+
+	CREATE TABLE IF NOT EXISTS user_genre_affinity (
+		genre TEXT PRIMARY KEY,
+		play_count INTEGER NOT NULL DEFAULT 0,
+		like_count INTEGER NOT NULL DEFAULT 0,
+		skip_count INTEGER NOT NULL DEFAULT 0,
+		affinity_score REAL NOT NULL DEFAULT 0.0,
+		updated_at INTEGER NOT NULL DEFAULT 0
+	);
+
+	CREATE TABLE IF NOT EXISTS user_artist_affinity (
+		artist TEXT PRIMARY KEY,
+		play_count INTEGER NOT NULL DEFAULT 0,
+		like_count INTEGER NOT NULL DEFAULT 0,
+		skip_count INTEGER NOT NULL DEFAULT 0,
+		affinity_score REAL NOT NULL DEFAULT 0.0,
+		updated_at INTEGER NOT NULL DEFAULT 0
+	);
+
+	CREATE TABLE IF NOT EXISTS track_vibe_features (
+		track_id TEXT PRIMARY KEY,
+		genre TEXT DEFAULT '',
+		mood TEXT DEFAULT '',
+		energy REAL DEFAULT 0.5,
+		valence REAL DEFAULT 0.5,
+		discovery_score REAL DEFAULT 0.0,
+		updated_at INTEGER NOT NULL DEFAULT 0
+	);
 	`
 
 	_, err := DB.Exec(query)

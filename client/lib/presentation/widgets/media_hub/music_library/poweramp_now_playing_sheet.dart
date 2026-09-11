@@ -124,7 +124,7 @@ class PowerampNowPlayingSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: double.infinity),
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width >= 820 ? 1040 : double.infinity),
       backgroundColor: Colors.transparent,
       builder: (_) => PowerampNowPlayingSheet(
         player: player,
@@ -626,7 +626,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   flex: 5,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final cardSize = (constraints.maxHeight - 105).clamp(150.0, 360.0);
+                      final availableW = constraints.maxWidth - 24;
+                      final availableH = constraints.maxHeight - 150;
+                      final cardSize = math.min(availableW, availableH).clamp(160.0, 360.0);
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -642,14 +644,15 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               Flexible(
                                 child: Text(
                                   _activeTitle,
-                                  maxLines: 1,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: skin.fg,
-                                    fontSize: 20,
+                                    fontSize: 19,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.4,
+                                    height: 1.2,
                                   ),
                                 ),
                               ),
@@ -677,6 +680,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                               fontWeight: FontWeight.w500,
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          _buildMetadataBadgesRow(skin),
                         ],
                       );
                     },
@@ -1436,37 +1441,42 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
       case NowPlayingCardMode.artwork:
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-          child: Container(
+          child: SizedBox(
             key: ValueKey('artwork_${_activeTrackId}_$_activeThumbnail'),
             width: cardSize,
             height: cardSize,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: skin.isOled ? 0.85 : 0.45),
-                  blurRadius: 28,
-                  offset: const Offset(0, 12),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: skin.isOled ? 0.85 : 0.50),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                    BoxShadow(
+                      color: skin.accent.withValues(alpha: 0.18),
+                      blurRadius: 38,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                BoxShadow(
-                  color: skin.accent.withValues(alpha: 0.12),
-                  blurRadius: 36,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: _activeThumbnail.isNotEmpty
+                      ? Image.network(
+                          (kIsWeb && Uri.base.scheme == 'https' && _activeThumbnail.startsWith('http://'))
+                              ? _activeThumbnail.replaceFirst('http://', 'https://')
+                              : _activeThumbnail,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildFallbackArt(skin),
+                        )
+                      : _buildFallbackArt(skin),
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: _activeThumbnail.isNotEmpty
-                  ? Image.network(
-                      (kIsWeb && Uri.base.scheme == 'https' && _activeThumbnail.startsWith('http://'))
-                          ? _activeThumbnail.replaceFirst('http://', 'https://')
-                          : _activeThumbnail,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildFallbackArt(skin),
-                    )
-                  : _buildFallbackArt(skin),
+              ),
             ),
           ),
         );
@@ -1974,7 +1984,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   ),
                 ],
                 const SizedBox(height: 6),
-                _buildStreamQualityBadge(skin),
+                _buildMetadataBadgesRow(skin),
               ],
             ),
           ),
@@ -1993,56 +2003,129 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     );
   }
 
-  Widget _buildStreamQualityBadge(AppSkin skin) {
-    String label = '';
-    IconData icon = Icons.bolt_rounded;
-    Color color = skin.accent;
+  Widget _buildMetadataBadgesRow(AppSkin skin) {
+    final item = _activeItem;
+    final streamType = PlaybackController.instance.activeStreamType;
+    final isLocal = _isCurrentOfflineLocal || _isCurrentDownloaded;
 
-    if (_isCurrentOfflineLocal) {
-      label = 'OFFLINE LOCAL';
-      icon = Icons.offline_pin_rounded;
-      color = const Color(0xFF10B981);
-    } else if (_isCurrentDownloaded) {
-      label = 'LIBRARY AUDIO';
-      icon = Icons.library_music_rounded;
-      color = const Color(0xFF6366F1);
-    } else if (PlaybackController.instance.activeStreamType.isNotEmpty) {
-      final type = PlaybackController.instance.activeStreamType.toUpperCase();
-      final kbps = PlaybackController.instance.activeBitrate > 0
-          ? ' ${PlaybackController.instance.activeBitrate ~/ 1000}K'
-          : '';
-      label = '$type$kbps';
-      icon = Icons.bolt_rounded;
-      color = skin.accent;
-    } else {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.75),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        // Source Badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: skin.accent.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: skin.accent.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            isLocal ? 'LOCAL VAULT' : 'YTM ONLINE',
             style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
+              color: skin.accent,
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
               letterSpacing: 0.4,
             ),
           ),
-        ],
-      ),
+        ),
+
+        // Quality / Codec Badge
+        if (streamType.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.white12),
+            ),
+            child: Text(
+              streamType,
+              style: TextStyle(
+                color: skin.fg.withValues(alpha: 0.85),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+
+        // Album Badge
+        if (_activeAlbum.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.album_rounded, size: 10, color: skin.textMuted),
+                const SizedBox(width: 4),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(
+                    _activeAlbum,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: skin.textMuted,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Genre Badge
+        if (item != null && item.genre.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Text(
+              item.genre,
+              style: TextStyle(
+                color: skin.textMuted,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+
+        // Year Badge
+        if (item != null && item.year > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Text(
+              '${item.year}',
+              style: TextStyle(
+                color: skin.textMuted,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+      ],
     );
   }
+
+
 
   Widget _buildWaveformBar(AppSkin skin) {
     return StreamBuilder<Duration>(

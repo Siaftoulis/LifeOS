@@ -551,7 +551,7 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '${t.artist.isNotEmpty ? t.artist : "YouTube Music"} · ${formatTrackDuration(t.duration)}',
+                '${t.artist.isNotEmpty ? t.artist : "YouTube Music"}${t.duration > 0 ? " · ${formatTrackDuration(t.duration)}" : ""}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: skin.textMuted, fontSize: 11.5),
