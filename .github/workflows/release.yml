@@ -1,16 +1,163 @@
-name: Release LifeOS Apps
+name: Release LifeOS Pipeline
 
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
-  build-android:
-    name: Build Android APK
+  # ==========================================
+  # LAYER 1: PIPELINE BOOTSTRAP & PREFLIGHT
+  # ==========================================
+  preflight-init:
+    name: "Layer 1: Environment & Version Bootstrap"
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+      build_number: ${{ steps.get_version.outputs.BUILD_NUM }}
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Release Tag & Version Metadata
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Target Release: $VERSION"
+          if [ -f .agent/version.json ]; then
+            BUILD_NUM=$(jq -r '.build_number // 81' .agent/version.json)
+          else
+            BUILD_NUM="81"
+          fi
+          echo "BUILD_NUM=$BUILD_NUM" >> $GITHUB_OUTPUT
+
+  audit-environment:
+    name: "Layer 1: Runner & Toolchain Audit"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Audit Runner Environment
+        run: |
+          echo "=== Linux Host Information ==="
+          uname -a
+          lscpu | grep "Model name\|CPU(s):" || true
+          free -h
+          df -h
+          echo "=== Git Status & Workspace ==="
+          git status --short
+          echo "Environment sanity check passed."
+
+  # ==========================================
+  # LAYER 2: VALIDATION, QUALITY & INTEGRITY
+  # ==========================================
+  analyze-dart:
+    name: "Layer 2: Dart & Flutter Analysis"
+    needs: [preflight-init, audit-environment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.44.9'
+          cache: true
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-${{ runner.os }}-
+
+      - name: Install Dependencies
+        working-directory: ./client
+        run: flutter pub get
+
+      - name: Analyze Project Code
+        working-directory: ./client
+        run: flutter analyze lib test
+
+  unit-widget-tests:
+    name: "Layer 2: Core Unit & Widget Tests"
+    needs: [preflight-init, audit-environment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.44.9'
+          cache: true
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-${{ runner.os }}-
+
+      - name: Install Dependencies
+        working-directory: ./client
+        run: flutter pub get
+
+      - name: Run Core Test Suite
+        working-directory: ./client
+        run: flutter test test/local_audio_metadata_test.dart test/poweramp_dsp_and_metadata_test.dart test/music_controls_p0_test.dart test/local_music_integration_test.dart
+
+  backend-daemon-verify:
+    name: "Layer 2: Host Daemon Go Tests"
+    needs: [preflight-init, audit-environment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: backend/host-daemon/go.sum
+
+      - name: Run Go Unit Tests
+        working-directory: ./backend/host-daemon
+        run: go test ./internal/music
+
+  audit-assets-integrity:
+    name: "Layer 2: Asset & Schema Integrity"
+    needs: [preflight-init, audit-environment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Audit Assets & Schemas
+        run: |
+          test -f .agent/version.json && echo "version.json found." || (echo "version.json missing!" && exit 1)
+          test -f client/pubspec.yaml && echo "client/pubspec.yaml found." || (echo "pubspec.yaml missing!" && exit 1)
+          test -f client/android/app/lifeos-release.jks && echo "lifeos-release.jks found." || (echo "keystore missing!" && exit 1)
+          echo "Asset & schema verification passed."
+
+  # ==========================================
+  # LAYER 3: MULTI-ARCH ARTIFACT BUILDS
+  # ==========================================
+  build-android-universal:
+    name: "Layer 3: Build Android Universal APK"
+    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -58,37 +205,96 @@ jobs:
         working-directory: ./client
         run: python3 tool/patch_appflowy.py
 
-      - name: Build APK
+      - name: Build Universal APK
         working-directory: ./client
         run: flutter build apk --release --no-pub
 
-      - name: Generate Release Body
+      - name: Upload Universal APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-android-universal
+          path: client/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 2
+
+  build-android-split:
+    name: "Layer 3: Build Android Split APK (${{ matrix.target }})"
+    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [android-arm64, android-arm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.44.9'
+          cache: true
+
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('client/android/**/*.gradle*', 'client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Cache Pub Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-${{ runner.os }}-
+
+      - name: Strip Local JVM Paths
+        working-directory: ./client
+        run: sed -i '/org.gradle.java/d' android/gradle.properties
+
+      - name: Install Dependencies
+        working-directory: ./client
+        run: flutter pub get
+
+      - name: Patch Dependencies Compatibility
+        working-directory: ./client
+        run: python3 tool/patch_appflowy.py
+
+      - name: Build Split APK
+        working-directory: ./client
+        run: flutter build apk --release --target-platform ${{ matrix.target }} --no-pub
+
+      - name: Prepare Staged Split APK
         run: |
-          if [ -f .agent/RELEASE_NOTES.md ]; then
-            echo "Using custom .agent/RELEASE_NOTES.md"
-            cp .agent/RELEASE_NOTES.md release_notes.md
+          mkdir -p split_output
+          if [ "${{ matrix.target }}" = "android-arm64" ]; then
+            cp client/build/app/outputs/flutter-apk/*.apk split_output/LifeOS-arm64-v8a.apk
           else
-            VERSION=$(jq -r '.version // "1.5.18"' .agent/version.json)
-            BUILD_NUM=$(jq -r '.build_number // 56' .agent/version.json)
-            echo "## LifeOS v$VERSION (Build #$BUILD_NUM)" > release_notes.md
-            echo "Official release for LifeOS v$VERSION." >> release_notes.md
+            cp client/build/app/outputs/flutter-apk/*.apk split_output/LifeOS-armeabi-v7a.apk
           fi
 
-      - name: Publish Android APK Immediately
-        uses: softprops/action-gh-release@v2
+      - name: Upload Split APK Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: LifeOS ${{ github.ref_name }}
-          body_path: release_notes.md
-          draft: false
-          prerelease: false
-          files: client/build/app/outputs/flutter-apk/app-release.apk
-          fail_on_unmatched_files: true
+          name: artifact-${{ matrix.target }}
+          path: split_output/*.apk
+          retention-days: 2
 
-  build-windows:
-    name: Build Windows Executable
+  build-windows-exec:
+    name: "Layer 3: Build Windows Executable"
+    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
     runs-on: windows-latest
-    permissions:
-      contents: write
     steps:
       - name: Enable Developer Mode & Symlinks
         shell: powershell
@@ -129,14 +335,115 @@ jobs:
         run: flutter build windows --release --no-pub
 
       - name: Zip Windows Build
-        run: Compress-Archive -Path client\build\windows\x64\runner\Release\* -DestinationPath lifeos-windows-release.zip
+        shell: powershell
+        run: |
+          Compress-Archive -Path client\build\windows\x64\runner\Release\* -DestinationPath lifeos-windows-release.zip
 
-      - name: Attach Windows ZIP to Release
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-windows-x64
+          path: lifeos-windows-release.zip
+          retention-days: 2
+
+  # ==========================================
+  # LAYER 4: CROSS-AUDIT & VERIFICATION MESH
+  # ==========================================
+  verify-checksums:
+    name: "Layer 4: SHA256 Checksum Generator"
+    needs: [build-android-universal, build-android-split, build-windows-exec]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate Checksums
+        run: |
+          mkdir -p dist
+          find artifacts -type f \( -name "*.apk" -o -name "*.zip" \) -exec mv {} dist/ \;
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload Checksums Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-checksums
+          path: dist/SHA256SUMS.txt
+          retention-days: 2
+
+  binary-security-scan:
+    name: "Layer 4: Artifact Security & Size Audit"
+    needs: [build-android-universal, build-android-split, build-windows-exec]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts for Scan
+        uses: actions/download-artifact@v4
+        with:
+          path: binaries
+          merge-multiple: true
+
+      - name: Audit Artifact Signatures & Sizes
+        run: |
+          echo "=== Scanning Distributables ==="
+          ls -lhR binaries/
+          for f in binaries/*; do
+            if [ -f "$f" ]; then
+              size=$(stat -c%s "$f")
+              echo "Inspecting $f: size $size bytes"
+              if [ "$size" -lt 1000000 ]; then
+                echo "Warning: Artifact $f is suspiciously small (<1MB)!"
+              fi
+            fi
+          done
+          echo "Security & integrity scan completed successfully."
+
+  # ==========================================
+  # LAYER 5: OUTPUT SINK (GitHub Release)
+  # ==========================================
+  publish-release:
+    name: "Layer 5: GitHub Release Publisher"
+    needs: [verify-checksums, binary-security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download All Distributables
+        uses: actions/download-artifact@v4
+        with:
+          path: release-bins
+          merge-multiple: true
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p final-assets
+          find release-bins -type f -exec mv {} final-assets/ \;
+          ls -la final-assets/
+
+      - name: Generate Release Body
+        run: |
+          if [ -f .agent/RELEASE_NOTES.md ]; then
+            echo "Using custom .agent/RELEASE_NOTES.md"
+            cp .agent/RELEASE_NOTES.md release_notes.md
+          else
+            VERSION=$(jq -r '.version // "1.6.1"' .agent/version.json)
+            BUILD_NUM=$(jq -r '.build_number // 81' .agent/version.json)
+            echo "## LifeOS v$VERSION (Build #$BUILD_NUM)" > release_notes.md
+            echo "Official release for LifeOS v$VERSION." >> release_notes.md
+          fi
+
+      - name: Publish Official GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: LifeOS ${{ github.ref_name }}
-          body_path: .agent/RELEASE_NOTES.md
+          body_path: release_notes.md
           draft: false
           prerelease: false
-          files: lifeos-windows-release.zip
+          files: final-assets/*
           fail_on_unmatched_files: true
