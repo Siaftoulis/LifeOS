@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../../../../../theme/app_skin_registry.dart';
 import '../poweramp_equalizer_modal.dart';
+import 'home_widget_customizer_sheet.dart';
 import 'lossless_sources_modal.dart';
 
 /// 1:1 Poweramp Settings screen matching Screenshot 4.
@@ -30,6 +31,15 @@ class PowerampSettingsSheet extends StatelessWidget {
         desc: 'Skin, player interface, language, notifications',
         onTap: () {
           _showSkinPicker(context, skin);
+        },
+      ),
+      (
+        icon: Icons.widgets_rounded,
+        iconColor: const Color(0xFF38BDF8),
+        title: 'Home Screen Widget',
+        desc: 'Artwork preview, transparency, themes, and controls',
+        onTap: () {
+          HomeWidgetCustomizerSheet.show(context);
         },
       ),
       (

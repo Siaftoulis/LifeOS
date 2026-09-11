@@ -13,6 +13,7 @@ class AndroidMediaBridge {
   bool _initialized = false;
   String _lastTitle = '';
   String _lastArtist = '';
+  String _lastThumb = '';
   bool _lastPlaying = false;
 
   void init() {
@@ -52,6 +53,7 @@ class AndroidMediaBridge {
       if (_lastTitle.isNotEmpty) {
         _lastTitle = '';
         _lastArtist = '';
+        _lastThumb = '';
         _lastPlaying = false;
         _channel.invokeMethod('stopPlayback').catchError((_) => null);
       }
@@ -60,18 +62,37 @@ class AndroidMediaBridge {
 
     final title = item.title;
     final artist = item.artist;
+    final thumb = item.thumbnail;
 
-    if (title != _lastTitle || artist != _lastArtist || isPlaying != _lastPlaying) {
+    if (title != _lastTitle || artist != _lastArtist || thumb != _lastThumb || isPlaying != _lastPlaying) {
       _lastTitle = title;
       _lastArtist = artist;
+      _lastThumb = thumb;
       _lastPlaying = isPlaying;
 
       _channel.invokeMethod('updatePlaybackState', {
         'title': title,
         'artist': artist,
+        'thumbnail': thumb,
         'isPlaying': isPlaying,
       }).catchError((_) => null);
     }
+  }
+
+  /// Sends updated widget appearance config to Android AppWidget
+  Future<void> updateWidgetConfig({
+    required bool showArtwork,
+    required int opacity,
+    required String themeStyle,
+  }) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await _channel.invokeMethod('updateWidgetConfig', {
+        'showArtwork': showArtwork,
+        'opacity': opacity,
+        'themeStyle': themeStyle,
+      });
+    } catch (_) {}
   }
 
   void dispose() {

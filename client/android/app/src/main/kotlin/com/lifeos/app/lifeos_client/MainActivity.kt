@@ -152,6 +152,7 @@ class MainActivity : FlutterActivity() {
                 "updatePlaybackState" -> {
                     val title = call.argument<String>("title") ?: ""
                     val artist = call.argument<String>("artist") ?: ""
+                    val thumbnail = call.argument<String>("thumbnail") ?: ""
                     val isPlaying = call.argument<Boolean>("isPlaying") ?: false
 
                     MediaNotificationManager.showPlaybackNotification(
@@ -164,7 +165,21 @@ class MainActivity : FlutterActivity() {
                         applicationContext,
                         title,
                         artist,
+                        thumbnail,
                         isPlaying
+                    )
+                    result.success(true)
+                }
+                "updateWidgetConfig" -> {
+                    val showArtwork = call.argument<Boolean>("showArtwork") ?: true
+                    val opacity = call.argument<Int>("opacity") ?: 90
+                    val themeStyle = call.argument<String>("themeStyle") ?: "glass"
+
+                    LifeOSWidgetProvider.updateConfig(
+                        applicationContext,
+                        showArtwork,
+                        opacity,
+                        themeStyle
                     )
                     result.success(true)
                 }
@@ -172,6 +187,7 @@ class MainActivity : FlutterActivity() {
                     MediaNotificationManager.cancelNotification(applicationContext)
                     LifeOSWidgetProvider.updateWidget(
                         applicationContext,
+                        "",
                         "",
                         "",
                         false
