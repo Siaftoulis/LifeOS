@@ -579,13 +579,7 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
           },
         ),
         onTap: () {
-          final rem = widget.remoteResults ?? [t];
-          if (widget.onPlayTrackList != null) {
-            final idx = rem.indexOf(t);
-            widget.onPlayTrackList!(rem, idx >= 0 ? idx : 0);
-          } else {
-            widget.onPlayTrack(t);
-          }
+          widget.onPlayTrack(t);
         },
         onLongPress: () {
           PowerampTrackContextSheet.show(context, track: t);

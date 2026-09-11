@@ -1156,14 +1156,40 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                           _onSearchChanged('');
                         },
                         onPlayTrack: (t) {
-                          final list = _results.isNotEmpty && _results.contains(t) ? _results : [t];
-                          final idx = list.indexOf(t);
-                          _playTrackList(list, idx >= 0 ? idx : 0);
-                          if (_canPlay) {
-                            _openNowPlaying(t);
+                          if (!_canPlay) {
+                            _webPlaybackNotice(t);
+                            return;
                           }
+                          final item = PlaybackItem(
+                            id: t.id,
+                            url: _streamUrlFor(t.id),
+                            title: t.title,
+                            artist: t.artist,
+                            thumbnail: t.thumbnail,
+                            album: t.album,
+                          );
+                          _pc.playTrackAndStartRadio(item);
+                          _openNowPlaying(t);
                         },
                         onPlayTrackList: (list, index) {
+                          if (_searchCtrl.text.trim().isNotEmpty && _results.isNotEmpty) {
+                            final target = (index >= 0 && index < list.length) ? list[index] : list.first;
+                            if (!_canPlay) {
+                              _webPlaybackNotice(target);
+                              return;
+                            }
+                            final item = PlaybackItem(
+                              id: target.id,
+                              url: _streamUrlFor(target.id),
+                              title: target.title,
+                              artist: target.artist,
+                              thumbnail: target.thumbnail,
+                              album: target.album,
+                            );
+                            _pc.playTrackAndStartRadio(item);
+                            _openNowPlaying(target);
+                            return;
+                          }
                           _playTrackList(list, index);
                           if (_canPlay && index >= 0 && index < list.length) {
                             _openNowPlaying(list[index]);

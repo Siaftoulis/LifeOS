@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -105,6 +104,11 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 		}
 	}
 
+	var seedTitle string
+	if DB != nil {
+		_ = DB.QueryRowContext(ctx, "SELECT title FROM music_tracks WHERE id = ? OR yt_dlp_id = ? LIMIT 1", seedID, seedID).Scan(&seedTitle)
+	}
+
 	var dump flatDump
 	if err := json.Unmarshal(out, &dump); err != nil || len(dump.Entries) == 0 {
 		return nil, fmt.Errorf("failed to parse radio dump: %v", err)
@@ -117,15 +121,46 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 		if e.ID == "" || e.Title == "" || seen[e.ID] || e.ID == seedID {
 			continue
 		}
-		if e.Duration > maxSongSeconds {
+		// Strict music track duration: standard songs are between 50s and 8 minutes (480s)
+		if e.Duration > 480 || (e.Duration > 0 && e.Duration < 50) {
 			continue
 		}
-		seen[e.ID] = true
+
+		lowerRaw := strings.ToLower(e.Title)
+		// Strictly filter out podcasts, full albums, multi-track mixes, reviews, reactions
+		if strings.Contains(lowerRaw, "podcast") ||
+			strings.Contains(lowerRaw, "full album") ||
+			strings.Contains(lowerRaw, "hour mix") ||
+			strings.Contains(lowerRaw, "10 hours") ||
+			strings.Contains(lowerRaw, "1 hour") ||
+			strings.Contains(lowerRaw, "compilation") ||
+			strings.Contains(lowerRaw, "reaction") ||
+			strings.Contains(lowerRaw, "review") ||
+			strings.Contains(lowerRaw, "interview") ||
+			strings.Contains(lowerRaw, "episode") ||
+			strings.Contains(lowerRaw, "season") ||
+			strings.Contains(lowerRaw, "dj mix") ||
+			strings.Contains(lowerRaw, "megamix") {
+			continue
+		}
+
+		// Filter out remixes unless the seed track itself is explicitly a remix
+		if (strings.Contains(lowerRaw, "remix") || strings.Contains(lowerRaw, "club mix")) &&
+			!strings.Contains(strings.ToLower(seedTitle), "remix") {
+			continue
+		}
 
 		cleanTitle, extraArtist := CleanTitle(e.Title)
 		if cleanTitle == "" {
 			cleanTitle = e.Title
 		}
+
+		// Avoid replaying songs with the identical title as the seed track
+		if seedTitle != "" && strings.EqualFold(cleanTitle, seedTitle) {
+			continue
+		}
+
+		seen[e.ID] = true
 
 		artist := strings.TrimSpace(e.Uploader)
 		if (artist == "" || strings.EqualFold(artist, "YouTube Music")) && extraArtist != "" {
@@ -149,7 +184,7 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 			IsLocal:   false,
 		}
 
-		// 3. Enrich with local SQLite vault metadata if already downloaded
+		// Enrich with local SQLite vault metadata if already downloaded
 		if DB != nil {
 			var localID, filePath, album, genre string
 			var year int
@@ -170,101 +205,27 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 		candidates = append(candidates, track)
 	}
 
-	// 4. User Affinity & Vibe Scoring
-	profile := GetUserAffinityProfile(ctx)
-
-	type scoredItem struct {
-		track RecommendedTrack
-		score float64
-	}
-
-	var primaryItems []scoredItem
-	var serendipityItems []scoredItem
-
-	seedArtLower := strings.ToLower(strings.TrimSpace(seedArtist))
-
-	for _, cand := range candidates {
-		baseScore := ScoreRecommendation(cand, seedArtist, seedGenre, profile, false)
-		primaryItems = append(primaryItems, scoredItem{track: cand, score: baseScore})
-
-		candArtLower := strings.ToLower(strings.TrimSpace(cand.Artist))
-		// If by a different artist, consider for serendipity
-		if seedArtLower != "" && candArtLower != seedArtLower && !strings.Contains(candArtLower, seedArtLower) {
-			sScore := ScoreRecommendation(cand, seedArtist, seedGenre, profile, true)
-			serendipityItems = append(serendipityItems, scoredItem{track: cand, score: sScore})
-		}
-	}
-
-	sort.Slice(primaryItems, func(i, j int) bool {
-		return primaryItems[i].score > primaryItems[j].score
-	})
-	sort.Slice(serendipityItems, func(i, j int) bool {
-		return serendipityItems[i].score > serendipityItems[j].score
-	})
-
-	// 5. Assemble Curated Playlist with Serendipity & Artist Diversity
+	// 5. Assemble Curated Playlist preserving YouTube Music's algorithmic order with Artist Diversity
 	results := make([]RecommendedTrack, 0, limit)
 	selectedIDs := make(map[string]bool)
 	artistCounts := make(map[string]int)
 
-	canSelect := func(t RecommendedTrack) bool {
-		if selectedIDs[t.ID] {
-			return false
+	for _, cand := range candidates {
+		if len(results) >= limit {
+			break
 		}
-		artKey := strings.ToLower(strings.TrimSpace(t.Artist))
+		if selectedIDs[cand.ID] {
+			continue
+		}
+		artKey := strings.ToLower(strings.TrimSpace(cand.Artist))
 		if artKey != "" && artistCounts[artKey] >= 2 {
-			return false // Max 2 songs per artist in the recommendation window
+			continue // Max 2 tracks per artist in the radio queue
 		}
-		return true
-	}
-
-	selectTrack := func(t RecommendedTrack, isDiscovery bool) {
-		selectedIDs[t.ID] = true
-		artKey := strings.ToLower(strings.TrimSpace(t.Artist))
+		selectedIDs[cand.ID] = true
 		if artKey != "" {
 			artistCounts[artKey]++
 		}
-		t.IsRadioDiscovery = isDiscovery
-		results = append(results, t)
-	}
-
-	serenIdx := 0
-	primIdx := 0
-
-	for len(results) < limit && (primIdx < len(primaryItems) || serenIdx < len(serendipityItems)) {
-		// Allocate every 4th slot to serendipitous hidden gem discovery ("σαν ραδιόφωνο")
-		if (len(results)+1)%4 == 0 && serenIdx < len(serendipityItems) {
-			picked := false
-			for serenIdx < len(serendipityItems) {
-				candidate := serendipityItems[serenIdx].track
-				serenIdx++
-				if canSelect(candidate) {
-					selectTrack(candidate, true)
-					picked = true
-					break
-				}
-			}
-			if picked {
-				continue
-			}
-		}
-
-		// Otherwise pick next best primary match
-		if primIdx < len(primaryItems) {
-			candidate := primaryItems[primIdx].track
-			primIdx++
-			if canSelect(candidate) {
-				selectTrack(candidate, false)
-			}
-		} else if serenIdx < len(serendipityItems) {
-			candidate := serendipityItems[serenIdx].track
-			serenIdx++
-			if canSelect(candidate) {
-				selectTrack(candidate, true)
-			}
-		} else {
-			break
-		}
+		results = append(results, cand)
 	}
 
 	// 6. Save into cache
