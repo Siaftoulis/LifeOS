@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/repositories/book_repository.dart';
-import '../../../../database/database.dart';
-import '../../../../theme/everforest_colors.dart';
+import '../../../core/repositories/book_repository.dart';
+import '../../../database/database.dart';
+import '../../../theme/everforest_colors.dart';
 import 'audio_player_widget.dart';
 import 'cbz_reader_screen.dart';
 import 'epub_reader_screen.dart';

@@ -21,8 +21,15 @@ class PreferencesService {
   static final ValueNotifier<List<List<String>>> layout = ValueNotifier([['home', 'configurator', 'rpg_hub']]);
   static final ValueNotifier<Map<String, String>> appCategories = ValueNotifier({});
   static final ValueNotifier<bool> appDrawerFolderView = ValueNotifier(true);
-  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier(kIsWeb ? Uri.base.origin : 'http://localhost:50051');
-  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier(kIsWeb ? Uri.base.origin : 'http://localhost:50051');
+  static String get _defaultWebUrl {
+    if (kIsWeb && (Uri.base.scheme == 'http' || Uri.base.scheme == 'https')) {
+      return Uri.base.origin;
+    }
+    return 'http://localhost:50051';
+  }
+
+  static final ValueNotifier<String> cachedBaseUrl = ValueNotifier(_defaultWebUrl);
+  static final ValueNotifier<String> cachedDaemonUrl = ValueNotifier(_defaultWebUrl);
   static final ValueNotifier<bool> showPerformanceOverlay = ValueNotifier(false);
   static final ValueNotifier<bool> showConnectionStatusOverlay = ValueNotifier(false);
   static final ValueNotifier<List<String>> favoriteAssetIds = ValueNotifier([]);
@@ -76,21 +83,24 @@ class PreferencesService {
       if (data['layout'] != null) layout.value = sanitizeLayout((data['layout'] as List).map((r) => List<String>.from(r)).toList());
       if (data['appCategories'] != null) appCategories.value = (data['appCategories'] as Map).map((k, v) => MapEntry(k.toString(), v.toString()));
       appDrawerFolderView.value = data['appDrawerFolderView'] ?? true;
-      cachedBaseUrl.value = data['cachedBaseUrl'] ?? (kIsWeb ? Uri.base.origin : 'http://localhost:50051');
-      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? (kIsWeb ? Uri.base.origin : 'http://localhost:50051');
+      cachedBaseUrl.value = data['cachedBaseUrl'] ?? _defaultWebUrl;
+      cachedDaemonUrl.value = data['cachedDaemonUrl'] ?? _defaultWebUrl;
       if (kIsWeb) {
-        if (cachedBaseUrl.value.isEmpty ||
-            cachedBaseUrl.value.contains('localhost') ||
-            cachedBaseUrl.value.contains('127.0.0.1') ||
-            cachedBaseUrl.value.contains('0.0.0.0') ||
-            (Uri.base.scheme == 'https' && cachedBaseUrl.value.startsWith('http://'))) {
+        final isHttp = Uri.base.scheme == 'http' || Uri.base.scheme == 'https';
+        if (isHttp &&
+            (cachedBaseUrl.value.isEmpty ||
+             cachedBaseUrl.value.contains('localhost') ||
+             cachedBaseUrl.value.contains('127.0.0.1') ||
+             cachedBaseUrl.value.contains('0.0.0.0') ||
+             (Uri.base.scheme == 'https' && cachedBaseUrl.value.startsWith('http://')))) {
           cachedBaseUrl.value = Uri.base.origin;
         }
-        if (cachedDaemonUrl.value.isEmpty ||
-            cachedDaemonUrl.value.contains('localhost') ||
-            cachedDaemonUrl.value.contains('127.0.0.1') ||
-            cachedDaemonUrl.value.contains('0.0.0.0') ||
-            (Uri.base.scheme == 'https' && cachedDaemonUrl.value.startsWith('http://'))) {
+        if (isHttp &&
+            (cachedDaemonUrl.value.isEmpty ||
+             cachedDaemonUrl.value.contains('localhost') ||
+             cachedDaemonUrl.value.contains('127.0.0.1') ||
+             cachedDaemonUrl.value.contains('0.0.0.0') ||
+             (Uri.base.scheme == 'https' && cachedDaemonUrl.value.startsWith('http://')))) {
           cachedDaemonUrl.value = Uri.base.origin;
         }
       }

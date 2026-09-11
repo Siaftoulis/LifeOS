@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../theme/app_skin.dart';
 import '../../../theme/app_skin_registry.dart';
 import '../../../theme/app_skin_manager.dart';
 

@@ -1,34 +1,15 @@
-## LifeOS v1.5.30 (Build #68) — Lossless Sources Configuration UI & Soulseek / Tidal / Deezer Settings
+## LifeOS v1.5.33 (Build #71) — Native Startup & URI StateError Hotfix
 
-Welcome to **LifeOS v1.5.30**! This release introduces a comprehensive settings interface and backend configuration subsystem for managing lossless audio sources, Soulseek P2P connections, and HiFi credentials.
-
----
-
-### Highlights & What's New
-
-#### 🎛️ Lossless Sources & Integrations UI Modal
-* **Dedicated Configuration Interface**: Accessible directly from **Poweramp Settings** (`Lossless Sources & Integrations`) and the **Download Quality Sheet** (`Configure Sources` header button).
-* **Soulseek (`slskd`) Management**:
-  * Toggle switch to enable/disable Soulseek network querying.
-  * Custom `slskd` daemon URL configuration (defaulting to `http://localhost:5030`).
-  * API key authorization input for secured `slskd` setups.
-  * Live **"Test Soulseek Connection"** button with instant visual connection status badge (`Connected` vs `Offline`).
-* **Tidal HiFi Credentials**:
-  * Input field for Tidal token / Client ID to unlock master quality FLAC streams.
-* **Deezer HiFi Credentials**:
-  * Input field for Deezer ARL cookie to enable 1411kbps lossless FLAC streaming.
+Welcome to **LifeOS v1.5.33**! This release fixes a critical startup regression introduced in v1.5.32 where native mobile (Android) and desktop (Windows) clients displayed a red error screen upon launching.
 
 ---
 
-#### 💾 Persistent Music Engine Configuration
-* **Database Persistence**: Introduced `music_config` table in `media.db` for reliable, cross-restart storage of all audio provider credentials.
-* **Dedicated Backend Endpoints**:
-  * `GET /api/v1/music/config` — Retrieves current integration configuration with sensible defaults.
-  * `POST /api/v1/music/config` — Updates and persists provider settings.
-  * `POST /api/v1/music/config/test-slskd` — Tests daemon connectivity and reports active status.
+### Highlights & Bug Fixes
 
----
+#### 🚀 Native Platform Startup Fix
+* **Resolved `Uri.base.origin` `StateError`**: Dart's `Uri.origin` throws a `StateError` on non-HTTP/HTTPS schemes (such as `file:///` on Android and Windows). In v1.5.32, web default URL evaluation was executed before checking platform constraints, causing the initialization bootstrap to fail on startup.
+* **Platform-Safe URL Normalization**: All origin and discovery lookups in `AppInitializer`, `ApiClient`, and `PreferencesService` are now strictly guarded by `kIsWeb` and HTTP/HTTPS scheme validation, guaranteeing instant, error-free launches on Android, Windows, and Linux.
 
-### Verification & Performance
-* **Automated Unit Tests**: All 20 backend music tests passed (`slskd_test.go`, `waterfall_test.go`, etc.).
-* **Zero Client Lint Errors**: Clean Flutter analysis across all newly created and updated UI components.
+#### 📚 Book Library Relative Imports Fix
+* Fixed invalid 4-level relative imports in `book_detail_sheet.dart` to adhere to standard module imports, resolving cross-platform compilation errors.
+* Added comprehensive startup test suite (`test/startup_initialization_test.dart`) covering native URL discovery and preferences initialization.

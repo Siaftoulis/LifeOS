@@ -35,7 +35,8 @@ class ApiClient {
 
   static String _normalizeUrl(String url) {
     if (kIsWeb) {
-      if (Uri.base.origin.isNotEmpty) {
+      final isHttp = Uri.base.scheme == 'http' || Uri.base.scheme == 'https';
+      if (isHttp && Uri.base.origin.isNotEmpty) {
         final origin = Uri.base.origin;
         final baseIsDevServer = (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') &&
             Uri.base.port != 50051;
@@ -121,7 +122,12 @@ class ApiClient {
   static Future<String> discoverDaemonUrl() => _discover('/api/v1/ping');
 
   static Future<String> _discover(String probePath) async {
-    if (kIsWeb) return Uri.base.origin; // same-origin: the daemon serves the app
+    if (kIsWeb) {
+      if (Uri.base.scheme == 'http' || Uri.base.scheme == 'https') {
+        return Uri.base.origin;
+      }
+      return 'http://localhost:50051';
+    }
     final dynamicUrls = LocalDiscoveryService.instance.peersNotifier.value
         .map((p) => 'http://${p.address}:50051')
         .toList();

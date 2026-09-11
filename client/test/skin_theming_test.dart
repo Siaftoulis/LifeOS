@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lifeos_client/theme/app_skin.dart';
 import 'package:lifeos_client/theme/app_skin_registry.dart';
 import 'package:lifeos_client/theme/app_skin_manager.dart';
 import 'package:lifeos_client/database/preferences_service.dart';

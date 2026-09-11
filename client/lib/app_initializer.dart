@@ -27,9 +27,16 @@ class AppInitializer {
 
     // ponytail: web is served by the daemon itself → same-origin cloud URLs
     // When running inside a local Flutter web dev server, target localhost:50051
-    final defaultWebUrl = (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') && Uri.base.port != 50051
-        ? 'http://localhost:50051'
-        : Uri.base.origin;
+    String defaultWebUrl = 'http://localhost:50051';
+    if (kIsWeb) {
+      final isHttp = Uri.base.scheme == 'http' || Uri.base.scheme == 'https';
+      final isDev = isHttp &&
+          (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') &&
+          Uri.base.port != 50051;
+      if (!isDev && isHttp) {
+        defaultWebUrl = Uri.base.origin;
+      }
+    }
     final resolved = kIsWeb
         ? [defaultWebUrl, defaultWebUrl]
         : await Future.wait([ApiClient.discoverBaseUrl(), ApiClient.discoverDaemonUrl()]);
