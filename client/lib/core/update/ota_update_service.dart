@@ -37,7 +37,12 @@ class LifeOSRelease {
         final name = (asset['name'] as String? ?? '').toLowerCase();
         final url = asset['browser_download_url'] as String?;
         if (name.endsWith('.apk')) {
-          apk = url;
+          // Always prioritize universal/fat APK (app-release.apk)
+          if (apk == null || name == 'app-release.apk' || name.contains('universal')) {
+            apk = url;
+          } else if (!name.contains('v7a') && !name.contains('arm32') && apk.contains('v7a')) {
+            apk = url;
+          }
         } else if (name.endsWith('.zip')) {
           zip = url;
         }

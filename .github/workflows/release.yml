@@ -151,12 +151,27 @@ jobs:
           test -f client/android/app/lifeos-release.jks && echo "lifeos-release.jks found." || (echo "keystore missing!" && exit 1)
           echo "Asset & schema verification passed."
 
+  audit-android:
+    name: "Android Config Audit"
+    needs: [preflight-init, audit-environment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Android Configuration
+        run: |
+          test -f client/android/app/lifeos-release.jks && echo "Keystore OK" || exit 1
+          grep -q "signingConfigs" client/android/app/build.gradle.kts && echo "Signing config OK" || exit 1
+          grep -q "com.lifeos.app.lifeos_client" client/android/app/build.gradle.kts && echo "Package ID OK" || exit 1
+          echo "Android configuration audit passed."
+
   # ==========================================
-  # MULTI-ARCH BUILDS
+  # BUILDS
   # ==========================================
-  build-android-universal:
+  build-android:
     name: "Build Android (Universal)"
-    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
+    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity, audit-android]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -216,84 +231,9 @@ jobs:
           path: client/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 2
 
-  build-android-split:
-    name: "Build Android (${{ matrix.target == 'android-arm64' && 'ARM64' || 'ARM32' }})"
-    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [android-arm64, android-arm]
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: '3.44.9'
-          cache: true
-
-      - name: Cache Gradle Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('client/android/**/*.gradle*', 'client/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Cache Pub Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: pub-cache-${{ runner.os }}-${{ hashFiles('client/pubspec.lock') }}
-          restore-keys: |
-            pub-cache-${{ runner.os }}-
-
-      - name: Strip Local JVM Paths
-        working-directory: ./client
-        run: sed -i '/org.gradle.java/d' android/gradle.properties
-
-      - name: Install Dependencies
-        working-directory: ./client
-        run: flutter pub get
-
-      - name: Patch Dependencies Compatibility
-        working-directory: ./client
-        run: python3 tool/patch_appflowy.py
-
-      - name: Build Split APK
-        working-directory: ./client
-        run: flutter build apk --release --target-platform ${{ matrix.target }} --no-pub
-
-      - name: Prepare Staged Split APK
-        run: |
-          mkdir -p split_output
-          if [ "${{ matrix.target }}" = "android-arm64" ]; then
-            cp client/build/app/outputs/flutter-apk/*.apk split_output/LifeOS-arm64-v8a.apk
-          else
-            cp client/build/app/outputs/flutter-apk/*.apk split_output/LifeOS-armeabi-v7a.apk
-          fi
-
-      - name: Upload Split APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-${{ matrix.target }}
-          path: split_output/*.apk
-          retention-days: 2
-
   build-windows-exec:
     name: "Build Windows"
-    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
+    needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity, audit-android]
     runs-on: windows-latest
     steps:
       - name: Enable Developer Mode & Symlinks
@@ -351,7 +291,7 @@ jobs:
   # ==========================================
   verify-checksums:
     name: "Checksums"
-    needs: [build-android-universal, build-android-split, build-windows-exec]
+    needs: [build-android, build-windows-exec]
     runs-on: ubuntu-latest
     steps:
       - name: Download All Artifacts
@@ -377,7 +317,7 @@ jobs:
 
   binary-security-scan:
     name: "Security Scan"
-    needs: [build-android-universal, build-android-split, build-windows-exec]
+    needs: [build-android, build-windows-exec]
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts for Scan
