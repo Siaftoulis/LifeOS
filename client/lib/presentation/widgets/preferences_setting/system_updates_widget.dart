@@ -164,60 +164,11 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                       builder: (context, readyRelease, _) {
                         if (readyRelease != null) {
                           return ElevatedButton.icon(
-                            onPressed: () async {
-                              final ok = await _ota.installUpdate();
-                              if (!ok && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Native install did not start. Download APK directly in browser?'),
-                                    action: SnackBarAction(
-                                      label: 'Download',
-                                      onPressed: () {
-                                        final url = readyRelease.apkUrl ?? 'https://github.com/Siaftoulis/LifeOS/releases/latest';
-                                        launchUrlString(url, mode: LaunchMode.externalApplication);
-                                      },
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
+                            onPressed: () => _ota.installUpdate(),
                             icon: const Icon(Icons.download_done_rounded, size: 16),
                             label: Text('INSTALL ${readyRelease.tagName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: EverforestColors.green,
-                              foregroundColor: EverforestColors.bg0,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                          );
-                        }
-
-                        // Check if an update is available but not downloaded yet
-                        if (_latestRelease != null && _ota.isNewer(_latestRelease!)) {
-                          return ElevatedButton.icon(
-                            onPressed: () async {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Starting background download...')),
-                              );
-                              final ok = await _ota.downloadReleaseInBackground(_latestRelease!);
-                              if (!ok && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('Download failed. Open in browser?'),
-                                    action: SnackBarAction(
-                                      label: 'Browser',
-                                      onPressed: () {
-                                        final url = _latestRelease!.apkUrl ?? 'https://github.com/Siaftoulis/LifeOS/releases/latest';
-                                        launchUrlString(url, mode: LaunchMode.externalApplication);
-                                      },
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                            icon: const Icon(Icons.download_rounded, size: 16),
-                            label: Text('DOWNLOAD ${_latestRelease!.tagName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: EverforestColors.yellow,
                               foregroundColor: EverforestColors.bg0,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             ),

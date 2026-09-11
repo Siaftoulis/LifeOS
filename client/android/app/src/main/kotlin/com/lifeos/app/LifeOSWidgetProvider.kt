@@ -147,6 +147,7 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             val opacity = prefs.getInt(KEY_BG_OPACITY, 90).coerceIn(0, 100)
             val targetTab = prefs.getString(KEY_TARGET_TAB, "music_player") ?: "music_player"
             val widgetType = prefs.getString(KEY_WIDGET_TYPE, "standard") ?: "standard"
+            val themeStyle = prefs.getString(KEY_THEME_STYLE, "glass") ?: "glass"
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
 
