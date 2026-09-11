@@ -136,5 +136,43 @@ void main() {
       expect(webStream, contains('proxy=true'));
       expect(webStream, contains(trackId));
     });
+
+    test('PlaybackController computeNextIndex() terminates at queue end when repeat is off', () {
+      final pc = PlaybackController.instance;
+      pc.setRepeat(PlaybackRepeat.off);
+      pc.setShuffle(false);
+      pc.setQueue([
+        const PlaybackItem(id: 't1', url: 'https://daemon/1?proxy=true', title: 'Song 1', artist: 'Artist 1'),
+        const PlaybackItem(id: 't2', url: 'https://daemon/2?proxy=true', title: 'Song 2', artist: 'Artist 2'),
+      ], currentIndex: 1); // at end of queue
+
+      // computeNextIndex should return null at end of queue when repeat is off
+      expect(pc.computeNextIndex(), isNull);
+    });
+
+    test('PlaybackController computeNextIndex() wraps to 0 only when repeat all is active', () {
+      final pc = PlaybackController.instance;
+      pc.setRepeat(PlaybackRepeat.all);
+      pc.setShuffle(false);
+      pc.setQueue([
+        const PlaybackItem(id: 't1', url: 'https://daemon/1?proxy=true', title: 'Song 1', artist: 'Artist 1'),
+        const PlaybackItem(id: 't2', url: 'https://daemon/2?proxy=true', title: 'Song 2', artist: 'Artist 2'),
+      ], currentIndex: 1);
+
+      // At end of queue with repeat all, it wraps to 0
+      expect(pc.computeNextIndex(), 0);
+    });
+
+    test('PlaybackController computeNextIndex() steps forward in middle of queue', () {
+      final pc = PlaybackController.instance;
+      pc.setRepeat(PlaybackRepeat.off);
+      pc.setShuffle(false);
+      pc.setQueue([
+        const PlaybackItem(id: 't1', url: 'https://daemon/1?proxy=true', title: 'Song 1', artist: 'Artist 1'),
+        const PlaybackItem(id: 't2', url: 'https://daemon/2?proxy=true', title: 'Song 2', artist: 'Artist 2'),
+      ], currentIndex: 0);
+
+      expect(pc.computeNextIndex(), 1);
+    });
   });
 }

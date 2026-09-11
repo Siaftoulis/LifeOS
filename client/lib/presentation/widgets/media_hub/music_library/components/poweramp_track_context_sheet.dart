@@ -148,7 +148,7 @@ class PowerampTrackContextSheet extends StatelessWidget {
                 );
                 final streamUrl = track.filePath.isNotEmpty
                     ? track.filePath
-                    : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${track.id}';
+                    : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${track.id}&proxy=true';
                 final queue = [
                   PlaybackItem(
                     id: track.id,
@@ -163,7 +163,7 @@ class PowerampTrackContextSheet extends StatelessWidget {
                       id: r.id,
                       url: r.filePath.isNotEmpty
                           ? r.filePath
-                          : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}',
+                          : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true',
                       title: r.title,
                       artist: r.artist,
                       thumbnail: r.thumbnail,

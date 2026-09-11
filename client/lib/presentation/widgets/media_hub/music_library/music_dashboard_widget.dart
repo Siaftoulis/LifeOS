@@ -474,7 +474,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     if (offline != null && offline.isNotEmpty) {
       return offline;
     }
-    return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=$trackId${kIsWeb ? '&proxy=true' : ''}';
+    return '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=$trackId&proxy=true';
   }
 
   void _playTrackList(List<MusicTrack> list, int startIndex) {

@@ -38,7 +38,7 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"url":         fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", id),
+		"url":         fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s&proxy=true", id),
 		"direct_url":  stream.URL,
 		"stream_type": stream.StreamType,
 		"bitrate":     stream.Bitrate,
@@ -48,8 +48,8 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleYTStream serves the audio stream. If locally archived/downloaded on disk, serves with 206 Range.
-// Otherwise, it immediately resolves the direct signed stream URL and redirects (HTTP 307) or proxies with 206 Range,
-// completely eliminating yt-dlp CLI subprocess execution and disk buffering.
+// Otherwise, it immediately resolves the direct signed stream URL and proxies with 206 Range audio headers,
+// completely eliminating yt-dlp CLI subprocess execution and GoogleVideo IP-binding failures on clients.
 func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
@@ -91,19 +91,14 @@ func HandleYTStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. If client requests direct proxy or does not follow redirects, or if request originates from web/browser, stream through reverse proxy
-	isWeb := r.URL.Query().Get("proxy") == "true" ||
-		r.Header.Get("Origin") != "" ||
-		r.Header.Get("Sec-Fetch-Dest") == "audio" ||
-		r.Header.Get("Sec-Fetch-Mode") == "cors" ||
-		r.Header.Get("Sec-Fetch-Mode") == "no-cors"
-	if isWeb {
-		proxyLiveAudio(w, r, stream.URL)
+	// 3. Default: Always stream through reverse proxy to avoid GoogleVideo IP-binding 403 Forbidden.
+	// Only redirect if client explicitly requests direct redirect via ?redirect=true
+	if r.URL.Query().Get("redirect") == "true" {
+		http.Redirect(w, r, stream.URL, http.StatusTemporaryRedirect)
 		return
 	}
 
-	// 4. Default: HTTP 307 Temporary Redirect for instant sub-second playback start
-	http.Redirect(w, r, stream.URL, http.StatusTemporaryRedirect)
+	proxyLiveAudio(w, r, stream.URL)
 }
 
 func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
@@ -136,8 +131,19 @@ func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
 	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type")
 	w.Header().Set("Accept-Ranges", "bytes")
 
+	// Crucial: Override video/mp4 or video/webm to audio/* MIME types
+	// HTML5 <audio> / just_audio_web / ExoPlayer / media_kit expect audio container types
+	ct := resp.Header.Get("Content-Type")
+	if strings.HasPrefix(ct, "video/mp4") || ct == "" || strings.HasPrefix(ct, "application/") {
+		w.Header().Set("Content-Type", "audio/mp4")
+	} else if strings.HasPrefix(ct, "video/webm") {
+		w.Header().Set("Content-Type", "audio/webm")
+	}
+
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	if r.Method != http.MethodHead {
+		io.Copy(w, resp.Body)
+	}
 }
 
 func serveCachedFile(w http.ResponseWriter, r *http.Request, filePath string, stat os.FileInfo) {

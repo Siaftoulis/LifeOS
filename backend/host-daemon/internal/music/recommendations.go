@@ -95,7 +95,7 @@ func FetchYouTubeMusicRadio(ctx context.Context, seedID string, limit int) ([]Re
 	seen := make(map[string]bool)
 
 	for _, e := range dump.Entries {
-		if e.ID == "" || e.Title == "" || seen[e.ID] {
+		if e.ID == "" || e.Title == "" || seen[e.ID] || e.ID == seedID {
 			continue
 		}
 		if e.Duration > maxSongSeconds {
@@ -115,7 +115,7 @@ func FetchYouTubeMusicRadio(ctx context.Context, seedID string, limit int) ([]Re
 			Artist:    artist,
 			Duration:  e.Duration,
 			Thumbnail: thumb,
-			StreamURL: fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", e.ID),
+			StreamURL: fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s&proxy=true", e.ID),
 			IsLocal:   false,
 		}
 
@@ -129,7 +129,7 @@ func FetchYouTubeMusicRadio(ctx context.Context, seedID string, limit int) ([]Re
 			if err == nil && filePath != "" {
 				track.IsLocal = true
 				track.FilePath = filePath
-				track.StreamURL = fmt.Sprintf("/api/v1/music/stream/?id=%s", localID)
+				track.StreamURL = fmt.Sprintf("/api/v1/music/stream/?id=%s&proxy=true", localID)
 				if album != "" {
 					track.Album = album
 				}
@@ -295,7 +295,7 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 			if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
 				tracks = make([]RecommendedTrack, 0, len(dump.Entries))
 				for _, e := range dump.Entries {
-					if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds {
+					if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds || (seed != "" && e.ID == seed) {
 						continue
 					}
 					tracks = append(tracks, RecommendedTrack{
@@ -304,7 +304,7 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 						Artist:    e.Uploader,
 						Duration:  e.Duration,
 						Thumbnail: extractThumbnail(e.Thumbnails, e.ID),
-						StreamURL: fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s", e.ID),
+						StreamURL: fmt.Sprintf("/api/v1/music/ytstream/stream.m4a?id=%s&proxy=true", e.ID),
 						IsLocal:   false,
 					})
 					if len(tracks) >= limit {

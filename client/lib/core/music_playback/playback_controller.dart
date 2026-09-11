@@ -223,15 +223,19 @@ class PlaybackController extends ChangeNotifier {
     } else if (ApiClient.hasInstance) {
       _activeStreamType = 'OPUS';
       _activeBitrate = 160000;
+      // Guarantee stream goes through host daemon proxy to prevent 403 Forbidden
+      if (item.url.contains('/api/v1/music/')) {
+        playUrl = item.url.contains('proxy=true')
+            ? item.url
+            : (item.url.contains('?') ? '${item.url}&proxy=true' : '${item.url}?proxy=true');
+      } else {
+        playUrl = '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}&proxy=true';
+      }
       try {
         final res = await ApiClient.instance
             .getDaemon('/api/v1/music/resolve?id=${Uri.encodeComponent(item.id)}')
             .timeout(const Duration(milliseconds: 3500));
         if (res is Map && token == _playToken) {
-          final direct = res['direct_url']?.toString();
-          if (direct != null && direct.startsWith('http')) {
-            playUrl = direct;
-          }
           final st = res['stream_type']?.toString();
           final br = (res['bitrate'] as num?)?.toInt();
           if (st != null && st.isNotEmpty) _activeStreamType = st.toUpperCase();
@@ -291,7 +295,7 @@ class PlaybackController extends ChangeNotifier {
           if (!existingIds.contains(r.id)) {
             final streamUrl = r.filePath.isNotEmpty && !kIsWeb
                 ? r.filePath
-                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}${kIsWeb ? '&proxy=true' : ''}';
+                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true';
             addToQueue(PlaybackItem(
               id: r.id,
               url: streamUrl,
@@ -339,32 +343,52 @@ class PlaybackController extends ChangeNotifier {
     }
   }
 
-  Future<void> next() async {
-    if (!isAvailable || _state.queue.isEmpty) return;
+  int? computeNextIndex() {
+    if (_state.queue.isEmpty) return null;
     final q = _state.queue;
     final idx = _state.currentIndex;
-    int target;
-
     if (_state.shuffle && q.length > 1) {
+      int target;
       do {
         target = _rng.nextInt(q.length);
       } while (target == idx);
+      return target;
     } else if (idx < q.length - 1) {
-      target = idx + 1;
+      return idx + 1;
     } else if (_state.repeat == PlaybackRepeat.all) {
-      target = 0;
-    } else if (q.isNotEmpty) {
+      return 0;
+    }
+    return null;
+  }
+
+  int? computePreviousIndex() {
+    if (_state.queue.isEmpty) return null;
+    final q = _state.queue;
+    final idx = _state.currentIndex;
+    if (_state.shuffle && q.length > 1) {
+      return _rng.nextInt(q.length);
+    } else if (idx > 0) {
+      return idx - 1;
+    } else if (_state.repeat == PlaybackRepeat.all) {
+      return q.length - 1;
+    }
+    return 0;
+  }
+
+  Future<void> next() async {
+    if (!isAvailable || _state.queue.isEmpty) return;
+    int? target = computeNextIndex();
+
+    if (target == null) {
       // Auto-fetch recommendations/radio when reaching queue end
       await _fetchAndAppendRadio();
       if (_state.currentIndex < _state.queue.length - 1) {
         target = _state.currentIndex + 1;
-      } else if (q.length > 1) {
-        target = 0; // Wrap around if no new recommendations could be appended
+      } else if (_state.queue.length > 1 && _state.repeat == PlaybackRepeat.all) {
+        target = 0; // Only wrap around if repeat all is active
       } else {
         return;
       }
-    } else {
-      return;
     }
     await playAt(target);
   }
@@ -376,19 +400,10 @@ class PlaybackController extends ChangeNotifier {
       await p.seek(Duration.zero);
       return;
     }
-    final q = _state.queue;
-    final idx = _state.currentIndex;
-    int target;
-    if (_state.shuffle && q.length > 1) {
-      target = _rng.nextInt(q.length);
-    } else if (idx > 0) {
-      target = idx - 1;
-    } else if (_state.repeat == PlaybackRepeat.all) {
-      target = q.length - 1;
-    } else {
-      target = 0;
+    final target = computePreviousIndex();
+    if (target != null) {
+      await playAt(target);
     }
-    await playAt(target);
   }
 
   Future<void> seek(Duration position) async {
