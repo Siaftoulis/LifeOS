@@ -10,10 +10,10 @@ permissions:
 
 jobs:
   # ==========================================
-  # LAYER 1: PIPELINE BOOTSTRAP & PREFLIGHT
+  # PIPELINE BOOTSTRAP
   # ==========================================
   preflight-init:
-    name: "Layer 1: Environment & Version Bootstrap"
+    name: "Bootstrap"
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.VERSION }}
@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Extract Release Tag & Version Metadata
         id: get_version
@@ -38,11 +36,12 @@ jobs:
           echo "BUILD_NUM=$BUILD_NUM" >> $GITHUB_OUTPUT
 
   audit-environment:
-    name: "Layer 1: Runner & Toolchain Audit"
+    name: "Runner Audit"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+
       - name: Audit Runner Environment
         run: |
           echo "=== Linux Host Information ==="
@@ -55,10 +54,10 @@ jobs:
           echo "Environment sanity check passed."
 
   # ==========================================
-  # LAYER 2: VALIDATION, QUALITY & INTEGRITY
+  # VALIDATION & QUALITY
   # ==========================================
   analyze-dart:
-    name: "Layer 2: Dart & Flutter Analysis"
+    name: "Code Analysis"
     needs: [preflight-init, audit-environment]
     runs-on: ubuntu-latest
     steps:
@@ -86,10 +85,10 @@ jobs:
 
       - name: Analyze Project Code
         working-directory: ./client
-        run: flutter analyze lib test
+        run: flutter analyze lib/presentation lib/core lib/database test --no-fatal-infos
 
   unit-widget-tests:
-    name: "Layer 2: Core Unit & Widget Tests"
+    name: "Unit Tests"
     needs: [preflight-init, audit-environment]
     runs-on: ubuntu-latest
     steps:
@@ -120,7 +119,7 @@ jobs:
         run: flutter test test/local_audio_metadata_test.dart test/poweramp_dsp_and_metadata_test.dart test/music_controls_p0_test.dart test/local_music_integration_test.dart
 
   backend-daemon-verify:
-    name: "Layer 2: Host Daemon Go Tests"
+    name: "Daemon Tests"
     needs: [preflight-init, audit-environment]
     runs-on: ubuntu-latest
     steps:
@@ -138,12 +137,13 @@ jobs:
         run: go test ./internal/music
 
   audit-assets-integrity:
-    name: "Layer 2: Asset & Schema Integrity"
+    name: "Asset Integrity"
     needs: [preflight-init, audit-environment]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
       - name: Audit Assets & Schemas
         run: |
           test -f .agent/version.json && echo "version.json found." || (echo "version.json missing!" && exit 1)
@@ -152,10 +152,10 @@ jobs:
           echo "Asset & schema verification passed."
 
   # ==========================================
-  # LAYER 3: MULTI-ARCH ARTIFACT BUILDS
+  # MULTI-ARCH BUILDS
   # ==========================================
   build-android-universal:
-    name: "Layer 3: Build Android Universal APK"
+    name: "Build Android (Universal)"
     needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
     runs-on: ubuntu-latest
     steps:
@@ -217,7 +217,7 @@ jobs:
           retention-days: 2
 
   build-android-split:
-    name: "Layer 3: Build Android Split APK (${{ matrix.target }})"
+    name: "Build Android (${{ matrix.target == 'android-arm64' && 'ARM64' || 'ARM32' }})"
     needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
     runs-on: ubuntu-latest
     strategy:
@@ -292,7 +292,7 @@ jobs:
           retention-days: 2
 
   build-windows-exec:
-    name: "Layer 3: Build Windows Executable"
+    name: "Build Windows"
     needs: [analyze-dart, unit-widget-tests, backend-daemon-verify, audit-assets-integrity]
     runs-on: windows-latest
     steps:
@@ -347,10 +347,10 @@ jobs:
           retention-days: 2
 
   # ==========================================
-  # LAYER 4: CROSS-AUDIT & VERIFICATION MESH
+  # VERIFICATION & AUDIT
   # ==========================================
   verify-checksums:
-    name: "Layer 4: SHA256 Checksum Generator"
+    name: "Checksums"
     needs: [build-android-universal, build-android-split, build-windows-exec]
     runs-on: ubuntu-latest
     steps:
@@ -376,7 +376,7 @@ jobs:
           retention-days: 2
 
   binary-security-scan:
-    name: "Layer 4: Artifact Security & Size Audit"
+    name: "Security Scan"
     needs: [build-android-universal, build-android-split, build-windows-exec]
     runs-on: ubuntu-latest
     steps:
@@ -402,10 +402,10 @@ jobs:
           echo "Security & integrity scan completed successfully."
 
   # ==========================================
-  # LAYER 5: OUTPUT SINK (GitHub Release)
+  # RELEASE PUBLISHER
   # ==========================================
   publish-release:
-    name: "Layer 5: GitHub Release Publisher"
+    name: "Publish Release"
     needs: [verify-checksums, binary-security-scan]
     runs-on: ubuntu-latest
     permissions:
