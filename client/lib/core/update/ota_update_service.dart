@@ -105,9 +105,7 @@ class OtaUpdateService {
     updateReadyRelease.value = null;
     await _resolveCurrentVersion();
     await cleanupOldUpdates();
-
-    // Trigger silent background check
-    checkSilentUpdate();
+    // Manual updates only: updates are strictly checked when user presses 'Check Now'.
   }
 
   Future<void> _resolveCurrentVersion() async {

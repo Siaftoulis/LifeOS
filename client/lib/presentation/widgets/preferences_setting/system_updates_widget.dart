@@ -18,7 +18,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
   @override
   void initState() {
     super.initState();
-    _checkLatest();
+    // Manual updates only: updates are only checked when tapping 'Check Now'.
   }
 
   Future<void> _checkLatest({bool force = false}) async {
@@ -213,7 +213,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                     ),
                     child: const Center(
                       child: Text(
-                        'Checking for latest release details...',
+                        'Tap "Check Now" above to check for updates.',
                         style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                       ),
                     ),
