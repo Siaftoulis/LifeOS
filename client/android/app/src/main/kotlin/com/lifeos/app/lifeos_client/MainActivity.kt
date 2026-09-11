@@ -11,6 +11,7 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.core.content.FileProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.lifeos.app.LifeOSWidgetProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -19,10 +20,31 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.lifeos.app/ota_installer"
 
+    companion object {
+        private const val MEDIA_CHANNEL = "com.lifeos.app/media_session"
+        private var mediaMethodChannel: MethodChannel? = null
+        private var activityInstance: MainActivity? = null
+
+        fun dispatchMediaAction(action: String) {
+            activityInstance?.runOnUiThread {
+                mediaMethodChannel?.invokeMethod("onMediaAction", action)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        activityInstance = this
         installSplashScreen()
         super.onCreate(savedInstanceState)
         hideSystemUI()
+    }
+
+    override fun onDestroy() {
+        if (activityInstance == this) {
+            activityInstance = null
+            mediaMethodChannel = null
+        }
+        super.onDestroy()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -117,6 +139,44 @@ class MainActivity : FlutterActivity() {
                     } else {
                         result.error("INVALID_ARGUMENT", "filePath cannot be null", null)
                     }
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Media session channel for background notification banner & home screen widget
+        val mediaChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MEDIA_CHANNEL)
+        mediaMethodChannel = mediaChannel
+        mediaChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "updatePlaybackState" -> {
+                    val title = call.argument<String>("title") ?: ""
+                    val artist = call.argument<String>("artist") ?: ""
+                    val isPlaying = call.argument<Boolean>("isPlaying") ?: false
+
+                    MediaNotificationManager.showPlaybackNotification(
+                        applicationContext,
+                        title,
+                        artist,
+                        isPlaying
+                    )
+                    LifeOSWidgetProvider.updateWidget(
+                        applicationContext,
+                        title,
+                        artist,
+                        isPlaying
+                    )
+                    result.success(true)
+                }
+                "stopPlayback" -> {
+                    MediaNotificationManager.cancelNotification(applicationContext)
+                    LifeOSWidgetProvider.updateWidget(
+                        applicationContext,
+                        "",
+                        "",
+                        false
+                    )
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }

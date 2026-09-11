@@ -1135,7 +1135,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                       ),
                       child: const PowerampEqualizerModal(
                         isEmbedded: true,
-                        initialMode: 1,
+                        initialMode: 0,
                       ),
                     ),
                   ),

@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:flutter/rendering.dart';
 import 'app_bootstrap.dart';
 import 'core/offline_map_service.dart';
+import 'core/music_playback/android_media_bridge.dart';
 import 'desktop_widget_manager.dart';
 
 @pragma('vm:entry-point')
@@ -43,6 +44,7 @@ Future<void> main([List<String> args = const []]) async {
         debugPrint('Failed to set high refresh rate: $e');
       }));
       await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      AndroidMediaBridge.instance.init();
     }
 
     if (!kIsWeb && args.contains('multi_window')) {

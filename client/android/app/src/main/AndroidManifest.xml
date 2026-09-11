@@ -17,6 +17,11 @@
     <!-- Package Installer for In-App OTA Updates -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Media Playback Notifications & Foreground controls -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -77,6 +82,17 @@
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="true" />
+
+        <!-- Media Action Receiver for Notifications & Widget controls -->
+        <receiver
+            android:name="com.lifeos.app.lifeos_client.MediaActionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.lifeos.app.ACTION_PLAY_PAUSE" />
+                <action android:name="com.lifeos.app.ACTION_NEXT" />
+                <action android:name="com.lifeos.app.ACTION_PREV" />
+            </intent-filter>
+        </receiver>
 
         <!-- Home Screen Widget Provider -->
         <receiver

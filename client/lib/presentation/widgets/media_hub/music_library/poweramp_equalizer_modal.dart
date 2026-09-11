@@ -19,10 +19,10 @@ class PowerampEqualizerModal extends StatefulWidget {
   const PowerampEqualizerModal({
     super.key,
     this.isEmbedded = false,
-    this.initialMode = 1,
+    this.initialMode = 0,
   });
 
-  static void show(BuildContext context, {int initialMode = 1}) {
+  static void show(BuildContext context, {int initialMode = 0}) {
     final dsp = AudioDspService.instance;
     if (!dsp.isSupportedOnPlatform) {
       showModalBottomSheet(
@@ -834,9 +834,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: activeColor.withValues(alpha: fraction > 0 ? 0.22 : 0.0),
-                  blurRadius: 10,
-                  spreadRadius: 1,
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),

@@ -38,7 +38,7 @@ class PowerampSettingsSheet extends StatelessWidget {
         title: 'Audio',
         desc: 'Crossfade, replay gain, volume, output',
         onTap: () {
-          PowerampEqualizerModal.show(context, initialMode: 1);
+          PowerampEqualizerModal.show(context, initialMode: 0);
         },
       ),
       (

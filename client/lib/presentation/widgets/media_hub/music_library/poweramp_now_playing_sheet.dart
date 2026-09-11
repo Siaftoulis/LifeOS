@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../theme/app_skin_manager.dart';
 import '../../../../core/audio_dsp_service.dart';
@@ -177,6 +178,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   IconData? _feedbackIcon;
   Timer? _feedbackTimer;
   Timer? _longPressSeekTimer;
+  late final FocusNode _focusNode;
 
   final List<double> _peakCaps = List.filled(32, 0.0);
   final List<double> _capVelocities = List.filled(32, 0.0);
@@ -229,6 +231,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode();
     _isShuffle = PlaybackController.instance.isAvailable
         ? PlaybackController.instance.shuffle
         : widget.shuffle;
@@ -279,6 +282,7 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
 
   @override
   void dispose() {
+    _focusNode.dispose();
     PlaybackController.instance.removeListener(_onPlaybackChanged);
     MusicRepository.instance.tracks.removeListener(_onTracksChanged);
     _playerStateSub?.cancel();
@@ -305,10 +309,106 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     final target = Duration(
       milliseconds: (cur.inMilliseconds + delta.inMilliseconds).clamp(0, dur.inMilliseconds),
     );
-    widget.player.seek(target);
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.seek(target);
+    } else {
+      widget.player.seek(target);
+    }
     final sign = delta.inSeconds >= 0 ? '+' : '';
     final icon = delta.inSeconds >= 0 ? Icons.fast_forward_rounded : Icons.fast_rewind_rounded;
     _showFeedback('$sign${delta.inSeconds}s', icon);
+  }
+
+  void _togglePlayPause() {
+    final playing = widget.player.playing;
+    if (PlaybackController.instance.isAvailable) {
+      PlaybackController.instance.togglePlayPause();
+    } else {
+      if (playing) {
+        widget.player.pause();
+      } else {
+        widget.player.play();
+      }
+    }
+    final willPlay = !playing;
+    _showFeedback(
+      willPlay ? 'Play' : 'Pause',
+      willPlay ? Icons.play_arrow_rounded : Icons.pause_rounded,
+    );
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final focusedWidget = FocusManager.instance.primaryFocus?.context?.widget;
+    if (focusedWidget is EditableText) return KeyEventResult.ignored;
+
+    if (event.logicalKey == LogicalKeyboardKey.space) {
+      _togglePlayPause();
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      _seekRelative(const Duration(seconds: -5));
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      _seekRelative(const Duration(seconds: 5));
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.mediaTrackNext) {
+      widget.onNext();
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.mediaTrackPrevious) {
+      widget.onPrev();
+      return KeyEventResult.handled;
+    } else if (event.logicalKey == LogicalKeyboardKey.mediaPlayPause) {
+      _togglePlayPause();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  Widget _buildFeedbackBadge(AppSkin skin) {
+    if (_feedbackText == null) return const SizedBox.shrink();
+    return Positioned.fill(
+      child: Center(
+        child: IgnorePointer(
+          child: AnimatedOpacity(
+            opacity: _feedbackText != null ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 150),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white24, width: 1),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_feedbackIcon != null) ...[
+                    Icon(_feedbackIcon, color: skin.accent, size: 24),
+                    const SizedBox(width: 10),
+                  ],
+                  Text(
+                    _feedbackText!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _startContinuousSeek(bool forward) {
@@ -453,30 +553,40 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width >= 820;
 
-    return Container(
-      width: double.infinity,
-      height: size.height * (isDesktop ? 0.95 : 0.94),
-      decoration: BoxDecoration(
-        color: skin.bg0,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: skin.isOled ? 0.95 : 0.75),
-            blurRadius: 50,
-            spreadRadius: 8,
-            offset: const Offset(0, -10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: Container(
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
+      child: Container(
+        width: double.infinity,
+        height: size.height * (isDesktop ? 0.95 : 0.94),
+        decoration: BoxDecoration(
           color: skin.bg0,
-          child: SafeArea(
-            top: false,
-            child: isDesktop
-                ? _buildDesktopStudio(size, skin)
-                : _buildMobileLayout(size, skin),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: skin.isOled ? 0.95 : 0.75),
+              blurRadius: 50,
+              spreadRadius: 8,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: Container(
+            color: skin.bg0,
+            child: SafeArea(
+              top: false,
+              child: Stack(
+                children: [
+                  isDesktop
+                      ? _buildDesktopStudio(size, skin)
+                      : _buildMobileLayout(size, skin),
+                  _buildFeedbackBadge(skin),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1452,15 +1562,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
                   borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: skin.isOled ? 0.85 : 0.50),
-                      blurRadius: 28,
-                      offset: const Offset(0, 12),
-                    ),
-                    BoxShadow(
-                      color: skin.accent.withValues(alpha: 0.18),
-                      blurRadius: 38,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 6),
+                      color: Colors.black.withValues(alpha: skin.isOled ? 0.80 : 0.40),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
@@ -2171,9 +2275,9 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             color: skin.accent,
             boxShadow: [
               BoxShadow(
-                color: skin.accent.withValues(alpha: skin.isOled ? 0.2 : 0.38),
-                blurRadius: skin.isOled ? 10 : 20,
-                spreadRadius: 1,
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
