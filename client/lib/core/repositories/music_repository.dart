@@ -1,4 +1,6 @@
-import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import '../../api_client.dart';
@@ -11,6 +13,7 @@ import '../../database/database.dart'
         DownloadQueueItem;
 import '../../database/music_dao.dart';
 import '../offline_music_download.dart';
+import '../services/local_audio_metadata_service.dart';
 import '../telemetry/telemetry_reporter.dart';
 import 'base_daemon_repository.dart';
 import 'models/music_models.dart';
@@ -83,6 +86,7 @@ class MusicRepository extends DaemonRepository {
       loadLiked(),
       loadPlaylists(),
       loadDownloadQueue(),
+      loadOffline(),
     ]);
   }
 
@@ -96,8 +100,128 @@ class MusicRepository extends DaemonRepository {
       final rows = await dao.getOfflineTracks();
       rows.sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
       offlineTracks.value = rows;
+      for (final r in rows) {
+        final track = MusicTrack(
+          id: r.id,
+          title: r.title,
+          artist: r.artist ?? '',
+          album: r.album ?? '',
+          thumbnail: r.thumbnail ?? '',
+          thumbnailUrl: r.thumbnail ?? '',
+          filePath: r.filePath,
+          duration: r.duration.toDouble(),
+        );
+        rememberTrack(track);
+        await dao.upsertTrack(
+          MusicTracksCompanion.insert(
+            id: r.id,
+            title: r.title,
+            artist: Value(r.artist),
+            album: Value(r.album),
+            thumbnailUrl: Value(r.thumbnail),
+            filePath: r.filePath,
+            duration: Value(r.duration.toInt()),
+            addedAt: r.downloadedAt,
+            updatedAt: r.downloadedAt,
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('Load offline music error: $e');
+    }
+  }
+
+  /// Imports a list of local audio files, parses ID3/FLAC/M4A metadata & covers,
+  /// and saves them to the local Drift database.
+  Future<int> importLocalAudioFiles(
+    List<String> filePaths, {
+    void Function(int current, int total, String name)? onProgress,
+  }) async {
+    if (filePaths.isEmpty) return 0;
+    int imported = 0;
+    final dao = MusicDao(AppDatabase.instance);
+
+    for (int i = 0; i < filePaths.length; i++) {
+      final path = filePaths[i];
+      try {
+        final file = File(path);
+        if (!await file.exists()) continue;
+
+        onProgress?.call(i + 1, filePaths.length, file.uri.pathSegments.last);
+
+        final meta = await LocalAudioMetadataService.instance.readMetadata(file);
+        final id = 'local_${md5.convert(utf8.encode(path)).toString()}';
+
+        await dao.insertOfflineTrack(
+          OfflineMusicTracksCompanion.insert(
+            id: id,
+            title: meta.title,
+            artist: Value(meta.artist),
+            album: Value(meta.album),
+            thumbnail: Value(meta.thumbnailPath),
+            filePath: path,
+            duration: Value(meta.duration),
+            downloadedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        await dao.upsertTrack(
+          MusicTracksCompanion.insert(
+            id: id,
+            title: meta.title,
+            artist: Value(meta.artist),
+            album: Value(meta.album),
+            thumbnailUrl: Value(meta.thumbnailPath),
+            filePath: path,
+            duration: Value(meta.duration.toInt()),
+            addedAt: DateTime.now().millisecondsSinceEpoch,
+            updatedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        rememberTrack(MusicTrack(
+          id: id,
+          title: meta.title,
+          artist: meta.artist,
+          album: meta.album,
+          thumbnail: meta.thumbnailPath ?? '',
+          duration: meta.duration,
+          filePath: path,
+        ));
+        imported++;
+      } catch (e) {
+        debugPrint('Error importing local audio file $path: $e');
+      }
+    }
+
+    await loadOffline();
+    return imported;
+  }
+
+  /// Recursively scans a local directory for audio files and imports them.
+  Future<int> scanLocalDirectory(
+    String dirPath, {
+    void Function(int current, int total, String name)? onProgress,
+  }) async {
+    try {
+      final dir = Directory(dirPath);
+      if (!await dir.exists()) return 0;
+
+      final supportedExts =
+          LocalAudioMetadataService.supportedAudioExtensions.toSet();
+      final audioPaths = <String>[];
+
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        if (entity is File) {
+          final ext = entity.path.toLowerCase().split('.').last;
+          if (supportedExts.contains('.$ext')) {
+            audioPaths.add(entity.path);
+          }
+        }
+      }
+
+      return await importLocalAudioFiles(audioPaths, onProgress: onProgress);
+    } catch (e) {
+      debugPrint('Error scanning local directory $dirPath: $e');
+      return 0;
     }
   }
 
@@ -247,12 +371,39 @@ class MusicRepository extends DaemonRepository {
     likedTrackIds.value = currentIds;
 
     try {
+      final dao = MusicDao(AppDatabase.instance);
+      await dao.upsertTrack(
+        MusicTracksCompanion.insert(
+          id: track.id,
+          title: track.title,
+          artist: Value(track.artist),
+          album: Value(track.album),
+          thumbnailUrl: Value(track.thumbnail.isNotEmpty ? track.thumbnail : track.thumbnailUrl),
+          filePath: track.filePath,
+          duration: Value(track.duration.toInt()),
+          addedAt: DateTime.now().millisecondsSinceEpoch,
+          updatedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+
       if (wasLiked) {
+        await dao.unlikeSong(track.id);
         await ApiClient.instance
             .deleteDaemon('/api/v1/music/liked/${track.id}');
       } else {
-        await ApiClient.instance
-            .postDaemon('/api/v1/music/liked', {'track_id': track.id});
+        await dao.likeSong(LikedSongsCompanion.insert(
+          id: track.id,
+          likedAt: DateTime.now().millisecondsSinceEpoch,
+        ));
+        await ApiClient.instance.postDaemon('/api/v1/music/liked', {
+          'track_id': track.id,
+          'title': track.title,
+          'artist': track.artist,
+          'album': track.album,
+          'thumbnail': track.thumbnail.isNotEmpty ? track.thumbnail : track.thumbnailUrl,
+          'file_path': track.filePath,
+          'duration': track.duration,
+        });
       }
       return true;
     } catch (e) {
@@ -268,13 +419,55 @@ class MusicRepository extends DaemonRepository {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/playlists');
       if (res is List) {
-        playlists.value = res
+        final list = res
             .whereType<Map>()
             .map((m) => Playlist.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        playlists.value = list;
+        try {
+          final dao = MusicDao(AppDatabase.instance);
+          for (final p in list) {
+            await dao.insertPlaylist(PlaylistsCompanion.insert(
+              id: p.id,
+              name: p.name,
+              description: Value(p.description),
+              coverArtUrl: Value(p.coverArtUrl),
+              isSmart: Value(p.isSmart),
+              smartType: Value(p.smartType),
+              smartConfig: Value(p.smartConfig),
+              trackCount: Value(p.trackCount),
+              totalDuration: Value(p.totalDuration),
+              createdAt: p.createdAt,
+              updatedAt: p.updatedAt,
+            ));
+          }
+        } catch (_) {}
+        return;
       }
     } catch (e) {
       debugPrint('Load playlists error: $e');
+    }
+    // Fallback to local Drift DB
+    try {
+      final dao = MusicDao(AppDatabase.instance);
+      final localPls = await dao.watchPlaylists().first;
+      playlists.value = localPls
+          .map((p) => Playlist(
+                id: p.id,
+                name: p.name,
+                description: p.description ?? '',
+                coverArtUrl: p.coverArtUrl ?? '',
+                isSmart: p.isSmart,
+                smartType: p.smartType ?? '',
+                smartConfig: p.smartConfig ?? '',
+                trackCount: p.trackCount,
+                totalDuration: p.totalDuration,
+                createdAt: p.createdAt,
+                updatedAt: p.updatedAt,
+              ))
+          .toList();
+    } catch (e) {
+      debugPrint('Load offline playlists error: $e');
     }
   }
 
@@ -299,15 +492,59 @@ class MusicRepository extends DaemonRepository {
   }
 
   Future<Playlist?> createPlaylist(PlaylistCreate create) async {
+    Playlist? pl;
     try {
       final res = await ApiClient.instance.postDaemon('/api/v1/music/playlists', create.toJson());
       if (res is Map) {
-        return Playlist.fromJson(Map<String, dynamic>.from(res));
+        final map = Map<String, dynamic>.from(res);
+        final id = map['id']?.toString() ?? '';
+        pl = Playlist(
+          id: id,
+          name: create.name,
+          description: create.description,
+          isSmart: create.isSmart,
+          smartType: create.smartType,
+          smartConfig: create.smartConfig,
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          updatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
       }
     } catch (e) {
       debugPrint('Create playlist error: $e');
     }
-    return null;
+
+    try {
+      final dao = MusicDao(AppDatabase.instance);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final plId = pl?.id ?? 'pl_local_${md5.convert(utf8.encode("${create.name}_$now")).toString().substring(0, 12)}';
+      await dao.insertPlaylist(PlaylistsCompanion.insert(
+        id: plId,
+        name: create.name,
+        description: Value(create.description),
+        isSmart: Value(create.isSmart),
+        smartType: Value(create.smartType),
+        smartConfig: Value(create.smartConfig),
+        trackCount: Value(pl?.trackCount ?? 0),
+        totalDuration: Value(pl?.totalDuration ?? 0),
+        createdAt: pl?.createdAt ?? now,
+        updatedAt: pl?.updatedAt ?? now,
+      ));
+      pl ??= Playlist(
+        id: plId,
+        name: create.name,
+        description: create.description,
+        isSmart: create.isSmart,
+        smartType: create.smartType,
+        smartConfig: create.smartConfig,
+        createdAt: now,
+        updatedAt: now,
+      );
+    } catch (e) {
+      debugPrint('Insert local playlist error: $e');
+    }
+
+    await loadPlaylists();
+    return pl;
   }
 
   Future<Playlist?> getPlaylist(String id) async {
@@ -335,31 +572,93 @@ class MusicRepository extends DaemonRepository {
   Future<bool> deletePlaylist(String id) async {
     try {
       await ApiClient.instance.deleteDaemon('/api/v1/music/playlists/$id');
-      return true;
     } catch (e) {
       debugPrint('Delete playlist error: $e');
-      return false;
     }
+    try {
+      final dao = MusicDao(AppDatabase.instance);
+      await dao.deletePlaylist(id);
+    } catch (e) {
+      debugPrint('Delete local playlist error: $e');
+    }
+    await loadPlaylists();
+    return true;
   }
 
   Future<List<PlaylistTrack>> getPlaylistTracks(String playlistId) async {
     try {
       final res = await ApiClient.instance.getDaemon('/api/v1/music/playlists/$playlistId/tracks');
       if (res is List) {
-        return res
+        final list = res
             .whereType<Map>()
             .map((m) => PlaylistTrack.fromJson(Map<String, dynamic>.from(m)))
             .toList();
+        for (final pt in list) {
+          rememberTrack(pt.track);
+        }
+        return list;
       }
     } catch (e) {
       debugPrint('Get playlist tracks error: $e');
     }
+    // Fallback to local Drift DB
+    try {
+      final dao = MusicDao(AppDatabase.instance);
+      final localTracks = await dao.getPlaylistTracksWithDetails(playlistId);
+      if (localTracks.isNotEmpty) {
+        return localTracks.asMap().entries.map((e) {
+          final t = MusicTrack(
+            id: e.value.id,
+            title: e.value.title,
+            artist: e.value.artist ?? 'Unknown',
+            album: e.value.album ?? '',
+            thumbnail: e.value.thumbnailUrl ?? '',
+            thumbnailUrl: e.value.thumbnailUrl ?? '',
+            filePath: e.value.filePath,
+            duration: e.value.duration.toDouble(),
+          );
+          rememberTrack(t);
+          return PlaylistTrack(track: t, position: e.key);
+        }).toList();
+      }
+    } catch (e) {
+      debugPrint('Local playlist fallback error: $e');
+    }
     return const [];
   }
 
-  Future<bool> addTrackToPlaylist(String playlistId, String trackId) async {
+  Future<bool> addTrackToPlaylist(String playlistId, String trackId, {MusicTrack? track}) async {
     try {
-      await ApiClient.instance.postDaemon('/api/v1/music/playlists/$playlistId/tracks', {'track_id': trackId});
+      final t = track ?? getTrackMetadata(trackId);
+      final dao = MusicDao(AppDatabase.instance);
+      if (t != null) {
+        await dao.upsertTrack(
+          MusicTracksCompanion.insert(
+            id: t.id,
+            title: t.title,
+            artist: Value(t.artist),
+            album: Value(t.album),
+            thumbnailUrl: Value(t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl),
+            filePath: t.filePath,
+            duration: Value(t.duration.toInt()),
+            addedAt: DateTime.now().millisecondsSinceEpoch,
+            updatedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+      }
+      await dao.addTrackToPlaylist(playlistId, trackId);
+      await dao.updatePlaylistStats(playlistId);
+
+      final body = <String, dynamic>{'track_id': trackId};
+      if (t != null) {
+        body['title'] = t.title;
+        body['artist'] = t.artist;
+        body['album'] = t.album;
+        body['thumbnail'] = t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl;
+        body['file_path'] = t.filePath;
+        body['duration'] = t.duration;
+      }
+      await ApiClient.instance.postDaemon('/api/v1/music/playlists/$playlistId/tracks', body);
       return true;
     } catch (e) {
       debugPrint('Add track to playlist error: $e');
@@ -369,6 +668,9 @@ class MusicRepository extends DaemonRepository {
 
   Future<bool> removeTrackFromPlaylist(String playlistId, String trackId) async {
     try {
+      final dao = MusicDao(AppDatabase.instance);
+      await dao.removeTrackFromPlaylist(playlistId, trackId);
+      await dao.updatePlaylistStats(playlistId);
       await ApiClient.instance.deleteDaemon('/api/v1/music/playlists/$playlistId/tracks/$trackId');
       return true;
     } catch (e) {

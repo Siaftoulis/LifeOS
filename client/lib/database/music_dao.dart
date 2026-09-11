@@ -55,7 +55,7 @@ class MusicDao extends DatabaseAccessor<AppDatabase> with _$MusicDaoMixin {
       (select(playlists)..where((p) => p.isSmart.equals(true))).watch();
   Future<Playlist?> getPlaylist(String id) =>
       (select(playlists)..where((p) => p.id.equals(id))).getSingleOrNull();
-  Future<int> insertPlaylist(PlaylistsCompanion entry) => into(playlists).insert(entry);
+  Future<int> insertPlaylist(PlaylistsCompanion entry) => into(playlists).insertOnConflictUpdate(entry);
   Future<bool> updatePlaylist(PlaylistsCompanion entry) => update(playlists).replace(entry);
   Future<int> deletePlaylist(String id) =>
       (delete(playlists)..where((p) => p.id.equals(id))).go();
@@ -80,13 +80,86 @@ class MusicDao extends DatabaseAccessor<AppDatabase> with _$MusicDaoMixin {
       (select(playlistTracks)..where((pt) => pt.playlistId.equals(playlistId))..orderBy([(pt) => OrderingTerm.asc(pt.position)])).watch();
   Future<List<PlaylistTrack>> getPlaylistTracks(String playlistId) =>
       (select(playlistTracks)..where((pt) => pt.playlistId.equals(playlistId))..orderBy([(pt) => OrderingTerm.asc(pt.position)])).get();
-  Future<List<MusicTrack>> getPlaylistTracksWithDetails(String playlistId) {
+  Future<List<MusicTrack>> getPlaylistTracksWithDetails(String playlistId) async {
+    final pl = await getPlaylist(playlistId);
+    if (pl != null && pl.isSmart) {
+      return getSmartPlaylistTracks(pl.smartType ?? '', pl.smartConfig ?? '');
+    }
     return customSelect('''
       SELECT mt.* FROM music_tracks mt
       JOIN playlist_tracks pt ON pt.track_id = mt.id
       WHERE pt.playlist_id = ?
       ORDER BY pt.position ASC
     ''', variables: [Variable.withString(playlistId)], readsFrom: {musicTracks}).map((row) => _trackFromRow(row.data)).get();
+  }
+
+  Future<List<MusicTrack>> getSmartPlaylistTracks(String smartType, String smartConfig) async {
+    final type = smartType.toLowerCase().trim();
+    final cfg = smartConfig.toLowerCase().trim();
+    switch (type) {
+      case 'genre':
+        return (select(musicTracks)
+              ..where((t) => t.genre.lower().like('%$cfg%'))
+              ..orderBy([(t) => OrderingTerm.asc(t.artist), (t) => OrderingTerm.asc(t.album)]))
+            .get();
+      case 'decade':
+        final range = _parseDecadeRange(cfg);
+        return (select(musicTracks)
+              ..where((t) => t.year.isBiggerOrEqualValue(range.$1) & t.year.isSmallerOrEqualValue(range.$2))
+              ..orderBy([(t) => OrderingTerm.desc(t.year), (t) => OrderingTerm.asc(t.artist)]))
+            .get();
+      case 'year':
+        final y = int.tryParse(cfg) ?? 0;
+        return (select(musicTracks)
+              ..where((t) => t.year.equals(y))
+              ..orderBy([(t) => OrderingTerm.asc(t.artist), (t) => OrderingTerm.asc(t.title)]))
+            .get();
+      case 'folder':
+        final cleanFolder = cfg.replaceAll('/', '\\');
+        return (select(musicTracks)
+              ..where((t) => t.filePath.lower().like('%$cleanFolder%') | t.filePath.lower().like('%$cfg%'))
+              ..orderBy([(t) => OrderingTerm.asc(t.filePath)]))
+            .get();
+      case 'recently_added':
+        return (select(musicTracks)
+              ..orderBy([(t) => OrderingTerm.desc(t.addedAt)])
+              ..limit(100))
+            .get();
+      case 'most_played':
+        return (select(musicTracks)
+              ..where((t) => t.playCount.isBiggerThanValue(0))
+              ..orderBy([(t) => OrderingTerm.desc(t.playCount)])
+              ..limit(100))
+            .get();
+      default:
+        if (cfg.isNotEmpty) {
+          final q = '%$cfg%';
+          return (select(musicTracks)
+                ..where((t) => t.genre.lower().like(q) | t.filePath.lower().like(q) | t.title.lower().like(q))
+                ..orderBy([(t) => OrderingTerm.asc(t.artist)]))
+              .get();
+        }
+        return (select(musicTracks)..limit(100)).get();
+    }
+  }
+
+  static (int, int) _parseDecadeRange(String input) {
+    final s = input.toLowerCase().trim();
+    if (s.contains('60')) return (1960, 1969);
+    if (s.contains('70')) return (1970, 1979);
+    if (s.contains('80')) return (1980, 1989);
+    if (s.contains('90')) return (1990, 1999);
+    if (s.contains('2000') || s == '00s') return (2000, 2009);
+    if (s.contains('2010') || s == '10s') return (2010, 2019);
+    if (s.contains('2020') || s == '20s') return (2020, 2029);
+    final parts = s.split(RegExp(r'[-–]'));
+    if (parts.length == 2) {
+      final a = int.tryParse(parts[0].trim()) ?? 1900;
+      final b = int.tryParse(parts[1].trim()) ?? 2099;
+      return (a, b);
+    }
+    final y = int.tryParse(s) ?? 1980;
+    return (y, y + 9);
   }
   Future<int> addTrackToPlaylist(String playlistId, String trackId, {int? position}) async {
     final maxPos = await customSelect('SELECT COALESCE(MAX(position), -1) + 1 as pos FROM playlist_tracks WHERE playlist_id = ?',
@@ -136,7 +209,8 @@ class MusicDao extends DatabaseAccessor<AppDatabase> with _$MusicDaoMixin {
   Future<List<OfflineMusicTrack>> getOfflineTracks() => select(offlineMusicTracks).get();
   Future<OfflineMusicTrack?> getOfflineTrack(String id) =>
       (select(offlineMusicTracks)..where((t) => t.id.equals(id))).getSingleOrNull();
-  Future<int> insertOfflineTrack(OfflineMusicTracksCompanion entry) => into(offlineMusicTracks).insert(entry);
+  Future<int> insertOfflineTrack(OfflineMusicTracksCompanion entry) =>
+      into(offlineMusicTracks).insertOnConflictUpdate(entry);
   Future<int> deleteOfflineTrack(String id) =>
       (delete(offlineMusicTracks)..where((t) => t.id.equals(id))).go();
 

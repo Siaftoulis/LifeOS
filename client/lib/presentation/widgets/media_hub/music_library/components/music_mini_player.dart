@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../theme/app_skin_manager.dart';
-import '../music_formatters.dart';
+import 'music_cover_art.dart';
 
 class MusicMiniPlayer extends StatelessWidget {
   const MusicMiniPlayer({
@@ -24,20 +24,6 @@ class MusicMiniPlayer extends StatelessWidget {
   final String currentThumbnail;
   final VoidCallback onTap;
   final VoidCallback onOpenLyrics;
-
-  Widget _buildMiniPlaceholder(AppSkin skin) {
-    return Container(
-      decoration: BoxDecoration(
-        color: skin.bg2,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      child: Icon(
-        Icons.graphic_eq_rounded,
-        color: skin.accent,
-        size: 26,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,25 +94,11 @@ class MusicMiniPlayer extends StatelessWidget {
                           Hero(
                             tag:
                                 'now_playing_artwork_${effectiveTrackId.isEmpty ? "empty" : effectiveTrackId}',
-                            child: Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: skin.bg2,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: effectiveThumbnail.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Image.network(
-                                        sanitizeMusicThumbnailUrl(
-                                            effectiveThumbnail),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            _buildMiniPlaceholder(skin),
-                                      ),
-                                    )
-                                  : _buildMiniPlaceholder(skin),
+                            child: MusicCoverArt(
+                              url: effectiveThumbnail,
+                              size: 42,
+                              borderRadius: 6,
+                              showShadow: false,
                             ),
                           ),
                           const SizedBox(width: 12),

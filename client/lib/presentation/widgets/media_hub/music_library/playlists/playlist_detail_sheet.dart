@@ -4,8 +4,9 @@ import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../core/music_playback/playback_models.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
+import '../components/music_cover_art.dart';
+import '../components/poweramp_track_context_sheet.dart';
 import '../music_formatters.dart';
-import '../tabs/all_tracks_sliver.dart';
 import 'create_playlist_dialog.dart';
 
 class PlaylistDetailSheet extends StatefulWidget {
@@ -66,12 +67,40 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
   Future<void> _loadTracks() async {
     final pt =
         await MusicRepository.instance.getPlaylistTracks(_currentPlaylist.id);
-    final allMap = {for (var t in MusicRepository.instance.tracks.value) t.id: t};
+    final allMap = <String, MusicTrack>{
+      for (var t in MusicRepository.instance.tracks.value) t.id: t,
+      for (var o in MusicRepository.instance.offlineTracks.value)
+        o.id: MusicTrack(
+          id: o.id,
+          title: o.title,
+          artist: o.artist ?? '',
+          album: o.album ?? '',
+          thumbnail: o.thumbnail ?? '',
+          thumbnailUrl: o.thumbnail ?? '',
+          filePath: o.filePath,
+          duration: o.duration.toDouble(),
+        ),
+      for (var e in MusicRepository.instance.knownTrackMetadata.entries)
+        e.key: e.value,
+    };
 
     final List<MusicTrack> resolved = [];
     for (final p in pt) {
       if (allMap.containsKey(p.trackId)) {
-        resolved.add(allMap[p.trackId]!);
+        final existing = allMap[p.trackId]!;
+        final track = existing.filePath.isEmpty && p.track.filePath.isNotEmpty
+            ? MusicTrack(
+                id: existing.id,
+                title: existing.title,
+                artist: existing.artist,
+                album: existing.album,
+                thumbnail: existing.thumbnail,
+                thumbnailUrl: existing.thumbnailUrl,
+                duration: existing.duration,
+                filePath: p.track.filePath,
+              )
+            : existing;
+        resolved.add(track);
       } else if (p.track.id.isNotEmpty &&
           ((p.track.title.isNotEmpty && p.track.title != 'Unknown') ||
               (p.track.artist.isNotEmpty && p.track.artist != 'Unknown'))) {
@@ -104,6 +133,21 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
     }
   }
 
+  PlaybackItem _toPlaybackItem(MusicTrack t) {
+    final effectiveUrl = t.filePath.isNotEmpty
+        ? t.filePath
+        : widget.streamUrlFor(t.id);
+    return PlaybackItem(
+      id: t.id,
+      url: effectiveUrl,
+      title: t.title,
+      artist: t.artist,
+      thumbnail: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+      album: t.album,
+      filePath: t.filePath,
+    );
+  }
+
   Future<void> _playAll({bool shuffle = false}) async {
     if (!widget.canPlay) {
       widget.onWebNotice();
@@ -111,16 +155,7 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
     }
     if (_fullTracks.isEmpty) return;
 
-    final queue = _fullTracks
-        .map((t) => PlaybackItem(
-              id: t.id,
-              url: widget.streamUrlFor(t.id),
-              title: t.title,
-              artist: t.artist,
-              thumbnail: t.thumbnail,
-              album: t.album,
-            ))
-        .toList();
+    final queue = _fullTracks.map(_toPlaybackItem).toList();
 
     if (shuffle) queue.shuffle();
     await widget.playbackController.playQueue(queue, startIndex: 0);
@@ -181,7 +216,6 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
             onPressed: () async {
               Navigator.pop(ctx);
               await MusicRepository.instance.deletePlaylist(_currentPlaylist.id);
-              await MusicRepository.instance.loadPlaylists();
               if (mounted) Navigator.pop(context);
             },
             child: const Text('Delete'),
@@ -191,9 +225,30 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
     );
   }
 
+  IconData _iconForPlaylist(Playlist p) {
+    if (!p.isSmart) return Icons.playlist_play_rounded;
+    switch (p.smartType.toLowerCase().trim()) {
+      case 'genre':
+        return Icons.music_note_rounded;
+      case 'decade':
+      case 'year':
+        return Icons.calendar_month_rounded;
+      case 'folder':
+        return Icons.folder_special_rounded;
+      case 'recently_added':
+        return Icons.schedule_rounded;
+      case 'most_played':
+        return Icons.local_fire_department_rounded;
+      default:
+        return Icons.auto_awesome_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final skin = context.skin;
+    final isSmart = _currentPlaylist.isSmart;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
       decoration: BoxDecoration(
@@ -231,16 +286,19 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: skin.accent.withValues(alpha: 0.15),
+                    color: isSmart
+                        ? skin.yellow.withValues(alpha: 0.15)
+                        : skin.accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: skin.accent.withValues(alpha: 0.3)),
+                      color: isSmart
+                          ? skin.yellow.withValues(alpha: 0.35)
+                          : skin.accent.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Icon(
-                    _currentPlaylist.isSmart
-                        ? Icons.auto_awesome_rounded
-                        : Icons.playlist_play_rounded,
-                    color: skin.accent,
+                    _iconForPlaylist(_currentPlaylist),
+                    color: isSmart ? skin.yellow : skin.accent,
                     size: 38,
                   ),
                 ),
@@ -251,13 +309,12 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                     children: [
                       Row(
                         children: [
-                          if (_currentPlaylist.isSmart) ...[
+                          if (isSmart) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: skin.yellow
-                                    .withValues(alpha: 0.2),
+                                color: skin.yellow.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -289,17 +346,21 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                       Text(
                         _currentPlaylist.description.isNotEmpty
                             ? _currentPlaylist.description
-                            : '${_fullTracks.length} tracks',
+                            : (isSmart
+                                ? 'Rule: ${_currentPlaylist.smartType}${_currentPlaylist.smartConfig.isNotEmpty ? " (${_currentPlaylist.smartConfig})" : ""}'
+                                : '${_fullTracks.length} tracks'),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: skin.textMuted, fontSize: 13),
+                          color: skin.textMuted,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         '${_fullTracks.length} songs',
                         style: TextStyle(
-                          color: skin.accent,
+                          color: isSmart ? skin.yellow : skin.accent,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -342,8 +403,8 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
                     label: const Text('Play All',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: skin.accent,
-                      foregroundColor: skin.accentContrast,
+                      backgroundColor: isSmart ? skin.yellow : skin.accent,
+                      foregroundColor: isSmart ? Colors.black : skin.accentContrast,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -375,91 +436,144 @@ class _PlaylistDetailSheetState extends State<PlaylistDetailSheet> {
 
           Divider(color: skin.bg2, height: 16),
 
-          // Reorderable Track List
+          // Track List
           Expanded(
             child: _isLoading
                 ? Center(
                     child: CircularProgressIndicator(
-                        color: skin.accent),
+                        color: isSmart ? skin.yellow : skin.accent),
                   )
                 : _fullTracks.isEmpty
                     ? Center(
                         child: Text(
-                          'No songs in this playlist yet.\nTap ... on any track to add it!',
+                          isSmart
+                              ? 'No songs matching this rule yet.\nImport local files or download matching tracks!'
+                              : 'No songs in this playlist yet.\nTap ... on any track to add it!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: skin.textMuted, fontSize: 14),
                         ),
                       )
-                    : ReorderableListView.builder(
-                        padding: const EdgeInsets.only(bottom: 40),
-                        itemCount: _fullTracks.length,
-                        // ignore: deprecated_member_use
-                        onReorder: _reorder,
-                        itemBuilder: (context, i) {
-                          final t = _fullTracks[i];
-                          return ListTile(
-                            key: ValueKey(t.id + i.toString()),
-                            leading: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ReorderableDragStartListener(
-                                  index: i,
-                                  child: Icon(Icons.drag_handle_rounded,
-                                      color: skin.textMuted, size: 20),
-                                ),
-                                const SizedBox(width: 10),
-                                TrackThumbnail(url: t.thumbnail, size: 40),
-                              ],
-                            ),
-                            title: Text(
-                              t.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: skin.fg,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            subtitle: Text(
-                              '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: skin.textMuted, fontSize: 12),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                HeartButton(track: t, size: 18),
-                                IconButton(
-                                  icon: Icon(Icons.remove_circle_outline,
-                                      color: skin.textMuted, size: 18),
-                                  tooltip: 'Remove from playlist',
-                                  onPressed: () => _deleteTrack(i),
-                                ),
-                              ],
-                            ),
-                            onTap: widget.canPlay
-                                ? () => widget.playbackController.playQueue(
-                                      _fullTracks
-                                          .map((x) => PlaybackItem(
-                                                id: x.id,
-                                                url: widget.streamUrlFor(x.id),
-                                                title: x.title,
-                                                artist: x.artist,
-                                                thumbnail: x.thumbnail,
-                                                album: x.album,
-                                              ))
-                                          .toList(),
-                                      startIndex: i,
-                                    )
-                                : widget.onWebNotice,
-                          );
-                        },
-                      ),
+                    : isSmart
+                        ? ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 40),
+                            itemCount: _fullTracks.length,
+                            itemBuilder: (context, i) {
+                              final t = _fullTracks[i];
+                              return _buildTrackTile(context, t, i, skin, isSmart: true);
+                            },
+                          )
+                        : ReorderableListView.builder(
+                            padding: const EdgeInsets.only(bottom: 40),
+                            itemCount: _fullTracks.length,
+                            // ignore: deprecated_member_use
+                            onReorder: _reorder,
+                            itemBuilder: (context, i) {
+                              final t = _fullTracks[i];
+                              return _buildTrackTile(context, t, i, skin, isSmart: false);
+                            },
+                          ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrackTile(
+    BuildContext context,
+    MusicTrack t,
+    int index,
+    dynamic skin, {
+    required bool isSmart,
+  }) {
+    return ListTile(
+      key: ValueKey('${t.id}_$index'),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isSmart) ...[
+            ReorderableDragStartListener(
+              index: index,
+              child: Icon(Icons.drag_handle_rounded,
+                  color: skin.textMuted, size: 20),
+            ),
+            const SizedBox(width: 8),
+          ] else ...[
+            SizedBox(
+              width: 24,
+              child: Text(
+                '${index + 1}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: skin.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          MusicCoverArt(
+            url: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+            size: 42,
+            borderRadius: 8,
+          ),
+        ],
+      ),
+      title: Text(
+        t.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: skin.fg,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        '${t.artist}${t.duration > 0 ? ' · ${formatTrackDuration(t.duration)}' : ''}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: skin.textMuted,
+          fontSize: 12,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HeartButton(track: t, size: 18),
+          if (!isSmart)
+            IconButton(
+              icon: Icon(Icons.remove_circle_outline,
+                  color: skin.textMuted, size: 18),
+              tooltip: 'Remove from playlist',
+              onPressed: () => _deleteTrack(index),
+            ),
+          IconButton(
+            icon: Icon(Icons.more_vert_rounded,
+                color: skin.textMuted, size: 20),
+            tooltip: 'Track options',
+            onPressed: () {
+              PowerampTrackContextSheet.show(
+                context,
+                track: t,
+              );
+            },
+          ),
+        ],
+      ),
+      onTap: widget.canPlay
+          ? () => widget.playbackController.playQueue(
+                _fullTracks.map(_toPlaybackItem).toList(),
+                startIndex: index,
+              )
+          : widget.onWebNotice,
+      onLongPress: () {
+        PowerampTrackContextSheet.show(
+          context,
+          track: t,
+        );
+      },
     );
   }
 }

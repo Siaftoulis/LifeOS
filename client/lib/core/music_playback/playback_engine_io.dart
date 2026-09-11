@@ -105,7 +105,9 @@ class PlaybackEngine {
   }
 
   Future<void> _loadSource(AudioPlayer p, String url) async {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith('content://')) {
+      await p.setAudioSource(AudioSource.uri(Uri.parse(url)));
+    } else if (url.startsWith('http://') || url.startsWith('https://')) {
       await p.setUrl(url);
     } else if (url.startsWith('file://')) {
       final filePath = Uri.parse(url).toFilePath();

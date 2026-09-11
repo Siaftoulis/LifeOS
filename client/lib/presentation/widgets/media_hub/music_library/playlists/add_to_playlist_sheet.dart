@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/domain_repositories.dart';
 import '../../../../../theme/app_skin_manager.dart';
+import '../components/music_cover_art.dart';
 import 'create_playlist_dialog.dart';
 
 class AddToPlaylistSheet extends StatefulWidget {
@@ -81,7 +82,7 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
           .removeTrackFromPlaylist(playlist.id, widget.track.id);
     } else {
       await MusicRepository.instance
-          .addTrackToPlaylist(playlist.id, widget.track.id);
+          .addTrackToPlaylist(playlist.id, widget.track.id, track: widget.track);
     }
   }
 
@@ -123,6 +124,17 @@ class _AddToPlaylistSheetState extends State<AddToPlaylistSheet> {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
             child: Row(
               children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: MusicCoverArt(
+                    url: widget.track.thumbnail.isNotEmpty
+                        ? widget.track.thumbnail
+                        : widget.track.thumbnailUrl,
+                    size: 44,
+                    borderRadius: 8,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

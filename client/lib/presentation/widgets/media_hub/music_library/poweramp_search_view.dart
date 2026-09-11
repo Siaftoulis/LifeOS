@@ -3,6 +3,7 @@ import '../../../../core/domain_repositories.dart';
 import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../theme/app_skin_manager.dart';
 import 'components/download_quality_dialog.dart';
+import 'components/music_cover_art.dart';
 import 'components/poweramp_track_context_sheet.dart';
 import 'music_formatters.dart';
 
@@ -308,20 +309,15 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                       final totalSec = albumTracks.fold<double>(0.0, (acc, t) => acc + t.duration);
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(vertical: 2),
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Container(
+                        leading: MusicCoverArt(
+                          url: first.thumbnail,
+                          size: 48,
+                          borderRadius: 6,
+                          fallback: Container(
                             width: 48,
                             height: 48,
                             color: skin.bg2,
-                            child: first.thumbnail.isNotEmpty
-                                ? Image.network(
-                                    sanitizeMusicThumbnailUrl(first.thumbnail),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        Icon(Icons.album_rounded, color: skin.accent, size: 24),
-                                  )
-                                : Icon(Icons.album_rounded, color: skin.accent, size: 24),
+                            child: Icon(Icons.album_rounded, color: skin.accent, size: 24),
                           ),
                         ),
                         title: Text(
@@ -408,28 +404,10 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
                                   });
                                 },
                               )
-                            : ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: Container(
-                                  width: 44,
-                                  height: 44,
-                                  color: skin.bg2,
-                                  child: t.thumbnail.isNotEmpty
-                                      ? Image.network(
-                                          sanitizeMusicThumbnailUrl(t.thumbnail),
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
-                                            Icons.music_note_rounded,
-                                            color: skin.accent,
-                                            size: 22,
-                                          ),
-                                        )
-                                      : Icon(
-                                          Icons.music_note_rounded,
-                                          color: skin.accent,
-                                          size: 22,
-                                        ),
-                                ),
+                            : MusicCoverArt(
+                                url: t.thumbnail,
+                                size: 44,
+                                borderRadius: 6,
                               ),
                         title: Text(
                           t.title,

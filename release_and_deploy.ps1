@@ -41,6 +41,9 @@ if ($Bump -eq "patch") {
     $minor = 0
     $patch = 0
     $currentBuild++
+} else {
+    # BUILD increments on every single build/compilation/export
+    $currentBuild++
 }
 
 $newVer = "$major.$minor.$patch"
@@ -74,7 +77,7 @@ if ($LASTEXITCODE -ne 0) {
 # 3. Git Commit, Tag and Push
 Write-Host "`n>>> [STEP 2/3] Committing and Tagging Git Release..." -ForegroundColor Yellow
 Push-Location $workspaceRoot
-git add .agent/version.json .agent/RELEASE_NOTES.md client/pubspec.yaml deploy_server.ps1 release_and_deploy.ps1 client/lib client/test client/android backend/host-daemon/main.go backend/host-daemon/main_test.go backend/host-daemon/internal/music backend/newpipe-bridge/src/main/java/lifeos/newpipe/Bridge.java AGENTS.md .github/workflows/release.yml
+git add .agent/version.json .agent/RELEASE_NOTES.md .agent/AGENTS.md client/pubspec.yaml deploy_server.ps1 release_and_deploy.ps1 client/lib client/test client/android backend/host-daemon/main.go backend/host-daemon/main_test.go backend/host-daemon/internal/music backend/newpipe-bridge/src/main/java/lifeos/newpipe/Bridge.java AGENTS.md .github/workflows/release.yml
 $commitMsg = 'release: v{0} (Build #{1}) - {2}' -f $newVer, $newBuild, $Message
 git commit -m $commitMsg --allow-empty
 

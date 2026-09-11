@@ -885,7 +885,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       ('Artists ($artistCount)', Icons.person_rounded, 3),
       ('Genres & Styles ($genreCount)', Icons.category_rounded, 4),
       ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 5),
-      ('Offline ($offlineCount)', Icons.download_for_offline_rounded, 6),
+      ('Local & Offline ($offlineCount)', Icons.devices_rounded, 6),
     ];
 
     return SingleChildScrollView(

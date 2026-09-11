@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -18,6 +17,7 @@ import 'lyrics_sync_viewer.dart';
 import 'poweramp_equalizer_modal.dart';
 import 'now_playing/now_playing_spectrogram.dart';
 import 'music_formatters.dart';
+import 'components/music_cover_art.dart';
 
 enum NowPlayingCardMode {
   artwork,
@@ -1557,29 +1557,11 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             height: cardSize,
             child: AspectRatio(
               aspectRatio: 1.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: skin.isOled ? 0.80 : 0.40),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: _activeThumbnail.isNotEmpty
-                      ? Image.network(
-                          (kIsWeb && Uri.base.scheme == 'https' && _activeThumbnail.startsWith('http://'))
-                              ? _activeThumbnail.replaceFirst('http://', 'https://')
-                              : _activeThumbnail,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildFallbackArt(skin),
-                        )
-                      : _buildFallbackArt(skin),
-                ),
+              child: MusicCoverArt(
+                url: _activeThumbnail,
+                size: cardSize,
+                borderRadius: 22,
+                fallback: _buildFallbackArt(skin),
               ),
             ),
           ),

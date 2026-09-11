@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../theme/app_skin_manager.dart';
+import 'components/music_cover_art.dart';
 import 'music_formatters.dart';
 
 /// Poweramp-style Audiophile Track Metadata Inspector modal.
@@ -127,30 +128,10 @@ class TrackMetadataModal extends StatelessWidget {
                 if (coverUrl.isNotEmpty)
                   GestureDetector(
                     onTap: () => _showFullCover(context, coverUrl),
-                    child: Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: skin.accent.withValues(alpha: 0.25),
-                            blurRadius: 12,
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.network(
-                          coverUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: skin.bg1,
-                            child: Icon(Icons.music_note_rounded,
-                                color: skin.accent),
-                          ),
-                        ),
-                      ),
+                    child: MusicCoverArt(
+                      url: coverUrl,
+                      size: 58,
+                      borderRadius: 14,
                     ),
                   )
                 else
@@ -317,12 +298,10 @@ class TrackMetadataModal extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                coverUrl,
-                fit: BoxFit.contain,
-              ),
+            MusicCoverArt(
+              url: coverUrl,
+              size: 280,
+              borderRadius: 20,
             ),
             const SizedBox(height: 12),
             TextButton.icon(

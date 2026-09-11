@@ -5,6 +5,7 @@ import '../../../../../core/music_playback/playback_controller.dart';
 import '../../../../../theme/app_skin_manager.dart';
 import '../components/heart_button.dart';
 import '../components/poweramp_track_context_sheet.dart';
+import '../components/music_cover_art.dart';
 import '../music_formatters.dart';
 import '../track_metadata_modal.dart';
 
@@ -22,52 +23,10 @@ class TrackThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final skin = context.skin;
-    final secureUrl = sanitizeMusicThumbnailUrl(url);
-    if (secureUrl.isEmpty) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: skin.bg1,
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-        child:
-            Icon(Icons.music_note_rounded, color: skin.blue),
-      );
-    }
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Image.network(
-          secureUrl,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: skin.bg1,
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            child: Icon(Icons.music_note_rounded,
-                color: skin.blue),
-          ),
-        ),
-      ),
+    return MusicCoverArt(
+      url: url,
+      size: size,
+      borderRadius: borderRadius,
     );
   }
 }

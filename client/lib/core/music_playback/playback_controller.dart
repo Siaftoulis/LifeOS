@@ -132,11 +132,22 @@ class PlaybackController extends ChangeNotifier {
       return offline;
     }
     String url = item.url.trim();
+
+    // Check if the item is already a direct local file path or device URI
+    final isLocal = url.startsWith('file://') ||
+        url.startsWith('content://') ||
+        (url.length > 2 && url[1] == ':') || // Windows drive e.g. C:\
+        (!kIsWeb && url.startsWith('/') && !url.startsWith('/api/')); // Unix/Android absolute path
+
+    if (isLocal) {
+      return url;
+    }
+
     if (ApiClient.hasInstance) {
       final daemon = ApiClient.instance.daemonUrl;
       if (url.startsWith('/')) {
         url = '$daemon$url';
-      } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+      } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = '$daemon/api/v1/music/ytstream/stream.m4a?id=${Uri.encodeComponent(item.id)}';
       }
       if (url.contains('/api/v1/music/') && !url.contains('proxy=true')) {
@@ -150,6 +161,15 @@ class PlaybackController extends ChangeNotifier {
   /// Eagerly pre-caches a single track on the server host daemon.
   void precacheTrack(String trackId) {
     if (trackId.isEmpty || _precachedTrackIds.contains(trackId)) return;
+    // Don't attempt to remote-precache local device items
+    if (trackId.startsWith('local_') ||
+        trackId.startsWith('content://') ||
+        trackId.startsWith('file://') ||
+        (trackId.length > 2 && trackId[1] == ':') ||
+        (!kIsWeb && trackId.startsWith('/'))) {
+      _precachedTrackIds.add(trackId);
+      return;
+    }
     try {
       final offline = MusicRepository.instance.offlineFilePath(trackId);
       if (offline != null && offline.isNotEmpty) {

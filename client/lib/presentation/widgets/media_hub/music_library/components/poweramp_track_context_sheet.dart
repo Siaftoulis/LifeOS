@@ -7,6 +7,7 @@ import '../../../../../theme/app_skin_manager.dart';
 import '../music_formatters.dart';
 import '../playlists/add_to_playlist_sheet.dart';
 import '../track_metadata_modal.dart';
+import 'music_cover_art.dart';
 
 /// Poweramp Long-Press Track Contextual Action Sheet.
 class PowerampTrackContextSheet extends StatelessWidget {
@@ -73,25 +74,12 @@ class PowerampTrackContextSheet extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 52,
-                    height: 52,
-                    color: skin.bg2,
-                    child: track.thumbnail.isNotEmpty
-                        ? Image.network(
-                            sanitizeMusicThumbnailUrl(track.thumbnail),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
-                              Icons.music_note_rounded,
-                              color: skin.accent,
-                              size: 26,
-                            ),
-                          )
-                        : Icon(
-                            Icons.music_note_rounded,
-                            color: skin.accent,
-                            size: 26,
-                          ),
+                  child: MusicCoverArt(
+                    url: track.thumbnail.isNotEmpty
+                        ? track.thumbnail
+                        : track.thumbnailUrl,
+                    size: 52,
+                    borderRadius: 8,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -157,6 +145,7 @@ class PowerampTrackContextSheet extends StatelessWidget {
                     artist: track.artist,
                     thumbnail: track.thumbnail,
                     album: track.album,
+                    filePath: track.filePath,
                   ),
                   for (final r in recs)
                     PlaybackItem(
@@ -168,6 +157,7 @@ class PowerampTrackContextSheet extends StatelessWidget {
                       artist: r.artist,
                       thumbnail: r.thumbnail,
                       album: r.album,
+                      filePath: r.filePath,
                     ),
                 ];
                 PlaybackController.instance.playQueue(queue, startIndex: 0);
@@ -184,11 +174,12 @@ class PowerampTrackContextSheet extends StatelessWidget {
                 Navigator.pop(context);
                 final item = PlaybackItem(
                   id: track.id,
-                  url: '',
+                  url: track.filePath.isNotEmpty ? track.filePath : '',
                   title: track.title,
                   artist: track.artist,
                   album: track.album,
-                  thumbnail: track.thumbnail,
+                  thumbnail: track.thumbnail.isNotEmpty ? track.thumbnail : track.thumbnailUrl,
+                  filePath: track.filePath,
                 );
                 PlaybackController.instance.insertNext(item);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -210,11 +201,12 @@ class PowerampTrackContextSheet extends StatelessWidget {
                 Navigator.pop(context);
                 final item = PlaybackItem(
                   id: track.id,
-                  url: '',
+                  url: track.filePath.isNotEmpty ? track.filePath : '',
                   title: track.title,
                   artist: track.artist,
                   album: track.album,
-                  thumbnail: track.thumbnail,
+                  thumbnail: track.thumbnail.isNotEmpty ? track.thumbnail : track.thumbnailUrl,
+                  filePath: track.filePath,
                 );
                 PlaybackController.instance.addToQueue(item);
                 ScaffoldMessenger.of(context).showSnackBar(
