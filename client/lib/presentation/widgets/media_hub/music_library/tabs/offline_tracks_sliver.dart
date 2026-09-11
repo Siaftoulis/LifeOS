@@ -279,6 +279,34 @@ class _OfflineTracksSliverState extends State<OfflineTracksSliver> {
                   visualDensity: VisualDensity.compact,
                 ),
               ),
+              if (trackCount > 0 && widget.canPlay)
+                FilledButton.icon(
+                  onPressed: () async {
+                    final list = MusicRepository.instance.offlineTracks.value;
+                    if (list.isEmpty) return;
+                    final seed = (List.of(list)..shuffle()).first;
+                    final item = PlaybackItem(
+                      id: seed.id,
+                      url: seed.filePath,
+                      title: seed.title,
+                      artist: seed.artist ?? 'Unknown',
+                      thumbnail: seed.thumbnail ?? '',
+                      album: seed.album ?? '',
+                      filePath: seed.filePath,
+                    );
+                    await widget.playbackController.playTrackAndStartRadio(item);
+                  },
+                  icon: const Icon(Icons.sensors_rounded, size: 16),
+                  label: const Text('Start Offline Radio'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: skin.yellow.withValues(alpha: 0.18),
+                    foregroundColor: skin.yellow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
               if (!kIsWeb && Platform.isWindows)
                 TextButton.icon(
                   onPressed: _isScanning ? null : _quickScanWindowsMusic,

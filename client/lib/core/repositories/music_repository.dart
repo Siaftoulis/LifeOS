@@ -861,7 +861,7 @@ class MusicRepository extends DaemonRepository {
         endpoint += '&mode=${Uri.encodeComponent(mode)}';
       }
       final res = await ApiClient.instance.getDaemon(endpoint);
-      if (res is List) {
+      if (res is List && res.isNotEmpty) {
         final list = res
             .whereType<Map>()
             .map((m) => MusicTrack.fromJson(Map<String, dynamic>.from(m)))
@@ -872,6 +872,38 @@ class MusicRepository extends DaemonRepository {
     } catch (e) {
       debugPrint('Get recommendations error: $e');
     }
+
+    // Local / Offline Radio fallback via Drift database
+    try {
+      final dao = MusicDao(AppDatabase.instance);
+      final localRadio = await dao.getLocalTrackRadio(
+        seedTrackId: seedTrackId ?? '',
+        artist: artist,
+        genre: genre,
+        limit: limit,
+      );
+      if (localRadio.isNotEmpty) {
+        final mapped = localRadio
+            .map((r) => MusicTrack(
+                  id: r.id,
+                  title: r.title,
+                  artist: r.artist ?? '',
+                  album: r.album ?? '',
+                  thumbnail: r.thumbnailUrl ?? '',
+                  thumbnailUrl: r.thumbnailUrl ?? '',
+                  filePath: r.filePath,
+                  duration: r.duration.toDouble(),
+                  genre: r.genre ?? '',
+                  year: r.year,
+                ))
+            .toList();
+        rememberTracks(mapped);
+        return mapped;
+      }
+    } catch (e) {
+      debugPrint('Local track radio fallback error: $e');
+    }
+
     return const [];
   }
 }

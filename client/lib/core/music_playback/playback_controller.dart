@@ -467,7 +467,8 @@ class PlaybackController extends ChangeNotifier {
         final existingIds = _state.queue.map((i) => i.id).toSet();
         for (final r in recs) {
           if (!existingIds.contains(r.id)) {
-            final streamUrl = r.filePath.isNotEmpty && !kIsWeb
+            final isLocal = (r.filePath.isNotEmpty && !kIsWeb) || r.id.startsWith('local_');
+            final streamUrl = isLocal && r.filePath.isNotEmpty
                 ? r.filePath
                 : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true';
             addToQueue(PlaybackItem(
@@ -475,10 +476,11 @@ class PlaybackController extends ChangeNotifier {
               url: streamUrl,
               title: r.title,
               artist: r.artist,
-              thumbnail: r.thumbnail,
+              thumbnail: r.thumbnail.isNotEmpty ? r.thumbnail : r.thumbnailUrl,
               album: r.album,
               genre: r.genre,
               year: r.year ?? 0,
+              filePath: r.filePath,
             ));
           }
         }

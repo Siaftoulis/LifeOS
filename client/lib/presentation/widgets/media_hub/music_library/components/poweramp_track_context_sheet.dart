@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../../api_client.dart';
 import '../../../../../core/domain_repositories.dart';
@@ -116,11 +117,11 @@ class PowerampTrackContextSheet extends StatelessWidget {
             const Divider(height: 1, color: Colors.white10),
             const SizedBox(height: 6),
 
-            // 0. Start YouTube Music Radio
+            // 0. Start Track Radio
             _buildActionTile(
               icon: Icons.sensors_rounded,
-              title: 'Start YouTube Music Radio',
-              subtitle: 'Algorithmic endless mix based on this track',
+              title: 'Start Track Radio',
+              subtitle: 'Endless smart mix based on this track (online & offline)',
               skin: skin,
               onTap: () async {
                 Navigator.pop(context);
@@ -130,37 +131,22 @@ class PowerampTrackContextSheet extends StatelessWidget {
                     backgroundColor: skin.bg1,
                   ),
                 );
-                final recs = await MusicRepository.instance.getRecommendations(
-                  seedTrackId: track.id,
-                  limit: 20,
-                );
-                final streamUrl = track.filePath.isNotEmpty
+                final isLocal = (track.filePath.isNotEmpty && !kIsWeb) || track.id.startsWith('local_');
+                final streamUrl = isLocal && track.filePath.isNotEmpty
                     ? track.filePath
                     : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${track.id}&proxy=true';
-                final queue = [
-                  PlaybackItem(
-                    id: track.id,
-                    url: streamUrl,
-                    title: track.title,
-                    artist: track.artist,
-                    thumbnail: track.thumbnail,
-                    album: track.album,
-                    filePath: track.filePath,
-                  ),
-                  for (final r in recs)
-                    PlaybackItem(
-                      id: r.id,
-                      url: r.filePath.isNotEmpty
-                          ? r.filePath
-                          : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true',
-                      title: r.title,
-                      artist: r.artist,
-                      thumbnail: r.thumbnail,
-                      album: r.album,
-                      filePath: r.filePath,
-                    ),
-                ];
-                PlaybackController.instance.playQueue(queue, startIndex: 0);
+                final item = PlaybackItem(
+                  id: track.id,
+                  url: streamUrl,
+                  title: track.title,
+                  artist: track.artist,
+                  thumbnail: track.thumbnail.isNotEmpty ? track.thumbnail : track.thumbnailUrl,
+                  album: track.album,
+                  genre: track.genre,
+                  year: track.year ?? 0,
+                  filePath: track.filePath,
+                );
+                await PlaybackController.instance.playTrackAndStartRadio(item);
               },
             ),
 

@@ -144,5 +144,42 @@ void main() {
       expect(playlist.trackCount, equals(42));
       expect(playlist.totalDuration, equals(9800));
     });
+
+    test('Offline track radio seeds properly and retains local file playback paths', () {
+      final controller = PlaybackController.instance;
+
+      const offlineSeed = PlaybackItem(
+        id: 'local_offline_seed_99',
+        url: r'C:\Music\Rock\Queen - Bohemian Rhapsody.flac',
+        title: 'Bohemian Rhapsody',
+        artist: 'Queen',
+        album: 'A Night at the Opera',
+        genre: 'Rock',
+        year: 1975,
+        filePath: r'C:\Music\Rock\Queen - Bohemian Rhapsody.flac',
+      );
+
+      controller.setQueue([offlineSeed], currentIndex: 0);
+      expect(controller.currentItem?.id, equals('local_offline_seed_99'));
+      expect(controller.currentItem?.filePath, equals(r'C:\Music\Rock\Queen - Bohemian Rhapsody.flac'));
+      expect(controller.currentItem?.artist, equals('Queen'));
+      expect(controller.currentItem?.genre, equals('Rock'));
+
+      // Simulate appending local recommendations to radio queue
+      const radioPick1 = PlaybackItem(
+        id: 'local_offline_rec_1',
+        url: r'C:\Music\Rock\Led Zeppelin - Stairway to Heaven.flac',
+        title: 'Stairway to Heaven',
+        artist: 'Led Zeppelin',
+        genre: 'Rock',
+        year: 1971,
+        filePath: r'C:\Music\Rock\Led Zeppelin - Stairway to Heaven.flac',
+      );
+      controller.addToQueue(radioPick1);
+
+      expect(controller.queue.length, equals(2));
+      expect(controller.queue.last.id, equals('local_offline_rec_1'));
+      expect(controller.queue.last.filePath, equals(r'C:\Music\Rock\Led Zeppelin - Stairway to Heaven.flac'));
+    });
   });
 }

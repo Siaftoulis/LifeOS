@@ -2,6 +2,7 @@ package music
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -81,7 +82,15 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 	recMu.RUnlock()
 
 	// 2. Query YouTube Music Algorithmic Radio via yt-dlp (pull 30 candidate tracks)
-	targetURL := fmt.Sprintf("https://music.youtube.com/watch?v=%s&list=RDAMVM%s", seedID, seedID)
+	var targetURL string
+	if len(seedID) == 11 {
+		targetURL = fmt.Sprintf("https://music.youtube.com/watch?v=%s&list=RDAMVM%s", seedID, seedID)
+	} else if seedArtist != "" {
+		targetURL = fmt.Sprintf("ytsearch%d:%s songs audio", limit+15, seedArtist)
+	} else {
+		targetURL = fmt.Sprintf("ytsearch%d:%s songs audio", limit+15, seedID)
+	}
+
 	args := []string{
 		"--js-runtimes", jsRuntimesArg(),
 		"--extractor-args", "youtube:player_client=android,web",
@@ -95,11 +104,13 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 
 	out, err := ExecYtDlp(ctx, "recommendations-radio", seedID, args)
 	if err != nil || len(out) == 0 {
-		// Fallback to standard YouTube radio (RD<seedID>)
-		fallbackURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s&list=RD%s", seedID, seedID)
-		args[len(args)-1] = fallbackURL
-		out, err = ExecYtDlp(ctx, "recommendations-fallback", seedID, args)
-		if err != nil {
+		if len(seedID) == 11 {
+			// Fallback to standard YouTube radio (RD<seedID>)
+			fallbackURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s&list=RD%s", seedID, seedID)
+			args[len(args)-1] = fallbackURL
+			out, err = ExecYtDlp(ctx, "recommendations-fallback", seedID, args)
+		}
+		if err != nil || len(out) == 0 {
 			return nil, fmt.Errorf("radio extraction failed: %w", err)
 		}
 	}
@@ -339,22 +350,30 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 		seed = GetPersonalizedSeed(ctx)
 	}
 
-	// If seed is an artist name or query string, resolve top track ID
-	if seed != "" && len(seed) != 11 {
-		// Look up in local SQLite first
-		var localYtID string
-		if DB != nil {
-			_ = DB.QueryRowContext(ctx,
-				"SELECT yt_dlp_id FROM music_tracks WHERE id = ? LIMIT 1", seed,
-			).Scan(&localYtID)
-		}
-		if len(localYtID) == 11 {
-			seed = localYtID
-		}
-	}
-
 	seedArtist := strings.TrimSpace(r.URL.Query().Get("artist"))
 	seedGenre := strings.TrimSpace(r.URL.Query().Get("genre"))
+	var trackTitle string
+	// If seed is a local track ID or custom ID, resolve metadata from SQLite
+	if seed != "" && len(seed) != 11 {
+		var localYtID, localTitle, localArt, localGen sql.NullString
+		if DB != nil {
+			_ = DB.QueryRowContext(ctx,
+				"SELECT yt_dlp_id, title, artist, genre FROM music_tracks WHERE id = ? LIMIT 1", seed,
+			).Scan(&localYtID, &localTitle, &localArt, &localGen)
+		}
+		if len(localYtID.String) == 11 {
+			seed = localYtID.String
+		}
+		if trackTitle == "" && localTitle.Valid {
+			trackTitle = localTitle.String
+		}
+		if seedArtist == "" && localArt.Valid {
+			seedArtist = localArt.String
+		}
+		if seedGenre == "" && localGen.Valid {
+			seedGenre = localGen.String
+		}
+	}
 
 	if seed != "" && (seedArtist == "" || seedGenre == "") {
 		dbArt, dbGen := FindTrackArtistAndGenre(ctx, seed)
@@ -377,11 +396,13 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(tracks) == 0 {
 		log.Printf("recommendations: radio fallback for seed %q (err: %v)", seed, err)
 		fallbackQuery := "ytsearch15:trending music songs audio"
-		if seedGenre != "" {
+		if seedArtist != "" && trackTitle != "" {
+			fallbackQuery = fmt.Sprintf("ytsearch15:%s %s songs audio", seedArtist, trackTitle)
+		} else if seedGenre != "" {
 			fallbackQuery = fmt.Sprintf("ytsearch15:%s top music songs audio", seedGenre)
 		} else if seedArtist != "" {
 			fallbackQuery = fmt.Sprintf("ytsearch15:%s songs audio", seedArtist)
-		} else if seed != "" {
+		} else if seed != "" && len(seed) == 11 {
 			fallbackQuery = fmt.Sprintf("ytsearch15:%s song audio", seed)
 		}
 		args := []string{
@@ -428,6 +449,14 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 
 	// If still empty (e.g. completely offline), fall back to local smart playlist recommendations
 	if len(tracks) == 0 {
+		q := r.URL.Query()
+		if seedArtist != "" && q.Get("artist") == "" {
+			q.Set("artist", seedArtist)
+		}
+		if seedGenre != "" && q.Get("genre") == "" {
+			q.Set("genre", seedGenre)
+		}
+		r.URL.RawQuery = q.Encode()
 		HandleLocalRecommendations(w, r)
 		return
 	}

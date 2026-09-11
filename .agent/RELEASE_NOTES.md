@@ -1,15 +1,22 @@
-## LifeOS v1.5.33 (Build #71) — Native Startup & URI StateError Hotfix
+## LifeOS v1.6.1 (Build #81) — Offline & Local Track Radio, Pure-Dart Metadata & Dynamic Smart Playlists
 
-Welcome to **LifeOS v1.5.33**! This release fixes a critical startup regression introduced in v1.5.32 where native mobile (Android) and desktop (Windows) clients displayed a red error screen upon launching.
+Welcome to **LifeOS v1.6.1**! This release brings intelligent radio recommendations to local and offline music, pure-Dart audio tag parsing with embedded cover art caching, and high-performance dynamic Smart Playlists.
 
 ---
 
-### Highlights & Bug Fixes
+### Highlights & New Features
 
-#### 🚀 Native Platform Startup Fix
-* **Resolved `Uri.base.origin` `StateError`**: Dart's `Uri.origin` throws a `StateError` on non-HTTP/HTTPS schemes (such as `file:///` on Android and Windows). In v1.5.32, web default URL evaluation was executed before checking platform constraints, causing the initialization bootstrap to fail on startup.
-* **Platform-Safe URL Normalization**: All origin and discovery lookups in `AppInitializer`, `ApiClient`, and `PreferencesService` are now strictly guarded by `kIsWeb` and HTTP/HTTPS scheme validation, guaranteeing instant, error-free launches on Android, Windows, and Linux.
+#### 📻 Offline & Local Track Radio
+* **Local Radio Everywhere**: You can now start an infinite Track Radio directly from any local file or offline track (`local_<hash>`).
+* **Hybrid Fallback Engine**:
+  * **Online**: Resolves local song metadata (artist, title, genre) from SQLite and seeds YouTube Music algorithmic radio.
+  * **Offline**: Seamlessly activates Drift's local recommendation scoring algorithm (+3 artist match, +2 genre match, weighted by play count) with automatic library backfill.
+* **Direct Path Preservation**: The playback queue preserves direct local disk paths (`r.filePath`), guaranteeing uninterrupted native offline playback without broken network streaming URLs.
+* **One-Tap Offline Radio**: Added a quick "Start Offline Radio" button directly in the Offline Music Vault header.
 
-#### 📚 Book Library Relative Imports Fix
-* Fixed invalid 4-level relative imports in `book_detail_sheet.dart` to adhere to standard module imports, resolving cross-platform compilation errors.
-* Added comprehensive startup test suite (`test/startup_initialization_test.dart`) covering native URL discovery and preferences initialization.
+#### 🎨 Pure-Dart Audio Metadata & Embedded Album Art
+* High-performance, zero-native-dependency tag reader for ID3v1, ID3v2.2-2.4 (`TIT2`, `TPE1`, `TALB`, `TYER`, `TCON`, `APIC`), MP4/M4A atoms (`©nam`, `©ART`, `©alb`, `covr`), and FLAC Vorbis/Picture blocks.
+* Caches extracted album covers to disk and renders via the universal `MusicCoverArt` component.
+
+#### 🎛️ Dynamic Smart Playlists
+* Create and run dynamic smart playlists powered by local metadata rules (Genre, Decade, Folder, Recently Added, Most Played) with one-tap preset mix carousels.

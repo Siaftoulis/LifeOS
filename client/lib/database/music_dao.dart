@@ -373,6 +373,72 @@ class MusicDao extends DatabaseAccessor<AppDatabase> with _$MusicDaoMixin {
     return rows.map((r) => _trackFromRow(r.data)).toList();
   }
 
+  /// Generates a local/offline track radio playlist seeded by the given track's artist, genre or year.
+  Future<List<MusicTrack>> getLocalTrackRadio({
+    required String seedTrackId,
+    String? artist,
+    String? genre,
+    int? year,
+    int limit = 20,
+  }) async {
+    final cleanArtist = (artist ?? '').trim();
+    final cleanGenre = (genre ?? '').trim();
+
+    final matching = await customSelect('''
+      SELECT DISTINCT mt.* FROM music_tracks mt
+      WHERE mt.id != ?
+      AND (
+        (? != '' AND LOWER(mt.artist) = LOWER(?))
+        OR (? != '' AND (LOWER(mt.genre) LIKE '%' || LOWER(?) || '%' OR LOWER(?) LIKE '%' || LOWER(mt.genre) || '%'))
+      )
+      ORDER BY 
+        (CASE WHEN ? != '' AND LOWER(mt.artist) = LOWER(?) THEN 3 ELSE 0 END) +
+        (CASE WHEN ? != '' AND LOWER(mt.genre) LIKE '%' || LOWER(?) || '%' THEN 2 ELSE 0 END) DESC,
+        mt.play_count DESC,
+        mt.added_at DESC
+      LIMIT ?
+    ''', variables: [
+      Variable.withString(seedTrackId),
+      Variable.withString(cleanArtist),
+      Variable.withString(cleanArtist),
+      Variable.withString(cleanGenre),
+      Variable.withString(cleanGenre),
+      Variable.withString(cleanGenre),
+      Variable.withString(cleanArtist),
+      Variable.withString(cleanArtist),
+      Variable.withString(cleanGenre),
+      Variable.withString(cleanGenre),
+      Variable.withInt(limit),
+    ], readsFrom: {musicTracks}).map((r) => _trackFromRow(r.data)).get();
+
+    if (matching.length >= limit) {
+      return matching;
+    }
+
+    final existingIds = {seedTrackId, ...matching.map((m) => m.id)};
+    final remainingLimit = limit - matching.length;
+    final remainingRows = await customSelect('''
+      SELECT DISTINCT mt.* FROM music_tracks mt
+      WHERE mt.id != ?
+      ORDER BY mt.play_count DESC, mt.added_at DESC
+      LIMIT ?
+    ''', variables: [
+      Variable.withString(seedTrackId),
+      Variable.withInt(limit * 2),
+    ], readsFrom: {musicTracks}).map((r) => _trackFromRow(r.data)).get();
+
+    final backfill = <MusicTrack>[];
+    for (final r in remainingRows) {
+      if (!existingIds.contains(r.id)) {
+        existingIds.add(r.id);
+        backfill.add(r);
+        if (backfill.length >= remainingLimit) break;
+      }
+    }
+
+    return [...matching, ...backfill];
+  }
+
   MusicTrack _trackFromRow(Map<String, dynamic> row) {
     return MusicTrack(
       id: row['id'] as String,

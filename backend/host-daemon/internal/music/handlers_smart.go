@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -50,6 +51,8 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 		mt.replay_gain_track, mt.replay_gain_album, mt.play_count, mt.last_played_at, mt.added_at`
 
 	var query string
+	var rows *sql.Rows
+	var err error
 	seed := r.URL.Query().Get("seed")
 	now := time.Now()
 	since := now.AddDate(0, -3, 0).UnixMilli() // 90 days
@@ -102,42 +105,68 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 			LIMIT ?
 		`
 	case "recommendations":
-		query = `
-			SELECT DISTINCT ` + smartCols + `
-			FROM music_tracks mt
-			WHERE mt.id NOT IN (
-				SELECT track_id FROM listening_history WHERE played_at > ?
-			)
-			AND (mt.artist IN (
-				SELECT artist FROM music_tracks
-				WHERE id IN (SELECT track_id FROM listening_history WHERE played_at > ?)
-				GROUP BY artist ORDER BY COUNT(*) DESC LIMIT 10
-			) OR mt.genre IN (
-				SELECT genre FROM music_tracks
-				WHERE id IN (SELECT track_id FROM listening_history WHERE played_at > ?)
-				GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 5
-			))
-			ORDER BY mt.play_count DESC, mt.added_at DESC
-			LIMIT ?
-		`
+		artist := strings.TrimSpace(r.URL.Query().Get("artist"))
+		genre := strings.TrimSpace(r.URL.Query().Get("genre"))
+		if seed == "" {
+			seed = strings.TrimSpace(r.URL.Query().Get("id"))
+		}
+
+		if artist != "" || genre != "" {
+			query = `
+				SELECT DISTINCT ` + smartCols + `
+				FROM music_tracks mt
+				WHERE mt.id != ?
+				AND (
+					(? != '' AND LOWER(mt.artist) = LOWER(?))
+					OR (? != '' AND (LOWER(mt.genre) LIKE '%' || LOWER(?) || '%' OR LOWER(?) LIKE '%' || LOWER(mt.genre) || '%'))
+				)
+				ORDER BY
+					(CASE WHEN ? != '' AND LOWER(mt.artist) = LOWER(?) THEN 3 ELSE 0 END) +
+					(CASE WHEN ? != '' AND LOWER(mt.genre) LIKE '%' || LOWER(?) || '%' THEN 2 ELSE 0 END) DESC,
+					mt.play_count DESC, mt.added_at DESC
+				LIMIT ?
+			`
+			rows, err = DB.Query(query, seed, artist, artist, genre, genre, genre, artist, artist, genre, genre, limit)
+		} else {
+			query = `
+				SELECT DISTINCT ` + smartCols + `
+				FROM music_tracks mt
+				WHERE mt.id NOT IN (
+					SELECT track_id FROM listening_history WHERE played_at > ?
+				)
+				AND (mt.artist IN (
+					SELECT artist FROM music_tracks
+					WHERE id IN (SELECT track_id FROM listening_history WHERE played_at > ?)
+					GROUP BY artist ORDER BY COUNT(*) DESC LIMIT 10
+				) OR mt.genre IN (
+					SELECT genre FROM music_tracks
+					WHERE id IN (SELECT track_id FROM listening_history WHERE played_at > ?)
+					GROUP BY genre ORDER BY COUNT(*) DESC LIMIT 5
+				))
+				ORDER BY mt.play_count DESC, mt.added_at DESC
+				LIMIT ?
+			`
+			rows, err = DB.Query(query, since, since, since, limit)
+		}
 	}
 
-	var rows *sql.Rows
-	var err error
-	if ptype == "daily_mix" {
-		rows, err = DB.Query(query, seed, seed, limit)
-	} else if ptype == "release_radar" {
-		rows, err = DB.Query(query, since, since, limit)
-	} else {
-		rows, err = DB.Query(query, since, since, since, limit)
+	var tracks []Track
+	if rows != nil {
+		defer rows.Close()
+	} else if err == nil && ptype != "recommendations" {
+		if ptype == "daily_mix" {
+			rows, err = DB.Query(query, seed, seed, limit)
+		} else if ptype == "release_radar" {
+			rows, err = DB.Query(query, since, since, limit)
+		}
+		if rows != nil {
+			defer rows.Close()
+		}
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
-
-	var tracks []Track
 	for rows.Next() {
 		var t Track
 		var albumArtist, genre, filePath, lyricsPath, thumb, ytDlpId, codec sql.NullString
@@ -154,6 +183,30 @@ func handleSmartPlaylist(w http.ResponseWriter, r *http.Request, ptype string) {
 			tracks = append(tracks, t)
 		}
 	}
+
+	if len(tracks) == 0 && ptype == "recommendations" {
+		fallbackRows, fErr := DB.Query("SELECT DISTINCT "+smartCols+" FROM music_tracks mt WHERE mt.id != ? ORDER BY mt.play_count DESC, mt.added_at DESC LIMIT ?", seed, limit)
+		if fErr == nil {
+			defer fallbackRows.Close()
+			for fallbackRows.Next() {
+				var t Track
+				var albumArtist, genre, filePath, lyricsPath, thumb, ytDlpId, codec sql.NullString
+				var trackNum, discNum, year, bitrate sql.NullInt64
+				var replayTrack, replayAlbum sql.NullFloat64
+				var playCount sql.NullInt64
+				var lastPlayed, addedAt sql.NullInt64
+				if err := fallbackRows.Scan(&t.ID, &t.Title, &t.Artist, &t.Album, &albumArtist, &trackNum, &discNum, &year, &genre,
+					&filePath, &lyricsPath, &thumb, &ytDlpId, &t.Duration, &bitrate, &codec,
+					&replayTrack, &replayAlbum, &playCount, &lastPlayed, &addedAt); err == nil {
+					t.FilePath = filePath.String
+					t.Thumbnail = thumb.String
+					t.ThumbnailURL = thumb.String
+					tracks = append(tracks, t)
+				}
+			}
+		}
+	}
+
 	if tracks == nil {
 		tracks = []Track{}
 	}
