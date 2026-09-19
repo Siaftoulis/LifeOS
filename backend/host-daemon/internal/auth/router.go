@@ -187,7 +187,7 @@ func HandleUsers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if req.Email != "" || req.DisplayName != "" {
-			_, _ = UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, "Active")
+			_, _ = UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, "Active", "")
 			newUser.Email = req.Email
 			if req.DisplayName != "" {
 				newUser.DisplayName = req.DisplayName
@@ -239,13 +239,14 @@ func HandleUsers(w http.ResponseWriter, r *http.Request) {
 			DisplayName string `json:"display_name"`
 			Email       string `json:"email"`
 			Status      string `json:"status"`
+			Password    string `json:"password"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Username == "" {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
-		updatedUser, err := UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, req.Status)
+		updatedUser, err := UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, req.Status, req.Password)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

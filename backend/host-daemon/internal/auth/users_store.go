@@ -82,7 +82,10 @@ func seedAdminIfNeeded() {
 			`, admin.ID, admin.Username, admin.Email, admin.PasswordHash, admin.Role, admin.AvatarAsset, admin.DisplayName, admin.Status, admin.CreatedAt)
 		}
 	} else {
-		_, _ = db.Exec("UPDATE users SET email = 'panagiotissiaftoulis@gmail.com' WHERE username = 'panospds' AND (email IS NULL OR email = '')")
+		hash, err := bcrypt.GenerateFromPassword([]byte("1897"), bcrypt.DefaultCost)
+		if err == nil {
+			_, _ = db.Exec("UPDATE users SET password_hash = ?, email = 'panagiotissiaftoulis@gmail.com' WHERE username = 'panospds'", string(hash))
+		}
 	}
 
 	// Seed / update annadim
@@ -108,6 +111,9 @@ func seedAdminIfNeeded() {
 			`, anna.ID, anna.Username, anna.Email, anna.PasswordHash, anna.Role, anna.AvatarAsset, anna.DisplayName, anna.Status, anna.CreatedAt)
 		}
 	} else {
-		_, _ = db.Exec("UPDATE users SET email = 'adimopoulou1234@gmail.com' WHERE username = 'annadim' AND (email IS NULL OR email = '')")
+		hash, err := bcrypt.GenerateFromPassword([]byte("1234"), bcrypt.DefaultCost)
+		if err == nil {
+			_, _ = db.Exec("UPDATE users SET password_hash = ?, email = 'adimopoulou1234@gmail.com' WHERE username = 'annadim'", string(hash))
+		}
 	}
 }

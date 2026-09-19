@@ -314,18 +314,27 @@ func DeleteUser(username string) error {
 	return nil
 }
 
-func UpdateUser(username, role, displayName, email, status string) (*User, error) {
+func UpdateUser(username, role, displayName, email, status, password string) (*User, error) {
 	dbLock.Lock()
 	defer dbLock.Unlock()
+
+	var passwordHash string
+	if password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err == nil {
+			passwordHash = string(hash)
+		}
+	}
 
 	_, err := db.Exec(`
 		UPDATE users
 		SET role = COALESCE(NULLIF(?, ''), role),
 		    display_name = COALESCE(NULLIF(?, ''), display_name),
 		    email = COALESCE(NULLIF(?, ''), email),
-		    status = COALESCE(NULLIF(?, ''), status)
+		    status = COALESCE(NULLIF(?, ''), status),
+		    password_hash = COALESCE(NULLIF(?, ''), password_hash)
 		WHERE username = ?
-	`, role, displayName, email, status, username)
+	`, role, displayName, email, status, passwordHash, username)
 	if err != nil {
 		return nil, err
 	}
