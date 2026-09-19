@@ -251,11 +251,11 @@ class _ProfileSettingsPage extends StatelessWidget {
                 ),
               ],
               const MyProfileWidget(),
+              const SizedBox(height: 16),
+              const OnlineUsersListWidget(),
               if (AuthService.instance.isAdmin) ...[
                 const SizedBox(height: 16),
                 const AdminConsoleWidget(),
-                const SizedBox(height: 16),
-                const OnlineUsersListWidget(),
               ],
             ],
           );

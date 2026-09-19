@@ -12,6 +12,8 @@ class UserProfile {
   final String displayName;
   final String status;
   final String avatarAsset;
+  final String frame;
+  final String nameStyle;
 
   UserProfile({
     required this.id,
@@ -21,6 +23,8 @@ class UserProfile {
     required this.displayName,
     required this.status,
     required this.avatarAsset,
+    this.frame = 'none',
+    this.nameStyle = 'default',
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,8 @@ class UserProfile {
       displayName: json['display_name'] ?? '',
       status: json['status'] ?? '',
       avatarAsset: json['avatar_asset'] ?? '',
+      frame: json['frame'] ?? 'none',
+      nameStyle: json['name_style'] ?? 'default',
     );
   }
 
@@ -43,6 +49,8 @@ class UserProfile {
     'display_name': displayName,
     'status': status,
     'avatar_asset': avatarAsset,
+    'frame': frame,
+    'name_style': nameStyle,
   };
 }
 
@@ -247,31 +255,47 @@ class AuthService {
   }
 
   Future<bool> updateProfile({
+    String? newUsername,
     required String displayName,
     required String status,
     required String avatarAsset,
+    String frame = 'none',
+    String nameStyle = 'default',
   }) async {
     if (currentUser.value == null) return false;
     
     try {
       final res = await ApiClient.instance.putDaemon('/api/v1/auth/profile', {
-        'username': currentUser.value!.username,
+        'new_username': newUsername ?? currentUser.value!.username,
         'display_name': displayName,
         'status': status,
         'avatar_asset': avatarAsset,
+        'frame': frame,
+        'name_style': nameStyle,
       });
       
       if (res['success'] == true) {
-        // Update local state
-        currentUser.value = UserProfile(
-          id: currentUser.value!.id,
-          username: currentUser.value!.username,
-          email: currentUser.value!.email,
-          role: currentUser.value!.role,
-          displayName: displayName,
-          status: status,
-          avatarAsset: avatarAsset,
-        );
+        if (res['token'] != null && (res['token'] as String).isNotEmpty) {
+          _token = res['token'];
+          await PreferencesService.setAuthToken(_token!);
+        }
+
+        if (res['user'] != null) {
+          currentUser.value = UserProfile.fromJson(Map<String, dynamic>.from(res['user']));
+        } else {
+          currentUser.value = UserProfile(
+            id: currentUser.value!.id,
+            username: newUsername ?? currentUser.value!.username,
+            email: currentUser.value!.email,
+            role: currentUser.value!.role,
+            displayName: displayName,
+            status: status,
+            avatarAsset: avatarAsset,
+            frame: frame,
+            nameStyle: nameStyle,
+          );
+        }
+
         if (PreferencesService.rememberMe.value) {
           await PreferencesService.setUserProfileJson(jsonEncode(currentUser.value!.toJson()));
         }
@@ -279,7 +303,15 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Profile update error: $e');
+      rethrow;
     }
     return false;
+  }
+
+  Future<void> sendHeartbeat() async {
+    if (!isAuthenticated) return;
+    try {
+      await ApiClient.instance.postDaemon('/api/v1/auth/heartbeat', {});
+    } catch (_) {}
   }
 }

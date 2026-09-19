@@ -21,6 +21,8 @@ func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/auth/users", middleware.RequireAuth(HandleUsers))
 	mux.HandleFunc("/api/v1/auth/profile", middleware.RequireAuth(HandleProfile))
 	mux.HandleFunc("/api/v1/auth/password", middleware.RequireAuth(HandlePassword))
+	mux.HandleFunc("/api/v1/auth/online", middleware.RequireAuth(HandleOnlineUsers))
+	mux.HandleFunc("/api/v1/auth/heartbeat", middleware.RequireAuth(HandleHeartbeat))
 	mux.HandleFunc("/api/v1/notifications", middleware.RequireAuth(HandleNotifications))
 }
 
@@ -99,6 +101,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
+
+	RecordUserActivity(user.Username, r)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"authenticated": true,
@@ -263,9 +267,12 @@ func HandleProfile(w http.ResponseWriter, r *http.Request) {
 	username, _ := r.Context().Value(middleware.UserContextKey).(string)
 
 	var req struct {
+		NewUsername string `json:"new_username"`
 		DisplayName string `json:"display_name"`
 		Status      string `json:"status"`
 		AvatarAsset string `json:"avatar_asset"`
+		Frame       string `json:"frame"`
+		NameStyle   string `json:"name_style"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -273,9 +280,48 @@ func HandleProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	success := UpdateProfile(username, req.DisplayName, req.Status, req.AvatarAsset)
+	updatedUser, err := UpdateProfile(username, req.NewUsername, req.DisplayName, req.Status, req.AvatarAsset, req.Frame, req.NameStyle)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	RecordUserActivity(updatedUser.Username, r)
+
+	var newToken string
+	if updatedUser.Username != username {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"username": updatedUser.Username,
+			"role":     updatedUser.Role,
+			"exp":      time.Now().Add(time.Hour * 24 * 30).Unix(),
+		})
+		newToken, _ = token.SignedString(middleware.JwtSecret)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": success})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"user":    updatedUser,
+		"token":   newToken,
+	})
+}
+
+func HandleOnlineUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(GetOnlineUsers())
+}
+
+func HandleHeartbeat(w http.ResponseWriter, r *http.Request) {
+	username, _ := r.Context().Value(middleware.UserContextKey).(string)
+	if username != "" {
+		RecordUserActivity(username, r)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"status": "ok"})
 }
 
 func HandlePassword(w http.ResponseWriter, r *http.Request) {
@@ -329,6 +375,8 @@ func HandleMe(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
+
+	RecordUserActivity(username, r)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"authenticated": true,

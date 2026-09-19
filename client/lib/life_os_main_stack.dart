@@ -78,40 +78,43 @@ class LifeOSMainStack extends StatelessWidget {
             if (isUnlocked)
               Positioned(
                 top: MediaQuery.of(context).padding.top + 8,
-                left: 16,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => GlobalSearchDialog.show(context),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: EverforestColors.bg1.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: EverforestColors.green.withValues(alpha: 0.5), width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search_rounded, color: EverforestColors.green, size: 16),
-                          SizedBox(width: 6),
-                          Text(
-                            'Search (Ctrl+K)',
-                            style: TextStyle(
-                              color: EverforestColors.fg,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => GlobalSearchDialog.show(context),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: EverforestColors.bg1.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: EverforestColors.green.withValues(alpha: 0.5), width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search_rounded, color: EverforestColors.green, size: 16),
+                            SizedBox(width: 8),
+                            Text(
+                              'Search LifeOS (Ctrl+K)',
+                              style: TextStyle(
+                                color: EverforestColors.fg,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

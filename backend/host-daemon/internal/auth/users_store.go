@@ -49,8 +49,10 @@ func initTables() {
 		log.Fatalf("Error creating users table in SQLite: %v", err)
 	}
 
-	// Safe migration: add email column if it doesn't exist yet
+	// Safe migration: add email, frame, name_style columns if they don't exist yet
 	_, _ = db.Exec("ALTER TABLE users ADD COLUMN email TEXT;")
+	_, _ = db.Exec("ALTER TABLE users ADD COLUMN frame TEXT DEFAULT 'none';")
+	_, _ = db.Exec("ALTER TABLE users ADD COLUMN name_style TEXT DEFAULT 'default';")
 }
 
 func seedAdminIfNeeded() {
