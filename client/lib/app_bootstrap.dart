@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'theme/everforest_colors.dart';
 import 'app_initializer.dart';
@@ -24,11 +25,11 @@ class _BootstrapAppState extends State<BootstrapApp> {
     final s = Stopwatch()..start();
     debugPrint('LifeOSInit: _initializeApp started');
     try {
-      // ponytail: min 1s keeps the branded launch screen visible even when
-      // init finishes faster (phone ~0.6s); max() semantics via Future.wait
+      // On native platforms (Android/Windows), min 1s keeps the branded launch screen
+      // visible even when init finishes faster; on Web, transition immediately to avoid extra delay.
       await Future.wait([
         AppInitializer.initialize(s),
-        Future.delayed(const Duration(seconds: 1)),
+        if (!kIsWeb) Future.delayed(const Duration(seconds: 1)),
       ]);
       if (mounted) {
         setState(() {
