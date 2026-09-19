@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'presentation/widgets/home_screen/lock_screen_overlay.dart';
@@ -21,6 +22,20 @@ class LifeOSMainStack extends StatelessWidget {
     required this.onUnlock,
   });
 
+  bool _isUserTyping() {
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus == null) return false;
+    final context = primaryFocus.context;
+    if (context == null) return false;
+    final widget = context.widget;
+    if (widget is EditableText) return true;
+    final typeStr = widget.runtimeType.toString();
+    return typeStr.contains('EditableText') ||
+        typeStr.contains('TextField') ||
+        typeStr.contains('TextFormField') ||
+        typeStr.contains('AppFlowy');
+  }
+
   @override
   Widget build(BuildContext context) {
     int startX = 0;
@@ -35,12 +50,29 @@ class LifeOSMainStack extends StatelessWidget {
       }
     }
 
+    final isDesktopOrWeb = kIsWeb || 
+        defaultTargetPlatform == TargetPlatform.windows || 
+        defaultTargetPlatform == TargetPlatform.linux || 
+        defaultTargetPlatform == TargetPlatform.macOS;
+
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () {
           if (isUnlocked) GlobalSearchDialog.show(context);
         },
         const SingleActivator(LogicalKeyboardKey.keyK, meta: true): () {
+          if (isUnlocked) GlobalSearchDialog.show(context);
+        },
+        const SingleActivator(LogicalKeyboardKey.backquote): () {
+          if (isUnlocked && !_isUserTyping()) GlobalSearchDialog.show(context);
+        },
+        const SingleActivator(LogicalKeyboardKey.tilde): () {
+          if (isUnlocked && !_isUserTyping()) GlobalSearchDialog.show(context);
+        },
+        const SingleActivator(LogicalKeyboardKey.backquote, control: true): () {
+          if (isUnlocked) GlobalSearchDialog.show(context);
+        },
+        const SingleActivator(LogicalKeyboardKey.tilde, control: true): () {
           if (isUnlocked) GlobalSearchDialog.show(context);
         },
       },
@@ -85,6 +117,10 @@ class LifeOSMainStack extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () => GlobalSearchDialog.show(context),
+                      onLongPress: () {
+                        HapticFeedback.mediumImpact();
+                        GlobalSearchDialog.show(context);
+                      },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -100,14 +136,16 @@ class LifeOSMainStack extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.search_rounded, color: EverforestColors.green, size: 16),
-                            SizedBox(width: 8),
+                            const Icon(Icons.search_rounded, color: EverforestColors.green, size: 16),
+                            const SizedBox(width: 8),
                             Text(
-                              'Search LifeOS (Ctrl+K)',
-                              style: TextStyle(
+                              isDesktopOrWeb
+                                  ? 'Search LifeOS (` or Ctrl+K)'
+                                  : 'Search LifeOS',
+                              style: const TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
