@@ -1,9 +1,8 @@
 # Project-Scoped Rules
 
-## Continuous Feedback Loop (Multiple Choice)
-- Whenever a feature or piece of architecture is built, automatically send back questions with multiple-choice options (e.g., Option 1, Option 2, Option 3).
-- Use the `ask_question` tool with `is_multi_select: false` (or true if appropriate) to provide these options so the user can easily select the best path forward or write their own response.
-- This ensures constant alignment and gives the user directional control after every major step.
+## Autonomous Execution (No Interactive Modals)
+- NEVER use the `ask_question` tool or pop up interactive multiple-choice / recommendation modals.
+- Proceed autonomously without pausing or waiting for user selection modals. Output regular concise text responses only.
 
 ## Architecture Rules (decided 2026-08-11, source: vault/04 - LifeOS DevDocs/INTEGRATION_PLAN.md)
 - **One API, routes per domain.** All backend work goes on the single Go daemon as `/api/v1/<domain>` route groups (movies, books, music, gallery, notes, pins...), backed by one SQLite DB. NEVER create per-app micro-APIs or separate databases.
