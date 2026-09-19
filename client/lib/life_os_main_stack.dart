@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'presentation/widgets/home_screen/lock_screen_overlay.dart';
@@ -49,11 +48,6 @@ class LifeOSMainStack extends StatelessWidget {
         }
       }
     }
-
-    final isDesktopOrWeb = kIsWeb || 
-        defaultTargetPlatform == TargetPlatform.windows || 
-        defaultTargetPlatform == TargetPlatform.linux || 
-        defaultTargetPlatform == TargetPlatform.macOS;
 
     return CallbackShortcuts(
       bindings: {
@@ -107,57 +101,6 @@ class LifeOSMainStack extends StatelessWidget {
                     : const SizedBox.shrink(key: ValueKey('empty_lock')),
               ),
             ),
-            if (isUnlocked)
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 8,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => GlobalSearchDialog.show(context),
-                      onLongPress: () {
-                        HapticFeedback.mediumImpact();
-                        GlobalSearchDialog.show(context);
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: EverforestColors.bg1.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: EverforestColors.green.withValues(alpha: 0.5), width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.search_rounded, color: EverforestColors.green, size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              isDesktopOrWeb
-                                  ? 'Search LifeOS (` or Ctrl+K)'
-                                  : 'Search LifeOS',
-                              style: const TextStyle(
-                                color: EverforestColors.fg,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ValueListenableBuilder<bool>(
               valueListenable: PreferencesService.showConnectionStatusOverlay,
               builder: (context, show, _) {
