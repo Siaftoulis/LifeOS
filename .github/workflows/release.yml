@@ -83,6 +83,10 @@ jobs:
         working-directory: ./client
         run: flutter pub get
 
+      - name: Patch Dependencies Compatibility
+        working-directory: ./client
+        run: python3 tool/patch_appflowy.py
+
       - name: Analyze Project Code
         working-directory: ./client
         run: flutter analyze lib/presentation lib/core lib/database test --no-fatal-infos
@@ -113,6 +117,10 @@ jobs:
       - name: Install Dependencies
         working-directory: ./client
         run: flutter pub get
+
+      - name: Patch Dependencies Compatibility
+        working-directory: ./client
+        run: python3 tool/patch_appflowy.py
 
       - name: Run Core Test Suite
         working-directory: ./client
