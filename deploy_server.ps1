@@ -31,12 +31,30 @@ if (-not (Test-Path "$webSrc\index.html")) {
 # Remove any generated service worker file to prevent browser caching
 Remove-Item "$webSrc\flutter_service_worker.js" -Force -ErrorAction SilentlyContinue
 
-# Patch flutter_bootstrap.js to disable service worker completely
+# Patch flutter_bootstrap.js to disable service worker completely & force local CanvasKit
 if (Test-Path "$webSrc\flutter_bootstrap.js") {
     $bootstrap = Get-Content "$webSrc\flutter_bootstrap.js" -Raw
     $ts = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    # 1. Eliminate the 4-second service worker timeout
+    $bootstrap = $bootstrap -replace 'serviceWorkerSettings:\s*\{[^}]*\}', ''
+    # 2. Force local CanvasKit so it never fetches from external gstatic.com
+    $bootstrap = $bootstrap.Replace('_flutter.loader.load({', '_flutter.loader.load({config:{useLocalCanvasKit:true},')
+    # 3. Add cache-busting timestamp to mainJsPath
     $bootstrap = $bootstrap -replace '"mainJsPath":"main.dart.js"', ('"mainJsPath":"main.dart.js?t=' + $ts + '"')
     Set-Content -Path "$webSrc\flutter_bootstrap.js" -Value $bootstrap -NoNewline
+}
+
+# Pre-compress static assets with Gzip for zero-CPU instant delivery on pds-laptop-old
+Write-Host "Pre-compressing web assets with Gzip (optimal compression)..." -ForegroundColor Cyan
+Get-ChildItem -Path "$webSrc" -Recurse -Include *.js, *.wasm, *.html, *.css, *.json, *.svg, *.ttf | ForEach-Object {
+    $gzPath = $_.FullName + ".gz"
+    $inStream = [System.IO.File]::OpenRead($_.FullName)
+    $outStream = [System.IO.File]::Create($gzPath)
+    $gzipStream = New-Object System.IO.Compression.GZipStream($outStream, [System.IO.Compression.CompressionLevel]::Optimal)
+    $inStream.CopyTo($gzipStream)
+    $gzipStream.Dispose()
+    $outStream.Dispose()
+    $inStream.Dispose()
 }
 
 # 2. Build Linux Binaries

@@ -1,15 +1,12 @@
 package main
 
 import (
-	"compress/gzip"
 	"fmt"
-	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 func init() {
@@ -21,52 +18,16 @@ func init() {
 	_ = mime.AddExtensionType(".svg", "image/svg+xml")
 }
 
-// gzipResponseWriter wraps http.ResponseWriter to compress output with gzip.
-type gzipResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-	wroteHeader bool
-}
-
-func (w *gzipResponseWriter) WriteHeader(status int) {
-	if w.wroteHeader {
-		return
-	}
-	w.wroteHeader = true
-	// Delete Content-Length because compression changes the payload size
-	w.ResponseWriter.Header().Del("Content-Length")
-	w.ResponseWriter.Header().Set("Content-Encoding", "gzip")
-	w.ResponseWriter.Header().Add("Vary", "Accept-Encoding")
-	w.ResponseWriter.WriteHeader(status)
-}
-
-func (w *gzipResponseWriter) Write(b []byte) (int, error) {
-	if !w.wroteHeader {
-		w.WriteHeader(http.StatusOK)
-	}
-	return w.Writer.Write(b)
-}
-
-var gzPool = sync.Pool{
-	New: func() interface{} {
-		w, _ := gzip.NewWriterLevel(io.Discard, gzip.DefaultCompression)
-		return w
-	},
-}
-
-// newWebPortalHandler creates an optimized static file handler for the Flutter Web portal.
-// It provides:
-// 1. Transparent Gzip compression for text, JavaScript, WebAssembly, and font assets.
-// 2. Smart HTTP Caching: fresh check for index.html with ETags, 7-day caching for static assets.
-// 3. SPA Fallback: non-API routes fallback to index.html for client-side routing.
+// newWebPortalHandler creates an optimized static file handler for Flutter Web.
+// 1. Serves pre-compressed (.gz) static assets directly from disk with ZERO CPU overhead.
+// 2. Implements smart HTTP caching (re-validation for index.html, 7-day cache for static assets).
+// 3. Fallback to index.html for SPA client-side routing.
 func newWebPortalHandler(webDir string) http.Handler {
-	fileServer := http.FileServer(http.Dir(webDir))
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cleanPath := filepath.Clean(strings.TrimPrefix(r.URL.Path, "/"))
 		fullPath := filepath.Join(webDir, cleanPath)
 
-		// Check if file exists; if not found or is a directory without index, fallback to index.html
+		// Check if file exists; if not found or is a directory, look for index.html
 		info, err := os.Stat(fullPath)
 		isIndex := false
 		if err != nil || info.IsDir() {
@@ -84,7 +45,6 @@ func newWebPortalHandler(webDir string) http.Handler {
 					fullPath = indexPath
 					info = indexInfo
 					isIndex = true
-					// Internal rewrite for SPA fallback
 					r.URL.Path = "/"
 				} else {
 					http.NotFound(w, r)
@@ -116,25 +76,24 @@ func newWebPortalHandler(webDir string) http.Handler {
 			}
 		}
 
-		// Check for Gzip compression support
-		ext := strings.ToLower(filepath.Ext(fullPath))
-		compressible := ext == ".js" || ext == ".wasm" || ext == ".html" || ext == ".css" ||
-			ext == ".json" || ext == ".svg" || ext == ".ttf" || ext == ".woff" || ext == ".woff2"
-
-		if compressible && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			gz := gzPool.Get().(*gzip.Writer)
-			defer gzPool.Put(gz)
-			gz.Reset(w)
-			defer gz.Close()
-
-			gzw := &gzipResponseWriter{
-				Writer:         gz,
-				ResponseWriter: w,
+		// Check if client accepts gzip and if a pre-compressed .gz file exists on disk
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			gzPath := fullPath + ".gz"
+			if gzInfo, errGz := os.Stat(gzPath); errGz == nil && !gzInfo.IsDir() {
+				ext := strings.ToLower(filepath.Ext(fullPath))
+				contentType := mime.TypeByExtension(ext)
+				if contentType == "" {
+					contentType = "application/octet-stream"
+				}
+				w.Header().Set("Content-Type", contentType)
+				w.Header().Set("Content-Encoding", "gzip")
+				w.Header().Set("Vary", "Accept-Encoding")
+				http.ServeFile(w, r, gzPath)
+				return
 			}
-			fileServer.ServeHTTP(gzw, r)
-			return
 		}
 
-		fileServer.ServeHTTP(w, r)
+		// Fallback: serve raw uncompressed file
+		http.ServeFile(w, r, fullPath)
 	})
 }
