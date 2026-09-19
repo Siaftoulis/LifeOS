@@ -147,7 +147,7 @@ func HandlePublicProfiles(w http.ResponseWriter, r *http.Request) {
 func HandleUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Account creation is an admin-only operation
+	// Account management is an admin-only operation
 	role, _ := r.Context().Value(middleware.RoleContextKey).(string)
 	if role != "ADMIN" {
 		http.Error(w, "Admin privileges required", http.StatusForbidden)
@@ -162,13 +162,19 @@ func HandleUsers(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		var req struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-			Role     string `json:"role"`
+			Username    string `json:"username"`
+			Password    string `json:"password"`
+			Role        string `json:"role"`
+			Email       string `json:"email"`
+			DisplayName string `json:"display_name"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
+		}
+
+		if req.Role == "" {
+			req.Role = "USER"
 		}
 
 		newUser, err := CreateUser(req.Username, req.Password, req.Role)
@@ -176,8 +182,71 @@ func HandleUsers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
+		if req.Email != "" || req.DisplayName != "" {
+			_, _ = UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, "Active")
+			newUser.Email = req.Email
+			if req.DisplayName != "" {
+				newUser.DisplayName = req.DisplayName
+			}
+		}
 		newUser.PasswordHash = ""
 		json.NewEncoder(w).Encode(newUser)
+		return
+	}
+
+	if r.Method == http.MethodDelete {
+		username := r.URL.Query().Get("username")
+		if username == "" {
+			var req struct {
+				Username string `json:"username"`
+			}
+			_ = json.NewDecoder(r.Body).Decode(&req)
+			username = req.Username
+		}
+		if username == "" {
+			http.Error(w, "Missing username parameter", http.StatusBadRequest)
+			return
+		}
+		if username == "panospds" {
+			http.Error(w, "Cannot delete root administrator", http.StatusBadRequest)
+			return
+		}
+
+		currentAdmin, _ := r.Context().Value(middleware.UserContextKey).(string)
+		if username == currentAdmin {
+			http.Error(w, "Cannot delete yourself while logged in", http.StatusBadRequest)
+			return
+		}
+
+		err := DeleteUser(username)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]any{"success": true, "deleted": username})
+		return
+	}
+
+	if r.Method == http.MethodPatch || r.Method == http.MethodPut {
+		var req struct {
+			Username    string `json:"username"`
+			Role        string `json:"role"`
+			DisplayName string `json:"display_name"`
+			Email       string `json:"email"`
+			Status      string `json:"status"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Username == "" {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		updatedUser, err := UpdateUser(req.Username, req.Role, req.DisplayName, req.Email, req.Status)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(updatedUser)
 		return
 	}
 

@@ -33,8 +33,6 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
 
   bool _isDesktop = false;
   List<String> _oauthProviders = [];
-  List<UserProfile> _profiles = [];
-  String _selectedUsername = '';
 
   @override
   void initState() {
@@ -62,7 +60,6 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
       });
     }
 
-    _loadProfiles();
     _loadOAuthProviders();
 
     _animationController = AnimationController(
@@ -76,18 +73,6 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
         parent: _animationController, curve: Curves.easeOutCubic));
   }
 
-  Future<void> _loadProfiles() async {
-    final profiles = await AuthService.instance.getPublicProfiles();
-    if (mounted && profiles.isNotEmpty) {
-      setState(() {
-        _profiles = profiles;
-        if (_selectedUsername.isEmpty) {
-          _selectedUsername = profiles.first.username;
-          _usernameController.text = _selectedUsername;
-        }
-      });
-    }
-  }
 
   Future<void> _loadOAuthProviders() async {
     try {
@@ -230,81 +215,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                     letterSpacing: 4,
                   ),
                 ),
-                const SizedBox(height: 24),
-                if (_profiles.isNotEmpty) ...[
-                  const Text(
-                    'ΕΠΙΛΟΓΗ ΠΡΟΦΙΛ',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: EverforestColors.fg,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _profiles.map((p) {
-                      final isSelected = p.username == _selectedUsername;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedUsername = p.username;
-                              _usernameController.text = p.username;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected ? EverforestColors.bg2 : EverforestColors.bg1,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? EverforestColors.green : EverforestColors.bg2,
-                                width: isSelected ? 2 : 1,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundColor: isSelected ? EverforestColors.green : EverforestColors.bg2,
-                                  child: Icon(
-                                    Icons.person,
-                                    color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  p.displayName,
-                                  style: TextStyle(
-                                    color: isSelected ? EverforestColors.green : EverforestColors.fg,
-                                    fontSize: 12,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                                if (p.email.isNotEmpty)
-                                  Text(
-                                    p.email,
-                                    style: TextStyle(
-                                      color: EverforestColors.fg.withValues(alpha: 0.6),
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                const SizedBox(height: 36),
                 TextField(
                   controller: _usernameController,
                   style: const TextStyle(color: EverforestColors.fg),

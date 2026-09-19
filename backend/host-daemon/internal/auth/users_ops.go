@@ -2,6 +2,7 @@ package auth
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -237,4 +238,52 @@ func ChangePassword(username, oldPassword, newPassword string) error {
 
 	_, err = db.Exec(`UPDATE users SET password_hash = ? WHERE username = ?`, string(newHash), username)
 	return err
+}
+
+func DeleteUser(username string) error {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	if username == "panospds" {
+		return fmt.Errorf("cannot delete root administrator")
+	}
+
+	res, err := db.Exec("DELETE FROM users WHERE username = ?", username)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil || rows == 0 {
+		return os.ErrNotExist
+	}
+	return nil
+}
+
+func UpdateUser(username, role, displayName, email, status string) (*User, error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	_, err := db.Exec(`
+		UPDATE users
+		SET role = COALESCE(NULLIF(?, ''), role),
+		    display_name = COALESCE(NULLIF(?, ''), display_name),
+		    email = COALESCE(NULLIF(?, ''), email),
+		    status = COALESCE(NULLIF(?, ''), status)
+		WHERE username = ?
+	`, role, displayName, email, status, username)
+	if err != nil {
+		return nil, err
+	}
+
+	var u User
+	var exEmail sql.NullString
+	err = db.QueryRow(`
+		SELECT id, username, COALESCE(email, ''), role, avatar_asset, display_name, status, created_at
+		FROM users WHERE username = ?
+	`, username).Scan(&u.ID, &u.Username, &exEmail, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	u.Email = exEmail.String
+	return &u, nil
 }
