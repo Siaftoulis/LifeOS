@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -12,14 +14,16 @@ func AuthenticateUser(username, password string) (*User, bool) {
 	defer dbLock.RUnlock()
 
 	var u User
+	var email sql.NullString
 	err := db.QueryRow(`
-		SELECT id, username, password_hash, role, avatar_asset, display_name, status, created_at
+		SELECT id, username, COALESCE(email, ''), password_hash, role, avatar_asset, display_name, status, created_at
 		FROM users WHERE username = ?
-	`, username).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
+	`, username).Scan(&u.ID, &u.Username, &email, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
 
 	if err != nil {
 		return nil, false
 	}
+	u.Email = email.String
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		return nil, false
@@ -46,6 +50,7 @@ func CreateUser(username, password, role string) (*User, error) {
 	newUser := User{
 		ID:           "u-" + time.Now().Format("20060102150405"),
 		Username:     username,
+		Email:        "",
 		PasswordHash: string(hash),
 		Role:         role,
 		AvatarAsset:  "",
@@ -55,9 +60,9 @@ func CreateUser(username, password, role string) (*User, error) {
 	}
 
 	_, err = db.Exec(`
-		INSERT INTO users (id, username, password_hash, role, avatar_asset, display_name, status, created_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, newUser.ID, newUser.Username, newUser.PasswordHash, newUser.Role, newUser.AvatarAsset, newUser.DisplayName, newUser.Status, newUser.CreatedAt)
+		INSERT INTO users (id, username, email, password_hash, role, avatar_asset, display_name, status, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, newUser.ID, newUser.Username, newUser.Email, newUser.PasswordHash, newUser.Role, newUser.AvatarAsset, newUser.DisplayName, newUser.Status, newUser.CreatedAt)
 
 	if err != nil {
 		return nil, err
@@ -71,7 +76,7 @@ func GetUsers() []User {
 	defer dbLock.RUnlock()
 
 	rows, err := db.Query(`
-		SELECT id, username, password_hash, role, avatar_asset, display_name, status, created_at
+		SELECT id, username, COALESCE(email, ''), password_hash, role, avatar_asset, display_name, status, created_at
 		FROM users
 	`)
 	if err != nil {
@@ -82,7 +87,9 @@ func GetUsers() []User {
 	var list []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt); err == nil {
+		var email sql.NullString
+		if err := rows.Scan(&u.ID, &u.Username, &email, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt); err == nil {
+			u.Email = email.String
 			u.PasswordHash = ""
 			list = append(list, u)
 		}
@@ -95,16 +102,97 @@ func GetUserByUsername(username string) (*User, bool) {
 	defer dbLock.RUnlock()
 
 	var u User
+	var email sql.NullString
 	err := db.QueryRow(`
-		SELECT id, username, password_hash, role, avatar_asset, display_name, status, created_at
+		SELECT id, username, COALESCE(email, ''), password_hash, role, avatar_asset, display_name, status, created_at
 		FROM users WHERE username = ?
-	`, username).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
+	`, username).Scan(&u.ID, &u.Username, &email, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
 
 	if err != nil {
 		return nil, false
 	}
+	u.Email = email.String
 	u.PasswordHash = ""
 	return &u, true
+}
+
+func GetUserByEmail(email string) (*User, bool) {
+	if email == "" {
+		return nil, false
+	}
+	dbLock.RLock()
+	defer dbLock.RUnlock()
+
+	var u User
+	var userEmail sql.NullString
+	err := db.QueryRow(`
+		SELECT id, username, COALESCE(email, ''), password_hash, role, avatar_asset, display_name, status, created_at
+		FROM users WHERE LOWER(email) = LOWER(?)
+	`, email).Scan(&u.ID, &u.Username, &userEmail, &u.PasswordHash, &u.Role, &u.AvatarAsset, &u.DisplayName, &u.Status, &u.CreatedAt)
+
+	if err != nil {
+		return nil, false
+	}
+	u.Email = userEmail.String
+	u.PasswordHash = ""
+	return &u, true
+}
+
+func AutoProvisionOAuthUser(provider, externalID, displayName string) (*User, error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
+
+	var username string
+	var email string
+	if provider == "google" {
+		email = strings.ToLower(externalID)
+		parts := strings.Split(email, "@")
+		username = parts[0]
+	} else {
+		username = strings.ToLower(externalID)
+		email = ""
+	}
+
+	// Check if already exists by username
+	var existing User
+	var exEmail sql.NullString
+	err := db.QueryRow(`
+		SELECT id, username, COALESCE(email, ''), role, avatar_asset, display_name, status, created_at
+		FROM users WHERE username = ?
+	`, username).Scan(&existing.ID, &existing.Username, &exEmail, &existing.Role, &existing.AvatarAsset, &existing.DisplayName, &existing.Status, &existing.CreatedAt)
+	if err == nil {
+		existing.Email = exEmail.String
+		if email != "" && existing.Email == "" {
+			_, _ = db.Exec("UPDATE users SET email = ? WHERE id = ?", email, existing.ID)
+			existing.Email = email
+		}
+		return &existing, nil
+	}
+
+	if displayName == "" {
+		displayName = username
+	}
+
+	newUser := User{
+		ID:          "u-" + time.Now().Format("20060102150405"),
+		Username:    username,
+		Email:       email,
+		Role:        "USER",
+		AvatarAsset: "",
+		DisplayName: displayName,
+		Status:      "Connected via " + strings.ToUpper(provider),
+		CreatedAt:   time.Now().Unix(),
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO users (id, username, email, password_hash, role, avatar_asset, display_name, status, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, newUser.ID, newUser.Username, newUser.Email, "", newUser.Role, newUser.AvatarAsset, newUser.DisplayName, newUser.Status, newUser.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newUser, nil
 }
 
 func UpdateProfile(username, displayName, status, avatar string) bool {

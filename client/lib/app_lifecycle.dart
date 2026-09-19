@@ -34,12 +34,7 @@ class _LifeOSMainAppState extends State<LifeOSMainApp> with WidgetsBindingObserv
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
-    if (AuthService.isLocalhost) {
-      AuthService.instance.ensureLocalhostUser();
-      _isUnlocked = true;
-    } else {
-      _isUnlocked = AuthService.instance.isAuthenticated;
-    }
+    _isUnlocked = AuthService.instance.isAuthenticated;
     AuthService.instance.currentUser.addListener(_handleAuthChange);
     _pollService.start();
     P2PTransferService.instance.onReceiveRequest = _handleP2PReceiveRequest;

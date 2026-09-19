@@ -3,7 +3,8 @@ package auth
 type User struct {
 	ID           string `json:"id"`
 	Username     string `json:"username"`
-	PasswordHash string `json:"password_hash"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash,omitempty"`
 	Role         string `json:"role"` // ADMIN or USER
 	AvatarAsset  string `json:"avatar_asset"`
 	DisplayName  string `json:"display_name"`

@@ -218,6 +218,7 @@ func main() {
 		"/api/v1/ping",
 		"/api/v1/auth/login",
 		"/api/v1/auth/register",
+		"/api/v1/auth/profiles",
 		"/api/v1/auth/oauth/providers",
 		"/api/v1/auth/oauth/github/start",
 		"/api/v1/auth/oauth/github/callback",

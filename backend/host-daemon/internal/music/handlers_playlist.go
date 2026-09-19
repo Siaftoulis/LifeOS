@@ -19,13 +19,21 @@ func HandleGetPlaylists(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSmart := r.URL.Query().Get("smart")
-	query := "SELECT id, name, description, cover_art_url, is_smart, smart_type, smart_config, track_count, total_duration, created_at, updated_at FROM playlists"
+	userID := r.URL.Query().Get("user_id")
+
+	query := "SELECT id, COALESCE(user_id, 'panospds'), name, description, cover_art_url, is_smart, smart_type, smart_config, track_count, total_duration, created_at, updated_at FROM playlists WHERE 1=1"
 	var args []any
 	if isSmart == "true" {
-		query += " WHERE is_smart = 1"
+		query += " AND is_smart = 1"
 	} else if isSmart == "false" {
-		query += " WHERE is_smart = 0"
+		query += " AND is_smart = 0"
 	}
+
+	if userID != "" {
+		query += " AND (user_id = ? OR is_smart = 1)"
+		args = append(args, userID)
+	}
+
 	query += " ORDER BY updated_at DESC"
 
 	rows, err := DB.Query(query, args...)
@@ -39,7 +47,7 @@ func HandleGetPlaylists(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p Playlist
 		var desc, coverArt, smartType, smartConfig sql.NullString
-		if err := rows.Scan(&p.ID, &p.Name, &desc, &coverArt, &p.IsSmart, &smartType, &smartConfig, &p.TrackCount, &p.TotalDuration, &p.CreatedAt, &p.UpdatedAt); err == nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.Name, &desc, &coverArt, &p.IsSmart, &smartType, &smartConfig, &p.TrackCount, &p.TotalDuration, &p.CreatedAt, &p.UpdatedAt); err == nil {
 			p.Description = desc.String
 			p.CoverArtURL = coverArt.String
 			p.SmartType = smartType.String
@@ -66,6 +74,7 @@ func HandleCreatePlaylist(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
+		UserID      string `json:"user_id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		IsSmart     bool   `json:"is_smart"`
@@ -77,16 +86,20 @@ func HandleCreatePlaylist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.UserID == "" {
+		req.UserID = "panospds"
+	}
+
 	id := "pl-" + strconv.FormatInt(time.Now().UnixNano(), 36)
 	now := time.Now().UnixMilli()
-	_, err := DB.Exec(`INSERT INTO playlists (id, name, description, is_smart, smart_type, smart_config, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, req.Name, req.Description, req.IsSmart, req.SmartType, req.SmartConfig, now, now)
+	_, err := DB.Exec(`INSERT INTO playlists (id, user_id, name, description, is_smart, smart_type, smart_config, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, req.UserID, req.Name, req.Description, req.IsSmart, req.SmartType, req.SmartConfig, now, now)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]any{"id": id, "status": "created"})
+	json.NewEncoder(w).Encode(map[string]any{"id": id, "status": "created", "user_id": req.UserID})
 }
 
 func HandleGetPlaylist(w http.ResponseWriter, r *http.Request) {

@@ -13,6 +13,7 @@ import 'core/local_discovery_service.dart';
 import 'core/p2p_transfer_service.dart';
 import 'core/update/ota_update_service.dart';
 import 'core/repositories/built_in_prayers.dart';
+import 'auth_service.dart';
 
 class AppInitializer {
   static Future<void> initialize(Stopwatch s) async {
@@ -48,7 +49,8 @@ class AppInitializer {
     final dir = kIsWeb ? null : await prefsDir();
     await PreferencesService.load(dir: dir);
     AppSkinManager.init();
-    debugPrint('LifeOSInit: PreferencesService.load() took ${s.elapsedMilliseconds - prefsStart}ms');
+    await AuthService.instance.initSession();
+    debugPrint('LifeOSInit: PreferencesService.load() & AuthService.initSession() took ${s.elapsedMilliseconds - prefsStart}ms');
     PreferencesService.cachedBaseUrl.value = base;
     PreferencesService.cachedDaemonUrl.value = daemon;
 

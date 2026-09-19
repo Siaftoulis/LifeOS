@@ -192,6 +192,12 @@ func createTables() error {
 		}
 	}
 
+	// Migrate playlists with user_id
+	var hasUserID int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info('playlists') WHERE name='user_id'").Scan(&hasUserID); err == nil && hasUserID == 0 {
+		_, _ = DB.Exec("ALTER TABLE playlists ADD COLUMN user_id TEXT NOT NULL DEFAULT 'panospds'")
+	}
+
 	// Bidirectional sync for existing data to ensure thumbnail consistency
 	_, _ = DB.Exec(`UPDATE music_tracks SET thumbnail = thumbnail_url WHERE (thumbnail IS NULL OR thumbnail = '') AND (thumbnail_url IS NOT NULL AND thumbnail_url != '')`)
 	_, _ = DB.Exec(`UPDATE music_tracks SET thumbnail_url = thumbnail WHERE (thumbnail_url IS NULL OR thumbnail_url = '') AND (thumbnail IS NOT NULL AND thumbnail != '')`)

@@ -7,6 +7,7 @@ import 'oauth_browser.dart';
 class UserProfile {
   final String id;
   final String username;
+  final String email;
   final String role;
   final String displayName;
   final String status;
@@ -15,6 +16,7 @@ class UserProfile {
   UserProfile({
     required this.id,
     required this.username,
+    this.email = '',
     required this.role,
     required this.displayName,
     required this.status,
@@ -25,12 +27,23 @@ class UserProfile {
     return UserProfile(
       id: json['id'] ?? '',
       username: json['username'] ?? '',
+      email: json['email'] ?? '',
       role: json['role'] ?? 'USER',
       displayName: json['display_name'] ?? '',
       status: json['status'] ?? '',
       avatarAsset: json['avatar_asset'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'username': username,
+    'email': email,
+    'role': role,
+    'display_name': displayName,
+    'status': status,
+    'avatar_asset': avatarAsset,
+  };
 }
 
 class AuthService {
@@ -43,27 +56,81 @@ class AuthService {
   String? _token;
 
   static bool get isLocalhost {
-    if (!kIsWeb) return true;
+    if (!kIsWeb) return false;
     final host = Uri.base.host.toLowerCase();
     return host == 'localhost' || host == '127.0.0.1' || host == '0.0.0.0' || host == '';
   }
 
   void ensureLocalhostUser() {
-    if (isLocalhost && currentUser.value == null) {
+    if (currentUser.value == null) {
       currentUser.value = UserProfile(
         id: 'u-admin-1',
         username: 'panospds',
+        email: 'panagiotissiaftoulis@gmail.com',
         role: 'ADMIN',
-        displayName: 'Panos (Admin)',
-        status: 'Online (Localhost)',
+        displayName: 'Panos PDS',
+        status: 'Online',
         avatarAsset: 'assets/avatars/admin.png',
       );
     }
   }
 
-  bool get isAuthenticated => isLocalhost || currentUser.value != null;
-  bool get isAdmin => isLocalhost || currentUser.value?.role == 'ADMIN';
+  bool get isAuthenticated => currentUser.value != null;
+  bool get isAdmin => currentUser.value?.role == 'ADMIN';
   String? get token => _token;
+
+  Future<void> initSession() async {
+    if (kIsWeb) {
+      final token = oauthReadToken();
+      if (token != null && token.isNotEmpty) {
+        _token = token;
+        final ok = await validateSession();
+        if (!ok) {
+          _token = null;
+        }
+      }
+    } else {
+      if (PreferencesService.rememberMe.value) {
+        final token = PreferencesService.authToken.value;
+        final userJson = PreferencesService.userProfileJson.value;
+        if (token.isNotEmpty && userJson.isNotEmpty) {
+          restoreSession(token, userJson);
+        }
+      }
+    }
+  }
+
+  Future<List<UserProfile>> getPublicProfiles() async {
+    try {
+      final res = await ApiClient.instance.getDaemon('/api/v1/auth/profiles');
+      if (res is List) {
+        return res.map((item) => UserProfile.fromJson(item as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching public profiles: $e');
+    }
+    // Safe default fallback profiles
+    return [
+      UserProfile(
+        id: 'u-admin-1',
+        username: 'panospds',
+        email: 'panagiotissiaftoulis@gmail.com',
+        role: 'ADMIN',
+        displayName: 'Panos PDS',
+        status: 'System Administrator',
+        avatarAsset: '',
+      ),
+      UserProfile(
+        id: 'u-anna-2',
+        username: 'annadim',
+        email: 'adimopoulou1234@gmail.com',
+        role: 'USER',
+        displayName: 'Anna Dimopoulou',
+        status: 'Family Member',
+        avatarAsset: '',
+      ),
+    ];
+  }
 
   Future<bool> login(String username, String password, {bool rememberMe = false}) async {
     try {
@@ -80,7 +147,7 @@ class AuthService {
         if (rememberMe) {
           await PreferencesService.setRememberMe(true);
           await PreferencesService.setAuthToken(_token ?? '');
-          await PreferencesService.setUserProfileJson(res['user'] != null ? jsonEncode(res['user']) : '');
+          await PreferencesService.setUserProfileJson(currentUser.value != null ? jsonEncode(currentUser.value!.toJson()) : '');
         } else {
           await PreferencesService.setRememberMe(false);
           await PreferencesService.setAuthToken('');
@@ -101,8 +168,9 @@ class AuthService {
         final userObj = {
           'id': 'local_${username.toLowerCase()}',
           'username': username,
-          'role': 'ADMIN',
-          'display_name': username,
+          'email': username == 'annadim' ? 'adimopoulou1234@gmail.com' : 'panagiotissiaftoulis@gmail.com',
+          'role': username == 'panospds' ? 'ADMIN' : 'USER',
+          'display_name': username == 'annadim' ? 'Anna Dimopoulou' : username,
           'status': 'Local Mode',
           'avatar_asset': '',
         };
@@ -147,8 +215,12 @@ class AuthService {
     if (!ok) {
       _token = null;
     } else {
-      // ponytail: web session lives in memory only — refresh = logout
-      oauthClearToken();
+      // Persistent session: keep in localStorage and preferences so refresh does NOT log out!
+      if (currentUser.value != null) {
+        await PreferencesService.setRememberMe(true);
+        await PreferencesService.setAuthToken(_token ?? '');
+        await PreferencesService.setUserProfileJson(jsonEncode(currentUser.value!.toJson()));
+      }
     }
     return ok;
   }
@@ -194,11 +266,15 @@ class AuthService {
         currentUser.value = UserProfile(
           id: currentUser.value!.id,
           username: currentUser.value!.username,
+          email: currentUser.value!.email,
           role: currentUser.value!.role,
           displayName: displayName,
           status: status,
           avatarAsset: avatarAsset,
         );
+        if (PreferencesService.rememberMe.value) {
+          await PreferencesService.setUserProfileJson(jsonEncode(currentUser.value!.toJson()));
+        }
         return true;
       }
     } catch (e) {

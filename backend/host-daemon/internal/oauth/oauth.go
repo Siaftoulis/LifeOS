@@ -85,29 +85,51 @@ func newState() string {
 
 // resolveLifeOSUser: mapping file data/oauth_users.json overrides auto-match:
 //   {"github": {"adimopoulou1234": "anna"}, "google": {"me@gmail.com": "panospds"}}
-// Auto-match: GitHub login == username, Google email prefix == username (case-insensitive).
-func resolveLifeOSUser(provider, externalID string) (*auth.User, bool) {
+// Auto-match: GitHub login == username, Google email == email/prefix (case-insensitive).
+// Auto-provisions new users if not previously present.
+func resolveLifeOSUser(provider, externalID, displayName string) (*auth.User, bool) {
 	if b, err := os.ReadFile("./data/oauth_users.json"); err == nil {
 		var m map[string]map[string]string
 		if json.Unmarshal(b, &m) == nil {
 			if u, ok := m[provider][externalID]; ok {
-				return auth.GetUserByUsername(u)
+				if user, exists := auth.GetUserByUsername(u); exists {
+					return user, true
+				}
 			}
 		}
 	}
 
+	// Try matching by email
+	if provider == "google" {
+		if user, exists := auth.GetUserByEmail(externalID); exists {
+			return user, true
+		}
+	}
+
+	// Try matching by username
 	username := externalID
 	if provider == "google" {
 		username = strings.Split(externalID, "@")[0]
 	}
-	return auth.GetUserByUsername(username)
+	if user, exists := auth.GetUserByUsername(username); exists {
+		return user, true
+	}
+
+	// Auto-provision user for seamless family login
+	newUser, err := auth.AutoProvisionOAuthUser(provider, externalID, displayName)
+	if err == nil && newUser != nil {
+		return newUser, true
+	}
+
+	return nil, false
 }
 
 func issueToken(w http.ResponseWriter, user *auth.User) {
+	// 30-day persistent session token for "Stay Logged In"
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
 		"role":     user.Role,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"exp":      time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 	tokenString, err := token.SignedString(middleware.JwtSecret)
 	if err != nil {
@@ -190,7 +212,7 @@ func HandleCallback(provider string) http.HandlerFunc {
 			return
 		}
 
-		user, ok := resolveLifeOSUser(provider, externalID)
+		user, ok := resolveLifeOSUser(provider, externalID, name)
 		if !ok {
 			deniedPage(w, "Ο λογαριασμός "+externalID+" δεν έχει πρόσβαση στο LifeOS.")
 			return

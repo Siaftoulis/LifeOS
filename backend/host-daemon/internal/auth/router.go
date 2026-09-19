@@ -15,6 +15,7 @@ import (
 func RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/v1/auth/login", HandleLogin)
 	mux.HandleFunc("/api/v1/auth/register", HandleRegister)
+	mux.HandleFunc("/api/v1/auth/profiles", HandlePublicProfiles)
 	mux.HandleFunc("/api/v1/auth/me", middleware.RequireAuth(HandleMe))
 	mux.HandleFunc("/api/v1/auth/lock", HandleLock)
 	mux.HandleFunc("/api/v1/auth/users", middleware.RequireAuth(HandleUsers))
@@ -91,7 +92,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.Username,
 		"role":     user.Role,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"exp":      time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 	tokenString, err := token.SignedString(middleware.JwtSecret)
 	if err != nil {
@@ -105,6 +106,42 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		"role":          user.Role,
 		"user":          user,
 	})
+}
+
+// HandlePublicProfiles returns list of profiles for the lockscreen/login switcher.
+// Passwords and hashes are completely omitted.
+func HandlePublicProfiles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	users := GetUsers()
+	type PublicProfile struct {
+		ID          string `json:"id"`
+		Username    string `json:"username"`
+		Email       string `json:"email"`
+		Role        string `json:"role"`
+		AvatarAsset string `json:"avatar_asset"`
+		DisplayName string `json:"display_name"`
+		Status      string `json:"status"`
+	}
+
+	var profiles []PublicProfile
+	for _, u := range users {
+		profiles = append(profiles, PublicProfile{
+			ID:          u.ID,
+			Username:    u.Username,
+			Email:       u.Email,
+			Role:        u.Role,
+			AvatarAsset: u.AvatarAsset,
+			DisplayName: u.DisplayName,
+			Status:      u.Status,
+		})
+	}
+	if profiles == nil {
+		profiles = []PublicProfile{}
+	}
+
+	json.NewEncoder(w).Encode(profiles)
 }
 
 func HandleUsers(w http.ResponseWriter, r *http.Request) {

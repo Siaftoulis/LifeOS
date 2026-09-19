@@ -8,6 +8,7 @@ import 'notifications_feed.dart';
 import '../../../auth_service.dart';
 import '../../../api_client.dart';
 import '../../../oauth_browser.dart';
+import '../../../database/preferences_service.dart';
 
 class LockScreenOverlay extends StatefulWidget {
   final VoidCallback onUnlocked;
@@ -32,6 +33,8 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
 
   bool _isDesktop = false;
   List<String> _oauthProviders = [];
+  List<UserProfile> _profiles = [];
+  String _selectedUsername = '';
 
   @override
   void initState() {
@@ -42,20 +45,25 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
       _isDesktop = false;
     }
 
-    _loadOAuthProviders();
+    _rememberMe = PreferencesService.rememberMe.value || kIsWeb || _isDesktop;
 
-    // Auto-unlock on localhost (zero-login for local development/client)
-    if (AuthService.isLocalhost) {
-      AuthService.instance.ensureLocalhostUser();
+    // Auto-unlock if session was already restored / authenticated
+    if (AuthService.instance.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) widget.onUnlocked();
       });
-    } else if (kIsWeb) {
-      // ponytail: web-only — daemon dropped the JWT in localStorage after OAuth redirect
+      return;
+    }
+
+    if (kIsWeb) {
+      // Check if arriving from OAuth redirect with token in localStorage
       AuthService.instance.tryOAuthToken().then((ok) {
         if (ok && mounted) widget.onUnlocked();
       });
     }
+
+    _loadProfiles();
+    _loadOAuthProviders();
 
     _animationController = AnimationController(
       vsync: this,
@@ -66,6 +74,19 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
       end: Offset.zero,
     ).animate(CurvedAnimation(
         parent: _animationController, curve: Curves.easeOutCubic));
+  }
+
+  Future<void> _loadProfiles() async {
+    final profiles = await AuthService.instance.getPublicProfiles();
+    if (mounted && profiles.isNotEmpty) {
+      setState(() {
+        _profiles = profiles;
+        if (_selectedUsername.isEmpty) {
+          _selectedUsername = profiles.first.username;
+          _usernameController.text = _selectedUsername;
+        }
+      });
+    }
   }
 
   Future<void> _loadOAuthProviders() async {
@@ -209,104 +230,177 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                     letterSpacing: 4,
                   ),
                 ),
-                const SizedBox(height: 48),
-                if (!kIsWeb) ...[
-                  TextField(
-                    controller: _usernameController,
-                    style: const TextStyle(color: EverforestColors.fg),
-                    decoration: InputDecoration(
-                      labelText: 'Username',
-                      labelStyle:
-                          const TextStyle(color: EverforestColors.green),
-                      enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: EverforestColors.bg2)),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: EverforestColors.green, width: 2)),
-                      prefixIcon: const Icon(Icons.person,
-                          color: EverforestColors.green),
+                const SizedBox(height: 24),
+                if (_profiles.isNotEmpty) ...[
+                  const Text(
+                    'ΕΠΙΛΟΓΗ ΠΡΟΦΙΛ',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: EverforestColors.fg,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(color: EverforestColors.fg),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle:
-                          const TextStyle(color: EverforestColors.green),
-                      enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: EverforestColors.bg2)),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: EverforestColors.green, width: 2)),
-                      prefixIcon:
-                          const Icon(Icons.lock, color: EverforestColors.green),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: EverforestColors.green,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                    onSubmitted: (_) => _handleLogin(),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Row(
-                    children: [
-                      SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: Checkbox(
-                          value: _rememberMe,
-                          activeColor: EverforestColors.green,
-                          checkColor: EverforestColors.bg0,
-                          side: const BorderSide(color: EverforestColors.bg2),
-                          onChanged: (val) {
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: _profiles.map((p) {
+                      final isSelected = p.username == _selectedUsername;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: InkWell(
+                          onTap: () {
                             setState(() {
-                              _rememberMe = val ?? false;
+                              _selectedUsername = p.username;
+                              _usernameController.text = p.username;
                             });
                           },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _rememberMe = !_rememberMe;
-                          });
-                        },
-                        child: Text(
-                          'Remember Me',
-                          style: TextStyle(
-                            color: EverforestColors.fg.withValues(alpha: 0.8),
-                            fontSize: 14,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? EverforestColors.bg2 : EverforestColors.bg1,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? EverforestColors.green : EverforestColors.bg2,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: isSelected ? EverforestColors.green : EverforestColors.bg2,
+                                  child: Icon(
+                                    Icons.person,
+                                    color: isSelected ? EverforestColors.bg0 : EverforestColors.fg,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  p.displayName,
+                                  style: TextStyle(
+                                    color: isSelected ? EverforestColors.green : EverforestColors.fg,
+                                    fontSize: 12,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                                if (p.email.isNotEmpty)
+                                  Text(
+                                    p.email,
+                                    style: TextStyle(
+                                      color: EverforestColors.fg.withValues(alpha: 0.6),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      );
+                    }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  if (_errorMsg.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(
-                        _errorMsg,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: EverforestColors.red,
-                            fontWeight: FontWeight.bold),
+                ],
+                TextField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: EverforestColors.fg),
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    labelStyle:
+                        const TextStyle(color: EverforestColors.green),
+                    enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: EverforestColors.bg2)),
+                    focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: EverforestColors.green, width: 2)),
+                    prefixIcon: const Icon(Icons.person,
+                        color: EverforestColors.green),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  style: const TextStyle(color: EverforestColors.fg),
+                  decoration: InputDecoration(
+                    labelText: 'Password / PIN',
+                    labelStyle:
+                        const TextStyle(color: EverforestColors.green),
+                    enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: EverforestColors.bg2)),
+                    focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: EverforestColors.green, width: 2)),
+                    prefixIcon:
+                        const Icon(Icons.lock, color: EverforestColors.green),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: EverforestColors.green,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  onSubmitted: (_) => _handleLogin(),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: _rememberMe,
+                        activeColor: EverforestColors.green,
+                        checkColor: EverforestColors.bg0,
+                        side: const BorderSide(color: EverforestColors.bg2),
+                        onChanged: (val) {
+                          setState(() {
+                            _rememberMe = val ?? false;
+                          });
+                        },
                       ),
                     ),
-                  ElevatedButton(
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _rememberMe = !_rememberMe;
+                        });
+                      },
+                      child: Text(
+                        'Να παραμείνω συνδεδεμένος (Stay Logged In)',
+                        style: TextStyle(
+                          color: EverforestColors.fg.withValues(alpha: 0.8),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                if (_errorMsg.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      _errorMsg,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: EverforestColors.red,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: EverforestColors.green,
                       foregroundColor: EverforestColors.bg0,
@@ -325,7 +419,6 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, letterSpacing: 2)),
                   ),
-                ],
                 if (_oauthProviders.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   if (_oauthProviders.contains('google')) ...[

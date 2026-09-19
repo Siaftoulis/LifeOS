@@ -17,6 +17,7 @@ import '../services/local_audio_metadata_service.dart';
 import '../telemetry/telemetry_reporter.dart';
 import 'base_daemon_repository.dart';
 import 'models/music_models.dart';
+import '../../auth_service.dart';
 
 /// Music library (tracks from `GET /api/v1/music/tracks`).
 class MusicRepository extends DaemonRepository {
@@ -474,9 +475,17 @@ class MusicRepository extends DaemonRepository {
   // --- Playlists ---
   Future<List<Playlist>> getPlaylists({bool? smart}) async {
     try {
+      final username = AuthService.instance.currentUser.value?.username;
       String url = '/api/v1/music/playlists';
+      final params = <String>[];
       if (smart != null) {
-        url += '?smart=${smart ? "true" : "false"}';
+        params.add('smart=${smart ? "true" : "false"}');
+      }
+      if (username != null && username.isNotEmpty) {
+        params.add('user_id=${Uri.encodeComponent(username)}');
+      }
+      if (params.isNotEmpty) {
+        url += '?${params.join('&')}';
       }
       final res = await ApiClient.instance.getDaemon(url);
       if (res is List) {
@@ -494,7 +503,10 @@ class MusicRepository extends DaemonRepository {
   Future<Playlist?> createPlaylist(PlaylistCreate create) async {
     Playlist? pl;
     try {
-      final res = await ApiClient.instance.postDaemon('/api/v1/music/playlists', create.toJson());
+      final username = AuthService.instance.currentUser.value?.username ?? 'panospds';
+      final body = create.toJson();
+      body['user_id'] = username;
+      final res = await ApiClient.instance.postDaemon('/api/v1/music/playlists', body);
       if (res is Map) {
         final map = Map<String, dynamic>.from(res);
         final id = map['id']?.toString() ?? '';
