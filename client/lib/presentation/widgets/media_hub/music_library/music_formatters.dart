@@ -1,15 +1,30 @@
-import 'package:flutter/foundation.dart';
 
-/// Sanitizes music thumbnail URLs, ensuring HTTPS on web when needed.
+/// Sanitizes music thumbnail URLs and scales them to studio high definition (1000-1400px).
 String sanitizeMusicThumbnailUrl(String url) {
-  final trimmed = url.trim();
+  var trimmed = url.trim();
   if (trimmed.isEmpty) return '';
-  if (kIsWeb && Uri.base.scheme == 'https' && trimmed.startsWith('http://')) {
-    return trimmed.replaceFirst('http://', 'https://');
-  }
   if (trimmed.startsWith('http://')) {
-    return trimmed.replaceFirst('http://', 'https://');
+    trimmed = trimmed.replaceFirst('http://', 'https://');
   }
+
+  // 1. iTunes high-definition upscaling (up to 1400x1400)
+  if (trimmed.contains('mzstatic.com')) {
+    trimmed = trimmed.replaceAll(RegExp(r'\d+x\d+bb\.jpg'), '1400x1400bb.jpg');
+    trimmed = trimmed.replaceAll(RegExp(r'\d+x\d+bb\.png'), '1400x1400bb.png');
+  }
+
+  // 2. YouTube Music high-definition upscaling (up to 1200x1200)
+  if (trimmed.contains('googleusercontent.com')) {
+    trimmed = trimmed.replaceAll(RegExp(r'=w\d+-h\d+[^?]*'), '=w1200-h1200-l90-rj');
+    trimmed = trimmed.replaceAll(RegExp(r'=s\d+[^?]*'), '=s1200-rj');
+  }
+
+  // 3. Deezer cover art upscaling (up to 1000x1000)
+  if (trimmed.contains('dzcdn.net')) {
+    trimmed = trimmed.replaceAll(RegExp(r'/\d+x\d+-\d+\.jpg'), '/1000x1000-000000-80-0-0.jpg');
+    trimmed = trimmed.replaceAll(RegExp(r'/\d+x\d+\.jpg'), '/1000x1000.jpg');
+  }
+
   return trimmed;
 }
 

@@ -342,16 +342,23 @@ func extractRunsText(v any) string {
 	return sb.String()
 }
 
-var rxThumbSize = regexp.MustCompile(`=w\d+-h\d+`)
+var rxThumbSize = regexp.MustCompile(`=w\d+-h\d+[^?]*`)
 
 func upgradeThumbnailQuality(u string) string {
 	if strings.Contains(u, "googleusercontent.com") {
 		if rxThumbSize.MatchString(u) {
-			return rxThumbSize.ReplaceAllString(u, "=w800-h800")
+			return rxThumbSize.ReplaceAllString(u, "=w1200-h1200-l90-rj")
 		}
 		if idx := strings.LastIndex(u, "=s"); idx != -1 {
-			return u[:idx] + "=s800-c"
+			return u[:idx] + "=s1200-rj"
 		}
+	}
+	if strings.Contains(u, "mzstatic.com") {
+		u = strings.ReplaceAll(u, "100x100bb.jpg", "1400x1400bb.jpg")
+		u = strings.ReplaceAll(u, "600x600bb.jpg", "1400x1400bb.jpg")
+	}
+	if strings.Contains(u, "i.ytimg.com/vi/") && strings.Contains(u, "hqdefault.jpg") {
+		return strings.ReplaceAll(u, "hqdefault.jpg", "maxresdefault.jpg")
 	}
 	return u
 }

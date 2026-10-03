@@ -78,11 +78,8 @@ class MusicMiniPlayer extends StatelessWidget {
             child: StreamBuilder<PlayerState>(
               stream: player.playerStateStream,
               builder: (context, snapshot) {
-                final state = snapshot.data;
-                final playing = state?.playing ?? false;
-                final loading =
-                    state?.processingState == ProcessingState.loading ||
-                        state?.processingState == ProcessingState.buffering;
+                final playing = playbackController.isPlaying;
+                final loading = playbackController.isLoading;
 
                 return Column(
                   mainAxisSize: MainAxisSize.min,
@@ -98,7 +95,6 @@ class MusicMiniPlayer extends StatelessWidget {
                               url: effectiveThumbnail,
                               size: 42,
                               borderRadius: 6,
-                              showShadow: false,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -113,9 +109,8 @@ class MusicMiniPlayer extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: skin.fg,
-                                    fontWeight: FontWeight.bold,
                                     fontSize: 14,
-                                    letterSpacing: -0.2,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 2),

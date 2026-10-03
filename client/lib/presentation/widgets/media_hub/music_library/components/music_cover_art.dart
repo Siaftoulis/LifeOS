@@ -91,6 +91,7 @@ class MusicCoverArt extends StatelessWidget {
         width: size,
         height: size,
         fit: fit,
+        filterQuality: FilterQuality.high,
         errorBuilder: (_, __, ___) => _buildFallback(skin),
       );
     }
@@ -109,6 +110,7 @@ class MusicCoverArt extends StatelessWidget {
             width: size,
             height: size,
             fit: fit,
+            filterQuality: FilterQuality.high,
             errorBuilder: (_, __, ___) => _buildFallback(skin),
           );
         }

@@ -59,6 +59,8 @@ class PlaybackEngine {
     // No-op on web to prevent dual HTML5 audio element lockups
   }
 
+  void cancelCrossfade() {}
+
   Future<void> startCrossfade({
     required Duration duration,
     VoidCallback? onSwapped,

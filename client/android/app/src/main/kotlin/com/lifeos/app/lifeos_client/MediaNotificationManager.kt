@@ -6,9 +6,14 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.lifeos.app.LifeOSWidgetProvider
+import java.io.File
+import java.net.URL
+import kotlin.concurrent.thread
 
 object MediaNotificationManager {
     private const val CHANNEL_ID = "lifeos_playback_channel"
@@ -34,6 +39,7 @@ object MediaNotificationManager {
         context: Context,
         title: String,
         artist: String,
+        thumbnail: String = "",
         isPlaying: Boolean
     ) {
         if (title.isEmpty()) {
@@ -90,29 +96,56 @@ object MediaNotificationManager {
         val playPauseIcon = if (isPlaying) R.drawable.ic_music_pause else R.drawable.ic_music_play
         val playPauseTitle = if (isPlaying) "Pause" else "Play"
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_music_play)
-            .setContentTitle(title)
-            .setContentText(if (artist.isNotEmpty()) artist else "LifeOS Music")
-            .setContentIntent(pContent)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOnlyAlertOnce(true)
-            .setOngoing(isPlaying)
-            .addAction(R.drawable.ic_music_prev, "Previous", pPrev)
-            .addAction(playPauseIcon, playPauseTitle, pPlayPause)
-            .addAction(R.drawable.ic_music_next, "Next", pNext)
-            .setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
-                    .setShowActionsInCompactView(0, 1, 2)
-            )
+        fun postNotification(largeIcon: Bitmap? = null) {
+            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music_play)
+                .setContentTitle(title)
+                .setContentText(if (artist.isNotEmpty()) artist else "LifeOS Music")
+                .setContentIntent(pContent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOnlyAlertOnce(true)
+                .setOngoing(isPlaying)
+                .addAction(R.drawable.ic_music_prev, "Previous", pPrev)
+                .addAction(playPauseIcon, playPauseTitle, pPlayPause)
+                .addAction(R.drawable.ic_music_next, "Next", pNext)
+                .setStyle(
+                    androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                )
 
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        try {
-            notificationManager.notify(NOTIFICATION_ID, builder.build())
-        } catch (e: Throwable) {
-            android.util.Log.w("MediaNotificationMgr", "Failed to post media notification: ${e.message}")
+            if (largeIcon != null) {
+                builder.setLargeIcon(largeIcon)
+            }
+
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            try {
+                notificationManager.notify(NOTIFICATION_ID, builder.build())
+            } catch (e: Throwable) {
+                android.util.Log.w("MediaNotificationMgr", "Failed to post media notification: ${e.message}")
+            }
+        }
+
+        // Post immediately without waiting for network image
+        postNotification(null)
+
+        // If thumbnail is available, asynchronously load and update largeIcon
+        if (thumbnail.isNotEmpty()) {
+            thread {
+                try {
+                    val clean = thumbnail.removePrefix("file://")
+                    val bmp = if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
+                        BitmapFactory.decodeStream(URL(thumbnail).openStream())
+                    } else if (File(clean).exists()) {
+                        BitmapFactory.decodeFile(clean)
+                    } else null
+
+                    if (bmp != null) {
+                        postNotification(bmp)
+                    }
+                } catch (_: Exception) {}
+            }
         }
     }
 

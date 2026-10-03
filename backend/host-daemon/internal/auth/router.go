@@ -68,7 +68,7 @@ func (l *ipLimiter) clear(ip string) {
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	ip := strings.Split(r.RemoteAddr, ":")[0]
-	if loginLimiter.blocked(ip) {
+	if !isTrustedPeer(r) && loginLimiter.blocked(ip) {
 		http.Error(w, "Too many login attempts, try again later", http.StatusTooManyRequests)
 		return
 	}

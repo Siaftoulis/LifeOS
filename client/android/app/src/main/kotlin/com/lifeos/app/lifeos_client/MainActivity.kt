@@ -183,6 +183,7 @@ class MainActivity : FlutterActivity() {
                         applicationContext,
                         title,
                         artist,
+                        thumbnail,
                         isPlaying
                     )
                     LifeOSWidgetProvider.updateWidget(

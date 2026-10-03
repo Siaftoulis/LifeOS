@@ -20,6 +20,7 @@ import android.widget.RemoteViews
 import com.lifeos.app.lifeos_client.MainActivity
 import com.lifeos.app.lifeos_client.MediaActionReceiver
 import com.lifeos.app.lifeos_client.R
+import java.io.File
 import java.net.URL
 
 class LifeOSWidgetProvider : AppWidgetProvider() {
@@ -171,15 +172,23 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
                 views.setViewVisibility(R.id.widget_album_art, View.GONE)
             } else {
                 views.setViewVisibility(R.id.widget_album_art, View.VISIBLE)
-                if (thumbnail.isNotEmpty() && (thumbnail.startsWith("http://") || thumbnail.startsWith("https://"))) {
+                if (thumbnail.isNotEmpty()) {
                     Thread {
                         try {
-                            val url = URL(thumbnail)
-                            val bmp = BitmapFactory.decodeStream(url.openStream())
+                            val cleanPath = thumbnail.removePrefix("file://")
+                            val bmp = if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
+                                val url = URL(thumbnail)
+                                BitmapFactory.decodeStream(url.openStream())
+                            } else if (File(cleanPath).exists()) {
+                                BitmapFactory.decodeFile(cleanPath)
+                            } else null
+
                             if (bmp != null) {
                                 val rounded = getRoundedCornerBitmap(bmp, 20)
                                 views.setImageViewBitmap(R.id.widget_album_art, rounded)
                                 manager.updateAppWidget(widgetId, views)
+                            } else {
+                                views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
                             }
                         } catch (_: Exception) {
                             views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)

@@ -106,6 +106,10 @@ class PlaybackController extends ChangeNotifier {
   /// The underlying active just_audio player.
   AudioPlayer? get player => playbackEngine.player;
 
+  bool? _optimisticPlaying;
+  bool get isPlaying => _optimisticPlaying ?? (player?.playing ?? false);
+  bool get isLoading => _isLoadingTrack || (player?.processingState == ProcessingState.loading || player?.processingState == ProcessingState.buffering);
+
   bool _userWantsPlay = false;
   bool _isLoadingTrack = false;
   Timer? _watchdogTimer;
@@ -213,10 +217,12 @@ class PlaybackController extends ChangeNotifier {
       }
     });
     _playerStateSub = p.playerStateStream.listen((state) {
+      _optimisticPlaying = null;
       if (state.playing) {
         _isLoadingTrack = false;
         _watchdogTimer?.cancel();
       }
+      notifyListeners();
     });
     _positionSub = p.positionStream.listen((pos) {
       final dur = p.duration;
@@ -329,15 +335,14 @@ class PlaybackController extends ChangeNotifier {
     final item = _state.queue[i];
     _userWantsPlay = true;
     _isLoadingTrack = true;
+    _optimisticPlaying = true;
     _hasPrecachedMidpoint = false;
     _hasPrecachedEightyPercent = false;
     _hasPreloadedStandby = false;
     _isCrossfadingTrack = false;
 
-    // Immediately silence existing playback so manual navigation has 0ms audio lag
-    try {
-      await playbackEngine.stop();
-    } catch (_) {}
+    // Fast cancel any ongoing crossfades without blocking the audio driver
+    playbackEngine.cancelCrossfade();
 
     final playUrl = _resolvePlaybackUrl(item);
 
@@ -369,6 +374,7 @@ class PlaybackController extends ChangeNotifier {
       debugPrint('Music playback setUrl failed: $e');
       if (token == _playToken) {
         _isLoadingTrack = false;
+        _optimisticPlaying = false;
         notifyListeners();
         if (_userWantsPlay && _state.queue.length > 1 && i < _state.queue.length - 1) {
           debugPrint('Music playback: auto-skipping unavailable track to next item');
@@ -504,11 +510,19 @@ class PlaybackController extends ChangeNotifier {
     if (!isAvailable || _state.queue.isEmpty || currentItem == null) return;
     final p = player;
     if (p == null) return;
-    if (p.playing) {
+    final currentlyPlaying = isPlaying;
+    _optimisticPlaying = !currentlyPlaying;
+    notifyListeners(); // Immediate 0ms UI reaction!
+
+    if (currentlyPlaying) {
       _userWantsPlay = false;
       _isLoadingTrack = false;
       _watchdogTimer?.cancel();
-      await playbackEngine.pause();
+      try {
+        await playbackEngine.pause();
+      } catch (e) {
+        debugPrint('Music playback pause note: $e');
+      }
     } else {
       _userWantsPlay = true;
       try {

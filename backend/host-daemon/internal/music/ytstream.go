@@ -53,13 +53,17 @@ func HandleResolveStreamURL(w http.ResponseWriter, r *http.Request) {
 		).Scan(&enrichedAlbum, &enrichedGenre, &enrichedYear, &enrichedCover)
 	}
 
-	// 2. Query Deezer/iTunes concurrent enrichment if tags are missing and title/artist provided
-	if (enrichedCover == "" || enrichedGenre == "") && (title != "" || artist != "") {
-		enrichCtx, cancel := context.WithTimeout(r.Context(), 1500*time.Millisecond)
+	// 2. Query Deezer/iTunes concurrent enrichment if tags are missing or cover is low-res
+	isLowResCover := enrichedCover == "" || strings.Contains(enrichedCover, "ytimg.com") || strings.Contains(enrichedCover, "hqdefault") || strings.Contains(enrichedCover, "mqdefault")
+	if (isLowResCover || enrichedGenre == "" || enrichedAlbum == "") && (title != "" || artist != "") {
+		enrichCtx, cancel := context.WithTimeout(r.Context(), 3500*time.Millisecond)
 		meta := EnrichMetadata(enrichCtx, title, artist)
 		cancel()
-		if meta.CoverArtURL != "" && enrichedCover == "" {
+		if meta.CoverArtURL != "" {
 			enrichedCover = meta.CoverArtURL
+			if DB != nil {
+				_, _ = DB.ExecContext(r.Context(), "UPDATE music_tracks SET thumbnail = ?, thumbnail_url = ? WHERE id = ? OR yt_dlp_id = ?", enrichedCover, enrichedCover, id, id)
+			}
 		}
 		if meta.Album != "" && enrichedAlbum == "" {
 			enrichedAlbum = meta.Album

@@ -242,6 +242,8 @@ class PlaybackEngine {
     });
   }
 
+  void cancelCrossfade() => _cancelCrossfade();
+
   void _cancelCrossfade() {
     _crossfadeTimer?.cancel();
     _crossfadeTimer = null;

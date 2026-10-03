@@ -249,8 +249,18 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
     MusicRepository.instance.tracks.addListener(_onTracksChanged);
   }
 
+  AudioPlayer get _activePlayer => PlaybackController.instance.player ?? widget.player;
+
   void _onPlaybackChanged() {
     if (!mounted) return;
+    final isPlaying = PlaybackController.instance.isPlaying;
+    if (isPlaying) {
+      if (!_visualizerAnim.isAnimating) _visualizerAnim.repeat();
+      if (!_visualizerStopwatch.isRunning) _visualizerStopwatch.start();
+    } else {
+      if (_visualizerAnim.isAnimating) _visualizerAnim.stop();
+      _visualizerStopwatch.stop();
+    }
     setState(() {
       _isShuffle = PlaybackController.instance.shuffle;
       _repeat = PlaybackController.instance.repeat;
@@ -320,14 +330,14 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   void _togglePlayPause() {
-    final playing = widget.player.playing;
+    final playing = PlaybackController.instance.isPlaying;
     if (PlaybackController.instance.isAvailable) {
       PlaybackController.instance.togglePlayPause();
     } else {
       if (playing) {
-        widget.player.pause();
+        _activePlayer.pause();
       } else {
-        widget.player.play();
+        _activePlayer.play();
       }
     }
     final willPlay = !playing;
@@ -2239,67 +2249,52 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
   }
 
   Widget _buildPlayPauseCircle(AppSkin skin, {double size = 62}) {
-    return StreamBuilder<PlayerState>(
-      stream: widget.player.playerStateStream,
-      builder: (context, snap) {
-        final state = snap.data;
-        final playing = state?.playing ?? false;
-        final loading = state?.processingState == ProcessingState.loading;
-        final iconColor = skin.isOled
-            ? Colors.black
-            : (skin.isDark ? Colors.black : Colors.white);
+    final controller = PlaybackController.instance;
+    final playing = controller.isPlaying;
+    final loading = controller.isLoading;
+    final iconColor = skin.isOled
+        ? Colors.black
+        : (skin.isDark ? Colors.black : Colors.white);
 
-        return Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: skin.accent,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: skin.accent,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(size / 2),
-              onTap: loading
-                  ? null
-                  : () {
-                      if (PlaybackController.instance.isAvailable) {
-                        PlaybackController.instance.togglePlayPause();
-                      } else {
-                        if (playing) {
-                          widget.player.pause();
-                        } else {
-                          widget.player.play();
-                        }
-                      }
-                    },
-              child: Center(
-                child: loading
-                    ? SizedBox(
-                        width: size * 0.42,
-                        height: size * 0.42,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: iconColor,
-                        ),
-                      )
-                    : Icon(
-                        playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: iconColor,
-                        size: size * 0.62,
-                      ),
-              ),
-            ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(size / 2),
+          onTap: () {
+            controller.togglePlayPause();
+          },
+          child: Center(
+            child: loading
+                ? SizedBox(
+                    width: size * 0.42,
+                    height: size * 0.42,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: iconColor,
+                    ),
+                  )
+                : Icon(
+                    playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: iconColor,
+                    size: size * 0.62,
+                  ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

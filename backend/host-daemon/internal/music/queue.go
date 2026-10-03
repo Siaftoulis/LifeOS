@@ -302,14 +302,27 @@ func processNextDownload(baseCtx context.Context) (bool, error) {
 	if artist == "" {
 		artist = uploader
 	}
+	if enriched.CoverArtURL == "" && (title != "" || artist != "") {
+		postEnrich := EnrichMetadata(ctx, title, artist)
+		if postEnrich.CoverArtURL != "" {
+			enriched.CoverArtURL = postEnrich.CoverArtURL
+		}
+		if enriched.Album == "" && postEnrich.Album != "" {
+			album = postEnrich.Album
+		}
+		if enriched.Genre == "" && postEnrich.Genre != "" {
+			enriched.Genre = postEnrich.Genre
+		}
+	}
+
 	thumb := ""
 	if enriched.CoverArtURL != "" {
-		thumb = enriched.CoverArtURL
+		thumb = upgradeThumbnailQuality(enriched.CoverArtURL)
 	} else if len(lines) >= 7 {
-		thumb = clean(lines[6])
+		thumb = upgradeThumbnailQuality(clean(lines[6]))
 	}
 	if thumb == "" {
-		thumb = "https://i.ytimg.com/vi/" + trackID + "/hqdefault.jpg"
+		thumb = "https://i.ytimg.com/vi/" + trackID + "/maxresdefault.jpg"
 	}
 
 	// Update music_tracks table with canonical thumbnail and metadata

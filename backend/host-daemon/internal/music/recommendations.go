@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -216,27 +217,49 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 		candidates = append(candidates, track)
 	}
 
-	// 5. Assemble Curated Playlist preserving YouTube Music's algorithmic order with Artist Diversity
+	// 5. Multi-factor Scoring & Curated Assembly with Artist Diversity & Serendipity
+	profile := GetUserAffinityProfile(ctx)
+
+	type scoredCand struct {
+		track RecommendedTrack
+		score float64
+	}
+	scored := make([]scoredCand, 0, len(candidates))
+	for i, c := range candidates {
+		isSerendipity := (i%3 == 2)
+		s := ScoreRecommendation(c, seedArtist, seedGenre, profile, isSerendipity)
+		if c.IsLocal {
+			s += 0.25 // Boost locally cached/downloaded tracks
+		}
+		c.IsRadioDiscovery = isSerendipity
+		scored = append(scored, scoredCand{track: c, score: s})
+	}
+
+	// Sort candidates by score descending
+	sort.SliceStable(scored, func(i, j int) bool {
+		return scored[i].score > scored[j].score
+	})
+
 	results := make([]RecommendedTrack, 0, limit)
 	selectedIDs := make(map[string]bool)
 	artistCounts := make(map[string]int)
 
-	for _, cand := range candidates {
+	for _, sc := range scored {
 		if len(results) >= limit {
 			break
 		}
-		if selectedIDs[cand.ID] {
+		if selectedIDs[sc.track.ID] {
 			continue
 		}
-		artKey := strings.ToLower(strings.TrimSpace(cand.Artist))
+		artKey := strings.ToLower(strings.TrimSpace(sc.track.Artist))
 		if artKey != "" && artistCounts[artKey] >= 2 {
 			continue // Max 2 tracks per artist in the radio queue
 		}
-		selectedIDs[cand.ID] = true
+		selectedIDs[sc.track.ID] = true
 		if artKey != "" {
 			artistCounts[artKey]++
 		}
-		results = append(results, cand)
+		results = append(results, sc.track)
 	}
 
 	// 6. Save into cache

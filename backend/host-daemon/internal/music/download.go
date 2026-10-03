@@ -3,6 +3,7 @@ package music
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"lifeos/host-daemon/internal/auth/middleware"
 )
@@ -25,12 +26,23 @@ func HandleDownload(w http.ResponseWriter, r *http.Request) {
 	}
 	var payload struct {
 		VideoID     string `json:"video_id"`
+		Title       string `json:"title"`
+		Artist      string `json:"artist"`
 		Thumbnail   string `json:"thumbnail"`
 		QualityMode string `json:"quality_mode"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil || payload.VideoID == "" {
 		http.Error(w, "Missing video_id", http.StatusBadRequest)
 		return
+	}
+
+	if DB != nil && payload.Title != "" && payload.Artist != "" {
+		_, _ = DB.Exec(`INSERT INTO music_tracks (id, title, artist, thumbnail, thumbnail_url, added_at)
+			VALUES (?, ?, ?, ?, ?, ?)
+			ON CONFLICT(id) DO UPDATE SET title=COALESCE(NULLIF(excluded.title, ''), music_tracks.title),
+			artist=COALESCE(NULLIF(excluded.artist, ''), music_tracks.artist),
+			thumbnail=COALESCE(NULLIF(excluded.thumbnail, ''), music_tracks.thumbnail)`,
+			payload.VideoID, payload.Title, payload.Artist, payload.Thumbnail, payload.Thumbnail, time.Now().UnixMilli())
 	}
 
 	username, _ := r.Context().Value(middleware.UserContextKey).(string)
