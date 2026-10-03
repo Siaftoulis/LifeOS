@@ -1,22 +1,34 @@
-## LifeOS v1.6.1 (Build #81) — Offline & Local Track Radio, Pure-Dart Metadata & Dynamic Smart Playlists
+## LifeOS v1.6.2 (Build #82)
 
-Welcome to **LifeOS v1.6.1**! This release brings intelligent radio recommendations to local and offline music, pure-Dart audio tag parsing with embedded cover art caching, and high-performance dynamic Smart Playlists.
+### 1. Διαχείριση Χρηστών & Admin Console
+* **Πλήρες Σύστημα Multi-User**: Υποστήριξη πολλαπλών χρηστών στη βάση δεδομένων του host daemon, με απομονωμένες λίστες αναπαραγωγής (playlists) και ρυθμίσεις ανά λογαριασμό.
+* **Κονσόλα Διαχειριστή (Admin Console)**: Νέο περιβάλλον διαχείρισης με δυνατότητες δημιουργίας νέων χρηστών, ανάθεσης ρόλων (ADMIN / USER), επεξεργασίας στοιχείων και επαναφοράς κωδικών πρόσβασης.
+* **Προστασία & Αυτοματοποιημένη Σύνδεση**: Ενσωμάτωση ασφαλούς ελέγχου ταυτότητας μέσω JWT tokens με εξαίρεση των αξιόπιστων τοπικών κόμβων (mesh/Tailscale) από τους περιορισμούς του rate limiter.
+
+### 2. Προφίλ Χρήστη, Custom Frames & Live Online Presence
+* **Προσαρμογή Προφίλ & Avatar Frames**: Προσθήκη επιλογής custom πλαισίων γύρω από το avatar (Neon, Gold, Cyber, Minimal, Retro) και διαμόρφωση στο προφίλ χρήστη.
+* **Παρακολούθηση Ενεργών Χρηστών (Live Presence)**: Υλοποίηση μηχανισμού heartbeat στο backend και προβολή των συνδεδεμένων χρηστών σε πραγματικό χρόνο στις ρυθμίσεις.
+
+### 3. Καθολική Αναζήτηση & Συντομεύσεις
+* **Συντομεύσεις Πληκτρολογίου**: Άνοιγμα του Global Search με το πάτημα του backtick (`) ή tilde (~) πέραν του κλασικού Ctrl+K.
+* **Smart Focus Detection**: Αυτόματη ανίχνευση εστίασης σε πεδία κειμένου (EditableText, TextField, AppFlowy) ώστε οι συντομεύσεις να μην διακόπτουν την πληκτρολόγηση σημειώσεων ή εντολών.
+* **Χειρονομία Mobile**: Ενεργοποίηση της αναζήτησης με παρατεταμένο πάτημα (long press) σε κενό σημείο του καμβά.
+* **Επανασχεδιασμός Θέσης**: Αφαίρεση του παλαιού κουμπιού από την επάνω αριστερή γωνία και μετατροπή του σε κεντρικό omnibar κάτω από το ρολόι στην αρχική οθόνη.
+
+### 4. Βελτιστοποίηση Web Έκδοσης (Zero-Lag Startup)
+* **Προ-συμπίεση Gzip**: Όλα τα στατικά αρχεία Web (.js, .wasm, .html, .css) συμπιέζονται σε επίπεδο build, μειώνοντας δραστικά τους χρόνους μεταφοράς.
+* **Εξάλειψη Καθυστέρησης Service Worker**: Αφαίρεση του προεπιλεγμένου timeout 4 δευτερολέπτων κατά την εκκίνηση του Flutter loader.
+* **Τοπικό CanvasKit**: Εξαναγκασμός φόρτωσης του CanvasKit απευθείας από τον τοπικό διακομιστή αντί για εξωτερικά CDNs (gstatic), επιτυγχάνοντας πλήρη λειτουργία εκτός σύνδεσης.
+
+### 5. Mobile OTA & CI/CD Pipeline
+* **Universal APK για OTA**: Ενοποίηση σε ενιαίο Universal APK αντί για διαχωρισμένα ABI splits, διασφαλίζοντας απρόσκοπτη εγκατάσταση ενημερώσεων σε οποιαδήποτε συσκευή Android.
+* **Επιδιόρθωση CI Testing**: Προσθήκη προπαρασκευαστικού βήματος (patch appflowy) στους runners του GitHub Actions για αποφυγή false-positive αποτυχιών κατά την εκτέλεση των δοκιμών.
 
 ---
 
-### Highlights & New Features
-
-#### 📻 Offline & Local Track Radio
-* **Local Radio Everywhere**: You can now start an infinite Track Radio directly from any local file or offline track (`local_<hash>`).
-* **Hybrid Fallback Engine**:
-  * **Online**: Resolves local song metadata (artist, title, genre) from SQLite and seeds YouTube Music algorithmic radio.
-  * **Offline**: Seamlessly activates Drift's local recommendation scoring algorithm (+3 artist match, +2 genre match, weighted by play count) with automatic library backfill.
-* **Direct Path Preservation**: The playback queue preserves direct local disk paths (`r.filePath`), guaranteeing uninterrupted native offline playback without broken network streaming URLs.
-* **One-Tap Offline Radio**: Added a quick "Start Offline Radio" button directly in the Offline Music Vault header.
-
-#### 🎨 Pure-Dart Audio Metadata & Embedded Album Art
-* High-performance, zero-native-dependency tag reader for ID3v1, ID3v2.2-2.4 (`TIT2`, `TPE1`, `TALB`, `TYER`, `TCON`, `APIC`), MP4/M4A atoms (`©nam`, `©ART`, `©alb`, `covr`), and FLAC Vorbis/Picture blocks.
-* Caches extracted album covers to disk and renders via the universal `MusicCoverArt` component.
-
-#### 🎛️ Dynamic Smart Playlists
-* Create and run dynamic smart playlists powered by local metadata rules (Genre, Decade, Folder, Recently Added, Most Played) with one-tap preset mix carousels.
+### English Summary
+* **Multi-User & Admin Console**: Multi-tenant database support, per-user playlists/settings, administrative user management console (role assignment, password resets, user creation), and Tailscale-aware rate-limiting.
+* **Profile Customization & Live Presence**: Custom avatar frames (Neon, Gold, Cyber, Minimal, Retro) and real-time backend heartbeat session tracking showing live connected peers.
+* **Global Search Shortcuts**: Global search activation via backtick (`) and tilde (~), smart input-field focus detection to prevent accidental activation while typing, canvas long-press on mobile, and centered home screen omnibar.
+* **Web Zero-Lag Startup**: Build-time Gzip pre-compression of static assets, removal of 4-second service worker initialization freeze, and forced local CanvasKit bundling.
+* **Mobile OTA & CI/CD Pipeline**: Universal release APK packaging for reliable OTA installs across all architectures, and AppFlowy editor pre-patching in CI runner test workflows.

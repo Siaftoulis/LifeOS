@@ -24,4 +24,5 @@
 - **Constraints**:
   - Never truncate or cap version segments at 9 or 999 (e.g., `0.10.0` is valid and follows `0.9.0`).
   - Always document the version bump rationale in the changelog or commit header (e.g., `chore(release): bump to 0.2.0 - added local storage sync`).
+  - **Mandatory Release Notes on Every Release (Iron Law)**: On EVERY new release (whether triggered via `release_and_deploy.ps1`, automated CI/CD, or manual tag bump), `.agent/RELEASE_NOTES.md` MUST be updated with fresh, accurate, and strictly relevant release notes detailing the exact changes made. Generic text, placeholder notes, stale copy-pastes, and emojis are strictly forbidden.
 

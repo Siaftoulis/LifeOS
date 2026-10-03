@@ -40,6 +40,7 @@ LifeOS — self-hosted, offline-first Flutter + Go monorepo (Windows client prim
 - **Gotcha:** workflow MUST keep `flutter-version: '3.44.9'` pinned in `subosito/flutter-action` (both jobs) — unpinned stable is 3.47 which breaks the build.
 - **Gotcha:** never re-add `flutter create`/`flutter pub add` steps to the workflow — re-resolving deps on the runner breaks the build. `android/`, `windows/`, `pubspec.lock` are committed; runners only `flutter pub get`.
 - **Gotcha:** `client/android/gradle/wrapper/gradle-wrapper.jar` is git-ignored by `client/android/.gitignore` but must stay tracked (was force-added) or runner builds fail.
+- **Rule (Iron Law — Release Notes):** On EVERY release, `.agent/RELEASE_NOTES.md` MUST be updated with fresh, accurate, and strictly relevant release notes reflecting the EXACT changes made, without emojis. Stale notes or placeholders are strictly forbidden. The CI pipeline reads this file directly for the official GitHub Release notes.
 - After a failed release: fix, push, delete+recreate the tag (`git push origin --delete vX.Y.Z`), re-push. `gh run list` may lag a few seconds after tag push.
 
 ## Music module specifics

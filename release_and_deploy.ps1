@@ -66,6 +66,18 @@ Set-Content -Path $pubspecFile -Value $pubspecContent
 
 Write-Host "Version files updated to v$newVer+$newBuild" -ForegroundColor Green
 
+# 1.5 Validate that .agent/RELEASE_NOTES.md has been updated for this version
+$notesPath = "$workspaceRoot\.agent\RELEASE_NOTES.md"
+if (-not (Test-Path $notesPath)) {
+    Write-Error "Release notes file missing: $notesPath! Update .agent/RELEASE_NOTES.md before releasing."
+    exit 1
+}
+$notesContent = Get-Content $notesPath -Raw
+if (-not ($notesContent -match "v$newVer")) {
+    Write-Error "Release notes in $notesPath do not contain target version 'v$newVer'! Update .agent/RELEASE_NOTES.md with relevant release notes before proceeding."
+    exit 1
+}
+
 # 2. Deploy to Server (pds-laptop-old)
 Write-Host "`n>>> [STEP 1/3] Building and Deploying to Server (pds-laptop-old)..." -ForegroundColor Yellow
 & "$workspaceRoot\deploy_server.ps1"
