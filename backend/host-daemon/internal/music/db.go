@@ -23,6 +23,9 @@ func InitDB(dataDir string) error {
 		return fmt.Errorf("failed to open media db: %v", err)
 	}
 
+	_, _ = db.Exec("PRAGMA journal_mode = WAL;")
+	_, _ = db.Exec("PRAGMA busy_timeout = 5000;")
+
 	DB = db
 
 	if err := createTables(); err != nil {

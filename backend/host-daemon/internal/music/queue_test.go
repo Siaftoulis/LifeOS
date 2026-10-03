@@ -141,6 +141,7 @@ func TestDownloadQueueCancellationBeforeExecution(t *testing.T) {
 
 func TestDownloadQueueCancellationWhileRunning(t *testing.T) {
 	setupTestDB(t)
+	StopQueueWorker()
 
 	oldRunner := commandRunner
 	defer func() { commandRunner = oldRunner }()
