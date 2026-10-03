@@ -55,7 +55,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: EverforestColors.bg0,
-      title: const Text('Add Custom Quest', style: TextStyle(color: EverforestColors.fg)),
+      title: Text('Add Custom Quest', style: TextStyle(color: EverforestColors.fg)),
       content: SizedBox(
         width: 400,
         child: Column(
@@ -64,8 +64,8 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
           children: [
             TextField(
               controller: _titleController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Quest Title',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.grey)),
@@ -75,8 +75,8 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _descController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Description (Optional)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.grey)),
@@ -86,8 +86,8 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _assignedUsersController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Assigned Users (e.g. panospds:50, user2:50)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.grey)),
@@ -95,7 +95,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text('XP Reward', style: TextStyle(color: EverforestColors.fg)),
+            Text('XP Reward', style: TextStyle(color: EverforestColors.fg)),
             Row(
               children: [
                 Expanded(
@@ -113,7 +113,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
                 ),
                 SizedBox(
                   width: 50,
-                  child: Text('${_xpReward.toInt()} XP', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
+                  child: Text('${_xpReward.toInt()} XP', style: TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -121,7 +121,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Due Date', style: TextStyle(color: EverforestColors.fg)),
+                Text('Due Date', style: TextStyle(color: EverforestColors.fg)),
                 TextButton(
                   onPressed: () async {
                     final picked = await showDatePicker(
@@ -134,13 +134,13 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
                   },
                   child: Text(
                     '${_dueDate.day}/${_dueDate.month}/${_dueDate.year}',
-                    style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Family bounty: anyone can claim it from the quest board. '
               'Cancelling after claiming costs half the reward in stars.',
               style: TextStyle(color: EverforestColors.grey, fontSize: 12),
@@ -151,7 +151,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _submit,
@@ -160,7 +160,7 @@ class _AddQuestDialogState extends State<AddQuestDialog> {
             foregroundColor: EverforestColors.bg0,
           ),
           child: _isLoading
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.bg0))
+              ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.bg0))
               : const Text('Add Quest'),
         ),
       ],

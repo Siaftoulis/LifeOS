@@ -14,11 +14,11 @@ class RemoteFileExplorerView extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.folder, color: EverforestColors.yellow),
+              Icon(Icons.folder, color: EverforestColors.yellow),
               const SizedBox(width: 8),
-              const Text('Remote Explorer: /mnt/data', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Remote Explorer: /mnt/data', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
               const Spacer(),
-              IconButton(icon: const Icon(Icons.upload_file, color: EverforestColors.blue), onPressed: () {}),
+              IconButton(icon: Icon(Icons.upload_file, color: EverforestColors.blue), onPressed: () {}),
             ],
           ),
           const SizedBox(height: 16),
@@ -50,8 +50,8 @@ class _FileItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(isFolder ? Icons.folder : Icons.insert_drive_file, color: isFolder ? EverforestColors.yellow : EverforestColors.grey),
-      title: Text(name, style: const TextStyle(color: EverforestColors.fg)),
-      trailing: const Icon(Icons.download, color: EverforestColors.green),
+      title: Text(name, style: TextStyle(color: EverforestColors.fg)),
+      trailing: Icon(Icons.download, color: EverforestColors.green),
     );
   }
 }

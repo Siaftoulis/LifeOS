@@ -89,7 +89,7 @@ class CardStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Nothing here yet — tap to open the library',
           style: TextStyle(color: EverforestColors.grey),
@@ -116,7 +116,7 @@ class CardStrip extends StatelessWidget {
             children: [
               Text(
                 it.title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
@@ -128,7 +128,7 @@ class CardStrip extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 it.subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.grey,
                   fontSize: 10.5,
                 ),

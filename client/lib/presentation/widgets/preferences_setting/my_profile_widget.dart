@@ -58,7 +58,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
 
     if (newUsername.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Το Username δεν μπορεί να είναι κενό'), backgroundColor: EverforestColors.red),
+        SnackBar(content: Text('Το Username δεν μπορεί να είναι κενό'), backgroundColor: EverforestColors.red),
       );
       return;
     }
@@ -77,14 +77,14 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Το προφίλ ενημερώθηκε επιτυχώς!'),
               backgroundColor: EverforestColors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('Αποτυχία αποθήκευσης προφίλ.'),
               backgroundColor: EverforestColors.red,
             ),
@@ -124,7 +124,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          const Row(
+          Row(
             children: [
               Icon(Icons.badge_outlined, color: EverforestColors.green),
               SizedBox(width: 10),
@@ -165,7 +165,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
                       const SizedBox(height: 2),
                       Text(
                         '@${_usernameController.text}',
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 13),
                       ),
                       if (_statusController.text.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -178,7 +178,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
                           ),
                           child: Text(
                             _statusController.text,
-                            style: const TextStyle(color: EverforestColors.aqua, fontSize: 12),
+                            style: TextStyle(color: EverforestColors.aqua, fontSize: 12),
                           ),
                         ),
                       ],
@@ -197,9 +197,9 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
               Expanded(
                 child: TextField(
                   controller: _usernameController,
-                  style: const TextStyle(color: EverforestColors.fg),
+                  style: TextStyle(color: EverforestColors.fg),
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Username (@login)',
                     labelStyle: TextStyle(color: EverforestColors.grey),
                     prefixIcon: Icon(Icons.alternate_email, color: EverforestColors.grey, size: 18),
@@ -212,9 +212,9 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
               Expanded(
                 child: TextField(
                   controller: _displayNameController,
-                  style: const TextStyle(color: EverforestColors.fg),
+                  style: TextStyle(color: EverforestColors.fg),
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Display Name',
                     labelStyle: TextStyle(color: EverforestColors.grey),
                     prefixIcon: Icon(Icons.person_outline, color: EverforestColors.grey, size: 18),
@@ -229,9 +229,9 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
 
           TextField(
             controller: _statusController,
-            style: const TextStyle(color: EverforestColors.fg),
+            style: TextStyle(color: EverforestColors.fg),
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Status / Bio / Τίτλος',
               labelStyle: TextStyle(color: EverforestColors.grey),
               prefixIcon: Icon(Icons.info_outline, color: EverforestColors.grey, size: 18),
@@ -243,7 +243,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
           const SizedBox(height: 24),
 
           // AVATAR PRESET SELECTOR
-          const Text('Επιλογή Avatar / Εικονιδίου', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Επιλογή Avatar / Εικονιδίου', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -282,13 +282,13 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
           const SizedBox(height: 12),
           TextField(
             controller: _avatarUrlController,
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+            style: TextStyle(color: EverforestColors.fg, fontSize: 13),
             onChanged: (val) {
               setState(() {
                 _selectedAvatar = val.trim();
               });
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Ή επικόλληση URL εικόνας (https://...)',
               labelStyle: TextStyle(color: EverforestColors.grey),
               prefixIcon: Icon(Icons.link, color: EverforestColors.grey, size: 18),
@@ -300,7 +300,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
           const SizedBox(height: 24),
 
           // FRAME SELECTOR
-          const Text('Επιλογή Frame (Πλαίσιο)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Επιλογή Frame (Πλαίσιο)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -352,7 +352,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
           const SizedBox(height: 24),
 
           // NAME STYLE SELECTOR
-          const Text('Στυλ Ονόματος (Name Styling)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('Στυλ Ονόματος (Name Styling)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -395,7 +395,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
             ),
             onPressed: _isSaving ? null : _saveProfile,
             icon: _isSaving
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2))
+                ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2))
                 : const Icon(Icons.save_outlined, size: 20),
             label: Text(
               _isSaving ? 'ΑΠΟΘΗΚΕΥΣΗ...' : 'ΑΠΟΘΗΚΕΥΣΗ ΑΛΛΑΓΩΝ',
@@ -406,7 +406,7 @@ class _MyProfileWidgetState extends State<MyProfileWidget> {
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: EverforestColors.red,
-              side: const BorderSide(color: EverforestColors.red),
+              side: BorderSide(color: EverforestColors.red),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),

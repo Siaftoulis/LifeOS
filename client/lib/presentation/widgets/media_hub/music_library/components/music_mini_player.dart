@@ -93,6 +93,8 @@ class MusicMiniPlayer extends StatelessWidget {
                                 'now_playing_artwork_${effectiveTrackId.isEmpty ? "empty" : effectiveTrackId}',
                             child: MusicCoverArt(
                               url: effectiveThumbnail,
+                              trackId: effectiveTrackId,
+                              filePath: activeItem.filePath,
                               size: 42,
                               borderRadius: 6,
                             ),

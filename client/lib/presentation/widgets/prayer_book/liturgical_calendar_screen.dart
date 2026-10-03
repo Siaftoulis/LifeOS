@@ -130,7 +130,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
     return Scaffold(
       backgroundColor: EverforestColors.bg0,
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: EverforestColors.green))
+          ? Center(child: CircularProgressIndicator(color: EverforestColors.green))
           : CustomScrollView(
               slivers: [
                 _buildAppBar(),
@@ -151,11 +151,11 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
       backgroundColor: EverforestColors.bg0,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
+        icon: Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
         onPressed: () => Navigator.pop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
+        title: Text(
           'Εκκλησιαστικό Ημερολόγιο',
           style: TextStyle(
             fontSize: 20,
@@ -164,7 +164,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           ),
         ),
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -295,7 +295,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
               Expanded(
                 child: Text(
                   _todayInfo!['date_formatted'] ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: EverforestColors.fg,
@@ -346,12 +346,12 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.celebration, color: EverforestColors.yellow, size: 18),
+                  Icon(Icons.celebration, color: EverforestColors.yellow, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _todayInfo!['feast_name'],
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: EverforestColors.yellow,
@@ -364,7 +364,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           ],
           if (_todayInfo!['epistle'] != null || _todayInfo!['gospel'] != null) ...[
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Αναγνώσματα',
               style: TextStyle(
                 fontSize: 14,
@@ -395,12 +395,12 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           const SizedBox(width: 8),
           Text(
             '$label: ',
-            style: const TextStyle(fontSize: 12, color: EverforestColors.grey),
+            style: TextStyle(fontSize: 12, color: EverforestColors.grey),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12, color: EverforestColors.fg),
+              style: TextStyle(fontSize: 12, color: EverforestColors.fg),
             ),
           ),
         ],
@@ -421,7 +421,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           child: Center(
             child: Text(
               type,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 color: EverforestColors.bg0,
                 fontWeight: FontWeight.bold,
@@ -433,7 +433,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
         Expanded(
           child: Text(
             reference,
-            style: const TextStyle(fontSize: 12, color: EverforestColors.fg),
+            style: TextStyle(fontSize: 12, color: EverforestColors.fg),
           ),
         ),
       ],
@@ -449,7 +449,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left, color: EverforestColors.fg),
+            icon: Icon(Icons.chevron_left, color: EverforestColors.fg),
             onPressed: () {
               setState(() {
                 _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
@@ -461,7 +461,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
             children: [
               Text(
                 '${_monthNames[_currentMonth.month]} ${_currentMonth.year}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w600,
                   color: EverforestColors.fg,
@@ -477,7 +477,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: EverforestColors.fg),
+            icon: Icon(Icons.chevron_right, color: EverforestColors.fg),
             onPressed: () {
               setState(() {
                 _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
@@ -510,7 +510,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                 child: Center(
                   child: Text(
                     d,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: EverforestColors.grey,
                       fontWeight: FontWeight.bold,
@@ -575,7 +575,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                               width: 4,
                               height: 4,
                               margin: const EdgeInsets.only(top: 2),
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: EverforestColors.yellow,
                                 shape: BoxShape.circle,
                               ),
@@ -654,7 +654,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                 children: [
                   Text(
                     civilDateText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: EverforestColors.fg,
@@ -688,7 +688,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                 const SizedBox(height: 4),
                 Text(
                   julianDateText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: EverforestColors.aqua,
@@ -706,7 +706,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                   ),
                   child: Text(
                     dayData!['feast'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: EverforestColors.yellow,
@@ -716,7 +716,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
               ],
               if (dayData?['has_readings'] == true) ...[
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Αναγνώσματα',
                   style: TextStyle(
                     fontSize: 15,
@@ -763,7 +763,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
           children: [
             Text(
               isOld ? 'Αναγνώσματα Μηνός (Παλαιό Ημερολόγιο)' : 'Αναγνώσματα Μηνός (Νέο Ημερολόγιο)',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
                 color: EverforestColors.fg,
@@ -795,7 +795,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                       children: [
                         Text(
                           dayLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: EverforestColors.aqua,
@@ -806,7 +806,7 @@ class _LiturgicalCalendarScreenState extends State<LiturgicalCalendarScreen> {
                           Expanded(
                             child: Text(
                               day['feast'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: EverforestColors.yellow,
                               ),

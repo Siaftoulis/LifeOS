@@ -78,8 +78,8 @@ class WebSessionGuard {
       barrierDismissible: false,
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Είσαι ακόμα ενεργός;', style: TextStyle(color: EverforestColors.fg)),
-        content: const Text(
+        title: Text('Είσαι ακόμα ενεργός;', style: TextStyle(color: EverforestColors.fg)),
+        content: Text(
           'Δεν υπάρχει δραστηριότητα για 50 λεπτά. Θα αποσυνδεθείς σε 10 λεπτά λόγω αδράνειας.',
           style: TextStyle(color: EverforestColors.fg),
         ),
@@ -90,7 +90,7 @@ class WebSessionGuard {
               Navigator.of(dialogCtx).pop();
               _lastActivity = DateTime.now();
             },
-            child: const Text('Ναι, είμαι εδώ', style: TextStyle(color: EverforestColors.green)),
+            child: Text('Ναι, είμαι εδώ', style: TextStyle(color: EverforestColors.green)),
           ),
           TextButton(
             onPressed: () {
@@ -99,7 +99,7 @@ class WebSessionGuard {
               onExpire();
               detach();
             },
-            child: const Text('Αποσύνδεση', style: TextStyle(color: EverforestColors.red)),
+            child: Text('Αποσύνδεση', style: TextStyle(color: EverforestColors.red)),
           ),
         ],
       ),

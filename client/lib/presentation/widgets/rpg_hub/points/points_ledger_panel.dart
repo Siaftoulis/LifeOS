@@ -56,7 +56,7 @@ class _PointsLedgerPanelState extends State<PointsLedgerPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('POINTS LEDGER',
+          Text('POINTS LEDGER',
               style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
@@ -64,14 +64,14 @@ class _PointsLedgerPanelState extends State<PointsLedgerPanel> {
                   letterSpacing: 1.5)),
           const SizedBox(height: 16),
           if (_isLoading)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(24),
               child: Center(
                 child: CircularProgressIndicator(color: EverforestColors.green),
               ),
             )
           else if (_mine.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(24),
               child: Text('No transactions yet',
                   style: TextStyle(color: EverforestColors.grey)),
@@ -92,7 +92,7 @@ class _PointsLedgerPanelState extends State<PointsLedgerPanel> {
                 shrinkWrap: true,
                 itemCount: _mine.length > 25 ? 25 : _mine.length,
                 separatorBuilder: (_, __) =>
-                    const Divider(height: 1, color: EverforestColors.bg2),
+                    Divider(height: 1, color: EverforestColors.bg2),
                 itemBuilder: (context, i) => _LedgerRow(entry: _mine[i] as Map),
               ),
             ),
@@ -128,12 +128,12 @@ class _LedgerRow extends StatelessWidget {
             child: Text(
               entry['event'] as String? ?? 'Transaction',
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 13),
             ),
           ),
           Text(
             '${d.day}/${d.month}',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 11),
           ),
           const SizedBox(width: 12),
           SizedBox(
@@ -211,7 +211,7 @@ class _WeeklyXpChart extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(d.label,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: EverforestColors.grey, fontSize: 10)),
                 ],
               ),
@@ -221,7 +221,7 @@ class _WeeklyXpChart extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           maxXp == 0 ? 'No XP earned this week' : 'Weekly XP — max $maxXp',
-          style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+          style: TextStyle(color: EverforestColors.grey, fontSize: 11),
         ),
       ],
     );

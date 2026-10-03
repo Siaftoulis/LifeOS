@@ -72,9 +72,9 @@ class _IllnessStatusWidgetState extends State<IllnessStatusWidget> {
   Widget _buildHealthyState() {
     return Column(
       children: [
-        const Icon(Icons.health_and_safety, color: EverforestColors.green, size: 48),
+        Icon(Icons.health_and_safety, color: EverforestColors.green, size: 48),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           "System Status: Healthy",
           style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 16),
         ),
@@ -130,20 +130,20 @@ class _IllnessStatusWidgetState extends State<IllnessStatusWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Base Duration: ${_currentState!.baseDays} days", style: const TextStyle(color: EverforestColors.fg)),
+              Text("Base Duration: ${_currentState!.baseDays} days", style: TextStyle(color: EverforestColors.fg)),
               Text(
                 "Actual Duration (WP reduced): ${_currentState!.actualDays.toStringAsFixed(1)} days",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: EverforestColors.fg),
+                style: TextStyle(fontWeight: FontWeight.bold, color: EverforestColors.fg),
               ),
               const SizedBox(height: 8),
               if (isInjury) ...[
-                const Text("• Physical tasks locked", style: TextStyle(color: EverforestColors.fg)),
-                const Text("• Atrophy protection for Stamina/Strength", style: TextStyle(color: EverforestColors.fg)),
-                const Text("• -50% visual debuff on physical stats", style: TextStyle(color: EverforestColors.fg)),
+                Text("• Physical tasks locked", style: TextStyle(color: EverforestColors.fg)),
+                Text("• Atrophy protection for Stamina/Strength", style: TextStyle(color: EverforestColors.fg)),
+                Text("• -50% visual debuff on physical stats", style: TextStyle(color: EverforestColors.fg)),
               ] else ...[
-                const Text("• XP Decay reduced by 50%", style: TextStyle(color: EverforestColors.fg)),
-                const Text("• Atrophy grace days doubled", style: TextStyle(color: EverforestColors.fg)),
-                const Text("• +200% Willpower XP for all tasks", style: TextStyle(color: EverforestColors.fg)),
+                Text("• XP Decay reduced by 50%", style: TextStyle(color: EverforestColors.fg)),
+                Text("• Atrophy grace days doubled", style: TextStyle(color: EverforestColors.fg)),
+                Text("• +200% Willpower XP for all tasks", style: TextStyle(color: EverforestColors.fg)),
               ]
             ],
           ),
@@ -174,14 +174,14 @@ class _IllnessStatusWidgetState extends State<IllnessStatusWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             "Biological Status",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: EverforestColors.fg),
             textAlign: TextAlign.center,
           ),
-          const Divider(color: EverforestColors.bg2),
+          Divider(color: EverforestColors.bg2),
           if (_isLoading)
-            const Center(child: Padding(
+            Center(child: Padding(
               padding: EdgeInsets.all(16.0),
               child: CircularProgressIndicator(color: EverforestColors.purple),
             ))

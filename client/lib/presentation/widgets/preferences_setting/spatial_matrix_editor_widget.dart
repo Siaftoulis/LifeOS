@@ -18,7 +18,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
           color: EverforestColors.bg1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: EverforestColors.bg2, width: 1.0),
+            side: BorderSide(color: EverforestColors.bg2, width: 1.0),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -51,7 +51,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
                         width: gridWidth,
                         child: Column(
                           children: [
-                            const Text(
+                            Text(
                               'Tap any slot to assign or swap a module.',
                               style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                             ),
@@ -92,20 +92,20 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       title: Text(
         label,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
+        style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.remove, color: EverforestColors.red),
+            icon: Icon(Icons.remove, color: EverforestColors.red),
             onPressed: disabled ? null : onDecrement,
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Text(
               val.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.fg,
                 fontFamily: 'JetBrainsMono',
                 fontSize: 14,
@@ -114,7 +114,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: EverforestColors.green),
+            icon: Icon(Icons.add, color: EverforestColors.green),
             onPressed: disabled ? null : onIncrement,
           ),
         ],
@@ -232,7 +232,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
             children: [
               Text(
                 'Assign to Slot [$r, $c]',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -253,7 +253,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
                       collapsedIconColor: EverforestColors.grey,
                       title: Text(
                         category,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.green,
                           fontWeight: FontWeight.bold,
                         ),
@@ -263,7 +263,7 @@ class SpatialMatrixEditorWidget extends StatelessWidget {
                           contentPadding: const EdgeInsets.only(left: 32.0, right: 16.0),
                           title: Text(
                             item['name']!,
-                            style: const TextStyle(color: EverforestColors.fg),
+                            style: TextStyle(color: EverforestColors.fg),
                           ),
                           onTap: () {
                             final currentLayout = PreferencesService.layout.value;

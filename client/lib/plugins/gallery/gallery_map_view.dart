@@ -293,11 +293,11 @@ class _GalleryMapViewState extends State<GalleryMapView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
 
     if (_mappedItems.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No photos with location metadata found.',
           style: TextStyle(color: EverforestColors.grey),
@@ -325,7 +325,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
       backgroundColor: EverforestColors.bg0,
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
-        title: const Text('Photo Map', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Photo Map', style: TextStyle(color: EverforestColors.fg)),
         actions: [
           if (_isDownloading)
             Padding(
@@ -333,13 +333,13 @@ class _GalleryMapViewState extends State<GalleryMapView> {
               child: Center(
                 child: Text(
                   '$_downloadDone/$_downloadTotal',
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                 ),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.download_for_offline_outlined, color: EverforestColors.fg),
+              icon: Icon(Icons.download_for_offline_outlined, color: EverforestColors.fg),
               tooltip: 'Save map area for offline use',
               onPressed: _downloadRegionForOffline,
             ),
@@ -348,7 +348,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
       body: Stack(
         children: [
           if (_isDownloading)
-            const Positioned(
+            Positioned(
               top: 0,
               left: 0,
               right: 0,
@@ -388,7 +388,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
                   child: Center(
                     child: Text(
                       markers.length.toString(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.bg0,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -437,7 +437,7 @@ class _GalleryMapViewState extends State<GalleryMapView> {
                   },
                   child: Transform.rotate(
                     angle: -rot * math.pi / 180,
-                    child: const Icon(Icons.navigation, color: EverforestColors.red),
+                    child: Icon(Icons.navigation, color: EverforestColors.red),
                   ),
                 ),
               );

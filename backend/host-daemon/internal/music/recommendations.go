@@ -44,12 +44,12 @@ const recCacheTTL = 30 * time.Minute
 // FetchYouTubeMusicRadio queries YouTube Music's algorithmic radio list (RDAMVM<seedID>)
 // with fallback to standard YouTube radio (RD<seedID>), returning enriched tracks.
 func FetchYouTubeMusicRadio(ctx context.Context, seedID string, limit int) ([]RecommendedTrack, error) {
-	return FetchYouTubeMusicRadioVibe(ctx, seedID, "", "", limit)
+	return FetchYouTubeMusicRadioVibe(ctx, seedID, "", "", "", limit)
 }
 
 // FetchYouTubeMusicRadioVibe executes smart vibe-based radio recommendation
 // incorporating candidate ranking, user SQLite affinities, artist diversity, and serendipity.
-func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGenre string, limit int) ([]RecommendedTrack, error) {
+func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGenre, seedTitle string, limit int) ([]RecommendedTrack, error) {
 	if limit <= 0 {
 		limit = 15
 	}
@@ -63,8 +63,8 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 	}
 
 	cacheKey := seedID
-	if seedArtist != "" || seedGenre != "" {
-		cacheKey = fmt.Sprintf("%s:%s:%s", seedID, seedArtist, seedGenre)
+	if seedArtist != "" || seedGenre != "" || seedTitle != "" {
+		cacheKey = fmt.Sprintf("%s:%s:%s:%s", seedID, seedArtist, seedGenre, seedTitle)
 	}
 
 	// 1. Check in-memory cache
@@ -116,9 +116,13 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 		}
 	}
 
-	var seedTitle string
+	var seedTitleFromDB string
 	if DB != nil {
-		_ = DB.QueryRowContext(ctx, "SELECT title FROM music_tracks WHERE id = ? OR yt_dlp_id = ? LIMIT 1", seedID, seedID).Scan(&seedTitle)
+		_ = DB.QueryRowContext(ctx, "SELECT title FROM music_tracks WHERE id = ? OR yt_dlp_id = ? LIMIT 1", seedID, seedID).Scan(&seedTitleFromDB)
+	}
+	effectiveSeedTitle := strings.TrimSpace(seedTitleFromDB)
+	if effectiveSeedTitle == "" {
+		effectiveSeedTitle = strings.TrimSpace(seedTitle)
 	}
 
 	var dump flatDump
@@ -156,19 +160,33 @@ func FetchYouTubeMusicRadioVibe(ctx context.Context, seedID, seedArtist, seedGen
 			continue
 		}
 
-		// Filter out remixes unless the seed track itself is explicitly a remix
-		if (strings.Contains(lowerRaw, "remix") || strings.Contains(lowerRaw, "club mix")) &&
-			!strings.Contains(strings.ToLower(seedTitle), "remix") {
-			continue
-		}
-
 		cleanTitle, extraArtist := CleanTitle(e.Title)
 		if cleanTitle == "" {
 			cleanTitle = e.Title
 		}
 
-		// Avoid replaying songs with the identical title as the seed track
-		if seedTitle != "" && strings.EqualFold(cleanTitle, seedTitle) {
+		lowerClean := strings.ToLower(cleanTitle)
+		lowerSeed := strings.ToLower(effectiveSeedTitle)
+
+		// Avoid replaying songs with identical title or substring match with seed track
+		if lowerSeed != "" {
+			if strings.EqualFold(cleanTitle, effectiveSeedTitle) ||
+				strings.Contains(lowerClean, lowerSeed) ||
+				strings.Contains(lowerSeed, lowerClean) {
+				continue
+			}
+		}
+
+		// Filter out remixes, club edits, covers, VIPs unless original was explicitly a remix
+		if (strings.Contains(lowerClean, "remix") ||
+			strings.Contains(lowerClean, "club mix") ||
+			strings.Contains(lowerClean, "vip edit") ||
+			strings.Contains(lowerClean, "cover") ||
+			strings.Contains(lowerClean, "karaoke") ||
+			strings.Contains(lowerClean, "tribute") ||
+			strings.Contains(lowerClean, "slowed") ||
+			strings.Contains(lowerClean, "reverb")) &&
+			!strings.Contains(lowerSeed, "remix") {
 			continue
 		}
 
@@ -376,6 +394,9 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 	seedArtist := strings.TrimSpace(r.URL.Query().Get("artist"))
 	seedGenre := strings.TrimSpace(r.URL.Query().Get("genre"))
 	var trackTitle string
+	if t := strings.TrimSpace(r.URL.Query().Get("title")); t != "" {
+		trackTitle = t
+	}
 	// If seed is a local track ID or custom ID, resolve metadata from SQLite
 	if seed != "" && len(seed) != 11 {
 		var localYtID, localTitle, localArt, localGen sql.NullString
@@ -412,21 +433,19 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if seed != "" {
-		tracks, err = FetchYouTubeMusicRadioVibe(ctx, seed, seedArtist, seedGenre, limit)
+		tracks, err = FetchYouTubeMusicRadioVibe(ctx, seed, seedArtist, seedGenre, trackTitle, limit)
 	}
 
-	// If radio extraction failed or no seed found, fall back to top music radio search
+	// If radio extraction failed or no seed found, fall back to artist/genre music radio search
 	if err != nil || len(tracks) == 0 {
 		log.Printf("recommendations: radio fallback for seed %q (err: %v)", seed, err)
-		fallbackQuery := "ytsearch15:trending music songs audio"
-		if seedArtist != "" && trackTitle != "" {
-			fallbackQuery = fmt.Sprintf("ytsearch15:%s %s songs audio", seedArtist, trackTitle)
+		fallbackQuery := "ytsearch25:trending music songs audio"
+		if seedArtist != "" {
+			fallbackQuery = fmt.Sprintf("ytsearch25:%s songs audio", seedArtist)
 		} else if seedGenre != "" {
-			fallbackQuery = fmt.Sprintf("ytsearch15:%s top music songs audio", seedGenre)
-		} else if seedArtist != "" {
-			fallbackQuery = fmt.Sprintf("ytsearch15:%s songs audio", seedArtist)
+			fallbackQuery = fmt.Sprintf("ytsearch25:%s top hits songs audio", seedGenre)
 		} else if seed != "" && len(seed) == 11 {
-			fallbackQuery = fmt.Sprintf("ytsearch15:%s song audio", seed)
+			fallbackQuery = fmt.Sprintf("ytsearch25:%s song audio", seed)
 		}
 		args := []string{
 			"--js-runtimes", jsRuntimesArg(),
@@ -441,6 +460,7 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 			var dump flatDump
 			if err := json.Unmarshal(out, &dump); err == nil && len(dump.Entries) > 0 {
 				tracks = make([]RecommendedTrack, 0, len(dump.Entries))
+				fallbackArtistCounts := make(map[string]int)
 				for _, e := range dump.Entries {
 					if e.ID == "" || e.Title == "" || e.IsLive || e.LiveStatus == "is_live" || e.Duration <= 0 || e.Duration > maxSongSeconds || (seed != "" && e.ID == seed) {
 						continue
@@ -449,9 +469,36 @@ func HandleRecommendations(w http.ResponseWriter, r *http.Request) {
 					if cleanTitle == "" {
 						cleanTitle = e.Title
 					}
+					lowerClean := strings.ToLower(cleanTitle)
+					lowerSeed := strings.ToLower(strings.TrimSpace(trackTitle))
+					if lowerSeed != "" {
+						if strings.EqualFold(cleanTitle, trackTitle) ||
+							strings.Contains(lowerClean, lowerSeed) ||
+							strings.Contains(lowerSeed, lowerClean) {
+							continue
+						}
+					}
+					if (strings.Contains(lowerClean, "remix") ||
+						strings.Contains(lowerClean, "club mix") ||
+						strings.Contains(lowerClean, "vip edit") ||
+						strings.Contains(lowerClean, "cover") ||
+						strings.Contains(lowerClean, "karaoke") ||
+						strings.Contains(lowerClean, "tribute") ||
+						strings.Contains(lowerClean, "slowed") ||
+						strings.Contains(lowerClean, "reverb")) &&
+						!strings.Contains(lowerSeed, "remix") {
+						continue
+					}
 					art := strings.TrimSpace(e.Uploader)
 					if (art == "" || strings.EqualFold(art, "YouTube Music")) && extraArtist != "" {
 						art = extraArtist
+					}
+					artKey := strings.ToLower(art)
+					if artKey != "" && fallbackArtistCounts[artKey] >= 2 {
+						continue
+					}
+					if artKey != "" {
+						fallbackArtistCounts[artKey]++
 					}
 					tracks = append(tracks, RecommendedTrack{
 						ID:        e.ID,

@@ -71,7 +71,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 16,
             children: [
-              const Text(
+              Text(
                 'Cloud Backup',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -84,7 +84,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                 runSpacing: 8,
                 children: [
                   if (_isRestoring)
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.blue)))
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.blue)))
                   else
                     ElevatedButton.icon(
                       onPressed: () async {
@@ -95,8 +95,8 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                           setState(() => _isRestoring = false);
                         }
                       },
-                      icon: const Icon(Icons.download, color: EverforestColors.bg0, size: 18),
-                      label: const Text('Restore', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.download, color: EverforestColors.bg0, size: 18),
+                      label: Text('Restore', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: EverforestColors.blue,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -104,7 +104,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                       ),
                     ),
                   if (_isBackingUp)
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.green)))
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: EverforestColors.green)))
                   else
                     ElevatedButton.icon(
                       onPressed: () async {
@@ -115,8 +115,8 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                           setState(() => _isBackingUp = false);
                         }
                       },
-                      icon: const Icon(Icons.cloud_upload, color: EverforestColors.bg0),
-                      label: const Text('Backup Now', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.cloud_upload, color: EverforestColors.bg0),
+                      label: Text('Backup Now', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: EverforestColors.green,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -129,7 +129,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
           const SizedBox(height: 32),
           _buildStorageOverview(),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'Recent Backups',
             style: TextStyle(
               color: EverforestColors.fg,
@@ -142,17 +142,17 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
             stream: AppDatabase.instance.cloudDao.watchAllBackups(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator(color: EverforestColors.blue));
+                return Center(child: CircularProgressIndicator(color: EverforestColors.blue));
               }
               final backups = snapshot.data!;
               if (backups.isEmpty) {
-                return const Center(child: Text('No recent backups.', style: TextStyle(color: EverforestColors.grey)));
+                return Center(child: Text('No recent backups.', style: TextStyle(color: EverforestColors.grey)));
               }
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: backups.length,
-                separatorBuilder: (context, index) => const Divider(color: EverforestColors.bg2),
+                separatorBuilder: (context, index) => Divider(color: EverforestColors.bg2),
                 itemBuilder: (context, index) {
                   final backup = backups[index];
                   final date = DateTime.fromMillisecondsSinceEpoch(backup.lastBackup * 1000);
@@ -168,9 +168,9 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                         color: isCompleted ? EverforestColors.green : EverforestColors.yellow,
                       ),
                     ),
-                    title: Text(backup.name, style: const TextStyle(color: EverforestColors.fg)),
-                    subtitle: Text(dateStr, style: const TextStyle(color: EverforestColors.grey)),
-                    trailing: const Text("--", style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w500)),
+                    title: Text(backup.name, style: TextStyle(color: EverforestColors.fg)),
+                    subtitle: Text(dateStr, style: TextStyle(color: EverforestColors.grey)),
+                    trailing: Text("--", style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w500)),
                   );
                 },
               );
@@ -205,7 +205,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
                   strokeWidth: 8,
                 ),
               ),
-              const Text(
+              Text(
                 '65%',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -220,12 +220,12 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Storage Usage',
                   style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   '180 GB used out of 500 GB',
                   style: TextStyle(color: EverforestColors.grey, fontSize: 14),
                 ),
@@ -256,7 +256,7 @@ class _CloudBackupDashboardState extends State<CloudBackupDashboard> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+        Text(label, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
       ],
     );
   }

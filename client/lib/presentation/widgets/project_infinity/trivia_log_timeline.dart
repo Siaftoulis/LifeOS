@@ -41,27 +41,27 @@ class _TriviaLogTimelineState extends State<TriviaLogTimeline> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Daily Trivia Logs', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Daily Trivia Logs', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Expanded(
             child: _trivias.isEmpty
-                ? const Center(child: CircularProgressIndicator(color: EverforestColors.orange))
+                ? Center(child: CircularProgressIndicator(color: EverforestColors.orange))
                 : ListView.builder(
                     itemCount: _trivias.length,
                     itemBuilder: (context, index) {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           border: Border(left: BorderSide(color: EverforestColors.orange, width: 4)),
                           color: EverforestColors.bg0,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Fact ${index + 1}', style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                            Text('Fact ${index + 1}', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
                             const SizedBox(height: 4),
-                            Text(_trivias[index], style: const TextStyle(color: EverforestColors.fg)),
+                            Text(_trivias[index], style: TextStyle(color: EverforestColors.fg)),
                           ],
                         ),
                       );

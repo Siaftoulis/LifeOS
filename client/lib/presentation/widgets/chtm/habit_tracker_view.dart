@@ -38,7 +38,7 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Add Habit Preset',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -107,8 +107,8 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
         ),
         child: Icon(icon, color: color),
       ),
-      title: Text(title, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(color: EverforestColors.grey)),
+      title: Text(title, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: TextStyle(color: EverforestColors.grey)),
       onTap: () async {
         Navigator.pop(context);
         await dao.insertHabit(UserHabitsCompanion.insert(
@@ -157,9 +157,9 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.track_changes, size: 64, color: EverforestColors.grey),
+          Icon(Icons.track_changes, size: 64, color: EverforestColors.grey),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No habits tracked yet',
             style: TextStyle(color: EverforestColors.grey, fontSize: 16),
           ),
@@ -198,12 +198,12 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
                   children: [
                     Text(
                       habit.name,
-                      style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${habit.type} • Goal: ${habit.goalValue.toInt()} ${habit.unit ?? ""}',
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                      style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -228,11 +228,11 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star, color: EverforestColors.yellow, size: 14),
+          Icon(Icons.star, color: EverforestColors.yellow, size: 14),
           const SizedBox(width: 4),
           Text(
             '+$xp XP',
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.yellow,
               fontWeight: FontWeight.bold,
               fontSize: 12,
@@ -272,7 +272,7 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
               ),
               const SizedBox(width: 16),
               IconButton(
-                icon: const Icon(Icons.add_circle, color: EverforestColors.green),
+                icon: Icon(Icons.add_circle, color: EverforestColors.green),
                 onPressed: () => _completeHabit(habit, habit.goalValue),
               ),
             ],
@@ -284,12 +284,12 @@ class _HabitTrackerViewState extends State<HabitTrackerView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
-            icon: const Icon(Icons.play_circle_fill, color: EverforestColors.red, size: 48),
+            icon: Icon(Icons.play_circle_fill, color: EverforestColors.red, size: 48),
             onPressed: () {}, // Start timer
           ),
           const SizedBox(width: 16),
           IconButton(
-            icon: const Icon(Icons.stop_circle, color: EverforestColors.grey, size: 36),
+            icon: Icon(Icons.stop_circle, color: EverforestColors.grey, size: 36),
             onPressed: () => _completeHabit(habit, habit.goalValue),
           ),
         ],

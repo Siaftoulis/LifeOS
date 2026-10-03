@@ -78,10 +78,10 @@ class _ZenEmbedCardState extends State<ZenEmbedCard> {
         child: Container(
           height: 18,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(top: BorderSide(color: EverforestColors.bg2)),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.drag_handle,
             size: 14,
             color: EverforestColors.grey,
@@ -102,7 +102,7 @@ class _ZenEmbedCardState extends State<ZenEmbedCard> {
           const SizedBox(width: 8),
           Text(
             widget.spec.label,
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontSize: 12.5,
               fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _ZenEmbedCardState extends State<ZenEmbedCard> {
             constraints: const BoxConstraints(),
             iconSize: 16,
             tooltip: 'Move embed up',
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_up,
               color: EverforestColors.grey,
             ),
@@ -126,7 +126,7 @@ class _ZenEmbedCardState extends State<ZenEmbedCard> {
             constraints: const BoxConstraints(),
             iconSize: 16,
             tooltip: 'Move embed down',
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down,
               color: EverforestColors.grey,
             ),
@@ -138,7 +138,7 @@ class _ZenEmbedCardState extends State<ZenEmbedCard> {
             constraints: const BoxConstraints(),
             iconSize: 16,
             tooltip: 'Open ${widget.spec.label} full screen',
-            icon: const Icon(Icons.open_in_full, color: EverforestColors.grey),
+            icon: Icon(Icons.open_in_full, color: EverforestColors.grey),
             onPressed: () => _openFull(context),
           ),
         ],

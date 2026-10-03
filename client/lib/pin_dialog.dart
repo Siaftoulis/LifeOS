@@ -15,13 +15,13 @@ class PinDialog {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: EverforestColors.bg1,
-              title: const Text('Enter PIN', style: TextStyle(color: EverforestColors.fg)),
+              title: Text('Enter PIN', style: TextStyle(color: EverforestColors.fg)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     pin.padRight(4, '•'),
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 32, letterSpacing: 16),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 32, letterSpacing: 16),
                   ),
                   const SizedBox(height: 24),
                   Wrap(
@@ -32,7 +32,7 @@ class PinDialog {
                       final digit = (i + 1) % 10;
                       return ActionChip(
                         backgroundColor: EverforestColors.bg2,
-                        label: Text('$digit', style: const TextStyle(color: EverforestColors.fg, fontSize: 24)),
+                        label: Text('$digit', style: TextStyle(color: EverforestColors.fg, fontSize: 24)),
                         onPressed: () {
                           if (pin.length < 4) {
                             setDialogState(() => pin += '$digit');

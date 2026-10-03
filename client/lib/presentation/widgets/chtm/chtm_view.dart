@@ -118,7 +118,7 @@ class _CHTMViewState extends State<CHTMView> {
             },
           ),
           const SizedBox(height: 24),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               'Daily Agenda',
@@ -151,7 +151,7 @@ class _CHTMViewState extends State<CHTMView> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'CHTM',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -162,7 +162,7 @@ class _CHTMViewState extends State<CHTMView> {
             const SizedBox(height: 4),
             Text(
               dateStr,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.green,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -179,7 +179,7 @@ class _CHTMViewState extends State<CHTMView> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.bolt, color: EverforestColors.yellow, size: 20),
+                icon: Icon(Icons.bolt, color: EverforestColors.yellow, size: 20),
                 onPressed: () async {
                   final count = await CHTMAutoScheduler.autoScheduleTasks(_selectedDate);
                   if (context.mounted) {
@@ -197,7 +197,7 @@ class _CHTMViewState extends State<CHTMView> {
               ),
               Container(width: 1, height: 20, color: EverforestColors.bg2),
               IconButton(
-                icon: const Icon(Icons.add_task, color: EverforestColors.green, size: 20),
+                icon: Icon(Icons.add_task, color: EverforestColors.green, size: 20),
                 onPressed: () {
                   showDialog(
                     context: context,

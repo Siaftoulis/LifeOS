@@ -62,7 +62,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           // Chat Room Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: EverforestColors.bg1,
               border: Border(bottom: BorderSide(color: EverforestColors.bg2, width: 1)),
             ),
@@ -86,7 +86,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                     children: [
                       Text(
                         widget.channel.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -98,13 +98,13 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                           Container(
                             width: 7,
                             height: 7,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: EverforestColors.green,
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             'Dual Transport (Server Relay + P2P Mesh)',
                             style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.w500),
                           ),
@@ -114,7 +114,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.info_outline_rounded, color: EverforestColors.grey, size: 20),
+                  icon: Icon(Icons.info_outline_rounded, color: EverforestColors.grey, size: 20),
                   onPressed: () {},
                   tooltip: 'Channel Info',
                 ),
@@ -133,12 +133,12 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                       children: [
                         Icon(Icons.forum_outlined, size: 48, color: EverforestColors.grey.withValues(alpha: 0.5)),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'No messages here yet',
                           style: TextStyle(color: EverforestColors.grey, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Say hello or send a voice message to start chatting!',
                           style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                         ),
@@ -165,7 +165,7 @@ class _ChatRoomViewState extends State<ChatRoomView> {
           // Composer Input Bar or Voice Recorder Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: EverforestColors.bg1,
               border: Border(top: BorderSide(color: EverforestColors.bg2, width: 1)),
             ),
@@ -177,11 +177,11 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                 : Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.attach_file_rounded, color: EverforestColors.grey, size: 22),
+                        icon: Icon(Icons.attach_file_rounded, color: EverforestColors.grey, size: 22),
                         tooltip: 'Attach Media or Document',
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               backgroundColor: EverforestColors.bg1,
                               content: Text('File attachment integration ready via P2P Beam.'),
                               duration: Duration(seconds: 2),
@@ -200,13 +200,13 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: TextField(
                             controller: _textController,
-                            style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+                            style: TextStyle(color: EverforestColors.fg, fontSize: 14),
                             maxLines: 4,
                             minLines: 1,
                             textInputAction: TextInputAction.send,
                             onChanged: (_) => setState(() {}),
                             onSubmitted: (_) => _handleSendMessage(),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Type a message... (Enter to send)',
                               hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 13),
                               border: InputBorder.none,
@@ -226,19 +226,19 @@ class _ChatRoomViewState extends State<ChatRoomView> {
                             border: Border.all(color: EverforestColors.green.withValues(alpha: 0.4)),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.mic_rounded, color: EverforestColors.green, size: 22),
+                            icon: Icon(Icons.mic_rounded, color: EverforestColors.green, size: 22),
                             onPressed: () => setState(() => _isVoiceRecording = true),
                             tooltip: 'Record Voice Note',
                           ),
                         )
                       else
                         Container(
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: EverforestColors.green,
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.send_rounded, color: EverforestColors.bg0, size: 20),
+                            icon: Icon(Icons.send_rounded, color: EverforestColors.bg0, size: 20),
                             onPressed: _handleSendMessage,
                             tooltip: 'Send',
                           ),

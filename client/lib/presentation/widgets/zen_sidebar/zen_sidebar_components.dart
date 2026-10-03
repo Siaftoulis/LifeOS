@@ -41,7 +41,7 @@ class SectionHeader extends StatelessWidget {
                 height: 20,
                 child: Transform.rotate(
                   angle: expanded ? 0 : -1.5708,
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_drop_down,
                     size: 18,
                     color: EverforestColors.grey,
@@ -56,7 +56,7 @@ class SectionHeader extends StatelessWidget {
               onTap: onToggleExpanded,
               child: Text(
                 title.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.grey,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -69,14 +69,14 @@ class SectionHeader extends StatelessWidget {
             IconButton(
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-              icon: const Icon(Icons.add, color: EverforestColors.grey, size: 16),
+              icon: Icon(Icons.add, color: EverforestColors.grey, size: 16),
               tooltip: 'New page',
               onPressed: onAdd,
             ),
           IconButton(
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-            icon: const Icon(Icons.unfold_less, color: EverforestColors.grey, size: 16),
+            icon: Icon(Icons.unfold_less, color: EverforestColors.grey, size: 16),
             tooltip: 'Collapse all pages',
             onPressed: onCollapseAll,
           ),
@@ -97,7 +97,7 @@ class ZenNewPageButton extends StatelessWidget {
       color: const Color(0xFF242B2E),
       child: InkWell(
         onTap: onPressed,
-        child: const SizedBox(
+        child: SizedBox(
           height: 36,
           child: Row(
             children: [

@@ -53,7 +53,7 @@ class _LeaderboardListState extends State<LeaderboardList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('RANKING',
+          Text('RANKING',
               style: TextStyle(
                   color: EverforestColors.blue,
                   fontSize: 18,
@@ -62,11 +62,11 @@ class _LeaderboardListState extends State<LeaderboardList> {
           const SizedBox(height: 24),
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child:
                         CircularProgressIndicator(color: EverforestColors.blue))
                 : _users.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text('No users found',
                             style: TextStyle(color: EverforestColors.grey)))
                     : ListView.builder(

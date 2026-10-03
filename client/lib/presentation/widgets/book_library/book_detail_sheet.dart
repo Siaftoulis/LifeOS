@@ -66,22 +66,22 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Delete Book?',
+        title: Text('Delete Book?',
             style: TextStyle(color: EverforestColors.fg)),
         content: Text(
           'Are you sure you want to remove "${widget.book.title}" from your library?',
-          style: const TextStyle(color: EverforestColors.grey),
+          style: TextStyle(color: EverforestColors.grey),
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(ctx, false),
           ),
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: EverforestColors.red),
-            child: const Text('Delete',
+            child: Text('Delete',
                 style: TextStyle(color: EverforestColors.bg0)),
             onPressed: () => Navigator.pop(ctx, true),
           ),
@@ -247,7 +247,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             const SizedBox(height: 8),
                             Text(
                               widget.book.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -256,7 +256,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             const SizedBox(height: 4),
                             Text(
                               widget.book.author ?? 'Unknown Author',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 13,
                               ),
@@ -264,7 +264,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             const SizedBox(height: 8),
                             Text(
                               '$totalPages total pages',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 12,
                               ),
@@ -291,7 +291,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Reading Progress',
                               style: TextStyle(
                                 color: EverforestColors.fg,
@@ -301,7 +301,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             ),
                             Text(
                               '${(progressPct * 100).toStringAsFixed(0)}% (Page $_currentPage / $totalPages)',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.green,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -315,7 +315,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                           child: LinearProgressIndicator(
                             value: progressPct,
                             backgroundColor: EverforestColors.bg0,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
+                            valueColor: AlwaysStoppedAnimation<Color>(
                                 EverforestColors.green),
                             minHeight: 6,
                           ),
@@ -341,7 +341,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                           alignment: Alignment.centerRight,
                           child: ElevatedButton.icon(
                             icon: _isSavingProgress
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 14,
                                     height: 14,
                                     child: CircularProgressIndicator(
@@ -398,7 +398,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                   const SizedBox(height: 24),
 
                   // Highlights / Quotes Section
-                  const Text(
+                  Text(
                     'HIGHLIGHTS & NOTES',
                     style: TextStyle(
                       color: EverforestColors.grey,
@@ -420,7 +420,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             color: EverforestColors.bg1,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'No highlights saved yet.\nSelect text while reading to highlight quotes!',
                               textAlign: TextAlign.center,
@@ -453,7 +453,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                               children: [
                                 Text(
                                   '“${h.textContent}”',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: EverforestColors.fg,
                                     fontStyle: FontStyle.italic,
                                     fontSize: 13,
@@ -464,7 +464,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                   const SizedBox(height: 6),
                                   Text(
                                     'Note: ${h.noteContent}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: EverforestColors.yellow,
                                       fontSize: 12,
                                     ),
@@ -482,9 +482,9 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                   // Delete Book Action
                   Center(
                     child: TextButton.icon(
-                      icon: const Icon(Icons.delete_outline_rounded,
+                      icon: Icon(Icons.delete_outline_rounded,
                           color: EverforestColors.red, size: 18),
-                      label: const Text('Delete from Library',
+                      label: Text('Delete from Library',
                           style: TextStyle(color: EverforestColors.red)),
                       onPressed: _confirmDelete,
                     ),

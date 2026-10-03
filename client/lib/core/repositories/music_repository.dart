@@ -855,6 +855,7 @@ class MusicRepository extends DaemonRepository {
     String? seedTrackId,
     String? artist,
     String? genre,
+    String? title,
     int limit = 20,
     String? mode,
   }) async {
@@ -868,6 +869,9 @@ class MusicRepository extends DaemonRepository {
       }
       if (genre != null && genre.isNotEmpty) {
         endpoint += '&genre=${Uri.encodeComponent(genre)}';
+      }
+      if (title != null && title.isNotEmpty) {
+        endpoint += '&title=${Uri.encodeComponent(title)}';
       }
       if (mode != null && mode.isNotEmpty) {
         endpoint += '&mode=${Uri.encodeComponent(mode)}';

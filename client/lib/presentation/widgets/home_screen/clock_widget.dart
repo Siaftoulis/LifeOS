@@ -36,8 +36,8 @@ class _ClockWidgetState extends State<ClockWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(timeStr, style: const TextStyle(color: EverforestColors.fg, fontSize: 64, fontWeight: FontWeight.bold, letterSpacing: 4)),
-        Text(dateStr, style: const TextStyle(color: EverforestColors.grey, fontSize: 18, fontWeight: FontWeight.w500)),
+        Text(timeStr, style: TextStyle(color: EverforestColors.fg, fontSize: 64, fontWeight: FontWeight.bold, letterSpacing: 4)),
+        Text(dateStr, style: TextStyle(color: EverforestColors.grey, fontSize: 18, fontWeight: FontWeight.w500)),
       ],
     );
   }

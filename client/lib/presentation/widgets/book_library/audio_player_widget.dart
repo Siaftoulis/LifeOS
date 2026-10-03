@@ -81,7 +81,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
         : 1;
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: EverforestColors.bg1,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -96,13 +96,13 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           ),
           Icon(Icons.headset, color: EverforestColors.fg, size: isMobile ? 48 : 64),
           const SizedBox(height: 16),
-          Text(widget.book.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
-          Text(widget.book.author ?? 'Unknown Author', style: const TextStyle(color: EverforestColors.grey, fontSize: 14)),
+          Text(widget.book.title, style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(widget.book.author ?? 'Unknown Author', style: TextStyle(color: EverforestColors.grey, fontSize: 14)),
           const SizedBox(height: 8),
-          Text('Estimated Page Bookmark: $estimatedPage / ${widget.book.totalPages}', style: const TextStyle(color: EverforestColors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
+          Text('Estimated Page Bookmark: $estimatedPage / ${widget.book.totalPages}', style: TextStyle(color: EverforestColors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           SliderTheme(
-            data: const SliderThemeData(activeTrackColor: EverforestColors.green, inactiveTrackColor: EverforestColors.bg2, thumbColor: EverforestColors.green),
+            data: SliderThemeData(activeTrackColor: EverforestColors.green, inactiveTrackColor: EverforestColors.bg2, thumbColor: EverforestColors.green),
             child: Slider(
               value: progress.clamp(0.0, 1.0),
               onChanged: (val) {
@@ -116,8 +116,8 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_formatDuration(_currentSeconds), style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
-              Text(_formatDuration(_durationSeconds - _currentSeconds), style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+              Text(_formatDuration(_currentSeconds), style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
+              Text(_formatDuration(_durationSeconds - _currentSeconds), style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 16),

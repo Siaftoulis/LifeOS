@@ -61,13 +61,13 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
       return Center(
         child: Text(
           widget.notFoundMessage,
-          style: const TextStyle(color: EverforestColors.grey),
+          style: TextStyle(color: EverforestColors.grey),
         ),
       );
     }
     final e = _entity;
     if (e == null) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
@@ -106,7 +106,7 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
                     Expanded(
                       child: Text(
                         e['title'] as String? ?? 'Unknown Title',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -116,12 +116,12 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
                       ),
                     ),
                     if (rating > 0)
-                      const Icon(Icons.star, size: 14, color: EverforestColors.yellow),
+                      Icon(Icons.star, size: 14, color: EverforestColors.yellow),
                     if (rating > 0) ...[
                       const SizedBox(width: 4),
                       Text(
                         rating.toStringAsFixed(1),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -133,7 +133,7 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
                 const SizedBox(height: 4),
                 Text(
                   widget.subtitle(e),
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -141,7 +141,7 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
                   const SizedBox(height: 4),
                   Text(
                     meta,
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -149,7 +149,7 @@ class _SingleEntityEmbedState extends State<_SingleEntityEmbed> {
                 const SizedBox(height: 4),
                 Text(
                   widget.status(e),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.green,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -214,7 +214,7 @@ class _SingleBookEmbed extends StatelessWidget {
           color: EverforestColors.bg1,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.menu_book_outlined,
           color: EverforestColors.green,
           size: 26,
@@ -356,7 +356,7 @@ class _SingleTrackEmbed extends StatelessWidget {
           color: EverforestColors.bg1,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.music_note_outlined,
           color: EverforestColors.green,
           size: 24,

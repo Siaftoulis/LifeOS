@@ -60,7 +60,7 @@ class GatedModuleWrapper extends StatelessWidget {
                   children: [
                     Icon(moduleIcon, size: 48, color: EverforestColors.red),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Access Restricted',
                       style: TextStyle(
                         color: EverforestColors.red,
@@ -71,7 +71,7 @@ class GatedModuleWrapper extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       moduleName,
-                      style: const TextStyle(color: EverforestColors.fg, fontSize: 18),
+                      style: TextStyle(color: EverforestColors.fg, fontSize: 18),
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -84,11 +84,11 @@ class GatedModuleWrapper extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star, color: EverforestColors.yellow, size: 20),
+                          Icon(Icons.star, color: EverforestColors.yellow, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             '$currentPoints / $requiredPoints',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.yellow,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -98,7 +98,7 @@ class GatedModuleWrapper extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Complete daily habits and quests\nto earn Star Points.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: EverforestColors.grey, fontSize: 14),

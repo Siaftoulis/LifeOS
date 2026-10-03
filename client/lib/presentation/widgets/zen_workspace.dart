@@ -19,6 +19,7 @@ import '../../core/obsidian/zen_file_system.dart';
 import '../../core/obsidian/zen_sync_service.dart';
 import '../../core/zen_cloud_service.dart';
 import '../../theme/everforest_colors.dart';
+import '../../theme/app_skin_manager.dart';
 import '../../database/preferences_service.dart';
 import '../theme/zen_markdown_bridge.dart';
 import '../../plugins/markdown/markdown_storage.dart';
@@ -238,22 +239,22 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF242B2E),
-        title: Text(title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        title: Text(title, style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(color: EverforestColors.fg),
+          style: TextStyle(color: EverforestColors.fg),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: EverforestColors.grey),
-            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
-            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
+            hintStyle: TextStyle(color: EverforestColors.grey),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green, width: 2)),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
@@ -323,13 +324,13 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                 const SizedBox(width: 8),
                 Text(
                   name.isEmpty ? 'Zen' : name,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 13),
                 ),
               ],
             ),
           ),
         const PopupMenuDivider(),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: '__new__',
           height: 36,
           child: Row(
@@ -341,7 +342,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           ),
         ),
         if (_activeWorkspace.isNotEmpty) ...[
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: '__rename__',
             height: 36,
             child: Row(
@@ -352,7 +353,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
               ],
             ),
           ),
-          const PopupMenuItem<String>(
+          PopupMenuItem<String>(
             value: '__delete__',
             height: 36,
             child: Row(
@@ -424,19 +425,19 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF242B2E),
         title: Text('Delete workspace "$name"?',
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
-        content: const Text(
+            style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        content: Text(
           'All pages inside it will be permanently deleted. This cannot be undone.',
           style: TextStyle(color: EverforestColors.grey, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete', style: TextStyle(color: EverforestColors.red)),
+            child: Text('Delete', style: TextStyle(color: EverforestColors.red)),
           ),
         ],
       ),
@@ -521,7 +522,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
   void _showLinkError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message, style: const TextStyle(color: EverforestColors.fg)),
+      content: Text(message, style: TextStyle(color: EverforestColors.fg)),
       backgroundColor: const Color(0xFF2E383C),
       duration: const Duration(seconds: 2),
     ));
@@ -718,9 +719,9 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
   Widget _buildSidebarContent() {
     return Container(
       width: 240,
-      decoration: const BoxDecoration(
-        color: Color(0xFF242B2E),
-        border: Border(right: BorderSide(color: Color(0xFF2E383C), width: 1)),
+      decoration: BoxDecoration(
+        color: EverforestColors.bg1,
+        border: Border(right: BorderSide(color: EverforestColors.bg2, width: 1)),
       ),
       child: Column(
         children: [
@@ -735,12 +736,12 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                     onTap: _showWorkspaceMenu,
                     child: Row(
                       children: [
-                        const Icon(Icons.edit_note, color: EverforestColors.green, size: 20),
+                        Icon(Icons.edit_note, color: EverforestColors.green, size: 20),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             _activeWorkspace.isEmpty ? 'Zen' : _activeWorkspace,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -748,7 +749,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down, color: EverforestColors.grey, size: 18),
+                        Icon(Icons.arrow_drop_down, color: EverforestColors.grey, size: 18),
                       ],
                     ),
                   ),
@@ -759,7 +760,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                     IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      icon: const Icon(Icons.note_add_outlined, color: EverforestColors.fg, size: 18),
+                      icon: Icon(Icons.note_add_outlined, color: EverforestColors.fg, size: 18),
                       tooltip: 'New Note',
                       onPressed: () => _showCreateFileDialog(),
                     ),
@@ -767,7 +768,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                     IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      icon: const Icon(Icons.create_new_folder_outlined, color: EverforestColors.fg, size: 18),
+                      icon: Icon(Icons.create_new_folder_outlined, color: EverforestColors.fg, size: 18),
                       tooltip: 'New Folder',
                       onPressed: () => _showCreateFolderDialog(),
                     ),
@@ -828,11 +829,11 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.code, color: EverforestColors.green, size: 18),
+            Icon(Icons.code, color: EverforestColors.green, size: 18),
             const SizedBox(width: 8),
             Text(
               'Markdown preview',
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 15),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 15),
             ),
           ],
         ),
@@ -842,7 +843,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
           child: SingleChildScrollView(
             child: SelectableText(
               md,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.fg,
                 fontFamily: 'JetBrains Mono',
                 fontSize: 12,
@@ -854,7 +855,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Close', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
@@ -879,7 +880,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.remove, size: 14, color: EverforestColors.grey),
+            icon: Icon(Icons.remove, size: 14, color: EverforestColors.grey),
             tooltip: 'Zoom Out',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -893,7 +894,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 '${(scale * 100).round()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.grey,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -902,7 +903,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, size: 14, color: EverforestColors.grey),
+            icon: Icon(Icons.add, size: 14, color: EverforestColors.grey),
             tooltip: 'Zoom In',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -917,37 +918,40 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        final isMobile = screenWidth < 600;
-        final isTablet = screenWidth >= 600 && screenWidth < 1024;
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final screenWidth = constraints.maxWidth;
+            final isMobile = screenWidth < 600;
+            final isTablet = screenWidth >= 600 && screenWidth < 1024;
 
-        return ValueListenableBuilder<double>(
-          valueListenable: PreferencesService.zenScale,
-          builder: (context, scale, _) {
-            final double horizPadding = isMobile
-                ? 12.0 * scale
-                : (isTablet ? 24.0 * scale : 48.0 * scale);
-            final double vertPadding = 24.0 * scale;
+            return ValueListenableBuilder<double>(
+              valueListenable: PreferencesService.zenScale,
+              builder: (context, scale, _) {
+                final double horizPadding = isMobile
+                    ? 12.0 * scale
+                    : (isTablet ? 24.0 * scale : 48.0 * scale);
+                final double vertPadding = 24.0 * scale;
 
-            return Scaffold(
-              key: _scaffoldKey,
-              backgroundColor: const Color(0xFF1E2326),
-              drawer: isMobile ? Drawer(child: _buildSidebarContent()) : null,
-              body: Row(
-                children: [
-                  // Sidebar Document Tree
-                  if (!isMobile && _leftSidebarOpen) _buildSidebarContent(),
+                return Scaffold(
+                  key: _scaffoldKey,
+                  backgroundColor: EverforestColors.bg0,
+                  drawer: isMobile ? Drawer(child: _buildSidebarContent()) : null,
+                  body: Row(
+                    children: [
+                      // Sidebar Document Tree
+                      if (!isMobile && _leftSidebarOpen) _buildSidebarContent(),
 
-                  // Main Editor Area
-                  Expanded(
-                    child: Column(
-                      children: [
-                        // Top Tab Bar
-                        Container(
-                          height: 40,
-                          color: const Color(0xFF272E33),
+                      // Main Editor Area
+                      Expanded(
+                        child: Column(
+                          children: [
+                            // Top Tab Bar
+                            Container(
+                              height: 40,
+                              color: EverforestColors.bg1,
                           child: Row(
                             children: [
                               IconButton(
@@ -985,14 +989,14 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                           border: Border(
                                             right: const BorderSide(color: Color(0xFF2E383C), width: 1),
                                             top: isActive
-                                                ? const BorderSide(color: EverforestColors.green, width: 2)
+                                                ? BorderSide(color: EverforestColors.green, width: 2)
                                                 : BorderSide.none,
                                           ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.article_outlined, size: 14, color: EverforestColors.green),
+                                            Icon(Icons.article_outlined, size: 14, color: EverforestColors.green),
                                             const SizedBox(width: 6),
                                             Text(
                                               fileName,
@@ -1004,7 +1008,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                             const SizedBox(width: 8),
                                             InkWell(
                                               onTap: () => _closeTab(index),
-                                              child: const Icon(Icons.close, size: 12, color: EverforestColors.grey),
+                                              child: Icon(Icons.close, size: 12, color: EverforestColors.grey),
                                             ),
                                           ],
                                         ),
@@ -1015,14 +1019,14 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                               ),
                               const SizedBox(width: 4),
                               IconButton(
-                                icon: const Icon(Icons.search, color: EverforestColors.green, size: 16),
+                                icon: Icon(Icons.search, color: EverforestColors.green, size: 16),
                                 tooltip: 'Search vault',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                                 onPressed: _showVaultSearchDialog,
                               ),
                               IconButton(
-                                icon: const Icon(Icons.code, color: EverforestColors.green, size: 16),
+                                icon: Icon(Icons.code, color: EverforestColors.green, size: 16),
                                 tooltip: 'Extract to Markdown',
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
@@ -1038,7 +1042,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                         // AppFlowy Editor Engine Container
                         Expanded(
                           child: _editorState == null
-                              ? const Center(
+                              ? Center(
                                   child: Text(
                                     'No document open. Create or select a document to start.',
                                     style: TextStyle(color: EverforestColors.grey),
@@ -1112,7 +1116,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                               HeadingBlockKeys.type: HeadingBlockComponentBuilder(
                                                 textStyleBuilder: (level) {
                                                   const baseSizes = [28.0, 24.0, 20.0, 18.0, 16.0, 14.0];
-                                                  const colors = [
+                                                  final colors = [
                                                     EverforestColors.green,
                                                     EverforestColors.blue,
                                                     EverforestColors.purple,
@@ -1188,7 +1192,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                                       color: EverforestColors.green,
                                                       height: 1.1,
                                                       leadingDistribution: TextLeadingDistribution.even,
-                                                    ) ?? const TextStyle(
+                                                    ) ?? TextStyle(
                                                       backgroundColor: Color(0x40A7C080),
                                                       color: EverforestColors.green,
                                                       height: 1.1,
@@ -1252,7 +1256,9 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
         );
       },
     );
-  }
+  },
+);
+}
 
   String _parent(String path) {
     final parts = path.split(RegExp(r'[/\\]'));

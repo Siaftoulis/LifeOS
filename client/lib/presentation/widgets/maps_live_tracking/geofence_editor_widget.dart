@@ -40,9 +40,9 @@ class _GeofenceRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(name, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text('Lat: $lat | Lon: $lon | R: $radius', style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                Text('Lat: $lat | Lon: $lon | R: $radius', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
               ],
             ),
           ),

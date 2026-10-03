@@ -22,7 +22,7 @@ class QuarantineView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('ClamAV Upload Sandbox', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+          Text('ClamAV Upload Sandbox', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
@@ -43,8 +43,8 @@ class QuarantineView extends StatelessWidget {
 
                 return ListTile(
                   leading: Icon(icon, color: color),
-                  title: Text(file['name'] as String, style: const TextStyle(color: EverforestColors.fg)),
-                  subtitle: Text(file['size'] as String, style: const TextStyle(color: EverforestColors.grey)),
+                  title: Text(file['name'] as String, style: TextStyle(color: EverforestColors.fg)),
+                  subtitle: Text(file['size'] as String, style: TextStyle(color: EverforestColors.grey)),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(

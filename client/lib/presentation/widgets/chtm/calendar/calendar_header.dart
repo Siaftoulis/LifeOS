@@ -30,7 +30,7 @@ class CalendarHeaderView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_upward,
+                  icon: Icon(Icons.arrow_upward,
                       color: EverforestColors.green, size: 20),
                   onPressed: onZoomOut,
                   padding: EdgeInsets.zero,
@@ -40,7 +40,7 @@ class CalendarHeaderView extends StatelessWidget {
               ),
             Text(
               headerTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.fg,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -49,7 +49,7 @@ class CalendarHeaderView extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             IconButton(
-              icon: const Icon(Icons.chevron_left,
+              icon: Icon(Icons.chevron_left,
                   color: EverforestColors.fg, size: 20),
               onPressed: onPrevious,
               padding: EdgeInsets.zero,
@@ -57,7 +57,7 @@ class CalendarHeaderView extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             IconButton(
-              icon: const Icon(Icons.chevron_right,
+              icon: Icon(Icons.chevron_right,
                   color: EverforestColors.fg, size: 20),
               onPressed: onNext,
               padding: EdgeInsets.zero,
@@ -95,7 +95,7 @@ class CalendarViewSelector extends StatelessWidget {
           border:
               Border.all(color: EverforestColors.green.withValues(alpha: 0.3)),
         ),
-        child: const Icon(Icons.calendar_view_week,
+        child: Icon(Icons.calendar_view_week,
             color: EverforestColors.green, size: 18),
       ),
       color: EverforestColors.bg1,
@@ -103,7 +103,7 @@ class CalendarViewSelector extends StatelessWidget {
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: EverforestColors.bg2),
+        side: BorderSide(color: EverforestColors.bg2),
       ),
       onSelected: onViewChanged,
       itemBuilder: (context) {
@@ -134,7 +134,7 @@ class CalendarViewSelector extends StatelessWidget {
                 ),
                 if (isSelected) ...[
                   const Spacer(),
-                  const Icon(Icons.check,
+                  Icon(Icons.check,
                       color: EverforestColors.green, size: 18),
                 ],
               ],

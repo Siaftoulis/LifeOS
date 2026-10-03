@@ -22,7 +22,7 @@ class MapsEmbedPreview extends StatelessWidget {
             .where((g) => g.isActive == 1)
             .toList();
         if (pins.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No places pinned yet — tap to open the map',
               style: TextStyle(color: EverforestColors.grey),
@@ -57,12 +57,12 @@ class MapsEmbedPreview extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.location_on,
+                      Icon(Icons.location_on,
                           size: 12, color: EverforestColors.green),
                       const SizedBox(width: 4),
                       Text(
                         pins[index].name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 11,
                         ),
@@ -135,7 +135,7 @@ class _PinsPainter extends CustomPainter {
       final tp = TextPainter(
         text: TextSpan(
           text: p.name,
-          style: const TextStyle(
+          style: TextStyle(
             color: EverforestColors.fg,
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -197,7 +197,7 @@ class _SinglePinMapState extends State<_SinglePinMap> {
   @override
   Widget build(BuildContext context) {
     if (_failed) {
-      return const Center(
+      return Center(
         child: Text(
           'Pin not found — tap to open the map',
           style: TextStyle(color: EverforestColors.grey),
@@ -206,7 +206,7 @@ class _SinglePinMapState extends State<_SinglePinMap> {
     }
     final pin = _pin;
     if (pin == null) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
@@ -223,23 +223,23 @@ class _SinglePinMapState extends State<_SinglePinMap> {
         Container(
           height: 30,
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: const BoxDecoration(color: EverforestColors.bg2),
+          decoration: BoxDecoration(color: EverforestColors.bg2),
           child: Row(
             children: [
-              const Icon(Icons.location_on, size: 14, color: EverforestColors.green),
+              Icon(Icons.location_on, size: 14, color: EverforestColors.green),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   '$name — ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 11),
                 ),
               ),
               Text(
                 pin['radius'] is num
                     ? '${(pin['radius'] as num).toInt()} m radius'
                     : '',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                style: TextStyle(color: EverforestColors.grey, fontSize: 11),
               ),
             ],
           ),

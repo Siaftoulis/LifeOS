@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'app_skin_manager.dart';
 
 abstract class EverforestColors {
-  static const Color bg0 = Color(0xFF2D353B);
-  static const Color bg1 = Color(0xFF343F44);
-  static const Color bg2 = Color(0xFF3D484D);
-  static const Color fg = Color(0xFFD3C6AA);
-  
-  static const Color green = Color(0xFFA7C080);
-  static const Color red = Color(0xFFE67E80);
-  static const Color yellow = Color(0xFFDBBC7F);
-  static const Color blue = Color(0xFF7FBBB3);
-  static const Color purple = Color(0xFFD699B6);
-  static const Color aqua = Color(0xFF83C092);
-  static const Color orange = Color(0xFFE69875);
-  static const Color cyan = Color(0xFF83C092);
-  static const Color grey = Color(0xFF859289);
+  static Color get bg0 => AppSkinManager.currentSkin.bg0;
+  static Color get bg1 => AppSkinManager.currentSkin.bg1;
+  static Color get bg2 => AppSkinManager.currentSkin.bg2;
+  static Color get fg => AppSkinManager.currentSkin.fg;
+
+  static Color get green => AppSkinManager.currentSkin.green;
+  static Color get red => AppSkinManager.currentSkin.red;
+  static Color get yellow => AppSkinManager.currentSkin.yellow;
+  static Color get blue => AppSkinManager.currentSkin.blue;
+  static Color get purple => AppSkinManager.currentSkin.purple;
+  static Color get aqua => AppSkinManager.currentSkin.aqua;
+  static Color get orange => AppSkinManager.currentSkin.orange;
+  static Color get cyan => AppSkinManager.currentSkin.cyan;
+  static Color get grey => AppSkinManager.currentSkin.grey;
+
+  static Color get accent => AppSkinManager.currentSkin.accent;
+  static Color get textMuted => AppSkinManager.currentSkin.textMuted;
 }

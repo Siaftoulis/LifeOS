@@ -87,7 +87,7 @@ class _MovieReviewEditorState extends State<MovieReviewEditor> {
           const SizedBox(height: 16),
           Text(
             'Review: ${widget.movie.title}',
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -113,10 +113,10 @@ class _MovieReviewEditorState extends State<MovieReviewEditor> {
           TextField(
             controller: _commentController,
             maxLines: 3,
-            style: const TextStyle(color: EverforestColors.fg),
+            style: TextStyle(color: EverforestColors.fg),
             decoration: InputDecoration(
               hintText: 'What did you think about this movie?',
-              hintStyle: const TextStyle(color: EverforestColors.grey),
+              hintStyle: TextStyle(color: EverforestColors.grey),
               filled: true,
               fillColor: EverforestColors.bg1,
               border: OutlineInputBorder(
@@ -135,7 +135,7 @@ class _MovieReviewEditorState extends State<MovieReviewEditor> {
             ),
             onPressed: _isSaving ? null : _saveReview,
             child: _isSaving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -143,7 +143,7 @@ class _MovieReviewEditorState extends State<MovieReviewEditor> {
                       color: EverforestColors.bg0,
                     ),
                   )
-                : const Text(
+                : Text(
                     'Save Review (+5 Points)',
                     style: TextStyle(
                       color: EverforestColors.bg0,

@@ -23,18 +23,18 @@ class VoucherRedeemerPanel extends StatelessWidget {
             if (!voucherSnapshot.hasData) {
               return Container(
                 height: MediaQuery.of(context).size.height * 0.7,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: EverforestColors.bg0,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                child: const Center(child: CircularProgressIndicator(color: EverforestColors.purple)),
+                child: Center(child: CircularProgressIndicator(color: EverforestColors.purple)),
               );
             }
             final vouchers = voucherSnapshot.data!;
 
             return Container(
               height: MediaQuery.of(context).size.height * 0.7,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: EverforestColors.bg0,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
@@ -52,7 +52,7 @@ class VoucherRedeemerPanel extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Rewards Store', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text('Rewards Store', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
@@ -62,15 +62,15 @@ class VoucherRedeemerPanel extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star, color: EverforestColors.yellow, size: 18),
+                            Icon(Icons.star, color: EverforestColors.yellow, size: 18),
                             const SizedBox(width: 4),
-                            Text('$currentPoints pts', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
+                            Text('$currentPoints pts', style: TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
                             const SizedBox(width: 8),
                             Container(width: 1, height: 16, color: EverforestColors.bg2),
                             const SizedBox(width: 8),
-                            const Icon(Icons.stars, color: EverforestColors.orange, size: 18),
+                            Icon(Icons.stars, color: EverforestColors.orange, size: 18),
                             const SizedBox(width: 4),
-                            Text('${currentPoints ~/ 100} stars', style: const TextStyle(color: EverforestColors.orange, fontWeight: FontWeight.bold)),
+                            Text('${currentPoints ~/ 100} stars', style: TextStyle(color: EverforestColors.orange, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -79,7 +79,7 @@ class VoucherRedeemerPanel extends StatelessWidget {
                   const SizedBox(height: 16),
                   Expanded(
                     child: vouchers.isEmpty
-                        ? const Center(child: Text('No vouchers available', style: TextStyle(color: EverforestColors.grey)))
+                        ? Center(child: Text('No vouchers available', style: TextStyle(color: EverforestColors.grey)))
                         : GridView.builder(
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: isMobile ? 1 : 2,
@@ -112,7 +112,7 @@ class VoucherRedeemerPanel extends StatelessWidget {
   Future<void> _redeemVoucher(BuildContext context, SystemUser user, Voucher voucher) async {
     if (user.currentPoints < voucher.costPoints) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Not enough points!', style: TextStyle(color: Colors.white)),
           backgroundColor: EverforestColors.red,
         ),

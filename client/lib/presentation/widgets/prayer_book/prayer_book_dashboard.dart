@@ -222,7 +222,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 },
               ),
               if (_isLoading)
-                const Positioned(
+                Positioned(
                   top: 0,
                   left: 0,
                   right: 0,
@@ -260,13 +260,13 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.wb_twilight_rounded, color: EverforestColors.yellow, size: 20),
+                  Icon(Icons.wb_twilight_rounded, color: EverforestColors.yellow, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'ΠΡΟΣΕΥΧΗ ΩΡΑΣ',
                           style: TextStyle(
                             color: EverforestColors.yellow,
@@ -277,7 +277,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                         ),
                         Text(
                           recTitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.fg,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
@@ -288,7 +288,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios_rounded, color: EverforestColors.yellow, size: 12),
+                  Icon(Icons.arrow_forward_ios_rounded, color: EverforestColors.yellow, size: 12),
                 ],
               ),
             ),
@@ -311,7 +311,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: EverforestColors.bg2),
               ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.auto_stories_rounded, color: EverforestColors.fg, size: 18),
                   SizedBox(width: 8),
@@ -422,7 +422,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded, color: EverforestColors.grey, size: 22),
+            icon: Icon(Icons.chevron_left_rounded, color: EverforestColors.grey, size: 22),
             onPressed: () => _changeDate(-1),
             tooltip: 'Προηγούμενη Ημέρα',
           ),
@@ -432,7 +432,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
               children: [
                 Text(
                   info.dateFormatted,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontWeight: FontWeight.bold,
                     fontSize: 13.5,
@@ -447,17 +447,17 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   children: [
                     Text(
                       info.tone,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.yellow,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(' • ', style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                    Text(' • ', style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                     Flexible(
                       child: Text(
                         info.movableCycle.isNotEmpty ? info.movableCycle : info.period,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.grey,
                           fontSize: 10.5,
                         ),
@@ -471,7 +471,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded, color: EverforestColors.grey, size: 22),
+            icon: Icon(Icons.chevron_right_rounded, color: EverforestColors.grey, size: 22),
             onPressed: () => _changeDate(1),
             tooltip: 'Επόμενη Ημέρα',
           ),
@@ -493,12 +493,12 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.eco_rounded, color: EverforestColors.green, size: 16),
+            Icon(Icons.eco_rounded, color: EverforestColors.green, size: 16),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Νηστεία: ${info.fasting}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.green,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -507,7 +507,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(Icons.info_outline_rounded, color: EverforestColors.green, size: 14),
+            Icon(Icons.info_outline_rounded, color: EverforestColors.green, size: 14),
           ],
         ),
       ),
@@ -534,14 +534,14 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   shape: BoxShape.circle,
                   color: EverforestColors.yellow.withValues(alpha: 0.15),
                 ),
-                child: const Icon(Icons.church_rounded, color: EverforestColors.yellow, size: 20),
+                child: Icon(Icons.church_rounded, color: EverforestColors.yellow, size: 20),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'ΕΟΡΤΗ & ΣΥΝΑΞΑΡΙΟΝ',
                       style: TextStyle(
                         color: EverforestColors.yellow,
@@ -554,7 +554,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                       primarySaint.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
@@ -571,7 +571,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
               primarySaint.shortLife,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.4),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.4),
             ),
           ],
           const SizedBox(height: 10),
@@ -591,7 +591,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: EverforestColors.yellow.withValues(alpha: 0.35)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.auto_stories_rounded, color: EverforestColors.yellow, size: 14),
@@ -614,7 +614,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'ΑΝΑΓΝΩΣΜΑΤΑ ΤΗΣ ΗΜΕΡΑΣ',
           style: TextStyle(
             color: EverforestColors.grey,
@@ -675,7 +675,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   Expanded(
                     child: Text(
                       reading.reference,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -693,7 +693,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                     physics: const BouncingScrollPhysics(),
                     child: Text(
                       reading.text,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 16,
                         height: 1.7,
@@ -745,7 +745,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                 Expanded(
                   child: Text(
                     reading.reference,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -758,7 +758,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
               reading.text,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.45),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 12, height: 1.45),
             ),
           ],
         ),
@@ -1039,7 +1039,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                     if (prayer.estMin > 0)
                       Text(
                         '~${prayer.estMin} λ.',
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 10),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 10),
                       ),
                   ],
                 ),
@@ -1048,7 +1048,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                   children: [
                     Text(
                       prayer.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -1059,7 +1059,7 @@ class _PrayerBookDashboardState extends State<PrayerBookDashboard> {
                     const SizedBox(height: 1),
                     Text(
                       prayer.subtitle,
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 10.5),
+                      style: TextStyle(color: EverforestColors.grey, fontSize: 10.5),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

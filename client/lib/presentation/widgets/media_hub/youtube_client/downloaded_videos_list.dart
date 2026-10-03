@@ -12,7 +12,7 @@ class DownloadedVideosList extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Downloaded Media', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Downloaded Media', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Expanded(
             child: ListView(
@@ -45,11 +45,11 @@ class _VideoItem extends StatelessWidget {
           width: 60,
           height: 40,
           decoration: BoxDecoration(color: EverforestColors.bg2, borderRadius: BorderRadius.circular(4)),
-          child: const Icon(Icons.play_arrow, color: EverforestColors.grey),
+          child: Icon(Icons.play_arrow, color: EverforestColors.grey),
         ),
-        title: Text(title, style: const TextStyle(color: EverforestColors.fg, fontSize: 14)),
-        subtitle: Text(size, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
-        trailing: const Icon(Icons.delete_outline, color: EverforestColors.red),
+        title: Text(title, style: TextStyle(color: EverforestColors.fg, fontSize: 14)),
+        subtitle: Text(size, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
+        trailing: Icon(Icons.delete_outline, color: EverforestColors.red),
       ),
     );
   }

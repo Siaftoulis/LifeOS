@@ -91,18 +91,18 @@ class _QuestDailyListState extends State<QuestDailyList> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Cancel Quest?', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Cancel Quest?', style: TextStyle(color: EverforestColors.fg)),
         content: Text(
           'You claimed "$title". Cancelling costs a penalty of $penalty stars. Continue?',
-          style: const TextStyle(color: EverforestColors.fg),
+          style: TextStyle(color: EverforestColors.fg),
         ),
         actions: [
           TextButton(
-            child: const Text('Keep Quest', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Keep Quest', style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: const Text('Cancel Quest', style: TextStyle(color: EverforestColors.red)),
+            child: Text('Cancel Quest', style: TextStyle(color: EverforestColors.red)),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -126,13 +126,13 @@ class _QuestDailyListState extends State<QuestDailyList> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
 
     if (_quests.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "All quests completed for today!",
           style: TextStyle(color: EverforestColors.grey),
@@ -143,7 +143,7 @@ class _QuestDailyListState extends State<QuestDailyList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('DAILY BOUNTY PASS', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
+        Text('DAILY BOUNTY PASS', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 24),
         ..._quests.map((q) {
           final isDone = q['status'] == 'DONE';
@@ -153,10 +153,10 @@ class _QuestDailyListState extends State<QuestDailyList> {
 
           final Widget trailing;
           if (isDone) {
-            trailing = const Icon(Icons.check_circle, color: EverforestColors.green, size: 20);
+            trailing = Icon(Icons.check_circle, color: EverforestColors.green, size: 20);
           } else if (available) {
             trailing = IconButton(
-              icon: const Icon(Icons.flag, color: EverforestColors.green),
+              icon: Icon(Icons.flag, color: EverforestColors.green),
               onPressed: () => _accept(q['id']),
               tooltip: 'Accept Quest',
             );
@@ -165,12 +165,12 @@ class _QuestDailyListState extends State<QuestDailyList> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.check_circle_outline, color: EverforestColors.green),
+                  icon: Icon(Icons.check_circle_outline, color: EverforestColors.green),
                   onPressed: () => _complete(q['id']),
                   tooltip: 'Complete Quest',
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: EverforestColors.red),
+                  icon: Icon(Icons.close, color: EverforestColors.red),
                   onPressed: () => _cancel(q['id'], q['title'] ?? 'Unknown', (q['xp_reward'] ?? 0) as int),
                   tooltip: 'Cancel Quest',
                 ),
@@ -185,7 +185,7 @@ class _QuestDailyListState extends State<QuestDailyList> {
               ),
               child: Text(
                 'Claimed by $acceptedBy',
-                style: const TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold),
+                style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             );
           }
@@ -201,7 +201,7 @@ class _QuestDailyListState extends State<QuestDailyList> {
                     shape: BoxShape.circle,
                     border: Border.all(color: isDone ? EverforestColors.green : EverforestColors.grey, width: 1.5),
                   ),
-                  child: isDone ? const Icon(Icons.check, size: 16, color: EverforestColors.green) : null,
+                  child: isDone ? Icon(Icons.check, size: 16, color: EverforestColors.green) : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -221,7 +221,7 @@ class _QuestDailyListState extends State<QuestDailyList> {
                           q['description'].toString(),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                          style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                         ),
                     ],
                   ),

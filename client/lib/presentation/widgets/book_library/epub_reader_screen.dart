@@ -42,7 +42,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
       await db.pointsDao.awardPoints(1, 'Read 10 pages of ${widget.book.title}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Earning: +1 Star Point for reading!'),
             backgroundColor: EverforestColors.green,
           ),
@@ -107,7 +107,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
     } catch (_) {}
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Highlight saved!'), backgroundColor: EverforestColors.purple),
+        SnackBar(content: Text('Highlight saved!'), backgroundColor: EverforestColors.purple),
       );
     }
   }
@@ -119,11 +119,11 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
-        title: Text(widget.book.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        title: Text(widget.book.title, style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+        iconTheme: IconThemeData(color: EverforestColors.fg),
         actions: [
           IconButton(
-            icon: const Icon(Icons.auto_awesome, color: EverforestColors.yellow),
+            icon: Icon(Icons.auto_awesome, color: EverforestColors.yellow),
             tooltip: 'Zen Code AI',
             onPressed: () => showModalBottomSheet(
               context: context,
@@ -134,7 +134,7 @@ class _EPUBReaderScreenState extends State<EPUBReaderScreen> {
           ),
           if (_selectedText.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.border_color, color: EverforestColors.yellow),
+              icon: Icon(Icons.border_color, color: EverforestColors.yellow),
               onPressed: _addHighlight,
               tooltip: 'Highlight selected text',
             ),

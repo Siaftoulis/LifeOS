@@ -26,23 +26,23 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
           backgroundColor: EverforestColors.bg1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: EverforestColors.bg2),
+            side: BorderSide(color: EverforestColors.bg2),
           ),
-          title: const Text('New Conversation', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+          title: Text('New Conversation', style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
                 autofocus: true,
-                style: const TextStyle(color: EverforestColors.fg),
+                style: TextStyle(color: EverforestColors.fg),
                 decoration: InputDecoration(
                   hintText: 'Channel or Contact Name',
-                  hintStyle: const TextStyle(color: EverforestColors.grey),
+                  hintStyle: TextStyle(color: EverforestColors.grey),
                   filled: true,
                   fillColor: EverforestColors.bg0,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: EverforestColors.bg2)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: EverforestColors.green)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: EverforestColors.green)),
                 ),
               ),
               const SizedBox(height: 12),
@@ -53,13 +53,13 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
                     activeColor: EverforestColors.green,
                     onChanged: (v) => setModalState(() => isDirect = v ?? false),
                   ),
-                  const Text('Direct 1-on-1 Message (DM)', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                  Text('Direct 1-on-1 Message (DM)', style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
                 ],
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL', style: TextStyle(color: EverforestColors.grey))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('CANCEL', style: TextStyle(color: EverforestColors.grey))),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green, foregroundColor: EverforestColors.bg0),
               onPressed: () {
@@ -83,7 +83,7 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
 
     return Container(
       width: 300,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: EverforestColors.bg1,
         border: Border(right: BorderSide(color: EverforestColors.bg2, width: 1)),
       ),
@@ -94,15 +94,15 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
               children: [
-                const Icon(Icons.forum_rounded, color: EverforestColors.green, size: 22),
+                Icon(Icons.forum_rounded, color: EverforestColors.green, size: 22),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'Messages',
                   style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.add_comment_rounded, color: EverforestColors.green, size: 20),
+                  icon: Icon(Icons.add_comment_rounded, color: EverforestColors.green, size: 20),
                   tooltip: 'New Chat',
                   onPressed: _showNewChannelDialog,
                 ),
@@ -121,8 +121,8 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
               ),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg, fontSize: 13),
+                decoration: InputDecoration(
                   hintText: 'Search chats & channels...',
                   hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 12),
                   prefixIcon: Icon(Icons.search_rounded, size: 18, color: EverforestColors.grey),
@@ -149,25 +149,25 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.hub_rounded, size: 14, color: EverforestColors.blue),
+                    Icon(Icons.hub_rounded, size: 14, color: EverforestColors.blue),
                     const SizedBox(width: 8),
                     Text(
                       '${peerList.length} Mesh Peer(s) Online',
-                      style: const TextStyle(color: EverforestColors.blue, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: EverforestColors.blue, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               );
             },
           ),
-          const Divider(height: 1, color: EverforestColors.bg2),
+          Divider(height: 1, color: EverforestColors.bg2),
           // Channel List
           Expanded(
             child: ValueListenableBuilder<List<ChatChannel>>(
               valueListenable: _chatService.channels,
               builder: (context, channels, _) {
                 if (channels.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text('No conversations yet', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
                   );
                 }
@@ -230,7 +230,7 @@ class _ChannelSidebarState extends State<ChannelSidebar> {
                                       const SizedBox(height: 2),
                                       Text(
                                         ch.lastMessage?.content ?? (ch.isDirect ? 'Direct conversation' : 'Family channel'),
-                                        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                                        style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),

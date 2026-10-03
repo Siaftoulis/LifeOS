@@ -53,11 +53,11 @@ class _StarsChipState extends State<StarsChip> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.stars, size: 14, color: EverforestColors.yellow),
+          Icon(Icons.stars, size: 14, color: EverforestColors.yellow),
           const SizedBox(width: 4),
           Text(
             '$_points',
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontWeight: FontWeight.bold,
               fontSize: 13,

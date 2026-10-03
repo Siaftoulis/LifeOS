@@ -80,24 +80,24 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
       backgroundColor: EverforestColors.bg0,
       appBar: AppBar(
         backgroundColor: EverforestColors.bg1,
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        iconTheme: IconThemeData(color: EverforestColors.fg),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.video.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
             if (widget.video.live)
-              const Text('LIVE', style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('LIVE', style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
       body: Center(
         child: _resolving
-            ? const CircularProgressIndicator(color: EverforestColors.green)
+            ? CircularProgressIndicator(color: EverforestColors.green)
             : _failed
-                ? const Column(
+                ? Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.broken_image_outlined, color: EverforestColors.grey, size: 48),
@@ -106,7 +106,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                     ],
                   )
                 : _controller == null || !_controller!.value.isInitialized
-                    ? const CircularProgressIndicator(color: EverforestColors.green)
+                    ? CircularProgressIndicator(color: EverforestColors.green)
                     : GestureDetector(
                         onTap: _togglePlay,
                         child: AspectRatio(

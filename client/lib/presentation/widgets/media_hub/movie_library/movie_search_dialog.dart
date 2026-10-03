@@ -85,12 +85,12 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                   child: TextField(
                     controller: _searchController,
                     autofocus: true,
-                    style: const TextStyle(color: EverforestColors.fg),
+                    style: TextStyle(color: EverforestColors.fg),
                     decoration: InputDecoration(
                       hintText: 'Search movies (TMDb / Vault)...',
                       hintStyle:
-                          const TextStyle(color: EverforestColors.grey),
-                      prefixIcon: const Icon(Icons.search_rounded,
+                          TextStyle(color: EverforestColors.grey),
+                      prefixIcon: Icon(Icons.search_rounded,
                           color: EverforestColors.green),
                       filled: true,
                       fillColor: EverforestColors.bg1,
@@ -106,7 +106,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                 ),
                 const SizedBox(width: 10),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded,
+                  icon: Icon(Icons.close_rounded,
                       color: EverforestColors.grey),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -117,7 +117,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
             // Search results list
             Expanded(
               child: _isSearching
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
                           color: EverforestColors.green),
                     )
@@ -127,7 +127,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                             _searchController.text.isEmpty
                                 ? 'Type a movie title and press Enter to search TMDb'
                                 : 'No movies found matching "${_searchController.text}"',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: EverforestColors.grey, fontSize: 13.5),
                             textAlign: TextAlign.center,
                           ),
@@ -135,7 +135,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                       : ListView.separated(
                           itemCount: _results.length,
                           separatorBuilder: (_, __) =>
-                              const Divider(color: EverforestColors.bg2, height: 1),
+                              Divider(color: EverforestColors.bg2, height: 1),
                           itemBuilder: (context, i) {
                             final m = _results[i];
                             final isInLibrary = libraryMovieTitles
@@ -157,7 +157,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                           width: 44,
                                           height: 64,
                                           color: EverforestColors.bg1,
-                                          child: const Icon(Icons.movie_rounded,
+                                          child: Icon(Icons.movie_rounded,
                                               color: EverforestColors.grey,
                                               size: 20),
                                         ),
@@ -166,7 +166,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                         width: 44,
                                         height: 64,
                                         color: EverforestColors.bg1,
-                                        child: const Icon(Icons.movie_rounded,
+                                        child: Icon(Icons.movie_rounded,
                                             color: EverforestColors.grey,
                                             size: 20),
                                       ),
@@ -178,7 +178,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                       m.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: EverforestColors.fg,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
@@ -189,7 +189,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                     const SizedBox(width: 8),
                                     Text(
                                       m.year,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           color: EverforestColors.grey,
                                           fontSize: 12),
                                     ),
@@ -203,13 +203,13 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                   if (m.tmdbRating > 0)
                                     Row(
                                       children: [
-                                        const Icon(Icons.star_rounded,
+                                        Icon(Icons.star_rounded,
                                             color: EverforestColors.yellow,
                                             size: 15),
                                         const SizedBox(width: 4),
                                         Text(
                                           m.tmdbRating.toStringAsFixed(1),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: EverforestColors.yellow,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
@@ -223,7 +223,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                       m.overview,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           color: EverforestColors.grey,
                                           fontSize: 12),
                                     ),
@@ -239,7 +239,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                             .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(Icons.check_rounded,
@@ -259,7 +259,7 @@ class _MovieSearchDialogState extends State<MovieSearchDialog> {
                                     )
                                   : ElevatedButton.icon(
                                       icon: isAdding
-                                          ? const SizedBox(
+                                          ? SizedBox(
                                               width: 14,
                                               height: 14,
                                               child: CircularProgressIndicator(

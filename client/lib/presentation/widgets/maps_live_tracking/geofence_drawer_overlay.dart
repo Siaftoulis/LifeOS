@@ -31,7 +31,7 @@ class GeofenceDrawerOverlay extends StatelessWidget {
         decoration: BoxDecoration(
           color: EverforestColors.bg0.withValues(alpha: 0.95),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: const Border(top: BorderSide(color: EverforestColors.bg2, width: 2)),
+          border: Border(top: BorderSide(color: EverforestColors.bg2, width: 2)),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, -4))
           ]
@@ -41,9 +41,9 @@ class GeofenceDrawerOverlay extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.share_location, color: EverforestColors.green),
+                Icon(Icons.share_location, color: EverforestColors.green),
                 const SizedBox(width: 12),
-                const Text('Geofences', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Geofences', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: onToggleDrawMode,
@@ -54,15 +54,15 @@ class GeofenceDrawerOverlay extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: EverforestColors.grey),
+                  icon: Icon(Icons.close, color: EverforestColors.grey),
                   onPressed: onClose,
                 ),
               ],
             ),
-            const Divider(color: EverforestColors.bg2),
+            Divider(color: EverforestColors.bg2),
             Expanded(
               child: geofences.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         'Tap "Add Geofence" and tap anywhere on the map to define a geofence zone.',
                         style: TextStyle(color: EverforestColors.grey, fontSize: 14),
@@ -74,9 +74,9 @@ class GeofenceDrawerOverlay extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final g = geofences[index];
                         return ListTile(
-                          leading: const Icon(Icons.crop_square, color: EverforestColors.green),
-                          title: Text(g.name, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
-                          subtitle: Text('Radius: ${g.radius.round()}m', style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                          leading: Icon(Icons.crop_square, color: EverforestColors.green),
+                          title: Text(g.name, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600)),
+                          subtitle: Text('Radius: ${g.radius.round()}m', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -86,7 +86,7 @@ class GeofenceDrawerOverlay extends StatelessWidget {
                                 activeThumbColor: EverforestColors.green,
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: EverforestColors.red, size: 20),
+                                icon: Icon(Icons.delete, color: EverforestColors.red, size: 20),
                                 onPressed: () => onDelete(g.id),
                               ),
                             ],

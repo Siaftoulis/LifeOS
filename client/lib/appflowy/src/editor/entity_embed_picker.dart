@@ -92,7 +92,7 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
       backgroundColor: EverforestColors.bg1,
       title: Text(
         widget.title,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
+        style: TextStyle(color: EverforestColors.fg, fontSize: 16),
       ),
       content: SizedBox(
         width: 420,
@@ -103,13 +103,13 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
               controller: _controller,
               autofocus: true,
               onChanged: _onQueryChanged,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search…',
-                hintStyle: const TextStyle(color: EverforestColors.grey),
+                hintStyle: TextStyle(color: EverforestColors.grey),
                 prefixIcon:
-                    const Icon(Icons.search, color: EverforestColors.grey, size: 18),
-                enabledBorder: const UnderlineInputBorder(
+                    Icon(Icons.search, color: EverforestColors.grey, size: 18),
+                enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: EverforestColors.bg2),
                 ),
               ),
@@ -141,7 +141,7 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
                               ? EverforestColors.fg
                               : EverforestColors.grey,
                         ),
-                        side: const BorderSide(color: EverforestColors.bg2),
+                        side: BorderSide(color: EverforestColors.bg2),
                       ),
                     ),
                 ],
@@ -150,13 +150,13 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
             const SizedBox(height: 10),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
                         color: EverforestColors.green,
                       ),
                     )
                   : _entities.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'Nothing found',
                             style: TextStyle(color: EverforestColors.grey),
@@ -177,7 +177,7 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
                               ),
                               title: Text(
                                 e['title']?.toString() ?? '',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: EverforestColors.fg,
                                   fontSize: 13.5,
                                 ),
@@ -186,7 +186,7 @@ class _EntityEmbedPickerDialogState extends State<EntityEmbedPickerDialog> {
                               ),
                               subtitle: Text(
                                 widget.subtitleOf(e),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: EverforestColors.grey,
                                   fontSize: 11.5,
                                 ),

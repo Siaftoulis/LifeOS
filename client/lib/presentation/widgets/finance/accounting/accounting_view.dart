@@ -51,7 +51,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Accounting & Tax',
           style: TextStyle(
             color: EverforestColors.fg,
@@ -61,7 +61,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shield_outlined, color: EverforestColors.green),
+            icon: Icon(Icons.shield_outlined, color: EverforestColors.green),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
@@ -145,7 +145,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Estimated Tax Liability 2026',
                 style: TextStyle(
                   color: EverforestColors.grey,
@@ -159,7 +159,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                   color: EverforestColors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'Pending',
                   style: TextStyle(color: EverforestColors.red, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
@@ -167,7 +167,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             '€3,240.50',
             style: TextStyle(
               color: EverforestColors.fg,
@@ -197,7 +197,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+        Text(label, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
         const SizedBox(height: 4),
         Text(
           amount,
@@ -214,7 +214,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
   Widget _buildSectionHeader(String title) {
     return Text(
       title.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         color: EverforestColors.grey,
         fontSize: 12,
         fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.fg,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -268,7 +268,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.grey,
                       fontSize: 12,
                     ),
@@ -279,7 +279,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
             if (isDecrypted)
               Text(
                 decryptedValue ?? '',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.green,
                   fontSize: 16,
                   fontFamily: 'monospace',
@@ -294,7 +294,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                   color: EverforestColors.bg2,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.lock_outline, size: 14, color: EverforestColors.grey),
                     SizedBox(width: 4),
@@ -382,7 +382,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
             const Spacer(),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.fg,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -391,7 +391,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
             const SizedBox(height: 4),
             Text(
               date,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.grey,
                 fontSize: 11,
               ),
@@ -448,9 +448,9 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.lock_person_outlined, color: EverforestColors.green, size: 48),
+                        Icon(Icons.lock_person_outlined, color: EverforestColors.green, size: 48),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Authentication Required',
                           style: TextStyle(
                             color: EverforestColors.fg,
@@ -459,7 +459,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Please enter your secure PIN to access this document.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -475,7 +475,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
                         const SizedBox(height: 32),
                         TextButton(
                           onPressed: _closePinCurtain,
-                          child: const Text('CANCEL', style: TextStyle(color: EverforestColors.grey)),
+                          child: Text('CANCEL', style: TextStyle(color: EverforestColors.grey)),
                         )
                       ],
                     ),
@@ -493,7 +493,7 @@ class _AccountingViewState extends State<AccountingView> with SingleTickerProvid
     return Container(
       width: 16,
       height: 16,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: EverforestColors.bg2,
         shape: BoxShape.circle,
       ),

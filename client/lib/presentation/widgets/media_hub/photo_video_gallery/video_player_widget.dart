@@ -124,7 +124,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     if (_loadFailed) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -140,7 +140,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     }
 
     if (_controller == null || !_controller!.value.isInitialized) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
 
     final showControls = !widget.isImmersive || !_isPlaying;

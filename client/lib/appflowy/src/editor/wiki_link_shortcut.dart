@@ -53,12 +53,12 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
                   value: 'page:$name',
                   child: Row(
                     children: [
-                      const Icon(Icons.description_outlined, size: 15, color: EverforestColors.grey),
+                      Icon(Icons.description_outlined, size: 15, color: EverforestColors.grey),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 13),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -66,7 +66,7 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
                   ),
                 ),
               if (noteNames.isEmpty)
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   enabled: false,
                   height: 34,
                   child: Text(
@@ -90,7 +90,7 @@ final wikiLinkShortcutEvent = CharacterShortcutEvent(
                       Expanded(
                         child: Text(
                           '${spec.label} (module)',
-                          style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 13),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

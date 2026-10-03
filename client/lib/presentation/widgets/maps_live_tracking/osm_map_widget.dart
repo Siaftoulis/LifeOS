@@ -130,7 +130,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
                     point: LatLng(loc['latitude'] as double, loc['longitude'] as double),
                     width: 40,
                     height: 40,
-                    child: const Icon(
+                    child: Icon(
                       Icons.person_pin_circle,
                       color: EverforestColors.red,
                       size: 40,
@@ -154,7 +154,7 @@ class _OsmMapWidgetState extends State<OsmMapWidget> {
                 },
                 child: Transform.rotate(
                   angle: -_rotation * math.pi / 180,
-                  child: const Icon(Icons.navigation, color: EverforestColors.red),
+                  child: Icon(Icons.navigation, color: EverforestColors.red),
                 ),
               ),
             ),

@@ -128,15 +128,15 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg0,
-        title: const Text('Create Geofence Zone', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Create Geofence Zone', style: TextStyle(color: EverforestColors.fg)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
               autofocus: true,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Zone Name (e.g. University)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -146,8 +146,8 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
             TextField(
               controller: radiusController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Radius (meters)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -158,7 +158,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           TextButton(
             onPressed: () async {
@@ -184,7 +184,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save', style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold)),
+            child: Text('Save', style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -224,7 +224,7 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                         heroTag: 'geo_fab',
                         mini: true,
                         backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
-                        child: const Icon(Icons.share_location, color: EverforestColors.green),
+                        child: Icon(Icons.share_location, color: EverforestColors.green),
                         onPressed: () => setState(() { _showGeofenceMenu = true; }),
                       ),
                       const SizedBox(height: 8),
@@ -233,8 +233,8 @@ class _MapsDashboardWidgetState extends State<MapsDashboardWidget> {
                         mini: true,
                         backgroundColor: EverforestColors.bg1.withValues(alpha: 0.9),
                         child: _isLocating 
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.red))
-                            : const Icon(Icons.my_location, color: EverforestColors.red),
+                            ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.red))
+                            : Icon(Icons.my_location, color: EverforestColors.red),
                         onPressed: _locateMe,
                       ),
                     ],

@@ -58,12 +58,12 @@ class BudgetCardView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Monthly Budget · ${monthLabel()}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: EverforestColors.fg,
                       fontSize: 16,
                       fontWeight: FontWeight.bold)),
               IconButton(
-                icon: const Icon(Icons.edit,
+                icon: Icon(Icons.edit,
                     size: 18, color: EverforestColors.blue),
                 onPressed: onEditBudget,
               ),
@@ -71,22 +71,22 @@ class BudgetCardView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           _buildBudgetRow('Monthly income', income),
-          const Divider(color: EverforestColors.bg2, height: 24),
+          Divider(color: EverforestColors.bg2, height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Bills',
+              Text('Bills',
                   style: TextStyle(color: EverforestColors.grey)),
               TextButton(
                 onPressed: onAddBill,
-                child: const Text('+ Add',
+                child: Text('+ Add',
                     style: TextStyle(color: EverforestColors.green)),
               ),
             ],
           ),
           for (final bill in bills) _buildBillRow(bill),
           if (bills.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 8),
               child: Text(
                   'No bills yet — add each bill amount when it arrives (email / app).',
@@ -102,7 +102,7 @@ class BudgetCardView extends StatelessWidget {
               child: OutlinedButton(
                 onPressed: onEditBudget,
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: EverforestColors.green),
+                  side: BorderSide(color: EverforestColors.green),
                   foregroundColor: EverforestColors.green,
                 ),
                 child: const Text('Set monthly income'),
@@ -209,10 +209,10 @@ class BudgetCardView extends StatelessWidget {
             ),
           ),
           Text(fmtEuro(_num(bill, 'amount')),
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 14)),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 14)),
           IconButton(
             icon:
-                const Icon(Icons.close, size: 16, color: EverforestColors.red),
+                Icon(Icons.close, size: 16, color: EverforestColors.red),
             onPressed: () {
               bill.payload['deleted'] = true;
               EngineRepository.instance.saveEntity(bill);
@@ -242,11 +242,11 @@ class BudgetCardView extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style:
-                    const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+                    TextStyle(color: EverforestColors.fg, fontSize: 13)),
           ),
           Text(
             spent > 0 ? '${fmtEuro(spent)} spent · ' : '',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 12),
           ),
           Text('${fmtEuro(left)} left',
               style: TextStyle(

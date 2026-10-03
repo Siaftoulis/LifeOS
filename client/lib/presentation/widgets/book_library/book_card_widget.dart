@@ -152,7 +152,7 @@ class BookCardWidget extends StatelessWidget {
                         book.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -163,7 +163,7 @@ class BookCardWidget extends StatelessWidget {
                         book.author ?? 'Unknown Author',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.grey,
                           fontSize: 11,
                         ),
@@ -186,7 +186,7 @@ class BookCardWidget extends StatelessWidget {
                           ),
                           Text(
                             '${book.currentPage}/${book.totalPages} p.',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.grey,
                               fontSize: 10.5,
                             ),

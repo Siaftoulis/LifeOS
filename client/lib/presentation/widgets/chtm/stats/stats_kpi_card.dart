@@ -36,7 +36,7 @@ class KpiCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.grey,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -48,7 +48,7 @@ class KpiCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -57,7 +57,7 @@ class KpiCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.grey,
               fontSize: 11,
             ),
@@ -110,7 +110,7 @@ class StatRow extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: EverforestColors.fg,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -120,7 +120,7 @@ class StatRow extends StatelessWidget {
         ),
         Text(
           count,
-          style: const TextStyle(
+          style: TextStyle(
             color: EverforestColors.fg,
             fontSize: 16,
             fontWeight: FontWeight.bold,

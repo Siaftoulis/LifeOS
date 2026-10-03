@@ -26,7 +26,7 @@ class PointsLiveFeedback {
         SnackBar(
           content: Text(
             '⭐ +$amount pts · ${reason.replaceFirst('Telemetry: ', '')}',
-            style: const TextStyle(color: EverforestColors.fg),
+            style: TextStyle(color: EverforestColors.fg),
           ),
           backgroundColor: EverforestColors.bg1,
           duration: const Duration(seconds: 3),

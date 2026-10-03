@@ -42,7 +42,7 @@ class _ChatHubDashboardState extends State<ChatHubDashboard> {
                         top: 14,
                         left: 8,
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
+                          icon: Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
                           onPressed: () => _chatService.activeChannel.value = null,
                         ),
                       ),
@@ -59,7 +59,7 @@ class _ChatHubDashboardState extends State<ChatHubDashboard> {
                   Expanded(
                     child: activeChannel != null
                         ? ChatRoomView(channel: activeChannel)
-                        : const Center(
+                        : Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [

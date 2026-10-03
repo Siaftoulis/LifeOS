@@ -28,7 +28,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Project Infinity',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -50,8 +50,8 @@ class ProjectInfinityDashboard extends StatelessWidget {
         const SizedBox(width: 16),
         ElevatedButton.icon(
           onPressed: () {},
-          icon: const Icon(Icons.add, color: EverforestColors.bg0),
-          label: const Text('New', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
+          icon: Icon(Icons.add, color: EverforestColors.bg0),
+          label: Text('New', style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: EverforestColors.purple,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -130,7 +130,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           column['title'] as String,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -146,7 +146,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                       ),
                       child: Text(
                         '${tasks.length}',
-                        style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -194,7 +194,7 @@ class ProjectInfinityDashboard extends StatelessWidget {
                           const SizedBox(height: 12),
                           Text(
                             task['title'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -204,14 +204,14 @@ class ProjectInfinityDashboard extends StatelessWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              const Icon(Icons.sort, color: EverforestColors.grey, size: 16),
+                              Icon(Icons.sort, color: EverforestColors.grey, size: 16),
                               const SizedBox(width: 16),
-                              const Icon(Icons.chat_bubble_outline, color: EverforestColors.grey, size: 16),
+                              Icon(Icons.chat_bubble_outline, color: EverforestColors.grey, size: 16),
                               const Spacer(),
                               CircleAvatar(
                                 radius: 12,
                                 backgroundColor: EverforestColors.green.withValues(alpha: 0.3),
-                                child: const Icon(Icons.person, size: 16, color: EverforestColors.green),
+                                child: Icon(Icons.person, size: 16, color: EverforestColors.green),
                               )
                             ],
                           ),

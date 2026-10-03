@@ -44,7 +44,7 @@ class _RpgDashboardState extends State<RpgDashboard> {
     return Container(
       color: EverforestColors.bg0,
       child: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: EverforestColors.purple))
+          ? Center(child: CircularProgressIndicator(color: EverforestColors.purple))
           : RefreshIndicator(
               onRefresh: _loadData,
               child: ListView(
@@ -79,7 +79,7 @@ class _RpgDashboardState extends State<RpgDashboard> {
                         border: Border.all(color: EverforestColors.bg2),
                       ),
                       padding: const EdgeInsets.all(16.0),
-                      child: const Text("Could not load player stats. Ensure host-daemon is running.", style: TextStyle(color: EverforestColors.fg)),
+                      child: Text("Could not load player stats. Ensure host-daemon is running.", style: TextStyle(color: EverforestColors.fg)),
                     ),
                   const SizedBox(height: 16),
                   if (_stats != null)

@@ -19,9 +19,9 @@ class _VoiceRecorderDialogState extends State<VoiceRecorderDialog> {
       backgroundColor: EverforestColors.bg1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: EverforestColors.bg2),
+        side: BorderSide(color: EverforestColors.bg2),
       ),
-      title: const Text('Voice Input', style: TextStyle(color: EverforestColors.fg)),
+      title: Text('Voice Input', style: TextStyle(color: EverforestColors.fg)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -33,14 +33,14 @@ class _VoiceRecorderDialogState extends State<VoiceRecorderDialog> {
           const SizedBox(height: 16),
           Text(
             _isRecording ? 'Listening for task...' : 'Tap to start recording',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 14),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 14),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
@@ -73,13 +73,13 @@ class _VoiceRecorderDialogState extends State<VoiceRecorderDialog> {
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to parse voice: $e', style: const TextStyle(color: EverforestColors.red))),
+                    SnackBar(content: Text('Failed to parse voice: $e', style: TextStyle(color: EverforestColors.red))),
                   );
                 }
               }
             }
           },
-          child: Text(_isRecording ? 'Stop & Send' : 'Record', style: const TextStyle(color: EverforestColors.bg0)),
+          child: Text(_isRecording ? 'Stop & Send' : 'Record', style: TextStyle(color: EverforestColors.bg0)),
         ),
       ],
     );

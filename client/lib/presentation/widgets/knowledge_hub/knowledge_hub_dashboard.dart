@@ -17,9 +17,9 @@ class KnowledgeHubDashboard extends StatelessWidget {
         backgroundColor: EverforestColors.bg0,
         appBar: AppBar(
           backgroundColor: EverforestColors.bg1,
-          title: const Text('Knowledge Hub', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+          title: Text('Knowledge Hub', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
           elevation: 0,
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true,
             tabs: [
               Tab(text: 'Knowledge Base'),

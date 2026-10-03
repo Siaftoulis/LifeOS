@@ -17,10 +17,10 @@ class P2PDialogHandler {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: EverforestColors.bg1,
-          title: const Text('Incoming File Transfer', style: TextStyle(color: EverforestColors.fg)),
+          title: Text('Incoming File Transfer', style: TextStyle(color: EverforestColors.fg)),
           content: Text(
             '$senderName wants to send you "$fileName" (${(fileSize / (1024 * 1024)).toStringAsFixed(2)} MB). Do you accept?',
-            style: const TextStyle(color: EverforestColors.fg),
+            style: TextStyle(color: EverforestColors.fg),
           ),
           actions: [
             TextButton(
@@ -28,7 +28,7 @@ class P2PDialogHandler {
                 P2PTransferService.instance.declineFile(socket);
                 Navigator.pop(ctx);
               },
-              child: const Text('Decline', style: TextStyle(color: EverforestColors.red)),
+              child: Text('Decline', style: TextStyle(color: EverforestColors.red)),
             ),
             TextButton(
               onPressed: () {
@@ -36,7 +36,7 @@ class P2PDialogHandler {
                 _showProgressOverlay(context, fileName, fileSize);
                 P2PTransferService.instance.acceptFile(socket, fileName, fileSize);
               },
-              child: const Text('Accept', style: TextStyle(color: EverforestColors.green)),
+              child: Text('Accept', style: TextStyle(color: EverforestColors.green)),
             ),
           ],
         );
@@ -61,14 +61,14 @@ class P2PDialogHandler {
 
             return AlertDialog(
               backgroundColor: EverforestColors.bg1,
-              title: const Text('Receiving File', style: TextStyle(color: EverforestColors.fg)),
+              title: Text('Receiving File', style: TextStyle(color: EverforestColors.fg)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
                     progress.fileName,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -84,11 +84,11 @@ class P2PDialogHandler {
                     children: [
                       Text(
                         '${(progress.percent * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                        style: TextStyle(color: EverforestColors.fg, fontSize: 11),
                       ),
                       Text(
                         '${progress.speedMBs.toStringAsFixed(2)} MB/s',
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                       ),
                     ],
                   ),

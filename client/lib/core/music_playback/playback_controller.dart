@@ -48,6 +48,24 @@ class PlaybackController extends ChangeNotifier {
       _crossfadeEnabled = prefs.getBool('music_crossfade_enabled') ?? true;
       _crossfadeDuration = prefs.getInt('music_crossfade_duration') ?? 4;
       _djTransitions = prefs.getBool('music_dj_transitions') ?? true;
+
+      // Restore last played track for cold start resume (e.g. from Android widget)
+      final lastId = prefs.getString('music_last_track_id');
+      final lastTitle = prefs.getString('music_last_track_title');
+      if (lastId != null && lastTitle != null && _state.queue.isEmpty) {
+        final restoredItem = PlaybackItem(
+          id: lastId,
+          url: prefs.getString('music_last_track_url') ?? '',
+          title: lastTitle,
+          artist: prefs.getString('music_last_track_artist') ?? '',
+          thumbnail: prefs.getString('music_last_track_thumbnail') ?? '',
+          album: prefs.getString('music_last_track_album') ?? '',
+          genre: prefs.getString('music_last_track_genre') ?? '',
+          filePath: prefs.getString('music_last_track_filepath') ?? '',
+        );
+        _state = _state.copyWith(queue: [restoredItem], currentIndex: 0);
+      }
+
       notifyListeners();
     } catch (_) {}
   }
@@ -353,6 +371,18 @@ class PlaybackController extends ChangeNotifier {
 
     final playUrl = _resolvePlaybackUrl(item);
 
+    // Persist last played track for cold start resume (e.g. from Android widget)
+    SharedPreferences.getInstance().then((p) {
+      p.setString('music_last_track_id', item.id);
+      p.setString('music_last_track_url', item.url);
+      p.setString('music_last_track_title', item.title);
+      p.setString('music_last_track_artist', item.artist);
+      p.setString('music_last_track_thumbnail', item.thumbnail);
+      p.setString('music_last_track_album', item.album);
+      p.setString('music_last_track_genre', item.genre);
+      p.setString('music_last_track_filepath', item.filePath);
+    }).catchError((_) => null);
+
     if (item.url.contains('/offline/') || MusicRepository.instance.isOffline(item.id)) {
       _activeStreamType = 'OFFLINE';
       _activeBitrate = 320000;
@@ -487,31 +517,94 @@ class PlaybackController extends ChangeNotifier {
         seedTrackId: lastItem.id,
         artist: lastItem.artist,
         genre: lastItem.genre,
-        limit: 10,
+        title: lastItem.title,
+        limit: 15,
       );
+
+      final existingIds = _state.queue.map((i) => i.id).toSet();
+      final existingTitles = _state.queue.map((i) => i.title.trim().toLowerCase()).toSet();
+      final cleanSeedTitle = lastItem.title.toLowerCase().replaceAll(RegExp(r'[\(\[\{].*?[\)\]\}]'), '').trim();
+
+      int addedCount = 0;
       if (recs.isNotEmpty) {
-        final existingIds = _state.queue.map((i) => i.id).toSet();
         for (final r in recs) {
-          if (!existingIds.contains(r.id)) {
-            final isLocal = (r.filePath.isNotEmpty && !kIsWeb) || r.id.startsWith('local_');
-            final streamUrl = isLocal && r.filePath.isNotEmpty
-                ? r.filePath
-                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true';
+          if (existingIds.contains(r.id)) continue;
+          final rTitleLower = r.title.trim().toLowerCase();
+          if (existingTitles.contains(rTitleLower)) continue;
+
+          // Strictly filter out duplicates or remixes of the seed song
+          if (cleanSeedTitle.isNotEmpty && cleanSeedTitle.length >= 3) {
+            if (rTitleLower.contains(cleanSeedTitle) || cleanSeedTitle.contains(rTitleLower)) {
+              continue;
+            }
+          }
+          if ((rTitleLower.contains('remix') ||
+                  rTitleLower.contains('vip edit') ||
+                  rTitleLower.contains('cover') ||
+                  rTitleLower.contains('karaoke') ||
+                  rTitleLower.contains('slowed') ||
+                  rTitleLower.contains('reverb')) &&
+              !cleanSeedTitle.contains('remix')) {
+            continue;
+          }
+
+          existingIds.add(r.id);
+          existingTitles.add(rTitleLower);
+          addedCount++;
+
+          final isLocal = (r.filePath.isNotEmpty && !kIsWeb) || r.id.startsWith('local_') || r.id.startsWith('phone_');
+          final streamUrl = isLocal && r.filePath.isNotEmpty
+              ? r.filePath
+              : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${r.id}&proxy=true';
+          addToQueue(PlaybackItem(
+            id: r.id,
+            url: streamUrl,
+            title: r.title,
+            artist: r.artist,
+            thumbnail: r.thumbnail.isNotEmpty ? r.thumbnail : r.thumbnailUrl,
+            album: r.album,
+            genre: r.genre,
+            year: r.year ?? 0,
+            filePath: r.filePath,
+          ));
+        }
+      }
+
+      // If remote recommendations are sparse or offline, fallback to user's library tracks
+      if (addedCount < 5) {
+        final libTracks = MusicRepository.instance.tracks.value;
+        if (libTracks.isNotEmpty) {
+          final candidates = libTracks.where((t) {
+            if (existingIds.contains(t.id)) return false;
+            final tTitle = t.title.trim().toLowerCase();
+            if (existingTitles.contains(tTitle)) return false;
+            if (cleanSeedTitle.isNotEmpty && tTitle.contains(cleanSeedTitle)) return false;
+            return true;
+          }).toList()..shuffle();
+
+          for (final t in candidates.take(10 - addedCount)) {
+            existingIds.add(t.id);
+            existingTitles.add(t.title.trim().toLowerCase());
+            final isLocal = (t.filePath.isNotEmpty && !kIsWeb) || t.id.startsWith('local_') || t.id.startsWith('phone_');
+            final streamUrl = isLocal && t.filePath.isNotEmpty
+                ? t.filePath
+                : '${ApiClient.instance.daemonUrl}/api/v1/music/ytstream/stream.m4a?id=${t.id}&proxy=true';
             addToQueue(PlaybackItem(
-              id: r.id,
+              id: t.id,
               url: streamUrl,
-              title: r.title,
-              artist: r.artist,
-              thumbnail: r.thumbnail.isNotEmpty ? r.thumbnail : r.thumbnailUrl,
-              album: r.album,
-              genre: r.genre,
-              year: r.year ?? 0,
-              filePath: r.filePath,
+              title: t.title,
+              artist: t.artist,
+              thumbnail: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+              album: t.album,
+              genre: t.genre,
+              year: t.year ?? 0,
+              filePath: t.filePath,
             ));
           }
         }
-        precacheUpcoming();
       }
+
+      precacheUpcoming();
     } catch (e) {
       debugPrint('Error fetching infinite radio recommendations: $e');
     } finally {
@@ -527,9 +620,37 @@ class PlaybackController extends ChangeNotifier {
   }
 
   Future<void> togglePlayPause() async {
-    if (!isAvailable || _state.queue.isEmpty || currentItem == null) return;
+    if (!isAvailable) return;
+
+    // Auto-restore queue if empty from offline tracks or liked tracks
+    if (_state.queue.isEmpty || currentItem == null) {
+      final offline = MusicRepository.instance.offlineTracks.value;
+      if (offline.isNotEmpty) {
+        final seed = offline.first;
+        final item = PlaybackItem(
+          id: seed.id,
+          url: seed.filePath,
+          title: seed.title,
+          artist: seed.artist ?? 'Unknown',
+          thumbnail: seed.thumbnail ?? '',
+          album: seed.album ?? '',
+          filePath: seed.filePath,
+        );
+        await playTrackAndStartRadio(item);
+        return;
+      }
+      return;
+    }
+
     final p = player;
     if (p == null) return;
+
+    // Cold start / idle player: load and play
+    if (p.audioSource == null || p.processingState == ProcessingState.idle) {
+      await _playAt(_state.currentIndex.clamp(0, _state.queue.length - 1));
+      return;
+    }
+
     final currentlyPlaying = isPlaying;
     final target = !currentlyPlaying;
     _userWantsPlay = target;

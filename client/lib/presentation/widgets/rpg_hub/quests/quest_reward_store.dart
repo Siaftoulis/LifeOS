@@ -12,13 +12,13 @@ class QuestRewardStore extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('REWARD STORE', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
+        Text('REWARD STORE', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 24),
         StreamBuilder<List<Voucher>>(
           stream: vouchersStream,
           builder: (context, snapshot) {
             final vouchers = snapshot.data ?? [];
-            if (vouchers.isEmpty) return const Center(child: Text("No rewards available.", style: TextStyle(color: EverforestColors.grey)));
+            if (vouchers.isEmpty) return Center(child: Text("No rewards available.", style: TextStyle(color: EverforestColors.grey)));
 
             return Column(
               children: vouchers.map((voucher) => Padding(
@@ -36,9 +36,9 @@ class QuestRewardStore extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(voucher.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600)),
+                          Text(voucher.title, style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
-                          const Text('Redeem reward', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                          Text('Redeem reward', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
                         ],
                       ),
                       GestureDetector(
@@ -52,7 +52,7 @@ class QuestRewardStore extends StatelessWidget {
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(color: EverforestColors.yellow, width: 1),
                           ),
-                          child: Text('${voucher.costPoints} ★', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
+                          child: Text('${voucher.costPoints} ★', style: TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],

@@ -66,7 +66,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 16,
             children: [
-              const Text(
+              Text(
                 'Torrent Client',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -90,11 +90,11 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
               stream: _dao.watchAllTorrents(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: EverforestColors.purple));
+                  return Center(child: CircularProgressIndicator(color: EverforestColors.purple));
                 }
                 final torrents = snapshot.data!;
                 if (torrents.isEmpty) {
-                  return const Center(child: Text('No active torrents.', style: TextStyle(color: EverforestColors.grey)));
+                  return Center(child: Text('No active torrents.', style: TextStyle(color: EverforestColors.grey)));
                 }
                 return ListView.separated(
                   itemCount: torrents.length,
@@ -123,7 +123,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(width: 6),
-          Text(speed, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+          Text(speed, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -149,7 +149,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
               Expanded(
                 child: Text(
                   torrent.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -166,7 +166,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
               ),
               const SizedBox(width: 12),
               IconButton(
-                icon: const Icon(Icons.close, color: EverforestColors.red),
+                icon: Icon(Icons.close, color: EverforestColors.red),
                 onPressed: () {},
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -190,7 +190,7 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
               const SizedBox(width: 16),
               Text(
                 '${(torrent.progress * 100).toStringAsFixed(1)}%',
-                style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -201,17 +201,17 @@ class _TorrentDashboardViewState extends State<TorrentDashboardView> {
             children: [
               Text(
                 '$downloadedMB MB / $totalSizeMB MB',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                style: TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
               if (torrent.progress < 1.0 && !isPaused)
                 Text(
                   '$speedKBps KB/s',
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                 )
               else if (isPaused)
-                const Text('Paused', style: TextStyle(color: EverforestColors.yellow, fontSize: 12))
+                Text('Paused', style: TextStyle(color: EverforestColors.yellow, fontSize: 12))
               else
-                const Text('Seeding', style: TextStyle(color: EverforestColors.green, fontSize: 12))
+                Text('Seeding', style: TextStyle(color: EverforestColors.green, fontSize: 12))
             ],
           )
         ],

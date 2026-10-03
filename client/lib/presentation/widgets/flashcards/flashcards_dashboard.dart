@@ -26,7 +26,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
               const SizedBox(height: 32),
               _buildDailyTargets(decks),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'Your Decks',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -51,7 +51,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Spaced Repetition',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -76,7 +76,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
             border: Border.all(color: EverforestColors.green.withValues(alpha: 0.5)),
           ),
           child: IconButton(
-            icon: const Icon(Icons.add, color: EverforestColors.green),
+            icon: Icon(Icons.add, color: EverforestColors.green),
             onPressed: () => _showAddDeckDialog(context),
           ),
         ),
@@ -90,11 +90,11 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Create Flashcard Deck', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Create Flashcard Deck', style: TextStyle(color: EverforestColors.fg)),
         content: TextField(
           controller: controller,
-          style: const TextStyle(color: EverforestColors.fg),
-          decoration: const InputDecoration(
+          style: TextStyle(color: EverforestColors.fg),
+          decoration: InputDecoration(
             labelText: 'Deck Name',
             labelStyle: TextStyle(color: EverforestColors.grey),
             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -104,7 +104,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
@@ -115,7 +115,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
               }
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            child: const Text('Create', style: TextStyle(color: EverforestColors.bg0)),
+            child: Text('Create', style: TextStyle(color: EverforestColors.bg0)),
           ),
         ],
       ),
@@ -150,7 +150,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Today\'s Study Plan',
                 style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -160,7 +160,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
                   color: EverforestColors.orange.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.local_fire_department, color: EverforestColors.orange, size: 16),
                     SizedBox(width: 6),
@@ -175,7 +175,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _Stat(label: 'To Review', value: toReview.toString(), color: EverforestColors.red, icon: Icons.refresh),
-              const _Stat(label: 'Learning', value: '0', color: EverforestColors.yellow, icon: Icons.loop),
+              _Stat(label: 'Learning', value: '0', color: EverforestColors.yellow, icon: Icons.loop),
               _Stat(label: 'New Cards', value: newCards.toString(), color: EverforestColors.blue, icon: Icons.fiber_new),
             ],
           ),
@@ -189,7 +189,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
                 backgroundColor: EverforestColors.green,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text(
+              child: Text(
                 'Study Now',
                 style: TextStyle(color: EverforestColors.bg0, fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -202,7 +202,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
 
   Widget _buildDecksGrid(List<FlashcardDeck> decks) {
     if (decks.isEmpty) {
-      return const Center(child: Text("No decks found.", style: TextStyle(color: EverforestColors.grey)));
+      return Center(child: Text("No decks found.", style: TextStyle(color: EverforestColors.grey)));
     }
     
     final colors = [EverforestColors.blue, EverforestColors.yellow, EverforestColors.purple, EverforestColors.green];
@@ -250,7 +250,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
               const Spacer(),
               Text(
                 deck.name,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -271,7 +271,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
                       ),
                       child: Text(
                         '$due Due',
-                        style: const TextStyle(color: EverforestColors.red, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: EverforestColors.red, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                   if (newCards > 0)
@@ -283,7 +283,7 @@ class _FlashcardsDashboardState extends State<FlashcardsDashboard> {
                       ),
                       child: Text(
                         '$newCards New',
-                        style: const TextStyle(color: EverforestColors.blue, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: EverforestColors.blue, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ),
                 ],
@@ -323,7 +323,7 @@ class _Stat extends StatelessWidget {
         const SizedBox(height: 12),
         Text(value, style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: EverforestColors.grey, fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(label, style: TextStyle(color: EverforestColors.grey, fontSize: 14, fontWeight: FontWeight.w600)),
       ],
     );
   }

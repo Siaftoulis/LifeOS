@@ -29,9 +29,9 @@ class TopicCardWidget extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(title, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(title, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 4),
-          Text(category, style: const TextStyle(color: EverforestColors.grey, fontSize: 12, letterSpacing: 1)),
+          Text(category, style: TextStyle(color: EverforestColors.grey, fontSize: 12, letterSpacing: 1)),
         ],
       ),
     );

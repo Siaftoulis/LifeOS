@@ -115,7 +115,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: EverforestColors.red),
             SizedBox(width: 8),
@@ -124,12 +124,12 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
         ),
         content: Text(
           'Είστε σίγουροι ότι θέλετε να διαγράψετε τον χρήστη "$username"; Όλα τα δεδομένα σύνδεσης του χρήστη θα αφαιρεθούν.',
-          style: const TextStyle(color: EverforestColors.fg),
+          style: TextStyle(color: EverforestColors.fg),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('ΑΚΥΡΩΣΗ', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('ΑΚΥΡΩΣΗ', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.red, foregroundColor: EverforestColors.bg0),
@@ -167,9 +167,9 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
           // Header
           Row(
             children: [
-              const Icon(Icons.admin_panel_settings, color: EverforestColors.red, size: 24),
+              Icon(Icons.admin_panel_settings, color: EverforestColors.red, size: 24),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Διαχείριση Χρηστών & Admin Console',
                   style: TextStyle(color: EverforestColors.red, fontSize: 18, fontWeight: FontWeight.bold),
@@ -184,7 +184,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                 ),
                 child: Text(
                   '${_users.length} Χρήστες',
-                  style: const TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 8),
@@ -209,15 +209,15 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Προσθήκη Νέου Χρήστη', style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text('Προσθήκη Νέου Χρήστη', style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 14)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _usernameController,
-                          style: const TextStyle(color: EverforestColors.fg),
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: EverforestColors.fg),
+                          decoration: InputDecoration(
                             labelText: 'Username *',
                             labelStyle: TextStyle(color: EverforestColors.fg),
                             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -229,8 +229,8 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                       Expanded(
                         child: TextField(
                           controller: _displayNameController,
-                          style: const TextStyle(color: EverforestColors.fg),
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: EverforestColors.fg),
+                          decoration: InputDecoration(
                             labelText: 'Display Name',
                             labelStyle: TextStyle(color: EverforestColors.fg),
                             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -246,8 +246,8 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                       Expanded(
                         child: TextField(
                           controller: _emailController,
-                          style: const TextStyle(color: EverforestColors.fg),
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: EverforestColors.fg),
+                          decoration: InputDecoration(
                             labelText: 'Email (Google OAuth)',
                             labelStyle: TextStyle(color: EverforestColors.fg),
                             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -260,8 +260,8 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                         child: TextField(
                           controller: _passwordController,
                           obscureText: true,
-                          style: const TextStyle(color: EverforestColors.fg),
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: EverforestColors.fg),
+                          decoration: InputDecoration(
                             labelText: 'Password / PIN *',
                             labelStyle: TextStyle(color: EverforestColors.fg),
                             enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -275,8 +275,8 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                   DropdownButtonFormField<String>(
                     initialValue: _selectedRole,
                     dropdownColor: EverforestColors.bg1,
-                    style: const TextStyle(color: EverforestColors.fg),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: EverforestColors.fg),
+                    decoration: InputDecoration(
                       labelText: 'Role',
                       labelStyle: TextStyle(color: EverforestColors.fg),
                       enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -301,7 +301,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                   ],
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    icon: _isCreating ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2)) : const Icon(Icons.check),
+                    icon: _isCreating ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: EverforestColors.bg0, strokeWidth: 2)) : const Icon(Icons.check),
                     label: const Text('ΔΗΜΙΟΥΡΓΙΑ ΧΡΗΣΤΗ', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: EverforestColors.green,
@@ -319,9 +319,9 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
 
           // Users List
           if (_isLoadingUsers)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(color: EverforestColors.red)))
+            Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator(color: EverforestColors.red)))
           else if (_users.isEmpty)
-            const Center(child: Padding(padding: EdgeInsets.all(16), child: Text('Δεν βρέθηκαν χρήστες', style: TextStyle(color: EverforestColors.grey))))
+            Center(child: Padding(padding: EdgeInsets.all(16), child: Text('Δεν βρέθηκαν χρήστες', style: TextStyle(color: EverforestColors.grey))))
           else
             ListView.separated(
               shrinkWrap: true,
@@ -365,7 +365,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                               children: [
                                 Text(
                                   user.displayName.isNotEmpty ? user.displayName : user.username,
-                                  style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 if (isCurrentUser) ...[
                                   const SizedBox(width: 6),
@@ -375,7 +375,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                                       color: EverforestColors.green.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text('ΕΣΕΙΣ', style: TextStyle(color: EverforestColors.green, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    child: Text('ΕΣΕΙΣ', style: TextStyle(color: EverforestColors.green, fontSize: 9, fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                               ],
@@ -408,7 +408,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                             underline: const SizedBox(),
                             dropdownColor: EverforestColors.bg1,
                             style: const TextStyle(fontSize: 12),
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: 'USER',
                                 child: Text('USER', style: TextStyle(color: EverforestColors.blue, fontWeight: FontWeight.bold)),
@@ -432,7 +432,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                             color: EverforestColors.red.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text('ROOT ADMIN', style: TextStyle(color: EverforestColors.red, fontSize: 11, fontWeight: FontWeight.bold)),
+                          child: Text('ROOT ADMIN', style: TextStyle(color: EverforestColors.red, fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
 
                       const SizedBox(width: 8),
@@ -440,7 +440,7 @@ class _AdminConsoleWidgetState extends State<AdminConsoleWidget> {
                       // Delete Button
                       if (!isRootAdmin && !isCurrentUser)
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: EverforestColors.red, size: 20),
+                          icon: Icon(Icons.delete_outline, color: EverforestColors.red, size: 20),
                           tooltip: 'Διαγραφή Χρήστη',
                           onPressed: () => _deleteUser(user.username),
                         )

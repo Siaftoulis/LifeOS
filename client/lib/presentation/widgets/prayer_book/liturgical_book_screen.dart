@@ -107,7 +107,7 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
+          icon: Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -115,18 +115,18 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
           children: [
             Text(
               widget.bookTitle,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.w600),
             ),
             if (!_loading && _services.isNotEmpty)
               Text(
                 '${_filteredServices.length} κείμενα',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                style: TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
           ],
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
+          ? Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
           : _tones.isNotEmpty
               ? _buildToneList()
               : _buildServiceList(),
@@ -157,11 +157,11 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
               childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               title: Text(
                 '$toneNameGr - $toneName',
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 15, fontWeight: FontWeight.w600),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 15, fontWeight: FontWeight.w600),
               ),
               subtitle: Text(
                 '${services.length} services, $sectionCount sections',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                style: TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
               iconColor: EverforestColors.yellow,
               children: services.map<Widget>((svc) {
@@ -186,14 +186,14 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
           child: TextField(
             controller: _searchCtrl,
             onChanged: (val) => setState(() => _searchQuery = val),
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+            style: TextStyle(color: EverforestColors.fg, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Αναζήτηση προσευχής ή ακολουθίας...',
-              hintStyle: const TextStyle(color: EverforestColors.grey, fontSize: 13),
-              prefixIcon: const Icon(Icons.search_rounded, color: EverforestColors.grey, size: 20),
+              hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 13),
+              prefixIcon: Icon(Icons.search_rounded, color: EverforestColors.grey, size: 20),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear_rounded, color: EverforestColors.grey, size: 18),
+                      icon: Icon(Icons.clear_rounded, color: EverforestColors.grey, size: 18),
                       onPressed: () {
                         _searchCtrl.clear();
                         setState(() => _searchQuery = '');
@@ -334,7 +334,7 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
                 children: [
                   Text(
                     service['title'] ?? '',
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -355,14 +355,14 @@ class _LiturgicalBookScreenState extends State<LiturgicalBookScreen> {
                       ],
                       Text(
                         '${service['sections_count'] ?? (service['sections'] as List?)?.length ?? 0} τμήματα',
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
+            Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
           ],
         ),
       ),

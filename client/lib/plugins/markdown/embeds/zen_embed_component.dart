@@ -25,8 +25,8 @@ Widget _moduleShell(String title, Widget child) {
     appBar: AppBar(
       backgroundColor: EverforestColors.bg1,
       elevation: 0,
-      iconTheme: const IconThemeData(color: EverforestColors.fg),
-      title: Text(title, style: const TextStyle(color: EverforestColors.fg)),
+      iconTheme: IconThemeData(color: EverforestColors.fg),
+      title: Text(title, style: TextStyle(color: EverforestColors.fg)),
     ),
     body: child,
   );
@@ -179,7 +179,7 @@ class _ZenEmbedBlockComponentWidgetState
               ),
               child: Text(
                 'Unknown embed: $module',
-                style: const TextStyle(color: EverforestColors.red),
+                style: TextStyle(color: EverforestColors.red),
               ),
             )
           : ZenEmbedCard(

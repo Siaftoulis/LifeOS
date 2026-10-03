@@ -218,7 +218,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                           backgroundColor: EverforestColors.yellow.withValues(alpha: 0.2),
                           child: Text(
                             '${k.number}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.yellow,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -240,7 +240,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                                   backgroundColor: EverforestColors.bg2,
                                   label: Text(
                                     'Ψαλμός ${p.number}',
-                                    style: const TextStyle(fontSize: 12, color: EverforestColors.fg),
+                                    style: TextStyle(fontSize: 12, color: EverforestColors.fg),
                                   ),
                                   onPressed: () {
                                     Navigator.pop(context);
@@ -252,8 +252,8 @@ class _PsalterScreenState extends State<PsalterScreen> {
                           ),
                           ListTile(
                             dense: true,
-                            leading: const Icon(Icons.arrow_forward_rounded, size: 16, color: EverforestColors.yellow),
-                            title: Text('Μετάβαση στην αρχή του ${k.title}', style: const TextStyle(fontSize: 12, color: EverforestColors.yellow)),
+                            leading: Icon(Icons.arrow_forward_rounded, size: 16, color: EverforestColors.yellow),
+                            title: Text('Μετάβαση στην αρχή του ${k.title}', style: TextStyle(fontSize: 12, color: EverforestColors.yellow)),
                             onTap: () {
                               Navigator.pop(context);
                               _scrollToKathisma(k.number);
@@ -455,9 +455,9 @@ class _PsalterScreenState extends State<PsalterScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
+          ? Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: EverforestColors.red)))
+              ? Center(child: Text(_error!, style: TextStyle(color: EverforestColors.red)))
               : Stack(
                   children: [
                     // Smooth SelectionArea Reading (Zero Touch Scroll Traps)
@@ -487,7 +487,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                                   child: Text(
                                     kathisma.title.toUpperCase(),
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: EverforestColors.yellow,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -525,7 +525,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                                               ),
                                               child: Text(
                                                 'ΨΑΛΜΟΣ ${psalm.number}ος',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   color: EverforestColors.yellow,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
@@ -572,7 +572,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                const Row(
+                                                Row(
                                                   children: [
                                                     Icon(Icons.translate_rounded, size: 14, color: EverforestColors.aqua),
                                                     SizedBox(width: 6),
@@ -647,7 +647,7 @@ class _PsalterScreenState extends State<PsalterScreen> {
                             onTap: _showIndexSheet,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.format_list_numbered_rounded, color: EverforestColors.bg0, size: 18),

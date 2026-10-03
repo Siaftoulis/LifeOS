@@ -133,7 +133,7 @@ class _ZenAIPanelState extends State<ZenAIPanel> {
             children: [
               Row(
                 children: [
-                  const Text('Zen Code AI',
+                  Text('Zen Code AI',
                       style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16)),
                   const Spacer(),
                   _statusChip(),
@@ -180,30 +180,30 @@ class _ZenAIPanelState extends State<ZenAIPanel> {
                     child: TextField(
                       controller: _question,
                       enabled: _aiAvailable,
-                      style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                      style: TextStyle(color: EverforestColors.fg, fontSize: 13),
                       decoration: InputDecoration(
                         hintText: _aiAvailable ? 'Ask about this book...' : 'AI offline — start the local LLM',
-                        hintStyle: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                        hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 13),
                         filled: true,
                         fillColor: EverforestColors.bg0,
                         isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: EverforestColors.bg2),
+                          borderSide: BorderSide(color: EverforestColors.bg2),
                         ),
                       ),
                       onSubmitted: (_) => _ask(),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.send, color: EverforestColors.yellow),
+                    icon: Icon(Icons.send, color: EverforestColors.yellow),
                     onPressed: _busy || !_aiAvailable ? null : _ask,
                   ),
                 ],
               ),
               if (_answerChapter.isNotEmpty)
                 Text('From: $_answerChapter',
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
               if (_answer.isNotEmpty)
                 _card('Answer', _answer, EverforestColors.yellow),
             ],
@@ -215,7 +215,7 @@ class _ZenAIPanelState extends State<ZenAIPanel> {
 
   Widget _statusChip() {
     if (_checking) {
-      return const SizedBox(
+      return SizedBox(
         width: 16, height: 16,
         child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.grey),
       );
@@ -268,7 +268,7 @@ class _ZenAIPanelState extends State<ZenAIPanel> {
         children: [
           Text(title, style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(text, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+          Text(text, style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
         ],
       ),
     );

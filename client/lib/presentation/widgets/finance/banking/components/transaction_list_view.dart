@@ -14,7 +14,7 @@ class TransactionListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
-      return const Text('No transactions yet',
+      return Text('No transactions yet',
           style: TextStyle(color: EverforestColors.grey));
     }
 
@@ -86,13 +86,13 @@ class TransactionListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 16,
                         fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text('$category • $date',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: EverforestColors.grey, fontSize: 12)),
               ],
             ),

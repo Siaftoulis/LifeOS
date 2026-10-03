@@ -30,7 +30,7 @@ class ChatMessageBubble extends StatelessWidget {
               backgroundColor: EverforestColors.bg2,
               child: Text(
                 message.senderName.isNotEmpty ? message.senderName[0].toUpperCase() : '?',
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 11, fontWeight: FontWeight.bold),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 11, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 8),
@@ -63,7 +63,7 @@ class ChatMessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         message.senderName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.yellow,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,

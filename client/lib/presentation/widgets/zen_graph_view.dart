@@ -261,11 +261,11 @@ class _ZenGraphViewState extends State<ZenGraphView> with SingleTickerProviderSt
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.hub, color: EverforestColors.green, size: 18),
+                      Icon(Icons.hub, color: EverforestColors.green, size: 18),
                       const SizedBox(width: 8),
                       Text(
                         'Graph View (${_graphNodes.length} Nodes)',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,

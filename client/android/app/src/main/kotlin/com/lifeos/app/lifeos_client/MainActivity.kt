@@ -20,15 +20,27 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.lifeos.app/ota_installer"
     private var pendingLaunchArgs: Map<String, Any>? = null
+    private var pendingMediaAction: String? = null
 
     companion object {
         private const val MEDIA_CHANNEL = "com.lifeos.app/media_session"
         private var mediaMethodChannel: MethodChannel? = null
         private var activityInstance: MainActivity? = null
 
-        fun dispatchMediaAction(action: String) {
-            activityInstance?.runOnUiThread {
-                mediaMethodChannel?.invokeMethod("onMediaAction", action)
+        fun dispatchMediaAction(action: String, context: Context? = null) {
+            val inst = activityInstance
+            val channel = mediaMethodChannel
+            if (inst != null && channel != null) {
+                inst.runOnUiThread {
+                    channel.invokeMethod("onMediaAction", action)
+                }
+            } else if (context != null) {
+                val launchIntent = Intent(context, MainActivity::class.java).apply {
+                    this.action = "com.lifeos.app.ACTION_MEDIA_COMMAND"
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra("media_action", action)
+                }
+                context.startActivity(launchIntent)
             }
         }
 
@@ -55,6 +67,18 @@ class MainActivity : FlutterActivity() {
 
     private fun handleLaunchIntent(intent: Intent?) {
         if (intent == null) return
+        val mediaAction = intent.getStringExtra("media_action")
+        if (mediaAction != null) {
+            val channel = mediaMethodChannel
+            if (channel != null) {
+                activityInstance?.runOnUiThread {
+                    channel.invokeMethod("onMediaAction", mediaAction)
+                }
+            } else {
+                pendingMediaAction = mediaAction
+            }
+        }
+
         val targetTab = intent.getStringExtra("target_tab")
         val openNowPlaying = intent.getBooleanExtra("open_now_playing", false)
         if (targetTab != null || openNowPlaying) {
@@ -63,8 +87,11 @@ class MainActivity : FlutterActivity() {
                 "open_now_playing" to openNowPlaying
             )
             pendingLaunchArgs = args
-            activityInstance?.runOnUiThread {
-                mediaMethodChannel?.invokeMethod("onWidgetLaunch", args)
+            val channel = mediaMethodChannel
+            if (channel != null) {
+                activityInstance?.runOnUiThread {
+                    channel.invokeMethod("onWidgetLaunch", args)
+                }
             }
         }
     }
@@ -212,6 +239,10 @@ class MainActivity : FlutterActivity() {
                 "getInitialWidgetLaunch" -> {
                     result.success(pendingLaunchArgs)
                     pendingLaunchArgs = null
+                }
+                "getInitialMediaAction" -> {
+                    result.success(pendingMediaAction)
+                    pendingMediaAction = null
                 }
                 "updateWidgetConfig" -> {
                     val showArtwork = call.argument<Boolean>("showArtwork") ?: true

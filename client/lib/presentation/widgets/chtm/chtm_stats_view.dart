@@ -71,7 +71,7 @@ class CHTMStatsView extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Total Productivity XP',
                           style: TextStyle(
                             color: EverforestColors.grey,
@@ -82,12 +82,12 @@ class CHTMStatsView extends StatelessWidget {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.bolt,
+                            Icon(Icons.bolt,
                                 color: EverforestColors.yellow, size: 28),
                             const SizedBox(width: 4),
                             Text(
                               '$totalXpEarned XP',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
@@ -107,7 +107,7 @@ class CHTMStatsView extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'Active Habits',
                             style: TextStyle(
                                 color: EverforestColors.green,
@@ -116,7 +116,7 @@ class CHTMStatsView extends StatelessWidget {
                           ),
                           Text(
                             '$completedHabitsToday / $activeHabits Today',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold),
@@ -159,7 +159,7 @@ class CHTMStatsView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Detailed Breakdowns
-              const Text(
+              Text(
                 'CHTM Breakdown',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -183,14 +183,14 @@ class CHTMStatsView extends StatelessWidget {
                       color: EverforestColors.purple,
                       icon: Icons.calendar_month,
                     ),
-                    const Divider(color: EverforestColors.bg2, height: 24),
+                    Divider(color: EverforestColors.bg2, height: 24),
                     StatRow(
                       label: 'Pending Tasks',
                       count: '${totalTasks - completedTasks}',
                       color: EverforestColors.yellow,
                       icon: Icons.pending_actions,
                     ),
-                    const Divider(color: EverforestColors.bg2, height: 24),
+                    Divider(color: EverforestColors.bg2, height: 24),
                     StatRow(
                       label: 'Total Habits Tracked',
                       count: '$activeHabits',

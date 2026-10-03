@@ -44,7 +44,7 @@ class UpdateReadyBanner extends StatelessWidget {
                       color: EverforestColors.green.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.system_update_alt_rounded,
                       color: EverforestColors.green,
                       size: 22,
@@ -61,7 +61,7 @@ class UpdateReadyBanner extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              const Text(
+                              Text(
                                 'Update Ready',
                                 style: TextStyle(
                                   color: EverforestColors.fg,
@@ -78,7 +78,7 @@ class UpdateReadyBanner extends StatelessWidget {
                                 ),
                                 child: Text(
                                   release.tagName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: EverforestColors.bg0,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
@@ -86,7 +86,7 @@ class UpdateReadyBanner extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              const Icon(Icons.info_outline_rounded, size: 14, color: EverforestColors.aqua),
+                              Icon(Icons.info_outline_rounded, size: 14, color: EverforestColors.aqua),
                             ],
                           ),
                           const SizedBox(height: 2),
@@ -119,7 +119,7 @@ class UpdateReadyBanner extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 18, color: EverforestColors.grey),
+                    icon: Icon(Icons.close_rounded, size: 18, color: EverforestColors.grey),
                     onPressed: () => ota.dismissUpdateNotification(),
                     tooltip: 'Dismiss',
                     padding: EdgeInsets.zero,

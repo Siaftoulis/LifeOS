@@ -297,12 +297,12 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: EverforestColors.bg1,
-          title: Text('Launch ${app.name}?', style: const TextStyle(color: EverforestColors.fg)),
-          content: Text('Launching this app will cost $cost Star Points.\n\nCurrent Points: $_currentPoints', style: const TextStyle(color: EverforestColors.grey)),
+          title: Text('Launch ${app.name}?', style: TextStyle(color: EverforestColors.fg)),
+          content: Text('Launching this app will cost $cost Star Points.\n\nCurrent Points: $_currentPoints', style: TextStyle(color: EverforestColors.grey)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+              child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
@@ -346,11 +346,11 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
               if (app.icon != null)
                 Image.memory(app.icon!, width: 44, height: 44)
               else
-                const Icon(Icons.android, size: 44, color: EverforestColors.green),
+                Icon(Icons.android, size: 44, color: EverforestColors.green),
               const SizedBox(height: 6),
               Text(
                 app.name,
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 11),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -399,7 +399,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
                     const SizedBox(width: 12),
                     Text(
                       category,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -408,7 +408,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
                     const SizedBox(width: 6),
                     Text(
                       '(${appsInCategory.length})',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.grey,
                         fontSize: 11,
                       ),
@@ -445,11 +445,11 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
                         if (app.icon != null)
                           Image.memory(app.icon!, width: 40, height: 40)
                         else
-                          const Icon(Icons.android, size: 40, color: EverforestColors.green),
+                          Icon(Icons.android, size: 40, color: EverforestColors.green),
                         const SizedBox(height: 6),
                         Text(
                           app.name,
-                          style: const TextStyle(color: EverforestColors.fg, fontSize: 11),
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 11),
                           textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -484,7 +484,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('App Drawer', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('App Drawer', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   IconButton(
@@ -512,9 +512,9 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.star, color: EverforestColors.yellow, size: 20),
+                  Icon(Icons.star, color: EverforestColors.yellow, size: 20),
                   const SizedBox(width: 4),
-                  Text('$_currentPoints pts', style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
+                  Text('$_currentPoints pts', style: TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold)),
                 ],
               )
             ],
@@ -522,7 +522,7 @@ class _AndroidLauncherWidgetState extends State<AndroidLauncherWidget> {
           const SizedBox(height: 16),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: EverforestColors.green))
+                ? Center(child: CircularProgressIndicator(color: EverforestColors.green))
                 : (isFolderView ? _buildFolderView() : _buildFlatView()),
           ),
         ],

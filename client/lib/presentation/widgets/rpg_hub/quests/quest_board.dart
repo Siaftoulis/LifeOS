@@ -80,7 +80,7 @@ class _QuestBoardState extends State<QuestBoard> {
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: EverforestColors.fg, width: 1.5),
                   ),
-                  child: const Text('QUEST BOARD', style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                  child: Text('QUEST BOARD', style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -90,9 +90,9 @@ class _QuestBoardState extends State<QuestBoard> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.star_border, color: EverforestColors.yellow, size: 16),
+                      Icon(Icons.star_border, color: EverforestColors.yellow, size: 16),
                       const SizedBox(width: 8),
-                      Text(_isLoading ? '...' : _points.toString(), style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(_isLoading ? '...' : _points.toString(), style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -102,7 +102,7 @@ class _QuestBoardState extends State<QuestBoard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('AVAILABLE QUESTS', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
+                Text('AVAILABLE QUESTS', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
                 ElevatedButton.icon(
                   onPressed: _showAddQuestDialog,
                   icon: const Icon(Icons.add, size: 16),
@@ -111,7 +111,7 @@ class _QuestBoardState extends State<QuestBoard> {
                     backgroundColor: EverforestColors.bg1,
                     foregroundColor: EverforestColors.green,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: EverforestColors.green)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: EverforestColors.green)),
                   ),
                 )
               ],

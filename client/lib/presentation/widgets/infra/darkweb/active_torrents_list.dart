@@ -21,7 +21,7 @@ class ActiveTorrentsList extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: ListView.separated(
         itemCount: torrents.length,
-        separatorBuilder: (_, __) => const Divider(color: EverforestColors.bg2),
+        separatorBuilder: (_, __) => Divider(color: EverforestColors.bg2),
         itemBuilder: (context, index) {
           final t = torrents[index];
           final status = t['status'] as String;
@@ -40,7 +40,7 @@ class ActiveTorrentsList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(t['name'] as String, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+                      Text(t['name'] as String, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                         value: t['progress'] as double,
@@ -51,8 +51,8 @@ class ActiveTorrentsList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('↓ ${t['down']}', style: const TextStyle(color: EverforestColors.grey, fontSize: 10)),
-                          Text('↑ ${t['up']}', style: const TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                          Text('↓ ${t['down']}', style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                          Text('↑ ${t['up']}', style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                         ],
                       ),
                     ],
@@ -64,7 +64,7 @@ class ActiveTorrentsList extends StatelessWidget {
                   children: [
                     Text(status, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     IconButton(
-                      icon: const Icon(Icons.stop_circle, color: EverforestColors.red, size: 20),
+                      icon: Icon(Icons.stop_circle, color: EverforestColors.red, size: 20),
                       onPressed: () {},
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),

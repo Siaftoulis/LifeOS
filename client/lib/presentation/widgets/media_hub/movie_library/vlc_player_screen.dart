@@ -11,7 +11,7 @@ class VLCPlayerScreen extends StatelessWidget {
       body: Stack(
         children: [
           // Mock Video Display
-          const Center(
+          Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -26,7 +26,7 @@ class VLCPlayerScreen extends StatelessWidget {
             top: 40,
             left: 16,
             child: IconButton(
-              icon: const Icon(Icons.close, color: EverforestColors.fg, size: 32),
+              icon: Icon(Icons.close, color: EverforestColors.fg, size: 32),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -43,9 +43,9 @@ class VLCPlayerScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.play_arrow, color: EverforestColors.fg, size: 36),
+                  Icon(Icons.play_arrow, color: EverforestColors.fg, size: 36),
                   const SizedBox(width: 16),
-                  const Text('01:23:45', style: TextStyle(color: EverforestColors.fg)),
+                  Text('01:23:45', style: TextStyle(color: EverforestColors.fg)),
                   const SizedBox(width: 16),
                   Expanded(
                     child: LinearProgressIndicator(
@@ -55,11 +55,11 @@ class VLCPlayerScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text('02:15:00', style: TextStyle(color: EverforestColors.fg)),
+                  Text('02:15:00', style: TextStyle(color: EverforestColors.fg)),
                   const SizedBox(width: 24),
-                  const Icon(Icons.subtitles, color: EverforestColors.green, size: 28),
+                  Icon(Icons.subtitles, color: EverforestColors.green, size: 28),
                   const SizedBox(width: 16),
-                  const Icon(Icons.volume_up, color: EverforestColors.fg, size: 28),
+                  Icon(Icons.volume_up, color: EverforestColors.fg, size: 28),
                 ],
               ),
             ),

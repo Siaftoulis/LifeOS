@@ -61,7 +61,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
-        const Text(
+        Text(
           'SMART ALBUMS',
           style: TextStyle(
             color: EverforestColors.grey,
@@ -123,7 +123,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
 
         // Semantic AI Tags Section
         if (tagCounts.isNotEmpty) ...[
-          const Text(
+          Text(
             'AI SEMANTIC TAGS',
             style: TextStyle(
               color: EverforestColors.grey,
@@ -156,12 +156,12 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.tag_rounded,
+                      Icon(Icons.tag_rounded,
                           color: EverforestColors.green, size: 16),
                       const SizedBox(width: 6),
                       Text(
                         tag,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -177,7 +177,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
                         ),
                         child: Text(
                           '$count',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.green,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontWeight: FontWeight.bold,
                           fontSize: 14.5,
@@ -258,7 +258,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
                       const SizedBox(height: 2),
                       Text(
                         '$count items',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.grey,
                           fontSize: 12,
                         ),
@@ -286,7 +286,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_rounded,
+                icon: Icon(Icons.arrow_back_rounded,
                     color: EverforestColors.fg),
                 onPressed: _clearFilter,
               ),
@@ -294,7 +294,7 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
               Expanded(
                 child: Text(
                   _selectedFilterTitle ?? 'Album',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -304,15 +304,15 @@ class _GallerySmartAlbumsViewState extends State<GallerySmartAlbumsView> {
               Text(
                 '${items.length} items',
                 style:
-                    const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                    TextStyle(color: EverforestColors.grey, fontSize: 13),
               ),
             ],
           ),
         ),
-        const Divider(color: EverforestColors.bg2, height: 1),
+        Divider(color: EverforestColors.bg2, height: 1),
         Expanded(
           child: items.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text('No items in this album',
                       style: TextStyle(color: EverforestColors.grey)),
                 )

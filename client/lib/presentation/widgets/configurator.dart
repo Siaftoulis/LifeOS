@@ -236,7 +236,7 @@ class _ProfileSettingsPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: EverforestColors.red, width: 1),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.lock, color: EverforestColors.red, size: 20),
                       SizedBox(width: 12),
@@ -353,11 +353,11 @@ class _SystemPreferencesPage extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       title: Text(
         title,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
+        style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+        style: TextStyle(color: EverforestColors.grey, fontSize: 11),
       ),
       trailing: Switch(
         value: value,
@@ -376,13 +376,13 @@ class _SystemPreferencesPage extends StatelessWidget {
       leading: Icon(icon, color: EverforestColors.green),
       title: Text(
         title,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
+        style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w500),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+        style: TextStyle(color: EverforestColors.grey, fontSize: 11),
       ),
-      trailing: const Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
+      trailing: Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
       onTap: onTap,
     );
   }
@@ -404,7 +404,7 @@ class _UiSettingsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             physics: const BouncingScrollPhysics(),
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
                 child: Text(
                   'SPATIAL MATRIX EDITOR',
@@ -418,7 +418,7 @@ class _UiSettingsPage extends StatelessWidget {
               ),
               SpatialMatrixEditorWidget(isChild: isChild),
               const SizedBox(height: 24),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
                 child: Text(
                   'LAUNCHER LAYOUT GRID',
@@ -495,7 +495,7 @@ class _ModulesCatalogPage extends StatelessWidget {
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: EverforestColors.bg2),
+              side: BorderSide(color: EverforestColors.bg2),
             ),
             margin: const EdgeInsets.only(bottom: 10),
             child: ListTile(
@@ -512,7 +512,7 @@ class _ModulesCatalogPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       mod['name'] as String,
-                      style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                   Container(
@@ -523,7 +523,7 @@ class _ModulesCatalogPage extends StatelessWidget {
                     ),
                     child: Text(
                       mod['category'] as String,
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 10),
+                      style: TextStyle(color: EverforestColors.grey, fontSize: 10),
                     ),
                   ),
                 ],
@@ -532,10 +532,10 @@ class _ModulesCatalogPage extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   mod['desc'] as String,
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                 ),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, color: EverforestColors.grey, size: 14),
+              trailing: Icon(Icons.arrow_forward_ios_rounded, color: EverforestColors.grey, size: 14),
               onTap: () {
                 Navigator.push(
                   context,
@@ -543,8 +543,8 @@ class _ModulesCatalogPage extends StatelessWidget {
                     builder: (_) => Scaffold(
                       appBar: AppBar(
                         backgroundColor: EverforestColors.bg0,
-                        title: Text(mod['name'] as String, style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
-                        iconTheme: const IconThemeData(color: EverforestColors.green),
+                        title: Text(mod['name'] as String, style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
+                        iconTheme: IconThemeData(color: EverforestColors.green),
                       ),
                       body: AppModuleRouter.buildModule(mod['id'] as String),
                     ),

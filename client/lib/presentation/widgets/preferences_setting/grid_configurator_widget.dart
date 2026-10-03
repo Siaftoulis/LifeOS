@@ -12,7 +12,7 @@ class GridConfiguratorWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Launcher Layout Grid', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Launcher Layout Grid', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           GridView.count(
             shrinkWrap: true,
@@ -36,7 +36,7 @@ class _DragSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: EverforestColors.bg2, borderRadius: BorderRadius.circular(8)),
-      child: Center(child: Text('Slot ${index + 1}', style: const TextStyle(color: EverforestColors.grey))),
+      child: Center(child: Text('Slot ${index + 1}', style: TextStyle(color: EverforestColors.grey))),
     );
   }
 }

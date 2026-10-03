@@ -33,9 +33,9 @@ class VMCondensedCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(name, style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('$type | ${ram}MB RAM', style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+                Text('$type | ${ram}MB RAM', style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
               ],
             ),
           ),

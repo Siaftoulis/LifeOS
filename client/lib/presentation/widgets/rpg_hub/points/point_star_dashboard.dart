@@ -26,7 +26,7 @@ class PointStarDashboard extends StatelessWidget {
         final isAdmin = user?.role == 'ADMIN';
 
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -49,7 +49,7 @@ class PointStarDashboard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'S Y S T E M',
                         style: TextStyle(
                           color: EverforestColors.green,

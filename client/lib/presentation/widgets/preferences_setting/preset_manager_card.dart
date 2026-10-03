@@ -21,9 +21,9 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
         backgroundColor: EverforestColors.bg1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: EverforestColors.bg2),
+          side: BorderSide(color: EverforestColors.bg2),
         ),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.bookmark_add_rounded, color: EverforestColors.green),
             SizedBox(width: 10),
@@ -34,7 +34,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Save your current tile arrangement, app drawer folders, and Zen notes setup into a permanent preset.',
               style: TextStyle(color: EverforestColors.grey, fontSize: 12),
             ),
@@ -42,19 +42,19 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
             TextField(
               controller: _presetNameController,
               autofocus: true,
-              style: const TextStyle(color: EverforestColors.fg),
+              style: TextStyle(color: EverforestColors.fg),
               decoration: InputDecoration(
                 hintText: 'e.g. Work Focus, Media Hub, Minimalist',
-                hintStyle: const TextStyle(color: EverforestColors.grey),
+                hintStyle: TextStyle(color: EverforestColors.grey),
                 filled: true,
                 fillColor: EverforestColors.bg0,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: EverforestColors.bg2),
+                  borderSide: BorderSide(color: EverforestColors.bg2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: EverforestColors.green),
+                  borderSide: BorderSide(color: EverforestColors.green),
                 ),
               ),
             ),
@@ -63,7 +63,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('CANCEL', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('CANCEL', style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -88,7 +88,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: EverforestColors.bg1,
-            content: Text('Preset "$name" saved successfully!', style: const TextStyle(color: EverforestColors.green)),
+            content: Text('Preset "$name" saved successfully!', style: TextStyle(color: EverforestColors.green)),
           ),
         );
       }
@@ -103,9 +103,9 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
         backgroundColor: EverforestColors.bg1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: EverforestColors.bg2),
+          side: BorderSide(color: EverforestColors.bg2),
         ),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.file_upload_outlined, color: EverforestColors.blue),
             SizedBox(width: 10),
@@ -117,7 +117,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Paste your exported JSON presets below to restore your custom layouts and settings.',
                 style: TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
@@ -125,20 +125,20 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
               TextField(
                 controller: controller,
                 maxLines: 8,
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 12, fontFamily: 'JetBrainsMono'),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 12, fontFamily: 'JetBrainsMono'),
                 decoration: InputDecoration(
                   hintText: '{\n  "savedPresets": { ... }\n}',
-                  hintStyle: const TextStyle(color: EverforestColors.grey),
+                  hintStyle: TextStyle(color: EverforestColors.grey),
                   filled: true,
                   fillColor: EverforestColors.bg0,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: EverforestColors.bg2)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: EverforestColors.bg2)),
                 ),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL', style: TextStyle(color: EverforestColors.grey))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('CANCEL', style: TextStyle(color: EverforestColors.grey))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.blue, foregroundColor: EverforestColors.bg0),
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
@@ -168,7 +168,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
     final jsonStr = PreferencesService.exportPresetsJson();
     Clipboard.setData(ClipboardData(text: jsonStr));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         backgroundColor: EverforestColors.bg1,
         content: Row(
           children: [
@@ -201,10 +201,10 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
                   color: EverforestColors.blue.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.dashboard_customize_rounded, color: EverforestColors.blue, size: 20),
+                child: Icon(Icons.dashboard_customize_rounded, color: EverforestColors.blue, size: 20),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -246,7 +246,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
                 ),
                 child: Row(
                   children: [
-                    const Text('ACTIVE PRESET:', style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text('ACTIVE PRESET:', style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -254,11 +254,11 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
                         color: EverforestColors.green.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(activeName, style: const TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+                      child: Text(activeName, style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.copy_rounded, color: EverforestColors.grey, size: 16),
+                      icon: Icon(Icons.copy_rounded, color: EverforestColors.grey, size: 16),
                       tooltip: 'Export JSON',
                       onPressed: _exportJson,
                       padding: EdgeInsets.zero,
@@ -266,7 +266,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
                     ),
                     const SizedBox(width: 12),
                     IconButton(
-                      icon: const Icon(Icons.file_upload_outlined, color: EverforestColors.grey, size: 16),
+                      icon: Icon(Icons.file_upload_outlined, color: EverforestColors.grey, size: 16),
                       tooltip: 'Import JSON',
                       onPressed: _showImportJsonDialog,
                       padding: EdgeInsets.zero,
@@ -285,7 +285,7 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
               if (presets.isEmpty) {
                 return Container(
                   padding: const EdgeInsets.all(12),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       'No custom presets saved yet. Click "Save Preset" to capture your current layout!',
                       style: TextStyle(color: EverforestColors.grey, fontSize: 12),
@@ -331,10 +331,10 @@ class _PresetManagerCardState extends State<PresetManagerCard> {
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   minimumSize: Size.zero,
                                 ),
-                                child: const Text('APPLY', style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+                                child: Text('APPLY', style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.bold)),
                               ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 16),
+                              icon: Icon(Icons.delete_outline_rounded, color: EverforestColors.red, size: 16),
                               tooltip: 'Delete preset',
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),

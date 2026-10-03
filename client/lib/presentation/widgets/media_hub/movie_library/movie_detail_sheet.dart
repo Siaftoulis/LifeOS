@@ -73,22 +73,22 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Delete Movie?',
+        title: Text('Delete Movie?',
             style: TextStyle(color: EverforestColors.fg)),
         content: Text(
           'Are you sure you want to remove "${_movie.title}" from your library?',
-          style: const TextStyle(color: EverforestColors.grey),
+          style: TextStyle(color: EverforestColors.grey),
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(ctx, false),
           ),
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: EverforestColors.red),
-            child: const Text('Delete',
+            child: Text('Delete',
                 style: TextStyle(color: EverforestColors.bg0)),
             onPressed: () => Navigator.pop(ctx, true),
           ),
@@ -177,13 +177,13 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
                                   color: EverforestColors.bg1,
-                                  child: const Icon(Icons.movie_rounded,
+                                  child: Icon(Icons.movie_rounded,
                                       color: EverforestColors.grey, size: 40),
                                 ),
                               )
                             : Container(
                                 color: EverforestColors.bg1,
-                                child: const Icon(Icons.movie_rounded,
+                                child: Icon(Icons.movie_rounded,
                                     color: EverforestColors.grey, size: 40),
                               ),
                       ),
@@ -195,7 +195,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                         children: [
                           Text(
                             _movie.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -214,7 +214,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                                   ),
                                   child: Text(
                                     _movie.year,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: EverforestColors.fg,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -238,13 +238,13 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.star_rounded,
+                                      Icon(Icons.star_rounded,
                                           color: EverforestColors.yellow,
                                           size: 14),
                                       const SizedBox(width: 4),
                                       Text(
                                         _movie.tmdbRating.toStringAsFixed(1),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: EverforestColors.yellow,
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                             const SizedBox(height: 8),
                             Text(
                               'Director: ${_movie.director}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 13,
                               ),
@@ -324,7 +324,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                         ),
                         child: Text(
                           g,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.green,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -337,7 +337,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                 ],
 
                 // Status Switcher
-                const Text(
+                Text(
                   'STATUS',
                   style: TextStyle(
                     color: EverforestColors.grey,
@@ -363,7 +363,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
 
                 // Overview
                 if (_movie.overview.isNotEmpty) ...[
-                  const Text(
+                  Text(
                     'SYNOPSIS',
                     style: TextStyle(
                       color: EverforestColors.grey,
@@ -375,7 +375,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                   const SizedBox(height: 8),
                   Text(
                     _movie.overview,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.fg,
                       fontSize: 14,
                       height: 1.5,
@@ -410,13 +410,13 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.star_outline_rounded,
+                        icon: Icon(Icons.star_outline_rounded,
                             color: EverforestColors.yellow, size: 20),
                         label: Text(
                           _movie.rating > 0
                               ? '${_movie.rating.toStringAsFixed(1)} ★'
                               : 'Write Review',
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: EverforestColors.yellow),
                         ),
                         style: OutlinedButton.styleFrom(
@@ -438,9 +438,9 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
                 // Delete movie button
                 Center(
                   child: TextButton.icon(
-                    icon: const Icon(Icons.delete_outline_rounded,
+                    icon: Icon(Icons.delete_outline_rounded,
                         color: EverforestColors.red, size: 18),
-                    label: const Text('Remove from Library',
+                    label: Text('Remove from Library',
                         style: TextStyle(color: EverforestColors.red)),
                     onPressed: _confirmDelete,
                   ),
@@ -452,7 +452,7 @@ class _MovieDetailSheetState extends State<MovieDetailSheet> {
             Positioned.fill(
               child: Container(
                 color: Colors.black45,
-                child: const Center(
+                child: Center(
                   child: CircularProgressIndicator(
                       color: EverforestColors.green),
                 ),

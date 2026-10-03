@@ -6,6 +6,7 @@ import 'components/download_quality_dialog.dart';
 import 'components/music_cover_art.dart';
 import 'components/poweramp_track_context_sheet.dart';
 import 'music_formatters.dart';
+import 'tabs/feed_home_sliver.dart';
 
 /// 1:1 Poweramp Search & Grouped Categories Screen matching Screenshots 2 & 3.
 class PowerampSearchView extends StatefulWidget {
@@ -15,6 +16,10 @@ class PowerampSearchView extends StatefulWidget {
   final void Function(MusicTrack track) onPlayTrack;
   final List<MusicTrack>? remoteResults;
   final bool isSearching;
+  final List<MusicTrack>? recommendedTracks;
+  final List<MusicTrack>? dailyMixTracks;
+  final void Function(MusicTrack track)? onDownloadTrack;
+  final void Function(MusicTrack track)? onAddToPlaylist;
 
   const PowerampSearchView({
     super.key,
@@ -25,6 +30,10 @@ class PowerampSearchView extends StatefulWidget {
     this.onPlayTrackList,
     this.remoteResults,
     this.isSearching = false,
+    this.recommendedTracks,
+    this.dailyMixTracks,
+    this.onDownloadTrack,
+    this.onAddToPlaylist,
   });
 
   final void Function(List<MusicTrack> tracks, int index)? onPlayTrackList;
@@ -143,96 +152,117 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
             if (widget.isSearching)
               const LinearProgressIndicator(minHeight: 2),
 
-            // Category Filter Pills Carousel
-            SizedBox(
-              height: 38,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final cat = _categories[index];
-                  final isSelected = _selectedFilterIndex == index;
-                  return ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    selectedColor: Colors.white.withValues(alpha: 0.18),
-                    backgroundColor: skin.bg1,
-                    side: BorderSide(
-                      color: isSelected ? Colors.white30 : Colors.transparent,
+            if (query.isEmpty)
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    FeedHomeSliver(
+                      tracks: allTracks,
+                      recommendedTracks: widget.recommendedTracks ?? const [],
+                      dailyMixTracks: widget.dailyMixTracks ?? const [],
+                      likedTracks: MusicRepository.instance.likedTracks.value,
+                      canPlay: true,
+                      onPlayTrack: widget.onPlayTrack,
+                      onPlayTrackList: widget.onPlayTrackList ??
+                          (list, index) => widget.onPlayTrack(list[index]),
+                      onDownloadTrack: widget.onDownloadTrack ?? (_) {},
+                      onAddToPlaylist: widget.onAddToPlaylist ?? (_) {},
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    labelStyle: TextStyle(
-                      color: isSelected ? skin.fg : skin.textMuted,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 12.5,
-                    ),
-                    onSelected: (_) {
-                      setState(() => _selectedFilterIndex = index);
-                    },
-                  );
-                },
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                  ],
+                ),
+              )
+            else ...[
+              // Category Filter Pills Carousel
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final cat = _categories[index];
+                    final isSelected = _selectedFilterIndex == index;
+                    return ChoiceChip(
+                      label: Text(cat),
+                      selected: isSelected,
+                      selectedColor: Colors.white.withValues(alpha: 0.18),
+                      backgroundColor: skin.bg1,
+                      side: BorderSide(
+                        color: isSelected ? Colors.white30 : Colors.transparent,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      labelStyle: TextStyle(
+                        color: isSelected ? skin.fg : skin.textMuted,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 12.5,
+                      ),
+                      onSelected: (_) {
+                        setState(() => _selectedFilterIndex = index);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            // Quick Actions Bar: [ Shuffle ] [ Play ] [ Select ] [ ⋮ ]
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  _buildActionButton(
-                    icon: Icons.shuffle_rounded,
-                    skin: skin,
-                    onTap: () {
-                      if (combinedTracks.isNotEmpty) {
-                        final shuffled = List<MusicTrack>.from(combinedTracks)..shuffle();
-                        widget.onPlayTrack(shuffled.first);
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildActionButton(
-                    icon: Icons.play_arrow_rounded,
-                    skin: skin,
-                    onTap: () {
-                      if (combinedTracks.isNotEmpty) {
-                        widget.onPlayTrack(combinedTracks.first);
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  _buildPillActionButton(
-                    label: _selectionMode ? 'Done' : 'Select',
-                    isActive: _selectionMode,
-                    skin: skin,
-                    onTap: () {
-                      setState(() {
-                        _selectionMode = !_selectionMode;
-                        if (!_selectionMode) _selectedTrackIds.clear();
-                      });
-                    },
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.more_vert_rounded, color: skin.textMuted, size: 22),
-                    onPressed: () {},
-                  ),
-                ],
+              // Quick Actions Bar: [ Shuffle ] [ Play ] [ Select ] [ ⋮ ]
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    _buildActionButton(
+                      icon: Icons.shuffle_rounded,
+                      skin: skin,
+                      onTap: () {
+                        if (combinedTracks.isNotEmpty) {
+                          final shuffled = List<MusicTrack>.from(combinedTracks)..shuffle();
+                          widget.onPlayTrack(shuffled.first);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActionButton(
+                      icon: Icons.play_arrow_rounded,
+                      skin: skin,
+                      onTap: () {
+                        if (combinedTracks.isNotEmpty) {
+                          widget.onPlayTrack(combinedTracks.first);
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildPillActionButton(
+                      label: _selectionMode ? 'Done' : 'Select',
+                      isActive: _selectionMode,
+                      skin: skin,
+                      onTap: () {
+                        setState(() {
+                          _selectionMode = !_selectionMode;
+                          if (!_selectionMode) _selectedTrackIds.clear();
+                        });
+                      },
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.more_vert_rounded, color: skin.textMuted, size: 22),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            const Divider(height: 1, color: Colors.white10),
+              const Divider(height: 1, color: Colors.white10),
 
-            // Grouped Results List
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                children: [
+              // Grouped Results List
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                  children: [
                   // 0. YouTube Music Online Section (shown when All or YouTube Music is selected)
                   if ((_selectedFilterIndex == 0 || _selectedFilterIndex == 1) &&
                       widget.remoteResults != null &&
@@ -453,7 +483,8 @@ class _PowerampSearchViewState extends State<PowerampSearchView> {
               ),
             ),
           ],
-        );
+        ],
+      );
       },
     );
   }

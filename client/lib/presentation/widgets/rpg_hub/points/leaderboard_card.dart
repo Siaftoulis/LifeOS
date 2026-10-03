@@ -34,14 +34,14 @@ class LeaderboardCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(username, style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(username, style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 LinearProgressIndicator(value: points / 2000, color: rankColor, backgroundColor: EverforestColors.bg2),
               ],
             ),
           ),
           const SizedBox(width: 16),
-          Text('$points ⭐', style: const TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('$points ⭐', style: TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
     );

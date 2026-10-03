@@ -50,7 +50,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
           color: EverforestColors.bg1.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Center(
+        child: Center(
             child: CircularProgressIndicator(color: EverforestColors.yellow)),
       );
     }
@@ -70,7 +70,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            const Text('No active Main Quest.',
+            Text('No active Main Quest.',
                 style: TextStyle(color: EverforestColors.yellow, fontSize: 16)),
             if (widget.isAdmin)
               ElevatedButton.icon(
@@ -119,7 +119,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
               Expanded(
                 child: Text(
                   'MAIN QUEST: $title',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: EverforestColors.yellow,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -132,7 +132,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
                 children: [
                   Text(
                     '$progress / $target Stars',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 16,
                         fontWeight: FontWeight.bold),
@@ -140,7 +140,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
                   if (widget.isAdmin) ...[
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.edit,
+                      icon: Icon(Icons.edit,
                           color: EverforestColors.grey, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -178,15 +178,15 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Edit Main Quest',
+        title: Text('Edit Main Quest',
             style: TextStyle(color: EverforestColors.fg)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Quest Title',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(
@@ -197,8 +197,8 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
             TextField(
               controller: progressController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Current Progress (Stars)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(
@@ -209,8 +209,8 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
             TextField(
               controller: targetController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Target (Stars)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(
@@ -221,12 +221,12 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: const Text('Save',
+            child: Text('Save',
                 style: TextStyle(color: EverforestColors.green)),
             onPressed: () async {
               try {
@@ -264,15 +264,15 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Set Main Quest',
+        title: Text('Set Main Quest',
             style: TextStyle(color: EverforestColors.yellow)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleController,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Quest Title (e.g. Family Vacation)',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(
@@ -285,8 +285,8 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
             TextField(
               controller: targetController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: EverforestColors.fg),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg),
+              decoration: InputDecoration(
                 labelText: 'Target Stars',
                 labelStyle: TextStyle(color: EverforestColors.grey),
                 enabledBorder: UnderlineInputBorder(
@@ -299,7 +299,7 @@ class _FamilyGoalWidgetState extends State<FamilyGoalWidget> {
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),

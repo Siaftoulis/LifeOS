@@ -15,7 +15,7 @@ class PreferencesDashboardView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Preferences & System Settings', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
+          Text('Preferences & System Settings', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           Expanded(
             child: Row(

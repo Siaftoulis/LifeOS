@@ -72,10 +72,10 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
+          icon: Icon(Icons.arrow_back_rounded, color: EverforestColors.fg),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Συναξαριστής',
           style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.w600),
         ),
@@ -84,7 +84,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
         children: [
           _buildMonthSelector(),
           if (_isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator(color: EverforestColors.yellow)))
+            Expanded(child: Center(child: CircularProgressIndicator(color: EverforestColors.yellow)))
           else
             Expanded(
               child: LayoutBuilder(
@@ -123,19 +123,19 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left, color: EverforestColors.fg, size: 20),
+            icon: Icon(Icons.chevron_left, color: EverforestColors.fg, size: 20),
             onPressed: _selectedMonth > 1 ? () => _loadMonth(_selectedMonth - 1) : null,
           ),
           Expanded(
             child: Center(
               child: Text(
                 _monthNames[_selectedMonth],
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: EverforestColors.fg, size: 20),
+            icon: Icon(Icons.chevron_right, color: EverforestColors.fg, size: 20),
             onPressed: _selectedMonth < 12 ? () => _loadMonth(_selectedMonth + 1) : null,
           ),
         ],
@@ -200,7 +200,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
                 if (hasSaints)
                   Container(
                     width: 4, height: 4,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: EverforestColors.yellow),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: EverforestColors.yellow),
                   ),
               ],
             ),
@@ -228,11 +228,11 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_month_rounded, color: EverforestColors.yellow, size: 18),
+                    Icon(Icons.calendar_month_rounded, color: EverforestColors.yellow, size: 18),
                     const SizedBox(width: 8),
                     Text(
                       'Ημερολόγιο: $_selectedDay ${_monthNames[_selectedMonth]}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -241,7 +241,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
                     const Spacer(),
                     Text(
                       _isCalendarExpanded ? 'Απόκρυψη' : 'Αλλαγή ημέρας',
-                      style: const TextStyle(color: EverforestColors.aqua, fontSize: 11.5),
+                      style: TextStyle(color: EverforestColors.aqua, fontSize: 11.5),
                     ),
                     const SizedBox(width: 4),
                     Icon(
@@ -254,12 +254,12 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
               ),
             ),
             if (_isCalendarExpanded) ...[
-              const Divider(color: EverforestColors.bg2, height: 16),
+              Divider(color: EverforestColors.bg2, height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Row(
                   children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) =>
-                    Expanded(child: Center(child: Text(d, style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
+                    Expanded(child: Center(child: Text(d, style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
                   ).toList(),
                 ),
               ),
@@ -276,7 +276,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: ['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((d) =>
-              Expanded(child: Center(child: Text(d, style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
+              Expanded(child: Center(child: Text(d, style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.w600)))),
             ).toList(),
           ),
         ),
@@ -291,7 +291,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
       return Container(
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'Δεν υπάρχουν καταγεγραμμένοι άγιοι',
           style: TextStyle(color: EverforestColors.grey, fontSize: 14),
         ),
@@ -311,16 +311,16 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
         children: [
           Text(
             '${_selectedDay} ${_monthNames[_selectedMonth]}',
-            style: const TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(color: EverforestColors.yellow, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           if (dayData.feast.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(dayData.feast, style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+            Text(dayData.feast, style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
           ],
           const SizedBox(height: 4),
           Text(
             '${dayData.saintCount} ${dayData.saintCount == 1 ? 'Άγιος τιμάται' : 'Άγιοι τιμώνται'}',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 12),
           ),
         ],
       ),
@@ -380,7 +380,7 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
                       shape: BoxShape.circle,
                       color: EverforestColors.yellow.withValues(alpha: 0.15),
                     ),
-                    child: const Icon(Icons.person, color: EverforestColors.yellow, size: 20),
+                    child: Icon(Icons.person, color: EverforestColors.yellow, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -389,22 +389,22 @@ class _SynaxarionScreenState extends State<SynaxarionScreen> {
                       children: [
                         Text(
                           saint.name,
-                          style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.w600),
                         ),
                         if (saint.title.isNotEmpty)
-                          Text(saint.title, style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                          Text(saint.title, style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                       ],
                     ),
                   ),
                   if (hasLife || hasHymns)
-                    const Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
+                    Icon(Icons.chevron_right, color: EverforestColors.grey, size: 20),
                 ],
               ),
               if (saint.shortLife.isNotEmpty && saint.fullLife.isEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
                   saint.shortLife,
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -458,14 +458,14 @@ class _SaintDetailSheet extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: EverforestColors.yellow.withValues(alpha: 0.15),
                       ),
-                      child: const Icon(Icons.person, color: EverforestColors.yellow, size: 36),
+                      child: Icon(Icons.person, color: EverforestColors.yellow, size: 36),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
                       saint.name,
-                      style: const TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -474,7 +474,7 @@ class _SaintDetailSheet extends StatelessWidget {
                     Center(
                       child: Text(
                         saint.title,
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 13),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -512,7 +512,7 @@ class _SaintDetailSheet extends StatelessWidget {
       children: [
         Text(title, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         const SizedBox(height: 8),
-        Text(content, style: const TextStyle(color: EverforestColors.fg, fontSize: 15, height: 1.6)),
+        Text(content, style: TextStyle(color: EverforestColors.fg, fontSize: 15, height: 1.6)),
       ],
     );
   }
@@ -530,7 +530,7 @@ class _SaintDetailSheet extends StatelessWidget {
         children: [
           Text(title, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           const SizedBox(height: 8),
-          Text(content, style: const TextStyle(color: EverforestColors.fg, fontSize: 14, fontStyle: FontStyle.italic, height: 1.6)),
+          Text(content, style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontStyle: FontStyle.italic, height: 1.6)),
         ],
       ),
     );

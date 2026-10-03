@@ -75,11 +75,11 @@ class _CBZReaderScreenState extends State<CBZReaderScreen> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
-        title: Text(widget.book.title, style: const TextStyle(color: EverforestColors.fg, fontSize: 15)),
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
+        title: Text(widget.book.title, style: TextStyle(color: EverforestColors.fg, fontSize: 15)),
+        iconTheme: IconThemeData(color: EverforestColors.fg),
       ),
       body: _error != null
-          ? Center(child: Text(_error!, style: const TextStyle(color: EverforestColors.red)))
+          ? Center(child: Text(_error!, style: TextStyle(color: EverforestColors.red)))
           : _pages == null
               ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
               : GestureDetector(
@@ -113,7 +113,7 @@ class _CBZReaderScreenState extends State<CBZReaderScreen> {
                             ),
                             child: Text(
                               '${_current + 1} / ${_pages!.length}',
-                              style: const TextStyle(color: EverforestColors.fg, fontSize: 12),
+                              style: TextStyle(color: EverforestColors.fg, fontSize: 12),
                             ),
                           ),
                         ),

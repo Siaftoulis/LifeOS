@@ -21,7 +21,7 @@ class BackupStatusList extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: ListView.separated(
         itemCount: devices.length,
-        separatorBuilder: (_, __) => const Divider(color: EverforestColors.bg2),
+        separatorBuilder: (_, __) => Divider(color: EverforestColors.bg2),
         itemBuilder: (context, index) {
           final device = devices[index];
           final status = device['status'] as String;
@@ -40,7 +40,7 @@ class BackupStatusList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(device['name'] as String, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+                      Text(device['name'] as String, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                         value: device['progress'] as double,
@@ -55,7 +55,7 @@ class BackupStatusList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(status, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                    Text(device['last'] as String, style: const TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                    Text(device['last'] as String, style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                   ],
                 ),
               ],

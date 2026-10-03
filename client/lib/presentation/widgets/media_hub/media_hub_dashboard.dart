@@ -56,39 +56,56 @@ class _MediaHubDashboardState extends State<MediaHubDashboard>
 
   @override
   Widget build(BuildContext context) {
-    final skin = context.skin;
-    return Scaffold(
-      backgroundColor: skin.bg0,
-      appBar: AppBar(
-        backgroundColor: skin.bg1,
-        title: Text('Media Hub',
-            style: TextStyle(color: skin.fg, fontWeight: FontWeight.bold)),
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'Music'),
-            Tab(text: 'Movies'),
-            Tab(text: 'Gallery'),
-            Tab(text: 'YouTube'),
-          ],
-          labelColor: skin.accent,
-          unselectedLabelColor: skin.textMuted,
-          indicatorColor: skin.accent,
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        physics:
-            const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        children: const [
-          MusicDashboardWidget(),
-          MovieLibraryDashboard(),
-          GalleryHomeView(),
-          YoutubeClientDashboard(),
-        ],
-      ),
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) {
+        final skin = context.skin;
+        return Scaffold(
+          backgroundColor: skin.bg0,
+          appBar: AppBar(
+            backgroundColor: skin.bg1,
+            title: Text('Media Hub',
+                style: TextStyle(color: skin.fg, fontWeight: FontWeight.bold)),
+            elevation: 0,
+            bottom: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabs: const [
+                Tab(text: 'Music'),
+                Tab(text: 'Movies'),
+                Tab(text: 'Gallery'),
+                Tab(text: 'YouTube'),
+              ],
+              labelColor: skin.accent,
+              unselectedLabelColor: skin.textMuted,
+              indicatorColor: skin.accent,
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            physics:
+                const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            children: [
+              KeyedSubtree(
+                key: ValueKey('media_music_${skin.id}'),
+                child: const MusicDashboardWidget(),
+              ),
+              KeyedSubtree(
+                key: ValueKey('media_movies_${skin.id}'),
+                child: const MovieLibraryDashboard(),
+              ),
+              KeyedSubtree(
+                key: ValueKey('media_gallery_${skin.id}'),
+                child: const GalleryHomeView(),
+              ),
+              KeyedSubtree(
+                key: ValueKey('media_youtube_${skin.id}'),
+                child: const YoutubeClientDashboard(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

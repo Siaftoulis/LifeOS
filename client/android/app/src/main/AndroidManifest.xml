@@ -92,6 +92,7 @@
                 <action android:name="com.lifeos.app.ACTION_PLAY_PAUSE" />
                 <action android:name="com.lifeos.app.ACTION_NEXT" />
                 <action android:name="com.lifeos.app.ACTION_PREV" />
+                <action android:name="com.lifeos.app.ACTION_LIKE" />
             </intent-filter>
         </receiver>
 

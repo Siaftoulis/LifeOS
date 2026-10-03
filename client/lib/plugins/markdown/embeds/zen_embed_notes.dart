@@ -53,7 +53,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
   @override
   Widget build(BuildContext context) {
     if (_failed) {
-      return const Center(
+      return Center(
         child: Text(
           'Note not found — tap to open the editor',
           style: TextStyle(color: EverforestColors.grey),
@@ -62,7 +62,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
     }
     final n = _note;
     if (n == null) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
@@ -87,7 +87,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
               color: EverforestColors.bg1,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.description_outlined,
               color: EverforestColors.green,
               size: 24,
@@ -101,7 +101,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
                   const SizedBox(height: 4),
                   Text(
                     path,
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -122,7 +122,7 @@ class _SingleNoteEmbedState extends State<_SingleNoteEmbed> {
                   const SizedBox(height: 4),
                   Text(
                     snippet,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.grey,
                       fontSize: 11,
                     ),

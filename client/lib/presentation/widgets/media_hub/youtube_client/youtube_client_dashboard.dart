@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/domain_repositories.dart';
 import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'active_session_timer_overlay.dart';
 import 'youtube_player_screen.dart';
 
@@ -97,61 +98,64 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: EverforestColors.bg0,
-      appBar: AppBar(
-        backgroundColor: EverforestColors.bg1,
-        title: const Row(
-          children: [
-            Icon(Icons.play_circle_filled, color: EverforestColors.red, size: 28),
-            SizedBox(width: 12),
-            Text('YouTube Client', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) => Scaffold(
+        backgroundColor: EverforestColors.bg0,
+        appBar: AppBar(
+          backgroundColor: EverforestColors.bg1,
+          title: Row(
+            children: [
+              Icon(Icons.play_circle_filled, color: EverforestColors.red, size: 28),
+              SizedBox(width: 12),
+              Text('YouTube Client', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          elevation: 0,
+          iconTheme: IconThemeData(color: EverforestColors.fg),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Center(
+                child: ValueListenableBuilder<PointsBalance>(
+                  valueListenable: PointsRepository.instance.balance,
+                  builder: (context, balance, _) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: EverforestColors.bg2.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star, color: EverforestColors.yellow, size: 18),
+                          const SizedBox(width: 6),
+                          Text('${balance.stars}★ · ${balance.points} pts',
+                              style: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           ],
         ),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: ValueListenableBuilder<PointsBalance>(
-                valueListenable: PointsRepository.instance.balance,
-                builder: (context, balance, _) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: EverforestColors.bg2.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, color: EverforestColors.yellow, size: 18),
-                        const SizedBox(width: 6),
-                        Text('${balance.stars}★ · ${balance.points} pts',
-                            style: const TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  );
-                },
+        body: Column(
+          children: [
+            _buildSearchBar(),
+            if (_session.active && _session.started != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ActiveSessionTimerOverlay(
+                  startedAt: _session.started!,
+                  estCost: _session.estCost,
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          if (_session.active && _session.started != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ActiveSessionTimerOverlay(
-                startedAt: _session.started!,
-                estCost: _session.estCost,
-              ),
-            ),
-          Expanded(child: _searching ? _buildResults() : _buildLibrary()),
-        ],
+            Expanded(child: _searching ? _buildResults() : _buildLibrary()),
+          ],
+        ),
       ),
     );
   }
@@ -162,15 +166,15 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
       child: TextField(
         controller: _searchCtrl,
         onChanged: _search,
-        style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
+        style: TextStyle(color: EverforestColors.fg, fontSize: 16),
         decoration: InputDecoration(
           hintText: 'Search YouTube...',
-          hintStyle: const TextStyle(color: EverforestColors.grey),
-          prefixIcon: const Icon(Icons.search, color: EverforestColors.red),
+          hintStyle: TextStyle(color: EverforestColors.grey),
+          prefixIcon: Icon(Icons.search, color: EverforestColors.red),
           suffixIcon: _query.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.clear, color: EverforestColors.grey),
+                  icon: Icon(Icons.clear, color: EverforestColors.grey),
                   onPressed: () {
                     _searchCtrl.clear();
                     _search('');
@@ -189,10 +193,10 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
 
   Widget _buildResults() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
     if (_results.isEmpty) {
-      return const Center(child: Text('No results', style: TextStyle(color: EverforestColors.grey)));
+      return Center(child: Text('No results', style: TextStyle(color: EverforestColors.grey)));
     }
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
@@ -204,20 +208,20 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
           title: Text(v.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.w600, fontSize: 14)),
           subtitle: Text(
             '${v.uploader} · ${_fmtDuration(v.duration)}',
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 13),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.download_rounded, color: EverforestColors.green),
+                icon: Icon(Icons.download_rounded, color: EverforestColors.green),
                 onPressed: () => _download(v),
               ),
               IconButton(
-                icon: const Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
+                icon: Icon(Icons.play_circle_fill_rounded, color: EverforestColors.fg, size: 32),
                 onPressed: () => _play(v),
               ),
             ],
@@ -233,7 +237,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
       valueListenable: YoutubeRepository.instance.videos,
       builder: (context, videos, child) {
         if (videos.isEmpty) {
-          return const Center(child: Text('Search above to find videos', style: TextStyle(color: EverforestColors.grey)));
+          return Center(child: Text('Search above to find videos', style: TextStyle(color: EverforestColors.grey)));
         }
         return GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -264,7 +268,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                         ),
                       ],
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Icon(Icons.play_arrow, size: 64, color: EverforestColors.fg),
                     ),
                   ),
@@ -278,7 +282,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                       radius: 20,
                       child: Text(
                         title.isNotEmpty ? title[0] : 'Y',
-                        style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -287,18 +291,18 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(title,
-                              style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
                           Text('Size: ${video.size}',
-                              style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+                              style: TextStyle(color: EverforestColors.grey, fontSize: 13),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
-                    const Icon(Icons.more_vert, color: EverforestColors.grey),
+                    Icon(Icons.more_vert, color: EverforestColors.grey),
                   ],
                 ),
               ],
@@ -315,7 +319,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
         width: w,
         height: h,
         decoration: BoxDecoration(color: EverforestColors.bg1, borderRadius: BorderRadius.circular(8)),
-        child: const Icon(Icons.play_arrow, color: EverforestColors.red),
+        child: Icon(Icons.play_arrow, color: EverforestColors.red),
       );
     }
     return ClipRRect(
@@ -325,7 +329,7 @@ class _YoutubeClientDashboardState extends State<YoutubeClientDashboard> {
                 width: w,
                 height: h,
                 color: EverforestColors.bg1,
-                child: const Icon(Icons.play_arrow, color: EverforestColors.red),
+                child: Icon(Icons.play_arrow, color: EverforestColors.red),
               )),
     );
   }

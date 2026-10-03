@@ -29,7 +29,7 @@ class CHTMDailyList extends StatelessWidget {
       valueListenable: EngineRepository.instance.allEntities,
       builder: (context, entities, child) {
         if (entities.isEmpty) {
-          return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+          return Center(child: CircularProgressIndicator(color: EverforestColors.green));
         }
 
         final events = EngineRepository.instance.events;
@@ -130,7 +130,7 @@ class CHTMDailyList extends StatelessWidget {
           children: [
             // --- CALENDAR EVENTS (SCHEDULE) SECTION ---
             if (dailyEvents.isNotEmpty) ...[
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                 child: Text(
                   'SCHEDULE',
@@ -165,7 +165,7 @@ class CHTMDailyList extends StatelessWidget {
                                 children: [
                                   Text(
                                     event.payload['title'] ?? 'No Title',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: EverforestColors.fg,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -174,19 +174,19 @@ class CHTMDailyList extends StatelessWidget {
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      const Icon(Icons.access_time, color: EverforestColors.grey, size: 14),
+                                      Icon(Icons.access_time, color: EverforestColors.grey, size: 14),
                                       const SizedBox(width: 6),
                                       Text(
                                         timeStr,
-                                        style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                                        style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                                       ),
                                       if (event.sharedWith.isNotEmpty) ...[
                                         const SizedBox(width: 12),
-                                        const Icon(Icons.group, color: EverforestColors.green, size: 14),
+                                        Icon(Icons.group, color: EverforestColors.green, size: 14),
                                         const SizedBox(width: 4),
                                         Text(
                                           'Shared: ${event.sharedWith.join(', ')}',
-                                          style: const TextStyle(color: EverforestColors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: TextStyle(color: EverforestColors.green, fontSize: 12, fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ],
@@ -205,7 +205,7 @@ class CHTMDailyList extends StatelessWidget {
             ],
 
             // --- DAILY CHECKLIST (TASKS & HABITS) ---
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               child: Text(
                 'CHECKLIST (GENERAL ENGINE)',
@@ -213,7 +213,7 @@ class CHTMDailyList extends StatelessWidget {
               ),
             ),
             if (checklistItems.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Center(
                   child: Text(
@@ -252,7 +252,7 @@ class CHTMDailyList extends StatelessWidget {
                             ),
                           ),
                           child: item.isCompleted
-                              ? const Icon(Icons.check, color: EverforestColors.bg0, size: 18)
+                              ? Icon(Icons.check, color: EverforestColors.bg0, size: 18)
                               : null,
                         ),
                       ),
@@ -282,7 +282,7 @@ class CHTMDailyList extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     item.subtitle!,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: EverforestColors.grey,
                                       fontSize: 12,
                                     ),
@@ -300,7 +300,7 @@ class CHTMDailyList extends StatelessWidget {
             const SizedBox(height: 24),
 
             // --- FAMILY QUESTS FOR THIS DAY ---
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               child: Text(
                 'QUESTS',

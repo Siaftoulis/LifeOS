@@ -90,7 +90,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 16,
             children: [
-              const Text(
+              Text(
                 'Virtual Machines',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -100,8 +100,8 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
               ),
               ElevatedButton.icon(
                 onPressed: () {},
-                icon: const Icon(Icons.add, color: EverforestColors.bg0),
-                label: const Text(
+                icon: Icon(Icons.add, color: EverforestColors.bg0),
+                label: Text(
                   'New VM',
                   style: TextStyle(color: EverforestColors.bg0, fontWeight: FontWeight.bold),
                 ),
@@ -120,11 +120,11 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
               stream: AppDatabase.instance.vmDao.watchAllVMs(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: EverforestColors.purple));
+                  return Center(child: CircularProgressIndicator(color: EverforestColors.purple));
                 }
                 final vms = snapshot.data!;
                 if (vms.isEmpty) {
-                  return const Center(child: Text('No Virtual Machines found.', style: TextStyle(color: EverforestColors.grey)));
+                  return Center(child: Text('No Virtual Machines found.', style: TextStyle(color: EverforestColors.grey)));
                 }
                 return GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -177,7 +177,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
                           children: [
                             Text(
                               vm.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -187,7 +187,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
                             ),
                             Text(
                               vm.type,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 12,
                               ),
@@ -224,7 +224,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
               const SizedBox(height: 8),
               _buildResourceBar('RAM', 0.0, EverforestColors.aqua),
             ] else
-              const Center(
+              Center(
                 child: Text('Machine is powered off', style: TextStyle(color: EverforestColors.grey)),
               ),
             const SizedBox(height: 16),
@@ -242,7 +242,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
                 const SizedBox(width: 8),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.settings, color: EverforestColors.grey),
+                  icon: Icon(Icons.settings, color: EverforestColors.grey),
                 ),
               ],
             )
@@ -257,7 +257,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
       children: [
         SizedBox(
           width: 36,
-          child: Text(label, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+          child: Text(label, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
         ),
         Expanded(
           child: ClipRRect(
@@ -273,7 +273,7 @@ class _VMManagementDashboardState extends State<VMManagementDashboard> {
         const SizedBox(width: 12),
         SizedBox(
           width: 36,
-          child: Text('${(percentage * 100).toInt()}%', style: const TextStyle(color: EverforestColors.fg, fontSize: 12)),
+          child: Text('${(percentage * 100).toInt()}%', style: TextStyle(color: EverforestColors.fg, fontSize: 12)),
         ),
       ],
     );

@@ -581,7 +581,7 @@ Future<void> _insertTemplate(EditorState editorState, BuildContext context) asyn
     context: context,
     builder: (context) => AlertDialog(
       backgroundColor: EverforestColors.bg1,
-      title: const Text(
+      title: Text(
         'Insert template',
         style: TextStyle(color: EverforestColors.fg, fontSize: 16),
       ),
@@ -594,7 +594,7 @@ Future<void> _insertTemplate(EditorState editorState, BuildContext context) asyn
                     dense: true,
                     title: Text(
                       n,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: EverforestColors.fg, fontSize: 14),
                     ),
                     onTap: () => Navigator.of(context).pop(n),
@@ -1025,12 +1025,12 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const darkBg = EverforestColors.bg0;
-    const borderColor = EverforestColors.bg1;
-    const textFg = EverforestColors.fg;
-    const selectBg = EverforestColors.bg1;
-    const selectFg = EverforestColors.green;
-    const menuStyle = SelectionMenuStyle(
+    final darkBg = EverforestColors.bg0;
+    final borderColor = EverforestColors.bg1;
+    final textFg = EverforestColors.fg;
+    final selectBg = EverforestColors.bg1;
+    final selectFg = EverforestColors.green;
+    final menuStyle = SelectionMenuStyle(
       selectionMenuBackgroundColor: darkBg,
       selectionMenuItemTextColor: textFg,
       selectionMenuItemIconColor: textFg,
@@ -1058,7 +1058,7 @@ class _ZenSelectionMenuWidgetState extends State<_ZenSelectionMenuWidget> {
           ],
         ),
         child: _filteredItems.isEmpty
-            ? const Padding(
+            ? Padding(
                 padding: EdgeInsets.all(12),
                 child: Text(
                   'No matching blocks',
@@ -1126,11 +1126,11 @@ class _ZenMobileSelectionMenuWidget extends StatefulWidget {
 }
 
 class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWidget> {
-  static const _bg = EverforestColors.bg0;
-  static const _border = EverforestColors.bg1;
-  static const _fg = EverforestColors.fg;
-  static const _grey = EverforestColors.grey;
-  static const _menuStyle = SelectionMenuStyle(
+  static final _bg = EverforestColors.bg0;
+  static final _border = EverforestColors.bg1;
+  static final _fg = EverforestColors.fg;
+  static final _grey = EverforestColors.grey;
+  static final _menuStyle = SelectionMenuStyle(
     selectionMenuBackgroundColor: _bg,
     selectionMenuItemTextColor: _fg,
     selectionMenuItemIconColor: _fg,
@@ -1245,11 +1245,11 @@ class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWi
             Expanded(
               child: Text(
                 category.name,
-                style: const TextStyle(color: _fg, fontSize: 14),
+                style: TextStyle(color: _fg, fontSize: 14),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(Icons.chevron_right, size: 16, color: _grey),
+            Icon(Icons.chevron_right, size: 16, color: _grey),
           ],
         ),
       ),
@@ -1259,8 +1259,8 @@ class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWi
   Widget _buildChildren() {
     final items = _children ?? _searchItems(_keyword);
     if (items.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(20),
+      return Padding(
+        padding: const EdgeInsets.all(20),
         child: Text(
           'No matching blocks',
           style: TextStyle(color: _grey, fontSize: 13),
@@ -1287,7 +1287,7 @@ class _ZenMobileSelectionMenuWidgetState extends State<_ZenMobileSelectionMenuWi
                 Expanded(
                   child: Text(
                     item.name,
-                    style: const TextStyle(color: _fg, fontSize: 14),
+                    style: TextStyle(color: _fg, fontSize: 14),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

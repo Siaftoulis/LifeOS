@@ -145,7 +145,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
     return AlertDialog(
       backgroundColor: EverforestColors.bg0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('Add Agenda Item', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+      title: Text('Add Agenda Item', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 380,
@@ -157,12 +157,12 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
               DropdownButtonFormField<String>(
                 initialValue: _itemType,
                 dropdownColor: EverforestColors.bg1,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Item Type',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
                 ),
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 16),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 16),
                 items: const [
                   DropdownMenuItem(value: 'task', child: Text('Task')),
                   DropdownMenuItem(value: 'habit', child: Text('Habit')),
@@ -178,20 +178,20 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
               // Title Field
               TextField(
                 controller: _titleController,
-                style: const TextStyle(color: EverforestColors.fg),
+                style: TextStyle(color: EverforestColors.fg),
                 decoration: InputDecoration(
                   labelText: _itemType == 'habit' ? 'Habit Name' : 'Title',
-                  labelStyle: const TextStyle(color: EverforestColors.grey),
-                  enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
-                  focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
+                  labelStyle: TextStyle(color: EverforestColors.grey),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.green)),
                 ),
               ),
               const SizedBox(height: 12),
               // Shared With Field
               TextField(
                 controller: _sharedWithController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Share With (usernames, comma-separated)',
                   hintText: 'e.g. alice, bob',
                   hintStyle: TextStyle(color: EverforestColors.grey),
@@ -204,8 +204,8 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
               // Assigned To Field
               TextField(
                 controller: _assignedToController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Assign To (username)',
                   hintText: 'e.g. alice',
                   hintStyle: TextStyle(color: EverforestColors.grey),
@@ -219,8 +219,8 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 TextField(
                   controller: _durationController,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(color: EverforestColors.fg),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: EverforestColors.fg),
+                  decoration: InputDecoration(
                     labelText: 'Est. Duration (minutes)',
                     hintText: '45',
                     hintStyle: TextStyle(color: EverforestColors.grey),
@@ -235,12 +235,12 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 DropdownButtonFormField<String>(
                   initialValue: _completionMode,
                   dropdownColor: EverforestColors.bg1,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Shared Completion Rule',
                     labelStyle: TextStyle(color: EverforestColors.grey),
                     enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
                   ),
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 14),
                   items: const [
                     DropdownMenuItem(value: 'ANY', child: Text('Single Completion (Any member completes for all)')),
                     DropdownMenuItem(value: 'ALL', child: Text('Individual Completion (All members must complete)')),
@@ -257,7 +257,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Start Time', style: TextStyle(color: EverforestColors.fg)),
+                    Text('Start Time', style: TextStyle(color: EverforestColors.fg)),
                     TextButton(
                       onPressed: () async {
                         final time = await showTimePicker(context: context, initialTime: _startTime);
@@ -265,7 +265,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                       },
                       child: Text(
                         _startTime.format(context),
-                        style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                   ],
@@ -274,7 +274,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('End Time', style: TextStyle(color: EverforestColors.fg)),
+                    Text('End Time', style: TextStyle(color: EverforestColors.fg)),
                     TextButton(
                       onPressed: () async {
                         final time = await showTimePicker(context: context, initialTime: _endTime);
@@ -282,7 +282,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                       },
                       child: Text(
                         _endTime.format(context),
-                        style: const TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: EverforestColors.green, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                   ],
@@ -292,7 +292,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Label Color', style: TextStyle(color: EverforestColors.fg)),
+                    Text('Label Color', style: TextStyle(color: EverforestColors.fg)),
                     Row(
                       children: [
                         _colorOption('#89B4FA', EverforestColors.blue),
@@ -311,7 +311,7 @@ class _CHTMCreateDialogState extends State<CHTMCreateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
         ),
         ElevatedButton(
           onPressed: _submit,

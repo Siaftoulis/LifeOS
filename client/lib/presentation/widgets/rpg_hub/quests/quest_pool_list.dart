@@ -69,18 +69,18 @@ class _QuestPoolListState extends State<QuestPoolList> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Cancel Quest?', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Cancel Quest?', style: TextStyle(color: EverforestColors.fg)),
         content: Text(
           'You claimed "${quest['title']}". Cancelling costs a penalty of $penalty stars. Continue?',
-          style: const TextStyle(color: EverforestColors.fg),
+          style: TextStyle(color: EverforestColors.fg),
         ),
         actions: [
           TextButton(
-            child: const Text('Keep Quest', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Keep Quest', style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: const Text('Cancel Quest', style: TextStyle(color: EverforestColors.red)),
+            child: Text('Cancel Quest', style: TextStyle(color: EverforestColors.red)),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -104,13 +104,13 @@ class _QuestPoolListState extends State<QuestPoolList> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
 
     if (_quests.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "No quests available in the pool.",
           style: TextStyle(color: EverforestColors.grey),
@@ -121,7 +121,7 @@ class _QuestPoolListState extends State<QuestPoolList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('FAMILY BOUNTY POOL', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
+        Text('FAMILY BOUNTY POOL', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500)),
         const SizedBox(height: 24),
         ..._quests.map((q) => _buildPoolItem(q)),
       ],
@@ -147,7 +147,7 @@ class _QuestPoolListState extends State<QuestPoolList> {
               color: EverforestColors.bg1,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.assignment, color: EverforestColors.blue, size: 20),
+            child: Icon(Icons.assignment, color: EverforestColors.blue, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -156,34 +156,34 @@ class _QuestPoolListState extends State<QuestPoolList> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 15, fontWeight: FontWeight.w500),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 15, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.star, color: EverforestColors.yellow, size: 14),
+                    Icon(Icons.star, color: EverforestColors.yellow, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       '$reward XP',
-                      style: const TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold, fontSize: 13),
+                      style: TextStyle(color: EverforestColors.yellow, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     if (dueDate.isNotEmpty) ...[
                       const SizedBox(width: 12),
-                      const Icon(Icons.event, color: EverforestColors.grey, size: 14),
+                      Icon(Icons.event, color: EverforestColors.grey, size: 14),
                       const SizedBox(width: 4),
                       Text(
                         dueDate,
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                       ),
                     ],
                     if (assignedUsers.isNotEmpty) ...[
                       const SizedBox(width: 12),
-                      const Icon(Icons.people, color: EverforestColors.grey, size: 14),
+                      Icon(Icons.people, color: EverforestColors.grey, size: 14),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           assignedUsers.split(',').map((e) => e.split(':').first).join(', '),
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                          style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -208,13 +208,13 @@ class _QuestPoolListState extends State<QuestPoolList> {
           ),
           if (acceptedBy.isEmpty)
             IconButton(
-              icon: const Icon(Icons.flag, color: EverforestColors.green),
+              icon: Icon(Icons.flag, color: EverforestColors.green),
               onPressed: () => _claimQuest(quest),
               tooltip: 'Claim Quest',
             )
           else if (claimedByMe)
             IconButton(
-              icon: const Icon(Icons.close, color: EverforestColors.red),
+              icon: Icon(Icons.close, color: EverforestColors.red),
               onPressed: () => _cancelClaim(quest),
               tooltip: 'Cancel Claim (penalty)',
             ),
@@ -222,7 +222,7 @@ class _QuestPoolListState extends State<QuestPoolList> {
             InkWell(
               borderRadius: BorderRadius.circular(4),
               onTap: () => _editQuest(quest),
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(6),
                 child: Icon(Icons.edit, color: EverforestColors.grey, size: 18),
               ),
@@ -231,7 +231,7 @@ class _QuestPoolListState extends State<QuestPoolList> {
             InkWell(
               borderRadius: BorderRadius.circular(4),
               onTap: () => _deleteQuest(quest['id']),
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(6),
                 child: Icon(Icons.delete_outline, color: EverforestColors.red, size: 18),
               ),
@@ -248,15 +248,15 @@ class _QuestPoolListState extends State<QuestPoolList> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Delete Quest', style: TextStyle(color: EverforestColors.fg)),
-        content: const Text('Are you sure you want to delete this quest?', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Delete Quest', style: TextStyle(color: EverforestColors.fg)),
+        content: Text('Are you sure you want to delete this quest?', style: TextStyle(color: EverforestColors.fg)),
         actions: [
           TextButton(
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: const Text('Delete', style: TextStyle(color: EverforestColors.red)),
+            child: Text('Delete', style: TextStyle(color: EverforestColors.red)),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -287,15 +287,15 @@ class _QuestPoolListState extends State<QuestPoolList> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Edit Quest', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Edit Quest', style: TextStyle(color: EverforestColors.fg)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Title',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -304,8 +304,8 @@ class _QuestPoolListState extends State<QuestPoolList> {
               const SizedBox(height: 8),
               TextField(
                 controller: descController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Description',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -315,8 +315,8 @@ class _QuestPoolListState extends State<QuestPoolList> {
               TextField(
                 controller: xpController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Star Reward',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -325,8 +325,8 @@ class _QuestPoolListState extends State<QuestPoolList> {
               const SizedBox(height: 8),
               TextField(
                 controller: assignedUsersController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Assigned Users (e.g. panospds:50,user2:50)',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -337,11 +337,11 @@ class _QuestPoolListState extends State<QuestPoolList> {
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: const Text('Save', style: TextStyle(color: EverforestColors.green)),
+            child: Text('Save', style: TextStyle(color: EverforestColors.green)),
             onPressed: () async {
               try {
                 final xp = int.tryParse(xpController.text) ?? 50;

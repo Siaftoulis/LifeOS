@@ -153,52 +153,19 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
 
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
 
-            // Dynamic Background Color & Transparency
-            val alpha = (255 * (opacity / 100f)).toInt().coerceIn(0, 255)
-            val bgColor = when (themeStyle) {
-                "oled" -> Color.argb(alpha, 0, 0, 0)
-                "accent" -> Color.argb(alpha, 14, 30, 48)
-                "border" -> Color.argb(alpha, 8, 10, 12)
-                else -> Color.argb(alpha, 18, 22, 26) // glass dark
+            // Preserve rounded corners & borders with themed drawables
+            val bgRes = when (themeStyle) {
+                "oled" -> R.drawable.widget_background_oled
+                "accent" -> R.drawable.widget_background_accent
+                "border" -> R.drawable.widget_background_border
+                else -> R.drawable.widget_background_glass
             }
-            views.setInt(R.id.widget_root, "setBackgroundColor", bgColor)
+            views.setInt(R.id.widget_root, "setBackgroundResource", bgRes)
 
             val displayTitle = if (title.isNotEmpty()) title else "No track playing"
             val displayArtist = if (artist.isNotEmpty()) artist else "Tap to open LifeOS"
             views.setTextViewText(R.id.widget_track_title, displayTitle)
             views.setTextViewText(R.id.widget_track_artist, displayArtist)
-
-            // Album Artwork visibility & async image loading
-            if (!showArtwork) {
-                views.setViewVisibility(R.id.widget_album_art, View.GONE)
-            } else {
-                views.setViewVisibility(R.id.widget_album_art, View.VISIBLE)
-                if (thumbnail.isNotEmpty()) {
-                    Thread {
-                        try {
-                            val cleanPath = thumbnail.removePrefix("file://")
-                            val bmp = if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
-                                val url = URL(thumbnail)
-                                BitmapFactory.decodeStream(url.openStream())
-                            } else if (File(cleanPath).exists()) {
-                                BitmapFactory.decodeFile(cleanPath)
-                            } else null
-
-                            if (bmp != null) {
-                                val rounded = getRoundedCornerBitmap(bmp, 20)
-                                views.setImageViewBitmap(R.id.widget_album_art, rounded)
-                                manager.updateAppWidget(widgetId, views)
-                            } else {
-                                views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
-                            }
-                        } catch (_: Exception) {
-                            views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
-                        }
-                    }.start()
-                } else {
-                    views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
-                }
-            }
 
             // Compact vs standard controls visibility
             if (widgetType == "compact") {
@@ -235,7 +202,7 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             }
             val pPrev = PendingIntent.getBroadcast(
                 context,
-                1,
+                100 + widgetId,
                 prevIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
@@ -247,7 +214,7 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             }
             val pPlayPause = PendingIntent.getBroadcast(
                 context,
-                2,
+                200 + widgetId,
                 playPauseIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
@@ -259,13 +226,109 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             }
             val pNext = PendingIntent.getBroadcast(
                 context,
-                3,
+                300 + widgetId,
                 nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_btn_next, pNext)
 
+            // Initial synchronous update for instant text & control feedback
+            if (!showArtwork) {
+                views.setViewVisibility(R.id.widget_album_art, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_album_art, View.VISIBLE)
+                views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
+            }
             manager.updateAppWidget(widgetId, views)
+
+            // Asynchronous album artwork decoding with downsampling (Binder limit safe)
+            if (showArtwork && thumbnail.isNotEmpty()) {
+                Thread {
+                    try {
+                        val bmp = decodeAndScaleBitmap(context, thumbnail, 256)
+                        if (bmp != null) {
+                            val rounded = getRoundedCornerBitmap(bmp, 16)
+                            views.setImageViewBitmap(R.id.widget_album_art, rounded)
+                        } else {
+                            views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
+                        }
+                        manager.updateAppWidget(widgetId, views)
+                    } catch (_: Exception) {
+                        views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
+                        manager.updateAppWidget(widgetId, views)
+                    }
+                }.start()
+            }
+        }
+
+        fun decodeAndScaleBitmap(context: Context, thumbnail: String, maxDim: Int = 256): Bitmap? {
+            try {
+                val cleanPath = thumbnail.removePrefix("file://")
+                val lower = cleanPath.lowercase()
+                var rawBmp: Bitmap? = null
+
+                if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
+                    val url = URL(thumbnail)
+                    val conn = url.openConnection()
+                    conn.connectTimeout = 4000
+                    conn.readTimeout = 4000
+                    conn.getInputStream().use { stream ->
+                        rawBmp = BitmapFactory.decodeStream(stream)
+                    }
+                } else if (File(cleanPath).exists()) {
+                    if (lower.endsWith(".mp3") || lower.endsWith(".m4a") || lower.endsWith(".flac") || lower.endsWith(".wav") || lower.endsWith(".ogg") || lower.endsWith(".opus") || lower.endsWith(".aac")) {
+                        try {
+                            val mmr = android.media.MediaMetadataRetriever()
+                            mmr.setDataSource(cleanPath)
+                            val art = mmr.embeddedPicture
+                            mmr.release()
+                            if (art != null && art.isNotEmpty()) {
+                                rawBmp = BitmapFactory.decodeByteArray(art, 0, art.size)
+                            }
+                        } catch (_: Exception) {}
+                    } else {
+                        rawBmp = BitmapFactory.decodeFile(cleanPath)
+                    }
+                } else if (thumbnail.startsWith("phone_")) {
+                    val songId = thumbnail.removePrefix("phone_").toLongOrNull()
+                    if (songId != null) {
+                        try {
+                            val uri = android.content.ContentUris.withAppendedId(
+                                android.net.Uri.parse("content://media/external/audio/media"),
+                                songId
+                            )
+                            val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+                            if (pfd != null) {
+                                val mmr = android.media.MediaMetadataRetriever()
+                                mmr.setDataSource(pfd.fileDescriptor)
+                                val art = mmr.embeddedPicture
+                                mmr.release()
+                                pfd.close()
+                                if (art != null && art.isNotEmpty()) {
+                                    rawBmp = BitmapFactory.decodeByteArray(art, 0, art.size)
+                                }
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
+
+                if (rawBmp == null) return null
+
+                val w = rawBmp!!.width
+                val h = rawBmp!!.height
+                return if (w > maxDim || h > maxDim) {
+                    val scale = maxDim.toFloat() / maxOf(w, h)
+                    val sw = (w * scale).toInt().coerceAtLeast(1)
+                    val sh = (h * scale).toInt().coerceAtLeast(1)
+                    val scaled = Bitmap.createScaledBitmap(rawBmp!!, sw, sh, true)
+                    if (scaled != rawBmp) rawBmp!!.recycle()
+                    scaled
+                } else {
+                    rawBmp
+                }
+            } catch (_: Exception) {
+                return null
+            }
         }
 
         private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Int): Bitmap {

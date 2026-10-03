@@ -172,22 +172,22 @@ class _ZenTreeItemState extends State<ZenTreeItem> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF242B2E),
         title: Text('Delete ${node.name}?',
-            style: const TextStyle(color: EverforestColors.fg, fontSize: 16)),
+            style: TextStyle(color: EverforestColors.fg, fontSize: 16)),
         content: Text(
           node.isDirectory
               ? 'This will delete the folder and all pages inside it. This cannot be undone.'
               : 'This page will be permanently deleted. This cannot be undone.',
-          style: const TextStyle(color: EverforestColors.grey, fontSize: 13),
+          style: TextStyle(color: EverforestColors.grey, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete',
+            child: Text('Delete',
                 style: TextStyle(color: EverforestColors.red)),
           ),
         ],
@@ -394,7 +394,7 @@ class _ZenTreeItemState extends State<ZenTreeItem> {
                   node.name,
                   overflow: TextOverflow.ellipsis,
                   style:
-                      const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                      TextStyle(color: EverforestColors.fg, fontSize: 13),
                 ),
               ),
             ],
@@ -461,9 +461,9 @@ class _ZenTreeItemState extends State<ZenTreeItem> {
     return TextField(
       controller: widget.editController,
       autofocus: true,
-      style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+      style: TextStyle(color: EverforestColors.fg, fontSize: 14),
       cursorColor: EverforestColors.green,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         isDense: true,
         contentPadding: EdgeInsets.symmetric(vertical: 4),
         enabledBorder: UnderlineInputBorder(

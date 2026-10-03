@@ -73,7 +73,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
     if (_isLoading) {
       return Container(
         color: EverforestColors.bg0,
-        child: const Center(child: CircularProgressIndicator(color: EverforestColors.green)),
+        child: Center(child: CircularProgressIndicator(color: EverforestColors.green)),
       );
     }
 
@@ -89,7 +89,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
             const SizedBox(height: 32),
             _buildSearchBar(),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Categories',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -101,7 +101,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
             const SizedBox(height: 16),
             _buildCategories(),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Recent Articles',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -125,7 +125,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Knowledge Base',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -150,7 +150,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: EverforestColors.bg2),
           ),
-          child: const Icon(Icons.auto_awesome, color: EverforestColors.yellow, size: 28),
+          child: Icon(Icons.auto_awesome, color: EverforestColors.yellow, size: 28),
         ),
       ],
     );
@@ -171,11 +171,11 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
         ],
       ),
       child: TextField(
-        style: const TextStyle(color: EverforestColors.fg),
+        style: TextStyle(color: EverforestColors.fg),
         decoration: InputDecoration(
           hintText: 'Search articles, topics, or tags...',
           hintStyle: TextStyle(color: EverforestColors.grey.withValues(alpha: 0.8)),
-          prefixIcon: const Icon(Icons.search, color: EverforestColors.grey),
+          prefixIcon: Icon(Icons.search, color: EverforestColors.grey),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
@@ -185,7 +185,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
 
   Widget _buildCategories() {
     if (_categories.isEmpty) {
-      return const Text('No categories found.', style: TextStyle(color: EverforestColors.grey));
+      return Text('No categories found.', style: TextStyle(color: EverforestColors.grey));
     }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -207,7 +207,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
                 const SizedBox(width: 12),
                 Text(
                   cat['title'] ?? 'Unknown',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -223,7 +223,7 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
 
   Widget _buildRecentArticles() {
     if (_articles.isEmpty) {
-      return const Text('No recent articles.', style: TextStyle(color: EverforestColors.grey));
+      return Text('No recent articles.', style: TextStyle(color: EverforestColors.grey));
     }
     return ListView.builder(
       shrinkWrap: true,
@@ -270,14 +270,14 @@ class _KnowledgeBaseDashboardState extends State<KnowledgeBaseDashboard> {
                   const Spacer(),
                   Text(
                     article['date'] ?? '',
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 article['title'] ?? 'Untitled',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

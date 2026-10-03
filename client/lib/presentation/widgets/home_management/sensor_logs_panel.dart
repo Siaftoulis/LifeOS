@@ -18,11 +18,11 @@ class SensorLogsPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.sensors, color: EverforestColors.blue, size: 20),
+              Icon(Icons.sensors, color: EverforestColors.blue, size: 20),
               const SizedBox(width: 8),
-              const Text('Environment (Raspberry Pi)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+              Text('Environment (Raspberry Pi)', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
               const Spacer(),
-              const Text('Live', style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('Live', style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
@@ -47,10 +47,10 @@ class _SensorValue extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+        Text(label, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
         const SizedBox(height: 4),
-        Text(temp, style: const TextStyle(color: EverforestColors.yellow, fontSize: 20, fontWeight: FontWeight.bold)),
-        Text('💧 $humidity', style: const TextStyle(color: EverforestColors.blue, fontSize: 12)),
+        Text(temp, style: TextStyle(color: EverforestColors.yellow, fontSize: 20, fontWeight: FontWeight.bold)),
+        Text('💧 $humidity', style: TextStyle(color: EverforestColors.blue, fontSize: 12)),
       ],
     );
   }

@@ -69,7 +69,7 @@ class PlaybackEngine {
     if (!isAvailable) return;
     if (_playerA != null) return;
     _playerA = await _createPlayer(withPipeline: withPipeline);
-    _playerB = await _createPlayer(withPipeline: false);
+    _playerB = await _createPlayer(withPipeline: withPipeline);
     _activeIsA = true;
 
     AudioDspService.instance.attachPlayer(_playerA!);

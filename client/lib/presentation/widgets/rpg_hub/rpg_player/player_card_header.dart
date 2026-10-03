@@ -63,7 +63,7 @@ class PlayerCardHeader extends StatelessWidget {
               alignment: Alignment.center,
               child: Text(
                 _initials,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.bg0,
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -93,7 +93,7 @@ class PlayerCardHeader extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: EverforestColors.yellow, width: 1),
                         ),
-                        child: const Text(
+                        child: Text(
                           'ADMIN',
                           style: TextStyle(
                             color: EverforestColors.yellow,

@@ -168,9 +168,9 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
             ),
           ],
 
-          // Top Poweramp 3-Mode Selector Bar (Screenshot 1)
+          // Top Poweramp 3-Mode Selector Bar (Equalizer, Tone & Reverb, Spatial & Limiter)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Container(
               height: 44,
               decoration: BoxDecoration(
@@ -184,11 +184,29 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                     child: InkWell(
                       borderRadius: const BorderRadius.horizontal(left: Radius.circular(22)),
                       onTap: () => setState(() => _eqMode = 0),
-                      child: Center(
-                        child: Icon(
-                          Icons.tune_rounded,
-                          size: 22,
-                          color: _eqMode == 0 ? skin.accent : skin.textMuted,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _eqMode == 0 ? skin.accent.withValues(alpha: 0.15) : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(left: Radius.circular(22)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.tune_rounded,
+                              size: 16,
+                              color: _eqMode == 0 ? skin.accent : skin.textMuted,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Equalizer',
+                              style: TextStyle(
+                                color: _eqMode == 0 ? skin.accent : skin.textMuted,
+                                fontSize: 11,
+                                fontWeight: _eqMode == 0 ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -197,11 +215,28 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                   Expanded(
                     child: InkWell(
                       onTap: () => setState(() => _eqMode = 1),
-                      child: Center(
-                        child: Icon(
-                          Icons.radio_button_checked_rounded,
-                          size: 22,
-                          color: _eqMode == 1 ? skin.accent : skin.textMuted,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _eqMode == 1 ? skin.accent.withValues(alpha: 0.15) : Colors.transparent,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.album_rounded,
+                              size: 16,
+                              color: _eqMode == 1 ? skin.accent : skin.textMuted,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Tone & Reverb',
+                              style: TextStyle(
+                                color: _eqMode == 1 ? skin.accent : skin.textMuted,
+                                fontSize: 11,
+                                fontWeight: _eqMode == 1 ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -211,11 +246,29 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                     child: InkWell(
                       borderRadius: const BorderRadius.horizontal(right: Radius.circular(22)),
                       onTap: () => setState(() => _eqMode = 2),
-                      child: Center(
-                        child: Icon(
-                          Icons.surround_sound_rounded,
-                          size: 24,
-                          color: _eqMode == 2 ? skin.accent : skin.textMuted,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _eqMode == 2 ? skin.accent.withValues(alpha: 0.15) : Colors.transparent,
+                          borderRadius: const BorderRadius.horizontal(right: Radius.circular(22)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.surround_sound_rounded,
+                              size: 17,
+                              color: _eqMode == 2 ? skin.accent : skin.textMuted,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Spatial & Limiter',
+                              style: TextStyle(
+                                color: _eqMode == 2 ? skin.accent : skin.textMuted,
+                                fontSize: 11,
+                                fontWeight: _eqMode == 2 ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

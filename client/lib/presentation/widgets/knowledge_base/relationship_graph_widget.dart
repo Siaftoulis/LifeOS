@@ -16,7 +16,7 @@ class RelationshipGraphWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Active Dependencies', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+          Text('Active Dependencies', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Expanded(
             child: ListView(
@@ -44,7 +44,7 @@ class _RelationRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Expanded(child: Text(source, style: const TextStyle(color: EverforestColors.fg), textAlign: TextAlign.right)),
+          Expanded(child: Text(source, style: TextStyle(color: EverforestColors.fg), textAlign: TextAlign.right)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
@@ -54,7 +54,7 @@ class _RelationRow extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(child: Text(target, style: const TextStyle(color: EverforestColors.grey))),
+          Expanded(child: Text(target, style: TextStyle(color: EverforestColors.grey))),
         ],
       ),
     );

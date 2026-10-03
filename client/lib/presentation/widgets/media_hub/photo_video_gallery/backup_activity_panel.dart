@@ -8,7 +8,7 @@ class BackupActivityPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 400,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: EverforestColors.bg0,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -23,7 +23,7 @@ class BackupActivityPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text('Backup Activity', style: TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text('Backup Activity', style: TextStyle(color: EverforestColors.fg, fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Expanded(
             child: ListView(
@@ -55,7 +55,7 @@ class _BackupItem extends StatelessWidget {
         children: [
           Icon(done ? Icons.check_circle : Icons.cloud_upload, color: done ? EverforestColors.green : EverforestColors.cyan),
           const SizedBox(width: 16),
-          Expanded(child: Text(name, style: const TextStyle(color: EverforestColors.fg))),
+          Expanded(child: Text(name, style: TextStyle(color: EverforestColors.fg))),
           if (!done)
             SizedBox(width: 100, child: LinearProgressIndicator(value: progress, color: EverforestColors.cyan, backgroundColor: EverforestColors.bg2)),
         ],

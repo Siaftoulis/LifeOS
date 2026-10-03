@@ -48,7 +48,7 @@ class _BookSearchViewState extends State<BookSearchView> {
   Timer? _pollTimer;
   final Set<String> _awardedJobs = {}; // jobs already rewarded on DONE
 
-  static const _sourceColors = {
+  static final _sourceColors = {
     'gutenberg': EverforestColors.green,
     'openlibrary': EverforestColors.blue,
     'mangadex': EverforestColors.purple,
@@ -147,8 +147,8 @@ class _BookSearchViewState extends State<BookSearchView> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg1,
         elevation: 0,
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
-        title: const Text('Search Books', style: TextStyle(color: EverforestColors.fg)),
+        iconTheme: IconThemeData(color: EverforestColors.fg),
+        title: Text('Search Books', style: TextStyle(color: EverforestColors.fg)),
       ),
       body: Column(
         children: [
@@ -159,15 +159,15 @@ class _BookSearchViewState extends State<BookSearchView> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    style: const TextStyle(color: EverforestColors.fg),
+                    style: TextStyle(color: EverforestColors.fg),
                     decoration: InputDecoration(
                       hintText: 'Title or author...',
-                      hintStyle: const TextStyle(color: EverforestColors.grey),
+                      hintStyle: TextStyle(color: EverforestColors.grey),
                       filled: true,
                       fillColor: EverforestColors.bg1,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: EverforestColors.bg2),
+                        borderSide: BorderSide(color: EverforestColors.bg2),
                       ),
                       suffixIcon: _searching
                           ? const Padding(
@@ -175,7 +175,7 @@ class _BookSearchViewState extends State<BookSearchView> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : IconButton(
-                              icon: const Icon(Icons.search, color: EverforestColors.fg),
+                              icon: Icon(Icons.search, color: EverforestColors.fg),
                               onPressed: _search,
                             ),
                     ),
@@ -188,7 +188,7 @@ class _BookSearchViewState extends State<BookSearchView> {
           if (_jobs.isNotEmpty) _buildJobsPanel(),
           Expanded(
             child: _results.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text('Search across Gutenberg, Open Library,\nMangaDex and Anna\'s Archive',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: EverforestColors.grey)),
@@ -217,7 +217,7 @@ class _BookSearchViewState extends State<BookSearchView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Downloads', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 12)),
+          Text('Downloads', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 12)),
           const SizedBox(height: 4),
           ..._jobs.map((j) => _buildJobRow(j)),
         ],
@@ -239,7 +239,7 @@ class _BookSearchViewState extends State<BookSearchView> {
                 child: Text(j.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 12)),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 12)),
               ),
               Text(
                 j.status == 'FAILED' ? 'failed' : '${(pct * 100).toStringAsFixed(0)}%',
@@ -256,7 +256,7 @@ class _BookSearchViewState extends State<BookSearchView> {
             color: j.status == 'FAILED' ? EverforestColors.red : EverforestColors.green,
             minHeight: 3,
           ),
-          if (j.status == 'FAILED') Text(j.error, style: const TextStyle(color: EverforestColors.red, fontSize: 10)),
+          if (j.status == 'FAILED') Text(j.error, style: TextStyle(color: EverforestColors.red, fontSize: 10)),
         ],
       ),
     );
@@ -284,7 +284,7 @@ class _BookSearchViewState extends State<BookSearchView> {
               color: EverforestColors.bg2,
               child: r.cover.isNotEmpty
                   ? Image.network(r.cover, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox())
-                  : const Icon(Icons.book, color: EverforestColors.grey),
+                  : Icon(Icons.book, color: EverforestColors.grey),
             ),
           ),
           const SizedBox(width: 10),
@@ -295,10 +295,10 @@ class _BookSearchViewState extends State<BookSearchView> {
                 Text(r.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 13)),
+                    style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 13)),
                 if (r.author.isNotEmpty)
                   Text(r.author, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                      style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -312,10 +312,10 @@ class _BookSearchViewState extends State<BookSearchView> {
                     ),
                     const SizedBox(width: 6),
                     Text(r.format,
-                        style: const TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                        style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                     if (r.size.isNotEmpty) ...[
                       const SizedBox(width: 6),
-                      Text(r.size, style: const TextStyle(color: EverforestColors.grey, fontSize: 10)),
+                      Text(r.size, style: TextStyle(color: EverforestColors.grey, fontSize: 10)),
                     ],
                   ],
                 ),
@@ -325,11 +325,11 @@ class _BookSearchViewState extends State<BookSearchView> {
           const SizedBox(width: 8),
           canDownload
               ? IconButton(
-                  icon: const Icon(Icons.download, color: EverforestColors.green),
+                  icon: Icon(Icons.download, color: EverforestColors.green),
                   tooltip: 'Download',
                   onPressed: _downloading ? null : () => _download(r),
                 )
-              : const Tooltip(
+              : Tooltip(
                   message: 'Browse-only (no direct file)',
                   child: Icon(Icons.remove_circle_outline, color: EverforestColors.grey, size: 20),
                 ),

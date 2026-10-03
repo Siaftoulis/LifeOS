@@ -28,7 +28,7 @@ class ReleaseNotesSheet extends StatelessWidget {
       constraints: BoxConstraints(
         maxHeight: mq.size.height * 0.85,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: EverforestColors.bg0,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(
@@ -67,7 +67,7 @@ class ReleaseNotesSheet extends StatelessWidget {
                       color: EverforestColors.green.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.new_releases_rounded,
                       color: EverforestColors.green,
                       size: 20,
@@ -83,7 +83,7 @@ class ReleaseNotesSheet extends StatelessWidget {
                             Flexible(
                               child: Text(
                                 release.title.isNotEmpty ? release.title : 'LifeOS Update',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -100,7 +100,7 @@ class ReleaseNotesSheet extends StatelessWidget {
                               ),
                               child: Text(
                                 release.tagName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: EverforestColors.aqua,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -112,7 +112,7 @@ class ReleaseNotesSheet extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           'Published: ${release.publishedAt.year}-${release.publishedAt.month.toString().padLeft(2, '0')}-${release.publishedAt.day.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.grey,
                             fontSize: 11,
                           ),
@@ -121,14 +121,14 @@ class ReleaseNotesSheet extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: EverforestColors.grey, size: 20),
+                    icon: Icon(Icons.close_rounded, color: EverforestColors.grey, size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
 
-            const Divider(color: EverforestColors.bg2, height: 1),
+            Divider(color: EverforestColors.bg2, height: 1),
 
             // Markdown Changelog Body
             Flexible(
@@ -144,12 +144,12 @@ class ReleaseNotesSheet extends StatelessWidget {
                           }
                         },
                         styleSheet: MarkdownStyleSheet(
-                          p: const TextStyle(color: EverforestColors.fg, fontSize: 13, height: 1.55),
-                          h1: const TextStyle(color: EverforestColors.green, fontSize: 17, fontWeight: FontWeight.bold),
-                          h2: const TextStyle(color: EverforestColors.aqua, fontSize: 15, fontWeight: FontWeight.bold),
-                          h3: const TextStyle(color: EverforestColors.yellow, fontSize: 13.5, fontWeight: FontWeight.w600),
-                          h4: const TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.w600),
-                          code: const TextStyle(
+                          p: TextStyle(color: EverforestColors.fg, fontSize: 13, height: 1.55),
+                          h1: TextStyle(color: EverforestColors.green, fontSize: 17, fontWeight: FontWeight.bold),
+                          h2: TextStyle(color: EverforestColors.aqua, fontSize: 15, fontWeight: FontWeight.bold),
+                          h3: TextStyle(color: EverforestColors.yellow, fontSize: 13.5, fontWeight: FontWeight.w600),
+                          h4: TextStyle(color: EverforestColors.fg, fontSize: 13, fontWeight: FontWeight.w600),
+                          code: TextStyle(
                             color: EverforestColors.orange,
                             backgroundColor: EverforestColors.bg1,
                             fontFamily: 'monospace',
@@ -160,22 +160,22 @@ class ReleaseNotesSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: EverforestColors.bg2),
                           ),
-                          blockquote: const TextStyle(color: EverforestColors.grey, fontStyle: FontStyle.italic, fontSize: 12),
+                          blockquote: TextStyle(color: EverforestColors.grey, fontStyle: FontStyle.italic, fontSize: 12),
                           blockquoteDecoration: BoxDecoration(
-                            border: const Border(left: BorderSide(color: EverforestColors.aqua, width: 3)),
+                            border: Border(left: BorderSide(color: EverforestColors.aqua, width: 3)),
                             color: EverforestColors.bg1.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          listBullet: const TextStyle(color: EverforestColors.aqua, fontSize: 12),
-                          strong: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
-                          em: const TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic),
-                          a: const TextStyle(color: EverforestColors.blue, decoration: TextDecoration.underline),
-                          horizontalRuleDecoration: const BoxDecoration(
+                          listBullet: TextStyle(color: EverforestColors.aqua, fontSize: 12),
+                          strong: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                          em: TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic),
+                          a: TextStyle(color: EverforestColors.blue, decoration: TextDecoration.underline),
+                          horizontalRuleDecoration: BoxDecoration(
                             border: Border(top: BorderSide(color: EverforestColors.bg2, width: 1)),
                           ),
                         ),
                       )
-                    : const Padding(
+                    : Padding(
                         padding: EdgeInsets.symmetric(vertical: 24),
                         child: Center(
                           child: Text(
@@ -187,7 +187,7 @@ class ReleaseNotesSheet extends StatelessWidget {
               ),
             ),
 
-            const Divider(color: EverforestColors.bg2, height: 1),
+            Divider(color: EverforestColors.bg2, height: 1),
 
             // Actions bottom bar
             Padding(
@@ -198,7 +198,7 @@ class ReleaseNotesSheet extends StatelessWidget {
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: EverforestColors.grey,
-                      side: const BorderSide(color: EverforestColors.bg2),
+                      side: BorderSide(color: EverforestColors.bg2),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),

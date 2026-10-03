@@ -148,11 +148,11 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                     color: EverforestColors.yellow.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.auto_delete_rounded,
+                  child: Icon(Icons.auto_delete_rounded,
                       color: EverforestColors.yellow, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -173,22 +173,22 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.refresh_rounded,
+                  icon: Icon(Icons.refresh_rounded,
                       color: EverforestColors.grey, size: 20),
                   onPressed: _loadDuplicates,
                 ),
               ],
             ),
           ),
-          const Divider(color: EverforestColors.bg2, height: 1),
+          Divider(color: EverforestColors.bg2, height: 1),
           Expanded(
             child: _isLoading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
                         color: EverforestColors.yellow),
                   )
                 : _duplicateGroups.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -239,13 +239,13 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                   children: [
                                     Row(
                                       children: [
-                                        const Icon(Icons.filter_none_rounded,
+                                        Icon(Icons.filter_none_rounded,
                                             color: EverforestColors.yellow,
                                             size: 16),
                                         const SizedBox(width: 8),
                                         Text(
                                           '${items.length} copies found',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: EverforestColors.fg,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -333,7 +333,7 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                                     children: [
                                                       Text(
                                                         '${item['width']}x${item['height']}',
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           color: EverforestColors
                                                               .fg,
                                                           fontSize: 11,
@@ -345,7 +345,7 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                                         _formatSize(item[
                                                                 'size_bytes'] ??
                                                             0),
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           color: EverforestColors
                                                               .grey,
                                                           fontSize: 10,
@@ -372,7 +372,7 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                                         BorderRadius.circular(
                                                             4),
                                                   ),
-                                                  child: const Text(
+                                                  child: Text(
                                                     '★ BEST',
                                                     style: TextStyle(
                                                       color: EverforestColors
@@ -390,7 +390,7 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                                 right: 4,
                                                 child: IconButton(
                                                   icon: isDeleting
-                                                      ? const SizedBox(
+                                                      ? SizedBox(
                                                           width: 14,
                                                           height: 14,
                                                           child:
@@ -401,7 +401,7 @@ class _GalleryDuplicatesSheetState extends State<GalleryDuplicatesSheet> {
                                                                     .red,
                                                           ),
                                                         )
-                                                      : const Icon(
+                                                      : Icon(
                                                           Icons
                                                               .delete_outline_rounded,
                                                           color:

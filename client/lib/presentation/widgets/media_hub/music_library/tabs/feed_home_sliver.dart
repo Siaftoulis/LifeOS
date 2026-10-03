@@ -366,7 +366,7 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: widget.canPlay ? () => widget.onPlayTrack(t) : null,
+                    onTap: widget.canPlay ? () => widget.onPlayTrackList(tracks, i) : null,
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -378,6 +378,8 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                             children: [
                               MusicCoverArt(
                                 url: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+                                trackId: t.id,
+                                filePath: t.filePath,
                                 size: 50,
                                 borderRadius: 10,
                               ),
@@ -478,7 +480,7 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
           return MouseRegion(
             onEnter: (_) => PlaybackController.instance.precacheTrack(t.id),
             child: InkWell(
-              onTap: widget.canPlay ? () => widget.onPlayTrack(t) : null,
+              onTap: widget.canPlay ? () => widget.onPlayTrackList(tracks, i) : null,
               borderRadius: BorderRadius.circular(14),
               child: Container(
                 width: 136,
@@ -495,6 +497,8 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                       children: [
                         MusicCoverArt(
                           url: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+                          trackId: t.id,
+                          filePath: t.filePath,
                           size: 120,
                           borderRadius: 10,
                         ),
@@ -703,6 +707,8 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                     child: tracks.isNotEmpty && tracks.first.thumbnail.isNotEmpty
                         ? MusicCoverArt(
                             url: tracks.first.thumbnail,
+                            trackId: tracks.first.id,
+                            filePath: tracks.first.filePath,
                             size: 52,
                             borderRadius: 26,
                           )
@@ -760,7 +766,7 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                 itemBuilder: (context, i) {
                   final t = tracks[i];
                   return InkWell(
-                    onTap: widget.canPlay ? () => widget.onPlayTrack(t) : null,
+                    onTap: widget.canPlay ? () => widget.onPlayTrackList(tracks, i) : null,
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       width: 180,
@@ -774,6 +780,8 @@ class _FeedHomeSliverState extends State<FeedHomeSliver> {
                         children: [
                           MusicCoverArt(
                             url: t.thumbnail.isNotEmpty ? t.thumbnail : t.thumbnailUrl,
+                            trackId: t.id,
+                            filePath: t.filePath,
                             size: 44,
                             borderRadius: 6,
                           ),

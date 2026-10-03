@@ -46,7 +46,7 @@ class EPUBViewerPane extends StatelessWidget {
               child: SingleChildScrollView(
                 child: SelectableText(
                   textContent,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 18, height: 1.6),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 18, height: 1.6),
                   onSelectionChanged: (selection, cause) {
                     final text = selection.textInside(textContent);
                     onSelectionChanged(text.trim());
@@ -58,7 +58,7 @@ class EPUBViewerPane extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 'Page $currentPage of $totalPages',
-                style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                style: TextStyle(color: EverforestColors.grey, fontSize: 12),
               ),
             ),
           ],

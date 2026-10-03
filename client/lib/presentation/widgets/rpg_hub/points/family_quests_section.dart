@@ -58,7 +58,7 @@ class _FamilyQuestsSectionState extends State<FamilyQuestsSection> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
+            Expanded(
                 child: Text('FAMILY QUEST POOL',
                     style: TextStyle(
                         color: EverforestColors.fg,
@@ -73,7 +73,7 @@ class _FamilyQuestsSectionState extends State<FamilyQuestsSection> {
                   backgroundColor: Colors.transparent,
                   foregroundColor: EverforestColors.green,
                   elevation: 0,
-                  side: const BorderSide(color: EverforestColors.green),
+                  side: BorderSide(color: EverforestColors.green),
                 ),
                 onPressed: () {
                   showDialog(
@@ -102,7 +102,7 @@ class _FamilyQuestsSectionState extends State<FamilyQuestsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('ACTIVE QUESTS',
+        Text('ACTIVE QUESTS',
             style: TextStyle(
                 color: EverforestColors.fg,
                 fontSize: 16,

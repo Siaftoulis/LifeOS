@@ -127,15 +127,15 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.search_rounded, color: EverforestColors.green, size: 24),
+                    Icon(Icons.search_rounded, color: EverforestColors.green, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         focusNode: _focusNode,
                         autofocus: true,
-                        style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500),
+                        decoration: InputDecoration(
                           hintText: 'Αναζήτηση καρτελών, ακολουθιών, μουσικής, σημειώσεων... (Ctrl+K)',
                           hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 14),
                           border: InputBorder.none,
@@ -145,14 +145,14 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                       ),
                     ),
                     if (_isLoading)
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.green),
                       )
                     else if (_controller.text.isNotEmpty)
                       IconButton(
-                        icon: const Icon(Icons.clear_rounded, color: EverforestColors.grey, size: 18),
+                        icon: Icon(Icons.clear_rounded, color: EverforestColors.grey, size: 18),
                         onPressed: () {
                           _controller.clear();
                           _performSearch('');
@@ -163,7 +163,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: EverforestColors.bg2),
+              Divider(height: 1, color: EverforestColors.bg2),
               // Category Filter Chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -180,11 +180,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: EverforestColors.bg2),
+              Divider(height: 1, color: EverforestColors.bg2),
               // Results List
               Expanded(
                 child: _results.isEmpty && !_isLoading
-                    ? const Center(
+                    ? Center(
                         child: Padding(
                           padding: EdgeInsets.all(24.0),
                           child: Text(
@@ -237,7 +237,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                                             Expanded(
                                               child: Text(
                                                 item.title,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   color: EverforestColors.fg,
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 14,
@@ -271,7 +271,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                                         const SizedBox(height: 3),
                                         Text(
                                           item.subtitle,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: EverforestColors.grey,
                                             fontSize: 12,
                                           ),
@@ -283,7 +283,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                                   ),
                                   const SizedBox(width: 8),
                                   if (isSelected)
-                                    const Icon(
+                                    Icon(
                                       Icons.keyboard_return_rounded,
                                       color: EverforestColors.green,
                                       size: 16,
@@ -298,14 +298,14 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
               // Footer Shortcut Hints
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: EverforestColors.bg0,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(18),
                     bottomRight: Radius.circular(18),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Text('↑↓ Πλοήγηση', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                     SizedBox(width: 14),

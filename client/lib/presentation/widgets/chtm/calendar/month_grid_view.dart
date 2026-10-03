@@ -16,7 +16,7 @@ class DaysOfWeekHeader extends StatelessWidget {
                 child: Center(
                   child: Text(
                     d,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: EverforestColors.grey,
                         fontSize: 11,
                         fontWeight: FontWeight.bold),

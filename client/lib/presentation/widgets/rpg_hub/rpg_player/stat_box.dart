@@ -33,7 +33,7 @@ class StatBox extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+            style: TextStyle(color: EverforestColors.grey, fontSize: 11),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -69,7 +69,7 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: EverforestColors.bg1,
-      title: const Text(
+      title: Text(
         'Search vault',
         style: TextStyle(color: EverforestColors.fg, fontSize: 16),
       ),
@@ -82,8 +82,8 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
               controller: _controller,
               autofocus: true,
               onChanged: _onChanged,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
-              decoration: const InputDecoration(
+              style: TextStyle(color: EverforestColors.fg, fontSize: 14),
+              decoration: InputDecoration(
                 hintText: 'Search notes content…',
                 hintStyle: TextStyle(color: EverforestColors.grey),
                 prefixIcon:
@@ -96,7 +96,7 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
             const SizedBox(height: 12),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
                           color: EverforestColors.green))
                   : _results.isEmpty
@@ -105,14 +105,14 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
                             _controller.text.trim().isEmpty
                                 ? 'Type to search note content'
                                 : 'No notes found',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: EverforestColors.grey),
                           ),
                         )
                       : ListView.separated(
                           itemCount: _results.length,
                           separatorBuilder: (_, __) =>
-                              const Divider(height: 1, color: EverforestColors.bg2),
+                              Divider(height: 1, color: EverforestColors.bg2),
                           itemBuilder: (context, i) {
                             final r = _results[i] as Map;
                             final path =
@@ -122,12 +122,12 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
                               dense: true,
                               title: Text(
                                 r['title'] as String? ?? path,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: EverforestColors.fg, fontSize: 13),
                               ),
                               subtitle: Text(
                                 path,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: EverforestColors.grey, fontSize: 11),
                               ),
                               isThreeLine: false,
@@ -146,7 +146,7 @@ class _VaultSearchDialogState extends State<VaultSearchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close', style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Close', style: TextStyle(color: EverforestColors.grey)),
         ),
       ],
     );

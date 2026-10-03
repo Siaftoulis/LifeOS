@@ -75,7 +75,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
             child: Container(
               width: 12,
               height: 12,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: EverforestColors.red,
                 shape: BoxShape.circle,
               ),
@@ -85,7 +85,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
           // Timer
           Text(
             _formatTimer(),
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontSize: 14,
               fontFamily: 'JetBrainsMono',
@@ -116,19 +116,19 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar> with SingleTickerPr
           const SizedBox(width: 14),
           // Cancel Button
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 22),
+            icon: Icon(Icons.delete_outline_rounded, color: EverforestColors.grey, size: 22),
             tooltip: 'Cancel Recording',
             onPressed: widget.onCancel,
           ),
           const SizedBox(width: 4),
           // Send Button
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: EverforestColors.green,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.send_rounded, color: EverforestColors.bg0, size: 20),
+              icon: Icon(Icons.send_rounded, color: EverforestColors.bg0, size: 20),
               tooltip: 'Send Voice Message',
               onPressed: () {
                 final dur = Duration(seconds: max(1, _secondsElapsed));

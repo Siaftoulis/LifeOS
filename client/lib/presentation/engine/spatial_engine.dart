@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:clock/clock.dart';
 import '../../theme/everforest_colors.dart';
+import '../../theme/app_skin_manager.dart';
 import '../widgets/keyboard_integrity/smooth_keyboard_integrity.dart';
 
 class SpatialEngine extends StatefulWidget {
@@ -58,6 +59,14 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     }
   }
 
+  void _onSkinChanged() {
+    if (mounted) {
+      setState(() {
+        _buildModuleCache();
+      });
+    }
+  }
+
   @override
   void didUpdateWidget(SpatialEngine oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -83,6 +92,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
     x = widget.startX;
     y = widget.startY;
     _buildModuleCache();
+    AppSkinManager.currentSkinNotifier.addListener(_onSkinChanged);
     
     _animCtrl = AnimationController(
       vsync: this, 
@@ -98,6 +108,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
 
   @override
   void dispose() {
+    AppSkinManager.currentSkinNotifier.removeListener(_onSkinChanged);
     _animCtrl.dispose();
     _dragOffset.dispose();
     _focusNode.dispose();
@@ -335,29 +346,25 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
 
   @override
   Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
     return Scaffold(
       backgroundColor: EverforestColors.bg0,
       resizeToAvoidBottomInset: false,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final double trueWidth = constraints.maxWidth;
-          final double trueHeight = constraints.maxHeight + mq.viewInsets.bottom;
+          final double trueHeight = constraints.maxHeight;
 
+          if (trueWidth == 0 || trueHeight == 0) {
+            return const SizedBox.shrink();
+          }
 
-              if (trueWidth == 0 || trueHeight == 0) {
-                return const SizedBox.shrink();
-              }
-              
-              if (_w != trueWidth || _h != trueHeight) {
-                _w = trueWidth;
-                _h = trueHeight;
-                _baseOffset = Offset(-x * _w, -y * _h);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (_isFirstLayout) _isFirstLayout = false;
-                  _dragOffset.value = _baseOffset;
-                });
-              }
+          if (_w != trueWidth || _h != trueHeight) {
+            _w = trueWidth;
+            _h = trueHeight;
+            _baseOffset = Offset(-x * _w, -y * _h);
+            _dragOffset.value = _baseOffset;
+            if (_isFirstLayout) _isFirstLayout = false;
+          }
 
               // ΚΡΥΦΗ ΔΥΝΑΜΗ: Χρησιμοποιούμε τα προ-φορτωμένα γραφικά (cached modules) 
               // έτσι ώστε να μην γίνεται ΚΑΝΕΝΑ απολύτως build στις οθόνες!

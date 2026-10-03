@@ -64,14 +64,14 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
             return AlertDialog(
               backgroundColor: EverforestColors.bg0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text('New Checklist Memo', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+              title: Text('New Checklist Memo', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: controller,
-                    style: const TextStyle(color: EverforestColors.fg),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: EverforestColors.fg),
+                    decoration: InputDecoration(
                       labelText: 'Memo Title',
                       labelStyle: TextStyle(color: EverforestColors.grey),
                       enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: EverforestColors.bg2)),
@@ -82,7 +82,7 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Theme Color', style: TextStyle(color: EverforestColors.fg)),
+                      Text('Theme Color', style: TextStyle(color: EverforestColors.fg)),
                       Row(
                         children: [
                           _colorBtn(setDialogState, '#A6E3A1', EverforestColors.green, selectedColor),
@@ -98,7 +98,7 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+                  child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context, true),
@@ -199,9 +199,9 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.note_alt_outlined, size: 64, color: EverforestColors.grey),
+          Icon(Icons.note_alt_outlined, size: 64, color: EverforestColors.grey),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No checklist memos created yet',
             style: TextStyle(color: EverforestColors.grey, fontSize: 16),
           ),
@@ -249,20 +249,20 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: EverforestColors.red, size: 20),
+                icon: Icon(Icons.delete_outline, color: EverforestColors.red, size: 20),
                 onPressed: () async {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
                       backgroundColor: EverforestColors.bg0,
-                      title: const Text('Delete List?', style: TextStyle(color: EverforestColors.fg)),
+                      title: Text('Delete List?', style: TextStyle(color: EverforestColors.fg)),
                       actions: [
                         TextButton(
-                          child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+                          child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
                           onPressed: () => Navigator.pop(context, false),
                         ),
                         TextButton(
-                          child: const Text('Delete', style: TextStyle(color: EverforestColors.red)),
+                          child: Text('Delete', style: TextStyle(color: EverforestColors.red)),
                           onPressed: () => Navigator.pop(context, true),
                         ),
                       ],
@@ -313,7 +313,7 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
                             border: Border.all(color: item.isDone ? color : EverforestColors.grey, width: 2),
                           ),
                           child: item.isDone
-                              ? const Icon(Icons.check, color: EverforestColors.bg0, size: 14)
+                              ? Icon(Icons.check, color: EverforestColors.bg0, size: 14)
                               : null,
                         ),
                       ),
@@ -329,7 +329,7 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: EverforestColors.grey, size: 16),
+                        icon: Icon(Icons.close, color: EverforestColors.grey, size: 16),
                         onPressed: () async {
                           memo.items.removeAt(idx);
                           await _saveMemos(allLists);
@@ -347,8 +347,8 @@ class _CHTMMemoViewState extends State<CHTMMemoView> {
               Expanded(
                 child: TextField(
                   controller: textController,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 14),
+                  decoration: InputDecoration(
                     hintText: 'Add list item...',
                     hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 14),
                     border: InputBorder.none,

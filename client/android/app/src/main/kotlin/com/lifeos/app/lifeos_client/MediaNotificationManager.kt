@@ -232,17 +232,11 @@ object MediaNotificationManager {
         // Post immediately
         updateNotificationAndMetadata(null)
 
-        // Load thumbnail asynchronously
+        // Load thumbnail asynchronously with embedded ID3 & MediaStore support
         if (thumbnail.isNotEmpty()) {
             thread {
                 try {
-                    val clean = thumbnail.removePrefix("file://")
-                    val bmp = if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
-                        BitmapFactory.decodeStream(URL(thumbnail).openStream())
-                    } else if (File(clean).exists()) {
-                        BitmapFactory.decodeFile(clean)
-                    } else null
-
+                    val bmp = LifeOSWidgetProvider.decodeAndScaleBitmap(context, thumbnail, 384)
                     if (bmp != null) {
                         updateNotificationAndMetadata(bmp)
                     }

@@ -22,7 +22,7 @@ class TerminalLogs extends StatelessWidget {
                 border: Border.all(color: EverforestColors.grey.withValues(alpha: 0.5), width: 1.5),
               ),
               padding: const EdgeInsets.all(24),
-              child: const SingleChildScrollView(
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -55,7 +55,7 @@ class TerminalLogs extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('ACTIVE TRANSFERS', style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                    Text('ACTIVE TRANSFERS', style: TextStyle(color: EverforestColors.fg, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                     const SizedBox(height: 24),
                     _buildTransferItem('ubuntu-24.04-live-server-amd64.iso', 0.65, '1.2 GB / 2.6 GB', EverforestColors.fg),
                     const SizedBox(height: 24),
@@ -80,7 +80,7 @@ class TerminalLogs extends StatelessWidget {
             Expanded(
               child: Text(
                 filename, 
-                style: const TextStyle(color: EverforestColors.fg, fontSize: 11, fontFamily: 'JetBrainsMono'),
+                style: TextStyle(color: EverforestColors.fg, fontSize: 11, fontFamily: 'JetBrainsMono'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

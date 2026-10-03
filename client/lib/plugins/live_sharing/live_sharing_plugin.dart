@@ -39,16 +39,16 @@ class LiveSharingPlugin implements BasePlugin {
             children: [
               Container(
                 width: 10, height: 10,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: EverforestColors.green),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: EverforestColors.green),
               ),
               const SizedBox(width: 8),
-              const Text('Live Feed', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Live Feed', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
         ),
         Expanded(
           child: _locations.isEmpty
-            ? const Center(child: Text('Waiting for location updates...', style: TextStyle(color: EverforestColors.grey)))
+            ? Center(child: Text('Waiting for location updates...', style: TextStyle(color: EverforestColors.grey)))
             : ListView.builder(
                 itemCount: _locations.length,
                 itemBuilder: (ctx, i) {
@@ -63,16 +63,16 @@ class LiveSharingPlugin implements BasePlugin {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on, color: EverforestColors.cyan, size: 18),
+                        Icon(Icons.location_on, color: EverforestColors.cyan, size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '${loc['device_id'] ?? '?'}: ${(loc['latitude'] as num?)?.toStringAsFixed(4) ?? '?'}, ${(loc['longitude'] as num?)?.toStringAsFixed(4) ?? '?'}',
-                            style: const TextStyle(color: EverforestColors.fg, fontSize: 13),
+                            style: TextStyle(color: EverforestColors.fg, fontSize: 13),
                           ),
                         ),
                         if (loc['velocity'] != null)
-                          Text('${loc['velocity']} m/s', style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                          Text('${loc['velocity']} m/s', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                       ],
                     ),
                   );

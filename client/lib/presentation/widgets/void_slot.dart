@@ -11,7 +11,7 @@ class VoidSlot extends StatelessWidget {
       padding: const EdgeInsets.all(24.0),
       child: CustomPaint(
         painter: _DashedBorderPainter(color: EverforestColors.grey.withValues(alpha: 0.5)),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

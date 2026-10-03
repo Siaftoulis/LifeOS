@@ -22,7 +22,7 @@ class QuarantineWarningsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('ClamAV Security Sandbox', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('ClamAV Security Sandbox', style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
@@ -45,7 +45,7 @@ class QuarantineWarningsPanel extends StatelessWidget {
                   color: EverforestColors.bg0,
                   child: ListTile(
                     leading: Icon(icon, color: color),
-                    title: Text(alert['file'] as String, style: const TextStyle(color: EverforestColors.fg)),
+                    title: Text(alert['file'] as String, style: TextStyle(color: EverforestColors.fg)),
                     subtitle: Text(alert['threat'] as String, style: TextStyle(color: status == 'INFECTED' ? EverforestColors.red : EverforestColors.grey)),
                     trailing: status == 'CLEAN' 
                         ? ElevatedButton(
@@ -53,7 +53,7 @@ class QuarantineWarningsPanel extends StatelessWidget {
                             onPressed: () {},
                             child: const Text('Promote'),
                           )
-                        : (status == 'INFECTED' ? const Icon(Icons.delete_forever, color: EverforestColors.red) : null),
+                        : (status == 'INFECTED' ? Icon(Icons.delete_forever, color: EverforestColors.red) : null),
                   ),
                 );
               },

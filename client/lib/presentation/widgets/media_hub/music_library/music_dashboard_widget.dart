@@ -174,8 +174,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
   final Set<String> _offlineDownloading = {};
 
   bool get _canPlay => _pc.isAvailable;
-  bool get _hasActivePlayback =>
-      _canPlay && _currentTrackId.isNotEmpty && _pc.currentItem != null;
+  bool get _hasActivePlayback => _canPlay && _pc.currentItem != null;
   PlaybackController get _pc => PlaybackController.instance;
 
   int _libraryTab = 0;
@@ -888,7 +887,9 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
       ('Artists ($artistCount)', Icons.person_rounded, 4),
       ('Genres & Styles ($genreCount)', Icons.category_rounded, 5),
       ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 6),
-      ('Local & Offline ($offlineCount)', Icons.devices_rounded, 7),
+      ('Vault Downloads ($offlineCount)', Icons.download_done_rounded, 7),
+      if (!kIsWeb && Platform.isAndroid)
+        ('Phone Storage (${_phoneSongs.length})', Icons.phone_android_rounded, 8),
     ];
 
     return SingleChildScrollView(
@@ -1128,7 +1129,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 canPlay: _canPlay,
                 onPlayTrackList: _playTrackList,
               )
-            else
+            else if (_libraryTab == 7)
               OfflineTracksSliver(
                 currentTrackId: _currentTrackId,
                 canPlay: _canPlay,
@@ -1136,8 +1137,8 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteOffline: _confirmDeleteOffline,
                 onWebNotice: _webPlaybackNotice,
                 streamUrlFor: _streamUrlFor,
-              ),
-            if (!kIsWeb && Platform.isAndroid && _phoneSongs.isNotEmpty)
+              )
+            else if (_libraryTab == 8)
               PhoneSongsSliver(
                 phoneSongs: _phoneSongs,
                 playbackController: _pc,
@@ -1240,6 +1241,10 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                             _openNowPlaying(list[index]);
                           }
                         },
+                        recommendedTracks: _recommendedTracks,
+                        dailyMixTracks: _dailyMixTracks,
+                        onDownloadTrack: _download,
+                        onAddToPlaylist: _addToPlaylist,
                       ),
                     ),
                   ),

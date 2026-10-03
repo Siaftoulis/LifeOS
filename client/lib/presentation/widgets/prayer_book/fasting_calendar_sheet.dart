@@ -76,7 +76,7 @@ class FastingCalendarSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'ΝΗΣΤΕΙΟΔΡΟΜΙΟΝ',
                     style: TextStyle(
                       color: EverforestColors.green,
@@ -86,7 +86,7 @@ class FastingCalendarSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Ορθόδοξος Κανόνας Νηστείας',
                     style: TextStyle(
                       color: EverforestColors.fg,
@@ -123,7 +123,7 @@ class FastingCalendarSheet extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Σημερινή Νηστεία',
                                 style: TextStyle(
                                   color: EverforestColors.grey,
@@ -148,7 +148,7 @@ class FastingCalendarSheet extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Fasting Seasons Overview
-                  const Text(
+                  Text(
                     'ΚΥΡΙΕΣ ΠΕΡΙΟΔΟΙ ΝΗΣΤΕΙΩΝ',
                     style: TextStyle(
                       color: EverforestColors.grey,
@@ -223,7 +223,7 @@ class FastingCalendarSheet extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
@@ -232,7 +232,7 @@ class FastingCalendarSheet extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.grey,
                     fontSize: 12,
                   ),

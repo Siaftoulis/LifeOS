@@ -51,7 +51,7 @@ class GalleryTimelineView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading && items.isEmpty) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
@@ -65,7 +65,7 @@ class GalleryTimelineView extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-            const Center(
+            Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -127,7 +127,7 @@ class GalleryTimelineView extends StatelessWidget {
                       children: [
                         Text(
                           dateTitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -135,7 +135,7 @@ class GalleryTimelineView extends StatelessWidget {
                         ),
                         Text(
                           '${groupItems.length} items',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.grey,
                             fontSize: 12,
                           ),
@@ -169,7 +169,7 @@ class GalleryTimelineView extends StatelessWidget {
 
           // Pagination Loader
           if (isLoadingMore)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(20),
                 child: Center(
@@ -247,7 +247,7 @@ class GalleryTimelineView extends StatelessWidget {
                               isSyncing
                                   ? 'Backing up photos ($synced / $total)...'
                                   : 'Vault Photo Backup Active',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13.5,
@@ -258,7 +258,7 @@ class GalleryTimelineView extends StatelessWidget {
                               isSyncing
                                   ? 'Content-addressable SHA256 deduplication'
                                   : 'All device photos synced with server vault',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 11.5,
                               ),
@@ -267,7 +267,7 @@ class GalleryTimelineView extends StatelessWidget {
                         ),
                       ),
                       if (isSyncing)
-                        const SizedBox(
+                        SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
@@ -332,7 +332,7 @@ class GalleryTimelineView extends StatelessWidget {
                   case LoadState.loading:
                     return Container(
                       color: EverforestColors.bg1,
-                      child: const Center(
+                      child: Center(
                         child: SizedBox(
                           width: 18,
                           height: 18,
@@ -346,7 +346,7 @@ class GalleryTimelineView extends StatelessWidget {
                   case LoadState.failed:
                     return Container(
                       color: EverforestColors.bg1,
-                      child: const Icon(
+                      child: Icon(
                         Icons.broken_image_rounded,
                         color: EverforestColors.grey,
                         size: 24,

@@ -46,7 +46,7 @@ class _DeviceGridToggleState extends State<DeviceGridToggle> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Icon(icon, color: color, size: 32),
-            Text(widget.name, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(widget.name, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
             Text(_isOn ? 'ON' : 'OFF', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),

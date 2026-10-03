@@ -44,6 +44,12 @@ class AndroidMediaBridge {
         latestLaunchIntent.value = Map<String, dynamic>.from(res);
       }
     }).catchError((_) => null);
+
+    _channel.invokeMethod('getInitialMediaAction').then((res) {
+      if (res != null && res is String && res.isNotEmpty) {
+        _handleNativeCall(MethodCall('onMediaAction', res));
+      }
+    }).catchError((_) => null);
   }
 
   Future<dynamic> _handleNativeCall(MethodCall call) async {
@@ -108,12 +114,17 @@ class AndroidMediaBridge {
     final posMs = controller.player?.position.inMilliseconds ?? 0;
     final durMs = controller.player?.duration?.inMilliseconds ?? 0;
     final isLiked = MusicRepository.instance.likedTrackIds.value.contains(item.id);
+    final thumb = item.thumbnail.isNotEmpty
+        ? item.thumbnail
+        : (item.filePath.isNotEmpty
+            ? item.filePath
+            : (item.id.startsWith('phone_') ? item.id : ''));
 
     _channel.invokeMethod('updatePlaybackState', {
       'title': item.title,
       'artist': item.artist,
       'album': item.album,
-      'thumbnail': item.thumbnail,
+      'thumbnail': thumb,
       'isPlaying': controller.isPlaying,
       'positionMs': posMs,
       'durationMs': durMs,
@@ -142,7 +153,11 @@ class AndroidMediaBridge {
 
     final title = item.title;
     final artist = item.artist;
-    final thumb = item.thumbnail;
+    final thumb = item.thumbnail.isNotEmpty
+        ? item.thumbnail
+        : (item.filePath.isNotEmpty
+            ? item.filePath
+            : (item.id.startsWith('phone_') ? item.id : ''));
     final isLiked = MusicRepository.instance.likedTrackIds.value.contains(item.id);
 
     if (title != _lastTitle ||

@@ -49,10 +49,10 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                   color: EverforestColors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.system_update_rounded, color: EverforestColors.green, size: 22),
+                child: Icon(Icons.system_update_rounded, color: EverforestColors.green, size: 22),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -79,18 +79,18 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                         ? null
                         : () => _checkLatest(force: true),
                     icon: checking
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 14,
                             height: 14,
                             child: CircularProgressIndicator(strokeWidth: 2, color: EverforestColors.green),
                           )
-                        : const Icon(Icons.refresh_rounded, size: 16, color: EverforestColors.green),
+                        : Icon(Icons.refresh_rounded, size: 16, color: EverforestColors.green),
                     label: Text(
                       checking ? 'Checking...' : 'Check Now',
-                      style: const TextStyle(color: EverforestColors.green, fontSize: 12),
+                      style: TextStyle(color: EverforestColors.green, fontSize: 12),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: EverforestColors.green),
+                      side: BorderSide(color: EverforestColors.green),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
@@ -113,13 +113,13 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('INSTALLED VERSION', style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+                    Text('INSTALLED VERSION', style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         Text(
                           _ota.currentVersionTag,
-                          style: const TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 8),
                         Container(
@@ -130,7 +130,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                           ),
                           child: Text(
                             'Build #${_ota.currentBuildNumber}',
-                            style: const TextStyle(color: EverforestColors.grey, fontSize: 11, fontFamily: 'JetBrainsMono'),
+                            style: TextStyle(color: EverforestColors.grey, fontSize: 11, fontFamily: 'JetBrainsMono'),
                           ),
                         ),
                       ],
@@ -153,7 +153,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                                 child: CircularProgressIndicator(value: progress > 0 ? progress : null, strokeWidth: 2.5, color: EverforestColors.green),
                               ),
                               const SizedBox(width: 8),
-                              Text('${(progress * 100).toInt()}%', style: const TextStyle(color: EverforestColors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                              Text('${(progress * 100).toInt()}%', style: TextStyle(color: EverforestColors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                             ],
                           );
                         },
@@ -175,7 +175,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                           );
                         }
 
-                        return const Row(
+                        return Row(
                           children: [
                             Icon(Icons.check_circle_outline_rounded, color: EverforestColors.green, size: 18),
                             SizedBox(width: 6),
@@ -191,7 +191,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
           ),
           const SizedBox(height: 20),
           // Latest Release Details Section
-          const Row(
+          Row(
             children: [
               Icon(Icons.new_releases_outlined, color: EverforestColors.aqua, size: 18),
               SizedBox(width: 8),
@@ -211,7 +211,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: EverforestColors.bg2),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'Tap "Check Now" above to check for updates.',
                         style: TextStyle(color: EverforestColors.grey, fontSize: 12),
@@ -232,7 +232,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                           children: [
                             Text(
                               _latestRelease!.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
@@ -247,7 +247,7 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                               ),
                               child: Text(
                                 _latestRelease!.tagName,
-                                style: const TextStyle(color: EverforestColors.aqua, fontSize: 11, fontWeight: FontWeight.bold),
+                                style: TextStyle(color: EverforestColors.aqua, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -255,10 +255,10 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                         const SizedBox(height: 4),
                         Text(
                           'Published: ${_latestRelease!.publishedAt.year}-${_latestRelease!.publishedAt.month.toString().padLeft(2, '0')}-${_latestRelease!.publishedAt.day.toString().padLeft(2, '0')}',
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                          style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                         ),
                         const SizedBox(height: 12),
-                        const Divider(color: EverforestColors.bg2, height: 1),
+                        Divider(color: EverforestColors.bg2, height: 1),
                         const SizedBox(height: 12),
                         Expanded(
                           child: SingleChildScrollView(
@@ -272,12 +272,12 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                                       }
                                     },
                                     styleSheet: MarkdownStyleSheet(
-                                      p: const TextStyle(color: EverforestColors.fg, fontSize: 12.5, height: 1.55),
-                                      h1: const TextStyle(color: EverforestColors.green, fontSize: 16, fontWeight: FontWeight.bold),
-                                      h2: const TextStyle(color: EverforestColors.aqua, fontSize: 14, fontWeight: FontWeight.bold),
-                                      h3: const TextStyle(color: EverforestColors.yellow, fontSize: 13, fontWeight: FontWeight.w600),
-                                      h4: const TextStyle(color: EverforestColors.fg, fontSize: 12.5, fontWeight: FontWeight.w600),
-                                      code: const TextStyle(
+                                      p: TextStyle(color: EverforestColors.fg, fontSize: 12.5, height: 1.55),
+                                      h1: TextStyle(color: EverforestColors.green, fontSize: 16, fontWeight: FontWeight.bold),
+                                      h2: TextStyle(color: EverforestColors.aqua, fontSize: 14, fontWeight: FontWeight.bold),
+                                      h3: TextStyle(color: EverforestColors.yellow, fontSize: 13, fontWeight: FontWeight.w600),
+                                      h4: TextStyle(color: EverforestColors.fg, fontSize: 12.5, fontWeight: FontWeight.w600),
+                                      code: TextStyle(
                                         color: EverforestColors.orange,
                                         backgroundColor: EverforestColors.bg1,
                                         fontFamily: 'monospace',
@@ -288,22 +288,22 @@ class _SystemUpdatesWidgetState extends State<SystemUpdatesWidget> {
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(color: EverforestColors.bg2),
                                       ),
-                                      blockquote: const TextStyle(color: EverforestColors.grey, fontStyle: FontStyle.italic, fontSize: 12),
+                                      blockquote: TextStyle(color: EverforestColors.grey, fontStyle: FontStyle.italic, fontSize: 12),
                                       blockquoteDecoration: BoxDecoration(
-                                        border: const Border(left: BorderSide(color: EverforestColors.aqua, width: 3)),
+                                        border: Border(left: BorderSide(color: EverforestColors.aqua, width: 3)),
                                         color: EverforestColors.bg1.withValues(alpha: 0.5),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      listBullet: const TextStyle(color: EverforestColors.aqua, fontSize: 12),
-                                      strong: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
-                                      em: const TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic),
-                                      a: const TextStyle(color: EverforestColors.blue, decoration: TextDecoration.underline),
-                                      horizontalRuleDecoration: const BoxDecoration(
+                                      listBullet: TextStyle(color: EverforestColors.aqua, fontSize: 12),
+                                      strong: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                                      em: TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic),
+                                      a: TextStyle(color: EverforestColors.blue, decoration: TextDecoration.underline),
+                                      horizontalRuleDecoration: BoxDecoration(
                                         border: Border(top: BorderSide(color: EverforestColors.bg2, width: 1)),
                                       ),
                                     ),
                                   )
-                                : const Text(
+                                : Text(
                                     'No detailed changelog provided for this release.',
                                     style: TextStyle(color: EverforestColors.grey, fontSize: 12, fontStyle: FontStyle.italic),
                                   ),

@@ -23,7 +23,7 @@ class _NexusDashboardState extends State<NexusDashboard> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: EverforestColors.bg2, width: 1.0),
+                  side: BorderSide(color: EverforestColors.bg2, width: 1.0),
                 ),
                 child: ListTile(
                   leading: Icon(
@@ -31,7 +31,7 @@ class _NexusDashboardState extends State<NexusDashboard> {
                     color: v > 0 ? EverforestColors.yellow : EverforestColors.green,
                     size: 20,
                   ),
-                  title: const Text(
+                  title: Text(
                     'SYNC ENGINE DESK',
                     style: TextStyle(
                       color: EverforestColors.fg,
@@ -62,15 +62,15 @@ class _NexusDashboardState extends State<NexusDashboard> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: EverforestColors.bg2, width: 1.0),
+                    side: BorderSide(color: EverforestColors.bg2, width: 1.0),
                   ),
                   child: ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.storage_rounded,
                       color: EverforestColors.blue,
                       size: 20,
                     ),
-                    title: const Text(
+                    title: Text(
                       'DATABASE INTEGRITY',
                       style: TextStyle(
                         color: EverforestColors.fg,
@@ -81,7 +81,7 @@ class _NexusDashboardState extends State<NexusDashboard> {
                     ),
                     trailing: Text(
                       '$count TASKS ACTIVE',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.blue,
                         fontSize: 11,
                         fontFamily: 'JetBrainsMono',

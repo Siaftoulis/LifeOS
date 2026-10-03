@@ -306,7 +306,7 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
                         style: TextStyle(color: EverforestColors.grey, fontSize: 11.5),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: EverforestColors.yellow, size: 18)
+                          ? Icon(Icons.check_circle_rounded, color: EverforestColors.yellow, size: 18)
                           : null,
                       onTap: () {
                         Navigator.pop(ctx);
@@ -646,11 +646,11 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
         ],
       ),
       body: _isLoading || _isLoadingBook
-          ? const Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
+          ? Center(child: CircularProgressIndicator(color: EverforestColors.yellow))
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: EverforestColors.red)))
+              ? Center(child: Text(_error!, style: TextStyle(color: EverforestColors.red)))
               : _activeBook == null || currentChapter == null
-                  ? const Center(child: Text('Επιλέξτε ένα βιβλίο.', style: TextStyle(color: EverforestColors.grey)))
+                  ? Center(child: Text('Επιλέξτε ένα βιβλίο.', style: TextStyle(color: EverforestColors.grey)))
                   : Stack(
                       children: [
                         // Smooth Unified SelectionArea Reader View (Zero Nested Scroll Traps)
@@ -767,7 +767,7 @@ class _ScriptureScreenState extends State<ScriptureScreen> {
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    const Row(
+                                                    Row(
                                                       children: [
                                                         Icon(Icons.translate_rounded, size: 10.5, color: EverforestColors.aqua),
                                                         SizedBox(width: 4),

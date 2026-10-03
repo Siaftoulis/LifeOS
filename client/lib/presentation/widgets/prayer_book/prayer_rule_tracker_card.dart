@@ -54,17 +54,17 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: EverforestColors.green),
+            side: BorderSide(color: EverforestColors.green),
           ),
           content: Row(
             children: [
-              const Icon(Icons.star_rounded,
+              Icon(Icons.star_rounded,
                   color: EverforestColors.yellow, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Ολοκληρώθηκε: ${item.title} (+$pts ⭐ Stars)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontWeight: FontWeight.bold,
                   ),
@@ -167,14 +167,14 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                           color:
                               EverforestColors.orange.withValues(alpha: 0.15),
                         ),
-                        child: const Icon(Icons.local_fire_department_rounded,
+                        child: Icon(Icons.local_fire_department_rounded,
                             color: EverforestColors.orange, size: 22),
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'ΚΑΝΟΝΑΣ ΠΡΟΣΕΥΧΗΣ',
                             style: TextStyle(
                               color: EverforestColors.orange,
@@ -185,7 +185,7 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                           ),
                           Text(
                             'Σερί: ${status.streakDays} ${status.streakDays == 1 ? "Ημέρα" : "Ημέρες"}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -208,12 +208,12 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.star_rounded,
+                        Icon(Icons.star_rounded,
                             color: EverforestColors.yellow, size: 16),
                         const SizedBox(width: 4),
                         Text(
                           '+${status.totalPointsEarned} ⭐',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.yellow,
                             fontWeight: FontWeight.bold,
                             fontSize: 12.5,
@@ -236,7 +236,7 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                         value: progress,
                         minHeight: 6,
                         backgroundColor: EverforestColors.bg2,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
+                        valueColor: AlwaysStoppedAnimation<Color>(
                           EverforestColors.green,
                         ),
                       ),
@@ -245,7 +245,7 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                   const SizedBox(width: 12),
                   Text(
                     '${status.completedCount}/${status.totalCount}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.grey,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -305,7 +305,7 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                     ),
                     subtitle: Text(
                       item.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.grey,
                         fontSize: 11,
                       ),
@@ -315,7 +315,7 @@ class _PrayerRuleTrackerCardState extends State<PrayerRuleTrackerCard> {
                       children: [
                         Text(
                           '+${item.points} ⭐',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.yellow,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

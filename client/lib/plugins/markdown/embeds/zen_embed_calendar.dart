@@ -19,7 +19,7 @@ class CalendarEmbedPreview extends StatelessWidget {
           ..sort((a, b) => a.startTime.compareTo(b.startTime));
         final events = upcoming.take(5).toList();
         if (events.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No upcoming events',
               style: TextStyle(color: EverforestColors.grey),
@@ -47,7 +47,7 @@ class CalendarEmbedPreview extends StatelessWidget {
                 Expanded(
                   child: Text(
                     e.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.fg,
                       fontSize: 13,
                     ),
@@ -57,7 +57,7 @@ class CalendarEmbedPreview extends StatelessWidget {
                 ),
                 Text(
                   _fmtDate(start),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.grey,
                     fontSize: 12,
                   ),

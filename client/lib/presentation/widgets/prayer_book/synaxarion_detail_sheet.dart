@@ -80,21 +80,21 @@ class SynaxarionDetailSheet extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('☩',
+                          Text('☩',
                               style: TextStyle(
                                   color: EverforestColors.yellow,
                                   fontSize: 16)),
                           const SizedBox(width: 8),
                           Text(
                             dateFormatted,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.yellow,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text('☩',
+                          Text('☩',
                               style: TextStyle(
                                   color: EverforestColors.yellow,
                                   fontSize: 16)),
@@ -128,7 +128,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                             )
                           ],
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(Icons.church_rounded,
                               size: 36, color: EverforestColors.yellow),
                         ),
@@ -140,7 +140,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                           children: [
                             Text(
                               saint.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -151,7 +151,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 saint.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: EverforestColors.green,
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w600,
@@ -166,7 +166,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Full Synaxarion Biography
-                  const Text(
+                  Text(
                     'ΒΙΟΣ & ΣΥΝΑΞΑΡΙΟΝ',
                     style: TextStyle(
                       color: EverforestColors.grey,
@@ -189,7 +189,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                       saint.fullLife.isNotEmpty
                           ? saint.fullLife
                           : saint.shortLife,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.fg,
                         fontSize: 14.5,
                         height: 1.65,
@@ -200,7 +200,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
 
                   // Apolytikion Box
                   if (saint.apolytikion.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'ΑΠΟΛΥΤΙΚΙΟΝ',
                       style: TextStyle(
                         color: EverforestColors.yellow,
@@ -226,7 +226,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                         children: [
                           Text(
                             saint.apolytikion,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 14,
                               fontStyle: FontStyle.italic,
@@ -241,7 +241,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
 
                   // Kontakion Box
                   if (saint.kontakion.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'ΚΟΝΤΑΚΙΟΝ',
                       style: TextStyle(
                         color: EverforestColors.purple,
@@ -264,7 +264,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                       ),
                       child: Text(
                         saint.kontakion,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 14,
                           fontStyle: FontStyle.italic,
@@ -277,7 +277,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
 
                   // Megalynarion Box
                   if (saint.megalynarion.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'ΜΕΓΑΛΥΝΑΡΙΟΝ',
                       style: TextStyle(
                         color: EverforestColors.blue,
@@ -300,7 +300,7 @@ class SynaxarionDetailSheet extends StatelessWidget {
                       ),
                       child: Text(
                         saint.megalynarion,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.fg,
                           fontSize: 14,
                           fontStyle: FontStyle.italic,

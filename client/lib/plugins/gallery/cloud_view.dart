@@ -129,11 +129,11 @@ class _CloudViewState extends State<CloudView> {
                   color: EverforestColors.green.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.cloud_sync_rounded,
+                child: Icon(Icons.cloud_sync_rounded,
                     color: EverforestColors.green, size: 20),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Cloud Gallery Vault',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -143,7 +143,7 @@ class _CloudViewState extends State<CloudView> {
               ),
             ],
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: EverforestColors.green,
             indicatorWeight: 3,
             labelColor: EverforestColors.green,
@@ -162,7 +162,7 @@ class _CloudViewState extends State<CloudView> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.auto_delete_rounded,
+              icon: Icon(Icons.auto_delete_rounded,
                   color: EverforestColors.yellow, size: 22),
               tooltip: 'Duplicate Cleaner',
               onPressed: () => GalleryDuplicatesSheet.show(
@@ -171,7 +171,7 @@ class _CloudViewState extends State<CloudView> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.refresh_rounded,
+              icon: Icon(Icons.refresh_rounded,
                   color: EverforestColors.grey, size: 22),
               tooltip: 'Refresh Gallery',
               onPressed: _refreshData,

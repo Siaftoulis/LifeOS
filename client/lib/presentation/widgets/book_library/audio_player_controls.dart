@@ -21,7 +21,7 @@ class AudioPlayerControls extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         IconButton(
-          icon: const Icon(Icons.replay_10, color: EverforestColors.fg, size: 32),
+          icon: Icon(Icons.replay_10, color: EverforestColors.fg, size: 32),
           onPressed: onRewind,
         ),
         GestureDetector(
@@ -40,7 +40,7 @@ class AudioPlayerControls extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.forward_30, color: EverforestColors.fg, size: 32),
+          icon: Icon(Icons.forward_30, color: EverforestColors.fg, size: 32),
           onPressed: onForward,
         ),
       ],

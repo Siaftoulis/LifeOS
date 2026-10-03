@@ -53,12 +53,12 @@ class _PhotosEmbedPreviewState extends State<PhotosEmbedPreview> {
       return _SinglePhotoEmbed(ref: widget.ref!);
     }
     if (_loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
     if (_items.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No photos yet — tap to open the gallery',
           style: TextStyle(color: EverforestColors.grey),
@@ -145,7 +145,7 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
   @override
   Widget build(BuildContext context) {
     if (_failed) {
-      return const Center(
+      return Center(
         child: Text(
           'Photo not found — tap to open the gallery',
           style: TextStyle(color: EverforestColors.grey),
@@ -154,7 +154,7 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
     }
     final a = _asset;
     if (a == null) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: EverforestColors.green),
       );
     }
@@ -185,7 +185,7 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
                 width: 68,
                 height: 68,
                 color: EverforestColors.bg1,
-                child: const Icon(Icons.image_outlined, color: EverforestColors.grey),
+                child: Icon(Icons.image_outlined, color: EverforestColors.grey),
               ),
             ),
           ),
@@ -199,7 +199,7 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
                   (a['title']?.toString() ?? '').isNotEmpty
                       ? a['title'].toString()
                       : a['filename']?.toString() ?? 'Unknown Photo',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -210,7 +210,7 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
                 const SizedBox(height: 4),
                 Text(
                   '${a['source'] ?? ''} • ${a['width'] ?? 0}×${a['height'] ?? 0}',
-                  style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                  style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -218,14 +218,14 @@ class _SinglePhotoEmbedState extends State<_SinglePhotoEmbed> {
                   const SizedBox(height: 4),
                   Text(
                     date,
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                   ),
                 ],
                 if (tags.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     tags.take(3).join(' · '),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.green,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

@@ -27,7 +27,7 @@ class _QuestBoardState extends State<QuestBoard> {
     return Scaffold(
       backgroundColor: EverforestColors.bg0,
       appBar: AppBar(
-        title: const Text('Family Quests', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Family Quests', style: TextStyle(color: EverforestColors.fg)),
         backgroundColor: EverforestColors.bg1,
         elevation: 0,
       ),
@@ -35,7 +35,7 @@ class _QuestBoardState extends State<QuestBoard> {
         stream: _dao.watchAllQuests(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+            return Center(child: CircularProgressIndicator(color: EverforestColors.green));
           }
           final quests = snapshot.data ?? [];
           if (quests.isEmpty) {
@@ -50,7 +50,7 @@ class _QuestBoardState extends State<QuestBoard> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateQuestDialog,
         backgroundColor: EverforestColors.green,
-        child: const Icon(Icons.add, color: EverforestColors.bg0),
+        child: Icon(Icons.add, color: EverforestColors.bg0),
       ),
     );
   }
@@ -114,11 +114,11 @@ class _QuestBoardState extends State<QuestBoard> {
                 Expanded(
                   child: Text(
                     quest.title,
-                    style: const TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Chip(
-                  label: Text('${quest.rewardPoints} XP', style: const TextStyle(color: EverforestColors.bg0, fontSize: 12)),
+                  label: Text('${quest.rewardPoints} XP', style: TextStyle(color: EverforestColors.bg0, fontSize: 12)),
                   backgroundColor: EverforestColors.yellow,
                   padding: EdgeInsets.zero,
                 ),
@@ -174,10 +174,10 @@ class _QuestBoardState extends State<QuestBoard> {
           CircleAvatar(
             radius: 8,
             backgroundColor: EverforestColors.green,
-            child: Text(assignee[0].toUpperCase(), style: const TextStyle(color: EverforestColors.bg0, fontSize: 8)),
+            child: Text(assignee[0].toUpperCase(), style: TextStyle(color: EverforestColors.bg0, fontSize: 8)),
           ),
           const SizedBox(width: 6),
-          Text(assignee, style: const TextStyle(color: EverforestColors.fg, fontSize: 12)),
+          Text(assignee, style: TextStyle(color: EverforestColors.fg, fontSize: 12)),
         ],
       ),
     );

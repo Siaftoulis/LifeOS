@@ -189,7 +189,7 @@ class _GalleryViewState extends State<GalleryView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
 
     if (!_hasPermission) {
@@ -197,9 +197,9 @@ class _GalleryViewState extends State<GalleryView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.photo_library, size: 64, color: EverforestColors.fg),
+            Icon(Icons.photo_library, size: 64, color: EverforestColors.fg),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Permission required to access device photos.',
               style: TextStyle(color: EverforestColors.fg),
             ),
@@ -207,7 +207,7 @@ class _GalleryViewState extends State<GalleryView> {
             ElevatedButton(
               onPressed: _loadMedia,
               style: ElevatedButton.styleFrom(backgroundColor: EverforestColors.green),
-              child: const Text('Grant Permission', style: TextStyle(color: EverforestColors.bg0)),
+              child: Text('Grant Permission', style: TextStyle(color: EverforestColors.bg0)),
             ),
           ],
         ),
@@ -215,7 +215,7 @@ class _GalleryViewState extends State<GalleryView> {
     }
 
     if (_items.isEmpty && _sourceMode == 'local') {
-      return const Center(
+      return Center(
         child: Text('No media found on device.', style: TextStyle(color: EverforestColors.fg)),
       );
     }
@@ -241,7 +241,7 @@ class _GalleryViewState extends State<GalleryView> {
             backgroundColor: EverforestColors.bg1,
             selectedForegroundColor: EverforestColors.bg0,
             selectedBackgroundColor: EverforestColors.green,
-            side: const BorderSide(color: EverforestColors.bg2),
+            side: BorderSide(color: EverforestColors.bg2),
           ),
         ),
         actions: [
@@ -250,8 +250,8 @@ class _GalleryViewState extends State<GalleryView> {
             onPressed: _toggleFolderView,
             tooltip: 'Toggle Folders',
           ),
-          IconButton(icon: const Icon(Icons.search, color: EverforestColors.fg), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.more_vert, color: EverforestColors.fg), onPressed: () {}),
+          IconButton(icon: Icon(Icons.search, color: EverforestColors.fg), onPressed: () {}),
+          IconButton(icon: Icon(Icons.more_vert, color: EverforestColors.fg), onPressed: () {}),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50.0),
@@ -307,7 +307,7 @@ class _GalleryViewState extends State<GalleryView> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Text(
                 dateKey,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -392,13 +392,13 @@ class _GalleryViewState extends State<GalleryView> {
             children: [
               imageWidget,
               if (_cloudAssetIds.contains(item.id))
-                const Positioned(
+                Positioned(
                   top: 4,
                   right: 4,
                   child: Icon(Icons.cloud_done, color: EverforestColors.green, size: 20),
                 ),
               if (isFavorite)
-                const Positioned(
+                Positioned(
                   bottom: 4,
                   right: 4,
                   child: Icon(Icons.favorite, color: EverforestColors.red, size: 18),
@@ -458,8 +458,8 @@ class _GalleryViewState extends State<GalleryView> {
             backgroundColor: EverforestColors.bg0,
             appBar: AppBar(
               backgroundColor: EverforestColors.bg0,
-              title: Text(title, style: const TextStyle(color: EverforestColors.fg)),
-              iconTheme: const IconThemeData(color: EverforestColors.fg),
+              title: Text(title, style: TextStyle(color: EverforestColors.fg)),
+              iconTheme: IconThemeData(color: EverforestColors.fg),
             ),
             body: GridView.builder(
               padding: const EdgeInsets.all(2),
@@ -521,7 +521,7 @@ class _GalleryViewState extends State<GalleryView> {
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Text(
               title,
-              style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -530,7 +530,7 @@ class _GalleryViewState extends State<GalleryView> {
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Text(
               '${items.length} items',
-              style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+              style: TextStyle(color: EverforestColors.grey, fontSize: 12),
             ),
           ),
         ],

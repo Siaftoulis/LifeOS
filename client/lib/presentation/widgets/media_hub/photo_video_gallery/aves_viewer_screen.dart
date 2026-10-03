@@ -144,12 +144,12 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: EverforestColors.fg),
+                          icon: Icon(Icons.arrow_back, color: EverforestColors.fg),
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
                         if (_isSyncing)
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.all(16.0),
                             child: SizedBox(
                               width: 20, height: 20, 
@@ -242,17 +242,17 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.info_outline, color: EverforestColors.fg),
+                          icon: Icon(Icons.info_outline, color: EverforestColors.fg),
                           onPressed: _showInfoSheet,
                           tooltip: 'Info',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit, color: EverforestColors.fg),
+                          icon: Icon(Icons.edit, color: EverforestColors.fg),
                           onPressed: _editImage,
                           tooltip: 'Edit',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.share, color: EverforestColors.fg),
+                          icon: Icon(Icons.share, color: EverforestColors.fg),
                           onPressed: _shareImage,
                           tooltip: 'Share',
                         ),
@@ -272,7 +272,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: EverforestColors.fg),
+                          icon: Icon(Icons.delete_outline, color: EverforestColors.fg),
                           onPressed: _deleteImage,
                           tooltip: 'Delete',
                         ),
@@ -302,7 +302,7 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
           future: _resolveFullMetadata(item),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
+              return SizedBox(
                 height: 200,
                 child: Center(
                   child: CircularProgressIndicator(color: EverforestColors.green),
@@ -381,12 +381,12 @@ class _AvesViewerScreenState extends State<AvesViewerScreen> with SingleTickerPr
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
-        title: const Text('Delete Image', style: TextStyle(color: EverforestColors.fg)),
-        content: const Text('Are you sure you want to delete this image from your device?', style: TextStyle(color: EverforestColors.fg)),
+        title: Text('Delete Image', style: TextStyle(color: EverforestColors.fg)),
+        content: Text('Are you sure you want to delete this image from your device?', style: TextStyle(color: EverforestColors.fg)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
+            child: Text('Cancel', style: TextStyle(color: EverforestColors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),

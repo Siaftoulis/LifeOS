@@ -1569,6 +1569,8 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
               aspectRatio: 1.0,
               child: MusicCoverArt(
                 url: _activeThumbnail,
+                trackId: _activeTrackId,
+                filePath: _activeItem?.filePath ?? MusicRepository.instance.offlineFilePath(_activeTrackId),
                 size: cardSize,
                 borderRadius: 22,
                 fallback: _buildFallbackArt(skin),

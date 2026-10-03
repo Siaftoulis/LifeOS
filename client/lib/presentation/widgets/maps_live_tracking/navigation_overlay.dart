@@ -37,12 +37,12 @@ class NavigationOverlay extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.directions, color: EverforestColors.blue),
+                Icon(Icons.directions, color: EverforestColors.blue),
                 const SizedBox(width: 12),
-                const Text('Quick Navigation', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Quick Navigation', style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close, color: EverforestColors.grey),
+                  icon: Icon(Icons.close, color: EverforestColors.grey),
                   onPressed: onClose,
                 ),
               ],

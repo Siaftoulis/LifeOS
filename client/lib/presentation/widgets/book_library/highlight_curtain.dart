@@ -61,7 +61,7 @@ synced_at: null
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exported to Zen Editor'), backgroundColor: EverforestColors.green),
+          SnackBar(content: Text('Exported to Zen Editor'), backgroundColor: EverforestColors.green),
         );
       }
     } catch (e) {
@@ -80,9 +80,9 @@ synced_at: null
       backgroundColor: EverforestColors.bg1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: EverforestColors.bg2),
+        side: BorderSide(color: EverforestColors.bg2),
       ),
-      title: const Text('Highlights & Notes', style: TextStyle(color: EverforestColors.fg)),
+      title: Text('Highlights & Notes', style: TextStyle(color: EverforestColors.fg)),
       content: SizedBox(
         width: double.maxFinite,
         height: 300,
@@ -92,27 +92,27 @@ synced_at: null
             if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
             final highlights = snapshot.data!;
             if (highlights.isEmpty) {
-              return const Center(child: Text('No highlights available.', style: TextStyle(color: EverforestColors.grey)));
+              return Center(child: Text('No highlights available.', style: TextStyle(color: EverforestColors.grey)));
             }
             return ListView.separated(
               itemCount: highlights.length,
-              separatorBuilder: (context, index) => const Divider(color: EverforestColors.bg2),
+              separatorBuilder: (context, index) => Divider(color: EverforestColors.bg2),
               itemBuilder: (context, index) {
                 final hl = highlights[index];
                 return ListTile(
                   title: Text(
                     '"${hl.textContent}"',
-                    style: const TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic, fontSize: 14),
+                    style: TextStyle(color: EverforestColors.fg, fontStyle: FontStyle.italic, fontSize: 14),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       'Page ${hl.pageNumber ?? 0} • ${hl.noteContent ?? ""}',
-                      style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                      style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                     ),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.send_to_mobile, color: EverforestColors.green),
+                    icon: Icon(Icons.send_to_mobile, color: EverforestColors.green),
                     onPressed: () => _exportHighlight(context, hl),
                   ),
                 );
@@ -123,7 +123,7 @@ synced_at: null
       ),
       actions: [
         TextButton(
-          child: const Text('Close', style: TextStyle(color: EverforestColors.grey)),
+          child: Text('Close', style: TextStyle(color: EverforestColors.grey)),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

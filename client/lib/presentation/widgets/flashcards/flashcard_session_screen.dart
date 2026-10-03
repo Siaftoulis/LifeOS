@@ -27,8 +27,8 @@ class _FlashcardSessionScreenState extends State<FlashcardSessionScreen> {
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
         elevation: 0,
-        iconTheme: const IconThemeData(color: EverforestColors.fg),
-        title: const Text('Study Session', style: TextStyle(color: EverforestColors.fg)),
+        iconTheme: IconThemeData(color: EverforestColors.fg),
+        title: Text('Study Session', style: TextStyle(color: EverforestColors.fg)),
       ),
       body: SafeArea(
         child: Padding(
@@ -36,7 +36,7 @@ class _FlashcardSessionScreenState extends State<FlashcardSessionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const LinearProgressIndicator(value: 0.1, backgroundColor: EverforestColors.bg2, color: EverforestColors.green),
+              LinearProgressIndicator(value: 0.1, backgroundColor: EverforestColors.bg2, color: EverforestColors.green),
               const SizedBox(height: 24),
               Expanded(
                 child: GestureDetector(
@@ -52,16 +52,16 @@ class _FlashcardSessionScreenState extends State<FlashcardSessionScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
+                          Text(
                             'What does SRS stand for?',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           if (_isFlipped) ...[
                             const SizedBox(height: 32),
-                            const Divider(color: EverforestColors.bg2),
+                            Divider(color: EverforestColors.bg2),
                             const SizedBox(height: 32),
-                            const Text(
+                            Text(
                               'Spaced Repetition System',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: EverforestColors.green, fontSize: 20),
@@ -85,7 +85,7 @@ class _FlashcardSessionScreenState extends State<FlashcardSessionScreen> {
                   ],
                 )
               else
-                const Center(child: Text('Tap the card to show answer', style: TextStyle(color: EverforestColors.grey))),
+                Center(child: Text('Tap the card to show answer', style: TextStyle(color: EverforestColors.grey))),
             ],
           ),
         ),

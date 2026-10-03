@@ -136,9 +136,9 @@ class _OnlineUsersListWidgetState extends State<OnlineUsersListWidget> {
           // Header
           Row(
             children: [
-              const Icon(Icons.hub_outlined, color: EverforestColors.aqua),
+              Icon(Icons.hub_outlined, color: EverforestColors.aqua),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Ενεργοί Χρήστες & Συσκευές',
                 style: TextStyle(color: EverforestColors.fg, fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -175,7 +175,7 @@ class _OnlineUsersListWidgetState extends State<OnlineUsersListWidget> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.refresh, color: EverforestColors.grey, size: 20),
+                icon: Icon(Icons.refresh, color: EverforestColors.grey, size: 20),
                 tooltip: 'Ανανέωση',
                 onPressed: () => _fetchOnlineUsers(),
               ),
@@ -184,14 +184,14 @@ class _OnlineUsersListWidgetState extends State<OnlineUsersListWidget> {
           const SizedBox(height: 16),
 
           if (_isLoading)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: CircularProgressIndicator(color: EverforestColors.aqua),
               ),
             )
           else if (_users.isEmpty)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text('Δεν βρέθηκαν χρήστες', style: TextStyle(color: EverforestColors.grey)),
@@ -266,7 +266,7 @@ class _OnlineUsersListWidgetState extends State<OnlineUsersListWidget> {
                             const SizedBox(height: 2),
                             Text(
                               '@${user.username}',
-                              style: const TextStyle(color: EverforestColors.grey, fontSize: 12),
+                              style: TextStyle(color: EverforestColors.grey, fontSize: 12),
                             ),
                             if (user.status.isNotEmpty) ...[
                               const SizedBox(height: 2),
@@ -291,22 +291,22 @@ class _OnlineUsersListWidgetState extends State<OnlineUsersListWidget> {
                                 const SizedBox(width: 4),
                                 Text(
                                   user.device,
-                                  style: const TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.w600),
+                                  style: TextStyle(color: EverforestColors.green, fontSize: 11, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 2),
-                            const Text(
+                            Text(
                               'Ενεργός τώρα',
                               style: TextStyle(color: EverforestColors.green, fontSize: 10),
                             ),
                           ] else ...[
                             Text(
                               _formatLastActive(user.lastActive),
-                              style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                              style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                             ),
                             const SizedBox(height: 2),
-                            const Text(
+                            Text(
                               'Αποσυνδεδεμένος',
                               style: TextStyle(color: EverforestColors.grey, fontSize: 10),
                             ),

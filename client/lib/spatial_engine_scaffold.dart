@@ -33,7 +33,7 @@ class SpatialEngineScaffold extends StatelessWidget {
           GlobalSearchDialog.show(context);
         },
         child: Scaffold(
-          resizeToAvoidBottomInset: true,
+          resizeToAvoidBottomInset: false,
           backgroundColor: context.skin.bg0,
           body: SpatialEngine(
             key: spatialEngineKey,
@@ -42,7 +42,7 @@ class SpatialEngineScaffold extends StatelessWidget {
             startY: startY,
             builder: (moduleId, y, x) {
               return KeyedSubtree(
-                key: import_dev_sim.DevSimulationService.getModuleKey('${moduleId}_${y}_$x'),
+                key: import_dev_sim.DevSimulationService.getModuleKey('${moduleId}_${y}_${x}_${context.skin.id}'),
                 child: AppModuleRouter.buildModule(moduleId),
               );
             },

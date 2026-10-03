@@ -13,13 +13,13 @@ class BankingDialogs {
     return TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: const TextStyle(color: EverforestColors.fg),
+      style: TextStyle(color: EverforestColors.fg),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: EverforestColors.grey),
-        enabledBorder: const UnderlineInputBorder(
+        labelStyle: TextStyle(color: EverforestColors.grey),
+        enabledBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: EverforestColors.bg2)),
-        focusedBorder: const UnderlineInputBorder(
+        focusedBorder: UnderlineInputBorder(
             borderSide: BorderSide(color: EverforestColors.green)),
       ),
     );
@@ -58,7 +58,7 @@ class BankingDialogs {
           final sumsTo100 = (g + s + a) == 100;
           return AlertDialog(
             backgroundColor: EverforestColors.bg1,
-            title: const Text('Monthly Budget',
+            title: Text('Monthly Budget',
                 style: TextStyle(color: EverforestColors.fg)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -75,7 +75,7 @@ class BankingDialogs {
                   ],
                 ),
                 if (!sumsTo100)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 8),
                     child: Text('Percentages must sum to 100',
                         style: TextStyle(color: EverforestColors.red, fontSize: 12)),
@@ -85,14 +85,14 @@ class BankingDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel',
+                child: Text('Cancel',
                     style: TextStyle(color: EverforestColors.grey)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: EverforestColors.green),
                 onPressed: sumsTo100 ? () => Navigator.pop(ctx, true) : null,
-                child: const Text('Save',
+                child: Text('Save',
                     style: TextStyle(color: EverforestColors.bg0)),
               ),
             ],
@@ -135,7 +135,7 @@ class BankingDialogs {
       builder: (ctx) => AlertDialog(
         backgroundColor: EverforestColors.bg1,
         title:
-            const Text('Add Bill', style: TextStyle(color: EverforestColors.fg)),
+            Text('Add Bill', style: TextStyle(color: EverforestColors.fg)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -147,14 +147,14 @@ class BankingDialogs {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: EverforestColors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: EverforestColors.green),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save',
+            child: Text('Save',
                 style: TextStyle(color: EverforestColors.bg0)),
           ),
         ],
@@ -201,14 +201,14 @@ class BankingDialogs {
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: EverforestColors.bg1,
           title: Text(income ? 'Receive Money' : 'Add Transaction',
-              style: const TextStyle(color: EverforestColors.fg)),
+              style: TextStyle(color: EverforestColors.fg)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Title',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(
@@ -223,8 +223,8 @@ class BankingDialogs {
               DropdownButtonFormField<String>(
                 initialValue: category,
                 dropdownColor: EverforestColors.bg1,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Category',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(
@@ -237,7 +237,7 @@ class BankingDialogs {
                         value: c,
                         child: Text(c,
                             style:
-                                const TextStyle(color: EverforestColors.fg))))
+                                TextStyle(color: EverforestColors.fg))))
                     .toList(),
                 onChanged: (v) => setDlgState(() => category = v ?? category),
               ),
@@ -246,7 +246,7 @@ class BankingDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel',
+              child: Text('Cancel',
                   style: TextStyle(color: EverforestColors.grey)),
             ),
             ElevatedButton(
@@ -281,7 +281,7 @@ class BankingDialogs {
                 }
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Save',
+              child: Text('Save',
                   style: TextStyle(color: EverforestColors.bg0)),
             ),
           ],
@@ -319,28 +319,28 @@ class BankingDialogs {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: EverforestColors.bg1,
-          title: const Text('Receipt parsed',
+          title: Text('Receipt parsed',
               style: TextStyle(color: EverforestColors.fg)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('${file.name}\n\nAmount: ${fmtEuro(parsed.amount)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: EverforestColors.fg, fontSize: 15)),
               if (parsed.date.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text('Date: ${displayDate(isoDate(parsed.date))}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: EverforestColors.grey, fontSize: 13)),
                 ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: category,
                 dropdownColor: EverforestColors.bg1,
-                style: const TextStyle(color: EverforestColors.fg),
-                decoration: const InputDecoration(
+                style: TextStyle(color: EverforestColors.fg),
+                decoration: InputDecoration(
                   labelText: 'Category',
                   labelStyle: TextStyle(color: EverforestColors.grey),
                   enabledBorder: UnderlineInputBorder(
@@ -353,7 +353,7 @@ class BankingDialogs {
                         value: c,
                         child: Text(c,
                             style:
-                                const TextStyle(color: EverforestColors.fg))))
+                                TextStyle(color: EverforestColors.fg))))
                     .toList(),
                 onChanged: (v) => setDlgState(() => category = v ?? category),
               ),
@@ -362,14 +362,14 @@ class BankingDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel',
+              child: Text('Cancel',
                   style: TextStyle(color: EverforestColors.grey)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: EverforestColors.green),
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Save',
+              child: Text('Save',
                   style: TextStyle(color: EverforestColors.bg0)),
             ),
           ],

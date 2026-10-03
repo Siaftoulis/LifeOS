@@ -94,7 +94,7 @@ class CategoryAnalyticsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Spending Analytics',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -141,14 +141,14 @@ class CategoryAnalyticsCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Total Spent',
                         style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '€${totalExpenses.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.red,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -169,14 +169,14 @@ class CategoryAnalyticsCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Monthly Income',
                         style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '€${income.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.green,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -192,7 +192,7 @@ class CategoryAnalyticsCard extends StatelessWidget {
 
           // Categories Breakdown List
           if (sortedEntries.isEmpty)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Text(
@@ -202,7 +202,7 @@ class CategoryAnalyticsCard extends StatelessWidget {
               ),
             )
           else ...[
-            const Text(
+            Text(
               'CATEGORY BREAKDOWN',
               style: TextStyle(
                 color: EverforestColors.grey,
@@ -229,7 +229,7 @@ class CategoryAnalyticsCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           cat,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -238,7 +238,7 @@ class CategoryAnalyticsCard extends StatelessWidget {
                         const Spacer(),
                         Text(
                           '€${sum.toStringAsFixed(2)} (${(pct * 100).toStringAsFixed(0)}%)',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 12.5,
                           ),

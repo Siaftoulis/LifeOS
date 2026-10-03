@@ -28,7 +28,7 @@ class PeerShareSheet extends StatelessWidget {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(
+        builder: (_) => Center(
           child: CircularProgressIndicator(color: EverforestColors.green),
         ),
       );
@@ -50,7 +50,7 @@ class PeerShareSheet extends StatelessWidget {
 
     if (fileToSend == null || !fileToSend.existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File preparation failed.'), backgroundColor: EverforestColors.red),
+        SnackBar(content: Text('File preparation failed.'), backgroundColor: EverforestColors.red),
       );
       return;
     }
@@ -95,7 +95,7 @@ class PeerShareSheet extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Select LocalSend Peer',
                     style: TextStyle(
                       color: EverforestColors.fg,
@@ -104,7 +104,7 @@ class PeerShareSheet extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: EverforestColors.grey),
+                    icon: Icon(Icons.close, color: EverforestColors.grey),
                     onPressed: () => Navigator.pop(context),
                   )
                 ],
@@ -115,7 +115,7 @@ class PeerShareSheet extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       CircularProgressIndicator(color: EverforestColors.green),
                       SizedBox(height: 16),
                       Text(
@@ -132,10 +132,10 @@ class PeerShareSheet extends StatelessWidget {
                     itemBuilder: (context, idx) {
                       final peer = peers[idx];
                       return ListTile(
-                        leading: const Icon(Icons.devices, color: EverforestColors.green),
-                        title: Text(peer.name, style: const TextStyle(color: EverforestColors.fg)),
-                        subtitle: Text('${peer.address}:${peer.port}', style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
-                        trailing: const Icon(Icons.send, color: EverforestColors.green, size: 20),
+                        leading: Icon(Icons.devices, color: EverforestColors.green),
+                        title: Text(peer.name, style: TextStyle(color: EverforestColors.fg)),
+                        subtitle: Text('${peer.address}:${peer.port}', style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                        trailing: Icon(Icons.send, color: EverforestColors.green, size: 20),
                         onTap: () => _startFileSharing(context, peer),
                       );
                     },

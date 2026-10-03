@@ -74,7 +74,7 @@ class _NotificationsFeedState extends State<NotificationsFeed> {
               builder: (context, snapshot) {
                 final items = snapshot.data ?? [];
                 if (items.isEmpty && _live.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No new notifications',
                       style: TextStyle(color: EverforestColors.grey, fontSize: 13, fontStyle: FontStyle.italic),
@@ -180,8 +180,8 @@ class _NotificationItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(message, style: const TextStyle(color: EverforestColors.grey, fontSize: 12)),
+              Text(title, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(message, style: TextStyle(color: EverforestColors.grey, fontSize: 12)),
             ],
           ),
         ),

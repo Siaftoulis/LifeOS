@@ -58,7 +58,7 @@ class FeatureRegistry {
   static void rotateLayout() => layoutNotifier.value = [...layoutNotifier.value.sublist(1), layoutNotifier.value.first];
 
   static Widget buildModule(String id, int y, int x) {
-    final Widget view = _builders[id]?.call() ?? const Center(
+    final Widget view = _builders[id]?.call() ?? Center(
       child: Text('UNMAPPED', style: TextStyle(color: EverforestColors.red)),
     );
     return ClipRect(

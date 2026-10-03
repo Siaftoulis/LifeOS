@@ -164,7 +164,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.keyboard_double_arrow_up,
                         color: EverforestColors.green,
                         size: 28,
@@ -202,10 +202,10 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.shield,
+                Icon(Icons.shield,
                     size: 64, color: EverforestColors.green),
                 const SizedBox(height: 32),
-                const Text(
+                Text(
                   'SYSTEM LOGIN',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -218,17 +218,17 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                 const SizedBox(height: 36),
                 TextField(
                   controller: _usernameController,
-                  style: const TextStyle(color: EverforestColors.fg),
+                  style: TextStyle(color: EverforestColors.fg),
                   decoration: InputDecoration(
                     labelText: 'Username',
                     labelStyle:
-                        const TextStyle(color: EverforestColors.green),
-                    enabledBorder: const OutlineInputBorder(
+                        TextStyle(color: EverforestColors.green),
+                    enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: EverforestColors.bg2)),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                             color: EverforestColors.green, width: 2)),
-                    prefixIcon: const Icon(Icons.person,
+                    prefixIcon: Icon(Icons.person,
                         color: EverforestColors.green),
                   ),
                 ),
@@ -236,18 +236,18 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: const TextStyle(color: EverforestColors.fg),
+                  style: TextStyle(color: EverforestColors.fg),
                   decoration: InputDecoration(
                     labelText: 'Password / PIN',
                     labelStyle:
-                        const TextStyle(color: EverforestColors.green),
-                    enabledBorder: const OutlineInputBorder(
+                        TextStyle(color: EverforestColors.green),
+                    enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: EverforestColors.bg2)),
-                    focusedBorder: const OutlineInputBorder(
+                    focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                             color: EverforestColors.green, width: 2)),
                     prefixIcon:
-                        const Icon(Icons.lock, color: EverforestColors.green),
+                        Icon(Icons.lock, color: EverforestColors.green),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -274,7 +274,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                         value: _rememberMe,
                         activeColor: EverforestColors.green,
                         checkColor: EverforestColors.bg0,
-                        side: const BorderSide(color: EverforestColors.bg2),
+                        side: BorderSide(color: EverforestColors.bg2),
                         onChanged: (val) {
                           setState(() {
                             _rememberMe = val ?? false;
@@ -306,7 +306,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                     child: Text(
                       _errorMsg,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: EverforestColors.red,
                           fontWeight: FontWeight.bold),
                     ),
@@ -321,7 +321,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                     ),
                     onPressed: _isLoading ? null : _handleLogin,
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
@@ -344,7 +344,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                   if (_oauthProviders.contains('google') &&
                       _oauthProviders.contains('github')) ...[
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       '— or —',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -365,7 +365,7 @@ class _LockScreenOverlayState extends State<LockScreenOverlay>
                   ],
                 ],
                 if (kIsWeb && _oauthProviders.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 24),
                     child: Text(
                       'Η σύνδεση από τον browser γίνεται μόνο με Google ή GitHub. Επικοινώνησε με τον διαχειριστή.',
@@ -512,7 +512,7 @@ class _OAuthButton extends StatelessWidget {
       child: OutlinedButton.icon(
         style: OutlinedButton.styleFrom(
           foregroundColor: EverforestColors.fg,
-          side: const BorderSide(color: EverforestColors.bg2),
+          side: BorderSide(color: EverforestColors.bg2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: onPressed,

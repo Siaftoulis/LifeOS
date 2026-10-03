@@ -65,7 +65,7 @@ class MissedTodayCard extends StatelessWidget {
                 : EverforestColors.red.withValues(alpha: 0.4)),
       ),
       child: missed.isEmpty
-          ? const Row(
+          ? Row(
               children: [
                 Icon(Icons.check_circle,
                     color: EverforestColors.green, size: 18),
@@ -82,7 +82,7 @@ class MissedTodayCard extends StatelessWidget {
               children: [
                 Text(
                   'MISSED TODAY (${missed.length})',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: EverforestColors.red,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -103,7 +103,7 @@ class MissedTodayCard extends StatelessWidget {
                             ),
                             child: Text(
                               h.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: EverforestColors.red, fontSize: 12),
                             ),
                           ))
@@ -183,7 +183,7 @@ class StreakCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('WEEKLY STREAKS',
+          Text('WEEKLY STREAKS',
               style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 12,
@@ -191,7 +191,7 @@ class StreakCard extends StatelessWidget {
                   letterSpacing: 1.2)),
           const SizedBox(height: 12),
           if (habits.isEmpty)
-            const Text('No habits tracked yet',
+            Text('No habits tracked yet',
                 style: TextStyle(color: EverforestColors.grey))
           else
             ...habits.map((h) {
@@ -209,7 +209,7 @@ class StreakCard extends StatelessWidget {
                       child: Text(
                         h.name,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: EverforestColors.fg, fontSize: 12),
                       ),
                     ),
@@ -253,7 +253,7 @@ class StreakCard extends StatelessWidget {
                                 : EverforestColors.grey),
                         const SizedBox(width: 2),
                         Text('$streak',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold)),

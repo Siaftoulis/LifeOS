@@ -18,7 +18,7 @@ class AvatarFrameStyle {
 }
 
 class UserAvatarFrames {
-  static const List<AvatarFrameStyle> all = [
+  static final List<AvatarFrameStyle> all = [
     AvatarFrameStyle(
       id: 'none',
       label: 'Standard',
@@ -236,7 +236,7 @@ class UserAvatarWithFrame extends StatelessWidget {
             boxShadow: frame.shadows,
           ),
           child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: EverforestColors.bg0,
             ),

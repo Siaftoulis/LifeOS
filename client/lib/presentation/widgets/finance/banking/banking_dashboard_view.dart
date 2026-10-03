@@ -72,9 +72,9 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.stars, color: EverforestColors.yellow, size: 18),
+            Icon(Icons.stars, color: EverforestColors.yellow, size: 18),
             const SizedBox(width: 8),
-            Text(msg, style: const TextStyle(color: EverforestColors.fg)),
+            Text(msg, style: TextStyle(color: EverforestColors.fg)),
           ],
         ),
         backgroundColor: EverforestColors.bg1,
@@ -133,7 +133,7 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
           appBar: AppBar(
             backgroundColor: EverforestColors.bg0,
             elevation: 0,
-            title: const Text(
+            title: Text(
               'Banking & Finance',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -144,7 +144,7 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
             actions: [
               const StarsChip(),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: EverforestColors.green),
+                icon: Icon(Icons.add_circle_outline, color: EverforestColors.green),
                 tooltip: 'Add Transaction',
                 onPressed: () => BankingDialogs.showAddTransactionDialog(
                   context,
@@ -216,13 +216,13 @@ class _BankingDashboardViewState extends State<BankingDashboardView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Recent Transactions',
+                    Text('Recent Transactions',
                         style: TextStyle(
                             color: EverforestColors.fg,
                             fontSize: 18,
                             fontWeight: FontWeight.bold)),
                     Text('${allTxs.length} Total',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: EverforestColors.blue,
                             fontSize: 14,
                             fontWeight: FontWeight.w600)),

@@ -281,7 +281,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       'Ρυθμίσεις Ανάγνωσης',
                       style: TextStyle(
                         color: EverforestColors.fg,
@@ -294,7 +294,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Λειτουργία Περγαμηνής',
                           style: TextStyle(color: EverforestColors.fg, fontSize: 13.5),
                         ),
@@ -313,14 +313,14 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Μέγεθος Γραμματοσειράς',
                           style: TextStyle(color: EverforestColors.fg, fontSize: 13.5),
                         ),
                         Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.remove_circle_outline_rounded,
+                              icon: Icon(Icons.remove_circle_outline_rounded,
                                   color: EverforestColors.grey, size: 22),
                               onPressed: () {
                                 if (_fontSize > 13) {
@@ -331,13 +331,13 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                             ),
                             Text(
                               '${_fontSize.round()} pt',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: EverforestColors.fg,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13.5),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.add_circle_outline_rounded,
+                              icon: Icon(Icons.add_circle_outline_rounded,
                                   color: EverforestColors.grey, size: 22),
                               onPressed: () {
                                 if (_fontSize < 30) {
@@ -355,7 +355,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Ταχύτητα Αυτόματης Κύλισης',
                           style: TextStyle(color: EverforestColors.fg, fontSize: 13.5),
                         ),
@@ -408,7 +408,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(
+                  CircularProgressIndicator(
                       color: EverforestColors.yellow, strokeWidth: 2),
                   const SizedBox(height: 16),
                   Text(
@@ -430,7 +430,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                           size: 48,
                           color: EverforestColors.grey.withValues(alpha: 0.4)),
                       const SizedBox(height: 12),
-                      const Text('Η υπηρεσία δεν είναι διαθέσιμη',
+                      Text('Η υπηρεσία δεν είναι διαθέσιμη',
                           style: TextStyle(color: EverforestColors.grey, fontSize: 14)),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
@@ -519,7 +519,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
           children: [
             // Back button
             IconButton(
-              icon: const Icon(Icons.arrow_back_rounded,
+              icon: Icon(Icons.arrow_back_rounded,
                   color: EverforestColors.fg, size: 20),
               tooltip: 'Επιστροφή',
               onPressed: () => Navigator.pop(context),
@@ -676,7 +676,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.all(6),
                 constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-                icon: const Icon(Icons.tune_rounded,
+                icon: Icon(Icons.tune_rounded,
                     color: EverforestColors.grey, size: 19),
                 tooltip: 'Ρυθμίσεις',
                 onPressed: () =>
@@ -715,7 +715,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                       onTap: () {
                         if (_fontSize > 13) setState(() => _fontSize -= 1);
                       },
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                         child: Text('A-',
                             style: TextStyle(
@@ -726,14 +726,14 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     ),
                     Text(
                       '${_fontSize.round()}',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: EverforestColors.grey, fontSize: 11),
                     ),
                     GestureDetector(
                       onTap: () {
                         if (_fontSize < 30) setState(() => _fontSize += 1);
                       },
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                         child: Text('A+',
                             style: TextStyle(
@@ -1001,7 +1001,7 @@ class _PrayerReaderScreenState extends State<PrayerReaderScreen> {
                     const SizedBox(width: 6),
                     Text(
                       _isAutoScrolling ? '\u03a0\u03b1\u03cd\u03c3\u03b7' : '\u039a\u03cd\u03bb\u03b9\u03c3\u03b7',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: EverforestColors.bg0,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,

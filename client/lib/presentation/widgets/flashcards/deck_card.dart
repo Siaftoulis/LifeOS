@@ -28,17 +28,17 @@ class DeckCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.folder_special, color: EverforestColors.yellow, size: 20),
+                Icon(Icons.folder_special, color: EverforestColors.yellow, size: 20),
                 const SizedBox(width: 8),
-                Expanded(child: Text(title, style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                Expanded(child: Text(title, style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
               ],
             ),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('New: $newCards', style: const TextStyle(color: EverforestColors.blue, fontSize: 12)),
-                Text('Due: $dueCards', style: const TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text('New: $newCards', style: TextStyle(color: EverforestColors.blue, fontSize: 12)),
+                Text('Due: $dueCards', style: TextStyle(color: EverforestColors.red, fontSize: 12, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 8),

@@ -48,15 +48,15 @@ class RpgPlayerCard extends StatelessWidget {
               badge: hasMild ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(color: EverforestColors.green, borderRadius: BorderRadius.circular(4)),
-                child: const Text("+200%", style: TextStyle(color: EverforestColors.bg0, fontSize: 10, fontWeight: FontWeight.bold)),
+                child: Text("+200%", style: TextStyle(color: EverforestColors.bg0, fontSize: 10, fontWeight: FontWeight.bold)),
               ) : null,
             )),
           ]),
           const SizedBox(height: 16),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.shield, color: EverforestColors.blue, size: 18),
+            Icon(Icons.shield, color: EverforestColors.blue, size: 18),
             const SizedBox(width: 8),
-            Text("Atrophy Buffer: ${stats.atrophyBufferDays} days", style: const TextStyle(color: EverforestColors.fg, fontSize: 13)),
+            Text("Atrophy Buffer: ${stats.atrophyBufferDays} days", style: TextStyle(color: EverforestColors.fg, fontSize: 13)),
           ]),
         ],
       ),

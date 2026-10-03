@@ -11,9 +11,9 @@ class MapsDashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.map, color: EverforestColors.cyan, size: 28),
+        Icon(Icons.map, color: EverforestColors.cyan, size: 28),
         const SizedBox(width: 12),
-        const Text('Maps & Live Tracking', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
+        Text('Maps & Live Tracking', style: TextStyle(color: EverforestColors.fg, fontSize: 24, fontWeight: FontWeight.bold)),
         const Spacer(),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/repositories/book_repository.dart';
 import '../../../database/database.dart';
 import '../../../theme/everforest_colors.dart';
+import '../../../theme/app_skin_manager.dart';
 import 'book_card_widget.dart';
 import 'highlight_curtain.dart';
 import 'search_view.dart';
@@ -88,7 +89,9 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
   Widget build(BuildContext context) {
     final db = AppDatabase.instance;
 
-    return Scaffold(
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) => Scaffold(
       backgroundColor: EverforestColors.bg0,
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
@@ -101,11 +104,11 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
                 color: EverforestColors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.auto_stories_rounded,
+              child: Icon(Icons.auto_stories_rounded,
                   color: EverforestColors.green, size: 22),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Reading Vault',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -117,7 +120,7 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.travel_explore_rounded,
+            icon: Icon(Icons.travel_explore_rounded,
                 color: EverforestColors.green, size: 24),
             tooltip: 'Online Sources Search',
             onPressed: () => Navigator.push(
@@ -126,14 +129,14 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.format_quote_rounded,
+            icon: Icon(Icons.format_quote_rounded,
                 color: EverforestColors.yellow, size: 22),
             tooltip: 'Saved Highlights',
             onPressed: () => showDialog(
                 context: context, builder: (_) => const HighlightCurtain()),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
+            icon: Icon(Icons.refresh_rounded,
                 color: EverforestColors.grey, size: 22),
             tooltip: 'Sync Books',
             onPressed: () => BookRepository.instance.syncFromDaemon(),
@@ -150,16 +153,16 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
                 child: TextField(
                   controller: _filterController,
                   style:
-                      const TextStyle(color: EverforestColors.fg, fontSize: 14),
+                      TextStyle(color: EverforestColors.fg, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Filter your library by title or author...',
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                         color: EverforestColors.grey, fontSize: 13),
-                    prefixIcon: const Icon(Icons.filter_list_rounded,
+                    prefixIcon: Icon(Icons.filter_list_rounded,
                         color: EverforestColors.grey, size: 18),
                     suffixIcon: _searchFilter.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded,
+                            icon: Icon(Icons.clear_rounded,
                                 color: EverforestColors.grey, size: 18),
                             onPressed: () {
                               _filterController.clear();
@@ -209,7 +212,7 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
         stream: db.booksDao.watchAllBooks(),
         builder: (context, bookSnapshot) {
           if (!bookSnapshot.hasData) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: EverforestColors.green),
             );
           }
@@ -230,14 +233,14 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.auto_stories_outlined,
+                          Icon(Icons.auto_stories_outlined,
                               color: EverforestColors.grey, size: 48),
                           const SizedBox(height: 14),
                           Text(
                             _searchFilter.isNotEmpty
                                 ? 'No books matching "$_searchFilter"'
                                 : 'No books in this shelf',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -287,6 +290,7 @@ class _BookLibraryDashboardState extends State<BookLibraryDashboard>
           );
         },
       ),
+    ),
     );
   }
 }

@@ -75,7 +75,7 @@ class WeeklyTimetable extends StatelessWidget {
                         children: [
                           Text(
                             dayLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: EverforestColors.grey,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold),
@@ -130,7 +130,7 @@ class WeeklyTimetable extends StatelessWidget {
                                 width: hourColWidth,
                                 child: Text(
                                   '$displayHour $period',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       color: EverforestColors.grey,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold),
@@ -139,7 +139,7 @@ class WeeklyTimetable extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Container(
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     border: Border(
                                       top: BorderSide(
                                           color: EverforestColors.bg2,
@@ -202,7 +202,7 @@ class WeeklyTimetable extends StatelessWidget {
                                 horizontal: 4, vertical: 2),
                             child: Text(
                               e.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.fg,
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,

@@ -95,8 +95,8 @@ class _SmartPickerViewState extends State<SmartPickerView> {
         appBar: AppBar(
           backgroundColor: EverforestColors.bg0,
           elevation: 0,
-          title: const Text('Smart Picker', style: TextStyle(color: EverforestColors.fg)),
-          bottom: const TabBar(
+          title: Text('Smart Picker', style: TextStyle(color: EverforestColors.fg)),
+          bottom: TabBar(
             indicatorColor: EverforestColors.green,
             labelColor: EverforestColors.green,
             unselectedLabelColor: EverforestColors.grey,
@@ -115,10 +115,10 @@ class _SmartPickerViewState extends State<SmartPickerView> {
 
   Widget _buildItemsTab() {
     if (_loadingItems) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
     if (_items.isEmpty) {
-      return const Center(child: Text('No photos found.', style: TextStyle(color: EverforestColors.grey)));
+      return Center(child: Text('No photos found.', style: TextStyle(color: EverforestColors.grey)));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -151,7 +151,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                     children: [
                       Text(
                         result?.analysis.title ?? item.label,
-                        style: const TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -160,7 +160,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                         Text(
                           '${result.analysis.source} · ${result.analysis.width}x${result.analysis.height}'
                           '${result.place.isNotEmpty ? ' · ${result.place}' : ''}',
-                          style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                          style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                         ),
                         const SizedBox(height: 6),
                         Wrap(
@@ -173,7 +173,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                                       color: EverforestColors.bg2,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Text(t, style: const TextStyle(color: EverforestColors.green, fontSize: 10)),
+                                    child: Text(t, style: TextStyle(color: EverforestColors.green, fontSize: 10)),
                                   ))
                               .toList(),
                         ),
@@ -183,7 +183,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                 ),
                 const SizedBox(width: 8),
                 if (_picking.contains(item.id))
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(8),
                     child: SizedBox(
                       width: 18, height: 18,
@@ -191,16 +191,16 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                     ),
                   )
                 else if (_applied.contains(item.id))
-                  const Icon(Icons.check_circle, color: EverforestColors.green)
+                  Icon(Icons.check_circle, color: EverforestColors.green)
                 else if (result == null)
                   IconButton(
-                    icon: const Icon(Icons.auto_awesome, color: EverforestColors.green),
+                    icon: Icon(Icons.auto_awesome, color: EverforestColors.green),
                     tooltip: 'Smart pick',
                     onPressed: () => _pick(item),
                   )
                 else
                   IconButton(
-                    icon: const Icon(Icons.check, color: EverforestColors.green),
+                    icon: Icon(Icons.check, color: EverforestColors.green),
                     tooltip: 'Apply',
                     onPressed: () => _apply(item),
                   ),
@@ -214,10 +214,10 @@ class _SmartPickerViewState extends State<SmartPickerView> {
 
   Widget _buildDuplicatesTab() {
     if (_loadingDuplicates) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
     if (_duplicates.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No duplicates found.', style: TextStyle(color: EverforestColors.grey)),
       );
     }
@@ -238,7 +238,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${items.length} copies · ${group['hash']?.toString().substring(0, 8)}',
-                    style: const TextStyle(color: EverforestColors.grey, fontSize: 11)),
+                    style: TextStyle(color: EverforestColors.grey, fontSize: 11)),
                 const SizedBox(height: 6),
                 for (final it in items)
                   Padding(
@@ -262,7 +262,7 @@ class _SmartPickerViewState extends State<SmartPickerView> {
                     ),
                   ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Highest resolution copy is kept automatically on upload.',
                   style: TextStyle(color: EverforestColors.green, fontSize: 11),
                 ),

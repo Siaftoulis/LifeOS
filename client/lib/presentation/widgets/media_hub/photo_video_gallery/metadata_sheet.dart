@@ -22,7 +22,7 @@ class MetadataSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Aves Metadata Details',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -31,7 +31,7 @@ class MetadataSheet extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: EverforestColors.grey),
+                icon: Icon(Icons.close, color: EverforestColors.grey),
                 onPressed: () => Navigator.pop(context),
               )
             ],
@@ -67,7 +67,7 @@ class MetadataSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'Location Map',
                             style: TextStyle(
                               color: EverforestColors.fg,
@@ -112,7 +112,7 @@ class MetadataSheet extends StatelessWidget {
                           Center(
                             child: Text(
                               'GPS Coordinates: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}',
-                              style: const TextStyle(color: EverforestColors.grey, fontSize: 11),
+                              style: TextStyle(color: EverforestColors.grey, fontSize: 11),
                             ),
                           ),
                         ],
@@ -137,13 +137,13 @@ class MetadataSheet extends StatelessWidget {
             width: 110,
             child: Text(
               label,
-              style: const TextStyle(color: EverforestColors.grey, fontSize: 12, fontWeight: FontWeight.bold),
+              style: TextStyle(color: EverforestColors.grey, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: EverforestColors.fg, fontSize: 12),
+              style: TextStyle(color: EverforestColors.fg, fontSize: 12),
               softWrap: true,
             ),
           ),

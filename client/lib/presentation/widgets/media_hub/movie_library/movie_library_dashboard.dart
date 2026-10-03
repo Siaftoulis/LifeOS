@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/movie_repository.dart';
 import '../../../../theme/everforest_colors.dart';
+import '../../../../theme/app_skin_manager.dart';
 import 'movie_detail_sheet.dart';
 import 'movie_search_dialog.dart';
 
@@ -60,7 +61,9 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ListenableBuilder(
+      listenable: AppSkinManager.currentSkinNotifier,
+      builder: (context, _) => Scaffold(
       backgroundColor: EverforestColors.bg0,
       appBar: AppBar(
         backgroundColor: EverforestColors.bg0,
@@ -73,11 +76,11 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
                 color: EverforestColors.purple.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.movie_filter_rounded,
+              child: Icon(Icons.movie_filter_rounded,
                   color: EverforestColors.purple, size: 22),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Cinema Vault',
               style: TextStyle(
                 color: EverforestColors.fg,
@@ -89,13 +92,13 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search_rounded,
+            icon: Icon(Icons.search_rounded,
                 color: EverforestColors.green, size: 24),
             tooltip: 'Search & Add from TMDb',
             onPressed: () => MovieSearchDialog.show(context),
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
+            icon: Icon(Icons.refresh_rounded,
                 color: EverforestColors.grey, size: 22),
             tooltip: 'Refresh Movies',
             onPressed: () => MovieRepository.instance.refresh(),
@@ -111,16 +114,16 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
                   controller: _filterController,
-                  style: const TextStyle(color: EverforestColors.fg, fontSize: 14),
+                  style: TextStyle(color: EverforestColors.fg, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'Filter your library by title, director, genre...',
                     hintStyle:
-                        const TextStyle(color: EverforestColors.grey, fontSize: 13),
-                    prefixIcon: const Icon(Icons.filter_list_rounded,
+                        TextStyle(color: EverforestColors.grey, fontSize: 13),
+                    prefixIcon: Icon(Icons.filter_list_rounded,
                         color: EverforestColors.grey, size: 18),
                     suffixIcon: _searchFilter.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded,
+                            icon: Icon(Icons.clear_rounded,
                                 color: EverforestColors.grey, size: 18),
                             onPressed: () {
                               _filterController.clear();
@@ -179,14 +182,14 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.movie_outlined,
+                          Icon(Icons.movie_outlined,
                               color: EverforestColors.grey, size: 48),
                           const SizedBox(height: 14),
                           Text(
                             _searchFilter.isNotEmpty
                                 ? 'No movies matching "$_searchFilter"'
                                 : 'No movies in this list',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: EverforestColors.fg,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -232,6 +235,7 @@ class _MovieLibraryDashboardState extends State<MovieLibraryDashboard>
           );
         },
       ),
+    ),
     );
   }
 }
@@ -289,7 +293,7 @@ class _MovieCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: EverforestColors.bg2,
-                            child: const Center(
+                            child: Center(
                               child: Icon(Icons.movie_rounded,
                                   size: 48, color: EverforestColors.grey),
                             ),
@@ -297,7 +301,7 @@ class _MovieCard extends StatelessWidget {
                         )
                       : Container(
                           color: EverforestColors.bg2,
-                          child: const Center(
+                          child: Center(
                             child: Icon(Icons.movie_rounded,
                                 size: 48, color: EverforestColors.grey),
                           ),
@@ -321,12 +325,12 @@ class _MovieCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star_rounded,
+                            Icon(Icons.star_rounded,
                                 color: EverforestColors.yellow, size: 13),
                             const SizedBox(width: 3),
                             Text(
                               movie.tmdbRating.toStringAsFixed(1),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: EverforestColors.yellow,
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.bold,
@@ -348,7 +352,7 @@ class _MovieCard extends StatelessWidget {
                           color: Colors.black87,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(Icons.bookmark_rounded,
+                        child: Icon(Icons.bookmark_rounded,
                             color: EverforestColors.green, size: 16),
                       ),
                     ),
@@ -366,7 +370,7 @@ class _MovieCard extends StatelessWidget {
                     movie.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: EverforestColors.fg,
                       fontWeight: FontWeight.bold,
                       fontSize: 13.5,
@@ -378,7 +382,7 @@ class _MovieCard extends StatelessWidget {
                     children: [
                       Text(
                         movie.year.isNotEmpty ? movie.year : 'Movie',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: EverforestColors.grey,
                           fontSize: 11.5,
                         ),

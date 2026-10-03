@@ -39,11 +39,11 @@ class _AlbumListViewState extends State<AlbumListView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: EverforestColors.green));
+      return Center(child: CircularProgressIndicator(color: EverforestColors.green));
     }
 
     if (_albums.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No albums found.', style: TextStyle(color: EverforestColors.fg)),
       );
     }
@@ -66,9 +66,9 @@ class _AlbumListViewState extends State<AlbumListView> {
               MaterialPageRoute(
                 builder: (_) => Scaffold(
                   appBar: AppBar(
-                    title: Text(album.name, style: const TextStyle(color: EverforestColors.fg)),
+                    title: Text(album.name, style: TextStyle(color: EverforestColors.fg)),
                     backgroundColor: EverforestColors.bg0,
-                    iconTheme: const IconThemeData(color: EverforestColors.fg),
+                    iconTheme: IconThemeData(color: EverforestColors.fg),
                   ),
                   backgroundColor: EverforestColors.bg0,
                   body: GalleryView(albumId: album.id, albumName: album.name),
@@ -92,7 +92,7 @@ class _AlbumListViewState extends State<AlbumListView> {
                             thumbnailSize: const ThumbnailSize.square(300),
                             fit: BoxFit.cover,
                           )
-                        : const Icon(Icons.folder, color: EverforestColors.green, size: 48),
+                        : Icon(Icons.folder, color: EverforestColors.green, size: 48),
                   ),
                 ),
               ),
@@ -101,7 +101,7 @@ class _AlbumListViewState extends State<AlbumListView> {
                 album.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -109,7 +109,7 @@ class _AlbumListViewState extends State<AlbumListView> {
               ),
               Text(
                 '${album.assetCount} items',
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.grey,
                   fontSize: 14,
                 ),

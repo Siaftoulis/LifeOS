@@ -35,7 +35,7 @@ class BalanceHeaderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Total Balance',
                 style: TextStyle(
                     color: EverforestColors.grey,
@@ -51,7 +51,7 @@ class BalanceHeaderCard extends StatelessWidget {
                 ),
                 child: Text(
                   monthLabel(),
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: EverforestColors.blue,
                       fontWeight: FontWeight.bold,
                       fontSize: 12),
@@ -62,7 +62,7 @@ class BalanceHeaderCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             fmtEuro(balance),
-            style: const TextStyle(
+            style: TextStyle(
               color: EverforestColors.fg,
               fontSize: 36,
               fontWeight: FontWeight.bold,
@@ -118,11 +118,11 @@ class BalanceHeaderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     color: EverforestColors.grey, fontSize: 12)),
             const SizedBox(height: 2),
             Text(amount,
-                style: const TextStyle(
+                style: TextStyle(
                     color: EverforestColors.fg,
                     fontSize: 14,
                     fontWeight: FontWeight.bold)),
@@ -194,7 +194,7 @@ class QuickActionsRow extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 12,
                   fontWeight: FontWeight.w500)),

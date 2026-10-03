@@ -24,7 +24,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Smart Home',
                 style: TextStyle(
                   color: EverforestColors.fg,
@@ -41,15 +41,15 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.thermostat, color: EverforestColors.orange, size: 20),
+                    Icon(Icons.thermostat, color: EverforestColors.orange, size: 20),
                     const SizedBox(width: 8),
-                    const Text('72°F', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+                    Text('72°F', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 16),
                     Container(width: 1, height: 16, color: EverforestColors.bg2),
                     const SizedBox(width: 16),
-                    const Icon(Icons.water_drop, color: EverforestColors.blue, size: 20),
+                    Icon(Icons.water_drop, color: EverforestColors.blue, size: 20),
                     const SizedBox(width: 8),
-                    const Text('45%', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
+                    Text('45%', style: TextStyle(color: EverforestColors.fg, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -61,7 +61,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
               valueListenable: HomeRepository.instance.devices,
               builder: (context, devices, child) {
                 if (devices.isEmpty) {
-                  return const Center(child: Text('No Smart Devices configured.', style: TextStyle(color: EverforestColors.grey)));
+                  return Center(child: Text('No Smart Devices configured.', style: TextStyle(color: EverforestColors.grey)));
                 }
                 return GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -135,7 +135,7 @@ class _SmartHomeDashboardState extends State<SmartHomeDashboard> {
             children: [
               Text(
                 name,
-                style: const TextStyle(
+                style: TextStyle(
                   color: EverforestColors.fg,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

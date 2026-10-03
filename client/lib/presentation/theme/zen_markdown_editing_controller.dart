@@ -13,7 +13,7 @@ class ZenMarkdownEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    final baseStyle = style ?? const TextStyle(color: EverforestColors.fg, fontSize: 16, height: 1.6);
+    final baseStyle = style ?? TextStyle(color: EverforestColors.fg, fontSize: 16, height: 1.6);
     final lines = text.split('\n');
     final List<TextSpan> lineSpans = [];
 
