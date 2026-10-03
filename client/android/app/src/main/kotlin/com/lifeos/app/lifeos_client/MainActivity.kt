@@ -31,6 +31,12 @@ class MainActivity : FlutterActivity() {
                 mediaMethodChannel?.invokeMethod("onMediaAction", action)
             }
         }
+
+        fun dispatchSeekTo(positionMs: Long) {
+            activityInstance?.runOnUiThread {
+                mediaMethodChannel?.invokeMethod("onSeekTo", positionMs)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -176,15 +182,23 @@ class MainActivity : FlutterActivity() {
                 "updatePlaybackState" -> {
                     val title = call.argument<String>("title") ?: ""
                     val artist = call.argument<String>("artist") ?: ""
+                    val album = call.argument<String>("album") ?: ""
                     val thumbnail = call.argument<String>("thumbnail") ?: ""
                     val isPlaying = call.argument<Boolean>("isPlaying") ?: false
+                    val positionMs = (call.argument<Number>("positionMs"))?.toLong() ?: 0L
+                    val durationMs = (call.argument<Number>("durationMs"))?.toLong() ?: 0L
+                    val isLiked = call.argument<Boolean>("isLiked") ?: false
 
                     MediaNotificationManager.showPlaybackNotification(
                         applicationContext,
-                        title,
-                        artist,
-                        thumbnail,
-                        isPlaying
+                        title = title,
+                        artist = artist,
+                        album = album,
+                        thumbnail = thumbnail,
+                        isPlaying = isPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        isLiked = isLiked
                     )
                     LifeOSWidgetProvider.updateWidget(
                         applicationContext,

@@ -19,6 +19,9 @@ class MediaActionReceiver : BroadcastReceiver() {
             LifeOSWidgetProvider.ACTION_PREV -> {
                 MainActivity.dispatchMediaAction("previous")
             }
+            LifeOSWidgetProvider.ACTION_LIKE -> {
+                MainActivity.dispatchMediaAction("toggleLike")
+            }
         }
     }
 }

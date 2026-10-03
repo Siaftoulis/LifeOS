@@ -2278,20 +2278,25 @@ class _PowerampNowPlayingSheetState extends State<PowerampNowPlayingSheet>
             controller.togglePlayPause();
           },
           child: Center(
-            child: loading
-                ? SizedBox(
-                    width: size * 0.42,
-                    height: size * 0.42,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (loading)
+                  SizedBox(
+                    width: size * 0.88,
+                    height: size * 0.88,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: iconColor,
+                      color: iconColor.withValues(alpha: 0.6),
                     ),
-                  )
-                : Icon(
-                    playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: iconColor,
-                    size: size * 0.62,
                   ),
+                Icon(
+                  playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: iconColor,
+                  size: size * 0.62,
+                ),
+              ],
+            ),
           ),
         ),
       ),

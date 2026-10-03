@@ -108,7 +108,10 @@ class PlaybackController extends ChangeNotifier {
 
   bool? _optimisticPlaying;
   bool get isPlaying => _optimisticPlaying ?? (player?.playing ?? false);
-  bool get isLoading => _isLoadingTrack || (player?.processingState == ProcessingState.loading || player?.processingState == ProcessingState.buffering);
+  bool get isLoading =>
+      _isLoadingTrack &&
+      (player?.processingState == ProcessingState.loading ||
+          player?.processingState == ProcessingState.buffering);
 
   bool _userWantsPlay = false;
   bool _isLoadingTrack = false;
@@ -217,7 +220,9 @@ class PlaybackController extends ChangeNotifier {
       }
     });
     _playerStateSub = p.playerStateStream.listen((state) {
-      _optimisticPlaying = null;
+      if (_userWantsPlay == state.playing) {
+        _optimisticPlaying = null;
+      }
       if (state.playing) {
         _isLoadingTrack = false;
         _watchdogTimer?.cancel();
@@ -324,6 +329,8 @@ class PlaybackController extends ChangeNotifier {
     if (!isAvailable) return;
     if (i < 0 || i >= _state.queue.length) return;
     _state = _state.copyWith(currentIndex: i);
+    _optimisticPlaying = true;
+    _userWantsPlay = true;
     notifyListeners();
     await _playAt(i);
   }
@@ -356,7 +363,24 @@ class PlaybackController extends ChangeNotifier {
 
     notifyListeners();
 
+    // Promote standby player immediately if preloaded (0ms transition!)
+    if (playbackEngine.preloadedUrl == playUrl) {
+      final swapped = await playbackEngine.switchToStandbyIfPreloaded(playUrl);
+      if (swapped && token == _playToken) {
+        _isLoadingTrack = false;
+        _optimisticPlaying = null;
+        notifyListeners();
+        _precacheNext(i);
+        _enrichTrackMetadata(item, i);
+        return;
+      }
+    }
+
     try {
+      // Cleanly stop existing playback to close previous HTTP stream before loading next
+      await playbackEngine.stop();
+      if (token != _playToken) return;
+
       await playbackEngine.setUrl(playUrl);
       if (token != _playToken) return;
 
@@ -376,10 +400,6 @@ class PlaybackController extends ChangeNotifier {
         _isLoadingTrack = false;
         _optimisticPlaying = false;
         notifyListeners();
-        if (_userWantsPlay && _state.queue.length > 1 && i < _state.queue.length - 1) {
-          debugPrint('Music playback: auto-skipping unavailable track to next item');
-          await next();
-        }
       }
     }
   }
@@ -511,11 +531,12 @@ class PlaybackController extends ChangeNotifier {
     final p = player;
     if (p == null) return;
     final currentlyPlaying = isPlaying;
-    _optimisticPlaying = !currentlyPlaying;
+    final target = !currentlyPlaying;
+    _userWantsPlay = target;
+    _optimisticPlaying = target;
     notifyListeners(); // Immediate 0ms UI reaction!
 
-    if (currentlyPlaying) {
-      _userWantsPlay = false;
+    if (!target) {
       _isLoadingTrack = false;
       _watchdogTimer?.cancel();
       try {
@@ -524,13 +545,24 @@ class PlaybackController extends ChangeNotifier {
         debugPrint('Music playback pause note: $e');
       }
     } else {
-      _userWantsPlay = true;
       try {
         await playbackEngine.play();
       } catch (e) {
         debugPrint('Music playback resume note: $e');
       }
       _startWatchdog();
+    }
+  }
+
+  Future<void> play() async {
+    if (!isPlaying) {
+      await togglePlayPause();
+    }
+  }
+
+  Future<void> pause() async {
+    if (isPlaying) {
+      await togglePlayPause();
     }
   }
 
@@ -596,17 +628,19 @@ class PlaybackController extends ChangeNotifier {
     if (userInitiated) {
       _recordCurrentTrackTelemetry(skipped: true);
     }
-    int? target = computeNextIndex();
+    final target = computeNextIndex();
 
     if (target == null) {
-      await _fetchAndAppendRadio();
-      if (_state.currentIndex < _state.queue.length - 1) {
-        target = _state.currentIndex + 1;
+      if (_infiniteRadio) {
+        unawaited(_fetchAndAppendRadio().then((_) {
+          if (_state.currentIndex < _state.queue.length - 1) {
+            playAt(_state.currentIndex + 1);
+          }
+        }));
       } else if (_state.queue.length > 1 && _state.repeat == PlaybackRepeat.all) {
-        target = 0;
-      } else {
-        return;
+        await playAt(0);
       }
+      return;
     }
 
     // Manual skip is always instant with zero delay

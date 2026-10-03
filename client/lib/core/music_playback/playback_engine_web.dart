@@ -55,6 +55,9 @@ class PlaybackEngine {
     }
   }
 
+  String? get preloadedUrl => null;
+  Future<bool> switchToStandbyIfPreloaded(String url) async => false;
+
   Future<void> preloadStandby(String url) async {
     // No-op on web to prevent dual HTML5 audio element lockups
   }

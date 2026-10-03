@@ -170,25 +170,28 @@ class MusicMiniPlayer extends StatelessWidget {
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                             tooltip: playing ? 'Pause' : 'Play',
-                            icon: loading
-                                ? SizedBox(
-                                    width: 20,
-                                    height: 20,
+                            icon: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                if (loading)
+                                  SizedBox(
+                                    width: 28,
+                                    height: 28,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: skin.accent,
+                                      color: skin.accent.withValues(alpha: 0.5),
                                     ),
-                                  )
-                                : Icon(
-                                    playing
-                                        ? Icons.pause_rounded
-                                        : Icons.play_arrow_rounded,
-                                    color: skin.fg,
-                                    size: 30,
                                   ),
-                            onPressed: loading
-                                ? null
-                                : playbackController.togglePlayPause,
+                                Icon(
+                                  playing
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  color: skin.fg,
+                                  size: 30,
+                                ),
+                              ],
+                            ),
+                            onPressed: playbackController.togglePlayPause,
                           ),
                         ],
                       ),

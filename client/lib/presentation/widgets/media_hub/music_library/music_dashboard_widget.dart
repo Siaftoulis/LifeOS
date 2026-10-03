@@ -26,6 +26,7 @@ import 'poweramp_search_view.dart';
 import 'track_metadata_modal.dart';
 import 'tabs/all_tracks_sliver.dart';
 import 'tabs/artists_and_genres_slivers.dart';
+import 'tabs/feed_home_sliver.dart';
 import 'tabs/liked_songs_sliver.dart';
 import 'tabs/offline_tracks_sliver.dart';
 import 'tabs/playlists_tab_sliver.dart';
@@ -41,6 +42,7 @@ export 'playlists/create_playlist_dialog.dart';
 export 'playlists/playlist_detail_sheet.dart';
 export 'tabs/all_tracks_sliver.dart';
 export 'tabs/artists_and_genres_slivers.dart';
+export 'tabs/feed_home_sliver.dart';
 export 'tabs/liked_songs_sliver.dart';
 export 'tabs/offline_tracks_sliver.dart';
 export 'tabs/playlists_tab_sliver.dart';
@@ -879,13 +881,14 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
     final playlistCount = MusicRepository.instance.playlists.value.length;
 
     final tabs = [
-      ('All Songs ($trackCount)', Icons.audiotrack_rounded, 0),
-      ('Liked ($likedCount)', Icons.favorite_rounded, 1),
-      ('Playlists ($playlistCount)', Icons.queue_music_rounded, 2),
-      ('Artists ($artistCount)', Icons.person_rounded, 3),
-      ('Genres & Styles ($genreCount)', Icons.category_rounded, 4),
-      ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 5),
-      ('Local & Offline ($offlineCount)', Icons.devices_rounded, 6),
+      ('Feed', Icons.stream_rounded, 0),
+      ('All Songs ($trackCount)', Icons.audiotrack_rounded, 1),
+      ('Liked ($likedCount)', Icons.favorite_rounded, 2),
+      ('Playlists ($playlistCount)', Icons.queue_music_rounded, 3),
+      ('Artists ($artistCount)', Icons.person_rounded, 4),
+      ('Genres & Styles ($genreCount)', Icons.category_rounded, 5),
+      ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 6),
+      ('Local & Offline ($offlineCount)', Icons.devices_rounded, 7),
     ];
 
     return SingleChildScrollView(
@@ -904,7 +907,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                   size: 16,
                   color: isSelected
                       ? (skin.isOled ? Colors.black : skin.bg0)
-                      : (t.$3 == 1
+                      : (t.$3 == 2
                           ? skin.red
                           : skin.textMuted)),
               label: Text(t.$1),
@@ -915,7 +918,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                   _selectedArtist = null;
                   _selectedGenre = null;
                 });
-                if (t.$3 == 5) {
+                if (t.$3 == 6) {
                   final currentTracks = MusicRepository.instance.tracks.value;
                   final mixes = _generateSmartMixes(currentTracks, skin);
                   for (final mix in mixes.values.take(2)) {
@@ -1006,7 +1009,39 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 ],
               ),
             ),
-            if (_libraryTab == 0) ...[
+            if (_libraryTab == 0)
+              FeedHomeSliver(
+                tracks: downloaded,
+                recommendedTracks: _recommendedTracks,
+                dailyMixTracks: _dailyMixTracks,
+                likedTracks: MusicRepository.instance.likedTracks.value,
+                canPlay: _canPlay,
+                onPlayTrack: (t) {
+                  if (!_canPlay) {
+                    _webPlaybackNotice(t);
+                    return;
+                  }
+                  final item = PlaybackItem(
+                    id: t.id,
+                    url: _streamUrlFor(t.id),
+                    title: t.title,
+                    artist: t.artist,
+                    thumbnail: t.thumbnail,
+                    album: t.album,
+                  );
+                  _pc.playTrackAndStartRadio(item);
+                  _openNowPlaying(t);
+                },
+                onPlayTrackList: (list, index) {
+                  _playTrackList(list, index);
+                  if (_canPlay && index >= 0 && index < list.length) {
+                    _openNowPlaying(list[index]);
+                  }
+                },
+                onDownloadTrack: (t) => _download(t),
+                onAddToPlaylist: _addToPlaylist,
+              )
+            else if (_libraryTab == 1) ...[
               SliverToBoxAdapter(
                 child: AllTracksFilterBar(
                   controller: _localFilterCtrl,
@@ -1040,7 +1075,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                     : null,
               ),
             ]
-            else if (_libraryTab == 1)
+            else if (_libraryTab == 2)
               LikedSongsSliver(
                 canPlay: _canPlay,
                 offlineDownloading: _offlineDownloading,
@@ -1050,14 +1085,14 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onWebNotice: _webPlaybackNotice,
                 onAddToPlaylist: _addToPlaylist,
               )
-            else if (_libraryTab == 2)
+            else if (_libraryTab == 3)
               PlaylistsTabSliver(
                 canPlay: _canPlay,
                 playbackController: _pc,
                 onWebNotice: _webPlaybackNotice,
                 streamUrlFor: _streamUrlFor,
               )
-            else if (_libraryTab == 3)
+            else if (_libraryTab == 4)
               ArtistsSliver(
                 artistGroups: artistGroups,
                 selectedArtist: _selectedArtist,
@@ -1072,7 +1107,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteTrack: _confirmDeleteTrack,
                 onWebNotice: _webPlaybackNotice,
               )
-            else if (_libraryTab == 4)
+            else if (_libraryTab == 5)
               GenresSliver(
                 genreGroups: genreGroups,
                 selectedGenre: _selectedGenre,
@@ -1087,7 +1122,7 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
                 onDeleteTrack: _confirmDeleteTrack,
                 onWebNotice: _webPlaybackNotice,
               )
-            else if (_libraryTab == 5)
+            else if (_libraryTab == 6)
               SmartMixesSliver(
                 smartMixes: smartMixes,
                 canPlay: _canPlay,

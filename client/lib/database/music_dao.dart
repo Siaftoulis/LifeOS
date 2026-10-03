@@ -324,7 +324,16 @@ class MusicDao extends DatabaseAccessor<AppDatabase> with _$MusicDaoMixin {
       LIMIT ?
     ''', variables: [Variable.withInt(since), Variable.withInt(since), Variable.withInt(since), Variable.withInt(limit)],
     readsFrom: {musicTracks}).get();
-    return rows.map((r) => _trackFromRow(r.data)).toList();
+    final result = rows.map((r) => _trackFromRow(r.data)).toList();
+    if (result.isNotEmpty) return result;
+
+    // Resilient fallback: blend top favorites and recent additions
+    final fallbackRows = await customSelect('''
+      SELECT DISTINCT mt.* FROM music_tracks mt
+      ORDER BY mt.play_count DESC, mt.added_at DESC
+      LIMIT ?
+    ''', variables: [Variable.withInt(limit)], readsFrom: {musicTracks}).get();
+    return fallbackRows.map((r) => _trackFromRow(r.data)).toList();
   }
 
   Future<List<MusicTrack>> getDiscoveryWeekly({int limit = 30}) async {

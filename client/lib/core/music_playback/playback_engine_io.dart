@@ -166,6 +166,29 @@ class PlaybackEngine {
     }
   }
 
+  /// Instantly promotes the standby player to active in 0ms if it already holds the desired URL.
+  Future<bool> switchToStandbyIfPreloaded(String url) async {
+    if (_preloadedUrl != url) return false;
+    final outgoing = activePlayer;
+    final incoming = standbyPlayer;
+    if (incoming == null) return false;
+
+    _cancelCrossfade();
+    try {
+      unawaited(outgoing?.stop());
+      _activeIsA = !_activeIsA;
+      _preloadedUrl = null;
+      await activePlayer?.setVolume(_masterVolume);
+      await activePlayer?.play();
+      AudioDspService.instance.attachPlayer(activePlayer!);
+      onPlayerChanged?.call(activePlayer!);
+      return true;
+    } catch (e) {
+      debugPrint('switchToStandbyIfPreloaded error: $e');
+      return false;
+    }
+  }
+
   /// Executes studio-grade Equal-Power DJ Crossfade:
   /// gainOut = cos(t * pi / 2)
   /// gainIn  = sin(t * pi / 2)

@@ -124,6 +124,42 @@ func GetUserAffinityProfile(ctx context.Context) UserAffinityProfile {
 	return profile
 }
 
+func classifyVibe(artist, title, genre string) string {
+	combined := strings.ToLower(artist + " " + title + " " + genre)
+	for _, r := range combined {
+		if r >= 0x0370 && r <= 0x03FF {
+			return "greek"
+		}
+	}
+	if strings.Contains(combined, "laiko") || strings.Contains(combined, "zeimbekiko") ||
+		strings.Contains(combined, "bouzouki") || strings.Contains(combined, "remos") ||
+		strings.Contains(combined, "vertis") || strings.Contains(combined, "argiros") ||
+		strings.Contains(combined, "pantelidis") || strings.Contains(combined, "sfakianakis") ||
+		strings.Contains(combined, "parios") || strings.Contains(combined, "mitropanos") {
+		return "greek"
+	}
+	if strings.Contains(combined, "rock") || strings.Contains(combined, "metal") ||
+		strings.Contains(combined, "guitar") || strings.Contains(combined, "punk") {
+		return "rock"
+	}
+	if strings.Contains(combined, "rap") || strings.Contains(combined, "hip hop") ||
+		strings.Contains(combined, "hip-hop") || strings.Contains(combined, "trap") ||
+		strings.Contains(combined, "drill") {
+		return "rap"
+	}
+	if strings.Contains(combined, "edm") || strings.Contains(combined, "dance") ||
+		strings.Contains(combined, "house") || strings.Contains(combined, "club") ||
+		strings.Contains(combined, "techno") {
+		return "electronic"
+	}
+	if strings.Contains(combined, "chill") || strings.Contains(combined, "acoustic") ||
+		strings.Contains(combined, "lofi") || strings.Contains(combined, "ambient") ||
+		strings.Contains(combined, "piano") || strings.Contains(combined, "jazz") {
+		return "chill"
+	}
+	return "pop"
+}
+
 // ScoreRecommendation computes a multi-factor ranking score for a candidate track.
 // Formula:
 // Score = 0.35 * VibeMatch + 0.25 * GenreAffinity + 0.20 * ArtistAffinity + 0.20 * Serendipity - Penalty
@@ -139,17 +175,21 @@ func ScoreRecommendation(
 	seedArtLower := strings.ToLower(strings.TrimSpace(seedArtist))
 	seedGenLower := strings.ToLower(strings.TrimSpace(seedGenre))
 
+	trackVibe := classifyVibe(track.Artist, track.Title, track.Genre)
+	seedVibe := classifyVibe(seedArtist, "", seedGenre)
+
 	// 1. Vibe & Similarity Match (0.0 to 1.0)
-	vibeMatch := 0.50
+	vibeMatch := 0.45
 	if seedArtLower != "" && strings.Contains(artLower, seedArtLower) {
 		// Same artist or featured
 		vibeMatch = 0.85
-	} else if seedGenLower != "" {
-		// If album / genre hints match
-		titleLower := strings.ToLower(track.Title)
-		if strings.Contains(titleLower, seedGenLower) {
-			vibeMatch += 0.20
-		}
+	} else if trackVibe == seedVibe && seedVibe != "pop" {
+		// Matching specialized musical vibe (Greek, Rock, Rap, EDM, Chill)
+		vibeMatch = 0.75
+	} else if seedGenLower != "" && strings.Contains(strings.ToLower(track.Genre), seedGenLower) {
+		vibeMatch = 0.70
+	} else if seedGenLower != "" && strings.Contains(strings.ToLower(track.Title), seedGenLower) {
+		vibeMatch += 0.15
 	}
 	score += 0.35 * vibeMatch
 

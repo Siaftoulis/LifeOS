@@ -57,6 +57,7 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
         const val ACTION_PLAY_PAUSE = "com.lifeos.app.ACTION_PLAY_PAUSE"
         const val ACTION_NEXT = "com.lifeos.app.ACTION_NEXT"
         const val ACTION_PREV = "com.lifeos.app.ACTION_PREV"
+        const val ACTION_LIKE = "com.lifeos.app.ACTION_LIKE"
         const val ACTION_UPDATE_WIDGET = "com.lifeos.app.UPDATE_WIDGET"
         const val ACTION_CONFIG_CHANGED = "com.lifeos.app.CONFIG_CHANGED"
 
