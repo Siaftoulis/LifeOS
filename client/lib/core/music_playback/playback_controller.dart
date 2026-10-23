@@ -621,10 +621,38 @@ class PlaybackController extends ChangeNotifier {
 
   Future<void> togglePlayPause() async {
     if (!isAvailable) return;
+    await ensureInitialized();
 
-    // Auto-restore queue if empty from offline tracks or liked tracks
+    // Auto-restore queue if empty from prefs, offline tracks, or vault tracks
     if (_state.queue.isEmpty || currentItem == null) {
-      final offline = MusicRepository.instance.offlineTracks.value;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final lastId = prefs.getString('music_last_track_id');
+        final lastTitle = prefs.getString('music_last_track_title');
+        if (lastId != null && lastTitle != null && lastId.isNotEmpty) {
+          final restoredItem = PlaybackItem(
+            id: lastId,
+            url: prefs.getString('music_last_track_url') ?? '',
+            title: lastTitle,
+            artist: prefs.getString('music_last_track_artist') ?? '',
+            thumbnail: prefs.getString('music_last_track_thumbnail') ?? '',
+            album: prefs.getString('music_last_track_album') ?? '',
+            genre: prefs.getString('music_last_track_genre') ?? '',
+            filePath: prefs.getString('music_last_track_filepath') ?? '',
+          );
+          setQueue([restoredItem], currentIndex: 0);
+          await _playAt(0);
+          return;
+        }
+      } catch (_) {}
+
+      var offline = MusicRepository.instance.offlineTracks.value;
+      if (offline.isEmpty) {
+        try {
+          await MusicRepository.instance.loadOffline();
+          offline = MusicRepository.instance.offlineTracks.value;
+        } catch (_) {}
+      }
       if (offline.isNotEmpty) {
         final seed = offline.first;
         final item = PlaybackItem(
@@ -634,6 +662,26 @@ class PlaybackController extends ChangeNotifier {
           artist: seed.artist ?? 'Unknown',
           thumbnail: seed.thumbnail ?? '',
           album: seed.album ?? '',
+          filePath: seed.filePath,
+        );
+        await playTrackAndStartRadio(item);
+        return;
+      }
+
+      final vault = MusicRepository.instance.tracks.value;
+      if (vault.isNotEmpty) {
+        final seed = vault.first;
+        final isLocal = (seed.filePath.isNotEmpty && !kIsWeb);
+        final streamUrl = isLocal
+            ? seed.filePath
+            : '${ApiClient.instance.daemonUrl}/api/v1/music/stream/${seed.id}.mp3';
+        final item = PlaybackItem(
+          id: seed.id,
+          url: streamUrl,
+          title: seed.title,
+          artist: seed.artist,
+          thumbnail: seed.thumbnail,
+          album: seed.album,
           filePath: seed.filePath,
         );
         await playTrackAndStartRadio(item);

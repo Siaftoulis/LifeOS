@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/search/global_search_service.dart';
@@ -9,7 +10,7 @@ class GlobalSearchDialog extends StatefulWidget {
   static Future<void> show(BuildContext context) {
     return showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (_) => const GlobalSearchDialog(),
     );
   }
@@ -98,19 +99,28 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: _handleKey,
       child: Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        insetPadding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 20, vertical: isMobile ? 24 : 40),
         child: Container(
-          width: 720,
-          constraints: const BoxConstraints(maxHeight: 600),
+          width: isMobile ? double.infinity : 720,
+          constraints: BoxConstraints(
+              maxHeight: isMobile
+                  ? MediaQuery.of(context).size.height * 0.82
+                  : 600),
           decoration: BoxDecoration(
             color: EverforestColors.bg1.withValues(alpha: 0.98),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: EverforestColors.green.withValues(alpha: 0.4), width: 1.5),
+            border: Border.all(
+                color: EverforestColors.green.withValues(alpha: 0.4), width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.6),
@@ -127,17 +137,23 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
                 child: Row(
                   children: [
-                    Icon(Icons.search_rounded, color: EverforestColors.green, size: 24),
+                    Icon(Icons.search_rounded,
+                        color: EverforestColors.green, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: _controller,
                         focusNode: _focusNode,
-                        autofocus: true,
-                        style: TextStyle(color: EverforestColors.fg, fontSize: 16, fontWeight: FontWeight.w500),
+                        autofocus: !isMobile,
+                        style: TextStyle(
+                            color: EverforestColors.fg,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500),
                         decoration: InputDecoration(
-                          hintText: 'Αναζήτηση καρτελών, ακολουθιών, μουσικής, σημειώσεων... (Ctrl+K)',
-                          hintStyle: TextStyle(color: EverforestColors.grey, fontSize: 14),
+                          hintText:
+                              'Αναζήτηση καρτελών, ακολουθιών, μουσικής, σημειώσεων... (Ctrl+K)',
+                          hintStyle: TextStyle(
+                              color: EverforestColors.grey, fontSize: 14),
                           border: InputBorder.none,
                           isDense: true,
                         ),

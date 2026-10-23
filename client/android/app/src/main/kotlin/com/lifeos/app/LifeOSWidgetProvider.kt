@@ -73,6 +73,13 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
         const val KEY_WIDGET_TYPE = "widget_type"
         const val ACTION_OPEN_TAB = "com.lifeos.app.ACTION_OPEN_TAB"
 
+        private var lastRenderedTitle: String = ""
+        private var lastRenderedArtist: String = ""
+        private var lastRenderedThumbnail: String = ""
+        private var lastRenderedIsPlaying: Boolean? = null
+        private var cachedBitmap: Bitmap? = null
+        private var cachedRoundedBitmap: Bitmap? = null
+
         fun updateWidget(
             context: Context,
             title: String,
@@ -80,6 +87,15 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             thumbnail: String,
             isPlaying: Boolean
         ) {
+            // Guard against redundant redraws when called on periodic position ticks
+            if (title == lastRenderedTitle &&
+                artist == lastRenderedArtist &&
+                thumbnail == lastRenderedThumbnail &&
+                isPlaying == lastRenderedIsPlaying
+            ) {
+                return
+            }
+
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit()
                 .putString(KEY_TRACK_TITLE, title)
@@ -232,28 +248,42 @@ class LifeOSWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_btn_next, pNext)
 
+            val isSameThumbnail = (thumbnail == lastRenderedThumbnail)
+            lastRenderedTitle = title
+            lastRenderedArtist = artist
+            lastRenderedThumbnail = thumbnail
+            lastRenderedIsPlaying = isPlaying
+
             // Initial synchronous update for instant text & control feedback
             if (!showArtwork) {
                 views.setViewVisibility(R.id.widget_album_art, View.GONE)
             } else {
                 views.setViewVisibility(R.id.widget_album_art, View.VISIBLE)
-                views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
+                if (isSameThumbnail && cachedRoundedBitmap != null && !cachedRoundedBitmap!!.isRecycled) {
+                    views.setImageViewBitmap(R.id.widget_album_art, cachedRoundedBitmap)
+                } else if (thumbnail.isEmpty()) {
+                    views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
+                }
             }
             manager.updateAppWidget(widgetId, views)
 
             // Asynchronous album artwork decoding with downsampling (Binder limit safe)
-            if (showArtwork && thumbnail.isNotEmpty()) {
+            if (showArtwork && thumbnail.isNotEmpty() && (!isSameThumbnail || cachedRoundedBitmap == null || cachedRoundedBitmap!!.isRecycled)) {
                 Thread {
                     try {
                         val bmp = decodeAndScaleBitmap(context, thumbnail, 256)
                         if (bmp != null) {
                             val rounded = getRoundedCornerBitmap(bmp, 16)
+                            cachedBitmap = bmp
+                            cachedRoundedBitmap = rounded
                             views.setImageViewBitmap(R.id.widget_album_art, rounded)
                         } else {
+                            cachedRoundedBitmap = null
                             views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
                         }
                         manager.updateAppWidget(widgetId, views)
                     } catch (_: Exception) {
+                        cachedRoundedBitmap = null
                         views.setImageViewResource(R.id.widget_album_art, R.drawable.ic_music_play)
                         manager.updateAppWidget(widgetId, views)
                     }

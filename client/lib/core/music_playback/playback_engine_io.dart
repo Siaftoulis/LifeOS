@@ -17,7 +17,6 @@ class PlaybackEngine {
   AudioPlayer? _playerB;
   bool _activeIsA = true;
   bool _disposed = false;
-  bool _hasEqualizerPipeline = false;
 
   double _masterVolume = 1.0;
   bool _isCrossfading = false;
@@ -46,7 +45,6 @@ class PlaybackEngine {
           androidApplyAudioAttributes: true,
           handleInterruptions: true,
         );
-        _hasEqualizerPipeline = true;
       } else {
         p = AudioPlayer(
           androidApplyAudioAttributes: true,
@@ -70,34 +68,6 @@ class PlaybackEngine {
     if (_playerA != null) return;
     _playerA = await _createPlayer(withPipeline: withPipeline);
     _playerB = await _createPlayer(withPipeline: withPipeline);
-    _activeIsA = true;
-
-    AudioDspService.instance.attachPlayer(_playerA!);
-    onPlayerChanged?.call(_playerA!);
-  }
-
-  Future<void> _reinitWithoutPipeline() async {
-    final oldA = _playerA;
-    final oldB = _playerB;
-    _playerA = null;
-    _playerB = null;
-    _cancelCrossfade();
-
-    for (final old in [oldA, oldB]) {
-      if (old != null) {
-        try {
-          await old.stop();
-        } catch (_) {}
-        try {
-          await old.dispose();
-        } catch (_) {}
-      }
-    }
-    _hasEqualizerPipeline = false;
-    AudioDspService.instance.disableHardwareEq();
-
-    _playerA = await _createPlayer(withPipeline: false);
-    _playerB = await _createPlayer(withPipeline: false);
     _activeIsA = true;
 
     AudioDspService.instance.attachPlayer(_playerA!);
@@ -136,16 +106,7 @@ class PlaybackEngine {
       await _loadSource(p, url);
     } catch (e) {
       debugPrint('PlaybackEngine setUrl error: $e');
-      if (_hasEqualizerPipeline) {
-        debugPrint('PlaybackEngine: retrying without hardware audio effects pipeline');
-        await _reinitWithoutPipeline();
-        final fallback = activePlayer;
-        if (fallback != null) {
-          await _loadSource(fallback, url);
-        }
-      } else {
-        rethrow;
-      }
+      rethrow;
     }
     AudioDspService.instance.reapply();
   }
@@ -290,15 +251,6 @@ class PlaybackEngine {
       await p.play();
     } catch (e) {
       debugPrint('PlaybackEngine play() error: $e');
-      if (_hasEqualizerPipeline) {
-        debugPrint('PlaybackEngine: play() failed with pipeline, reinitializing');
-        await _reinitWithoutPipeline();
-        final fallback = activePlayer;
-        if (fallback != null) {
-          await fallback.play();
-          return;
-        }
-      }
       rethrow;
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/audio_dsp_service.dart';
+import '../../../../core/music_playback/playback_controller.dart';
 import '../../../../theme/app_skin_manager.dart';
 import 'equalizer/eq_not_supported_sheet.dart';
 import 'equalizer/eq_painters.dart';
@@ -796,6 +797,73 @@ class _PowerampEqualizerModalState extends State<PowerampEqualizerModal> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          ListenableBuilder(
+            listenable: PlaybackController.instance,
+            builder: (context, _) {
+              final pc = PlaybackController.instance;
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: skin.bg1,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.auto_mode_rounded, color: skin.accent, size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Pro DJ Crossfade & Auto-Transitions',
+                                style: TextStyle(color: skin.fg, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                pc.crossfadeEnabled
+                                    ? '${pc.crossfadeDuration}s Studio Equal-Power transition blend'
+                                    : '0ms gapless transition',
+                                style: TextStyle(color: skin.textMuted, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: pc.crossfadeEnabled,
+                          activeThumbColor: skin.accent,
+                          onChanged: (val) => pc.setCrossfadeEnabled(val),
+                        ),
+                      ],
+                    ),
+                    if (pc.crossfadeEnabled) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text('Blend Duration', style: TextStyle(color: skin.textMuted, fontSize: 11)),
+                          const Spacer(),
+                          Text('${pc.crossfadeDuration} sec', style: TextStyle(color: skin.accent, fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      Slider(
+                        value: pc.crossfadeDuration.toDouble(),
+                        min: 1.0,
+                        max: 12.0,
+                        divisions: 11,
+                        activeColor: skin.accent,
+                        inactiveColor: Colors.white12,
+                        onChanged: (v) => pc.setCrossfadeDuration(v.round()),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
           ),
           const SizedBox(height: 24),
         ],

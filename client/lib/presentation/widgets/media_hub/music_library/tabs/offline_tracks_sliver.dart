@@ -229,11 +229,11 @@ class _OfflineTracksSliverState extends State<OfflineTracksSliver> {
         children: [
           Row(
             children: [
-              Icon(Icons.devices_rounded, color: skin.accent, size: 20),
+              Icon(Icons.download_done_rounded, color: skin.accent, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Local & Offline Vault ($trackCount tracks)',
+                  '💾 Local Storage (App Offline Downloads) · $trackCount tracks',
                   style: TextStyle(
                     color: skin.fg,
                     fontWeight: FontWeight.bold,
@@ -245,7 +245,7 @@ class _OfflineTracksSliverState extends State<OfflineTracksSliver> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Play local audio files directly from this device with extracted ID3 metadata and album art — 100% offline.',
+            'Tracks downloaded inside the LifeOS app for seamless 100% offline playback without server access.',
             style: TextStyle(color: skin.textMuted, fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 12),
@@ -546,13 +546,23 @@ class PhoneSongsSliver extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'On This Phone (${phoneSongs.length})',
-                    style: TextStyle(
-                      color: skin.fg,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '📱 Phone Storage (${phoneSongs.length})',
+                        style: TextStyle(
+                          color: skin.fg,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'External audio files scanned from this device / SD card',
+                        style: TextStyle(color: skin.textMuted, fontSize: 12),
+                      ),
+                    ],
                   ),
                 ),
                 TextButton.icon(
@@ -575,24 +585,26 @@ class PhoneSongsSliver extends StatelessWidget {
 
               final phoneQueue = phoneSongs.map((x) {
                 final p = (x.data.isNotEmpty) ? x.data : (x.uri ?? '');
+                final thumb = (x.data.isNotEmpty) ? x.data : 'phone_${x.id}';
                 return PlaybackItem(
                   id: 'phone_${x.id}',
                   url: p,
                   title: x.title,
                   artist: x.artist ?? '',
-                  thumbnail: '',
+                  thumbnail: thumb,
                   album: x.album ?? '',
                   filePath: x.data,
                 );
               }).toList();
 
+              final thumb = (s.data.isNotEmpty) ? s.data : 'phone_${s.id}';
               final track = MusicTrack(
                 id: 'phone_${s.id}',
                 title: s.title,
                 artist: s.artist ?? 'Unknown',
                 album: s.album ?? '',
-                thumbnail: '',
-                thumbnailUrl: '',
+                thumbnail: thumb,
+                thumbnailUrl: thumb,
                 filePath: s.data.isNotEmpty ? s.data : (s.uri ?? ''),
                 duration: (s.duration ?? 0) / 1000,
               );
@@ -631,9 +643,34 @@ class PhoneSongsSliver extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                subtitle: Text(
-                  '${s.artist ?? 'Unknown'} · ${_fmt((s.duration ?? 0).toDouble())}',
-                  style: TextStyle(color: skin.textMuted, fontSize: 13),
+                subtitle: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: skin.blue.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: skin.blue.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        (s.fileExtension.isNotEmpty ? s.fileExtension : 'PHONE').toUpperCase(),
+                        style: TextStyle(
+                          color: skin.blue,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${s.artist ?? 'Unknown'} · ${_fmt((s.duration ?? 0).toDouble())}',
+                        style: TextStyle(color: skin.textMuted, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

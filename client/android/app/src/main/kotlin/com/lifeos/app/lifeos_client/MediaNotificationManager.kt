@@ -23,6 +23,13 @@ object MediaNotificationManager {
     private const val CHANNEL_ID = "lifeos_playback_channel"
     private const val NOTIFICATION_ID = 4040
     private var mediaSession: MediaSessionCompat? = null
+    private var lastTitle: String = ""
+    private var lastArtist: String = ""
+    private var lastAlbum: String = ""
+    private var lastThumbnail: String = ""
+    private var lastIsPlaying: Boolean? = null
+    private var lastIsLiked: Boolean? = null
+    private var cachedBitmap: Bitmap? = null
 
     fun getOrCreateMediaSession(context: Context): MediaSessionCompat {
         if (mediaSession == null) {
@@ -122,6 +129,27 @@ object MediaNotificationManager {
             PlaybackStateCompat.CustomAction.Builder("ACTION_LIKE", likeTitle, likeIcon).build()
         )
         session.setPlaybackState(stateBuilder.build())
+
+        // Check if track metadata or playback/like state actually changed.
+        // On periodic 1-second position ticks, only positionMs changes, so we do NOT rebuild or re-post the notification!
+        val metadataChanged = (title != lastTitle ||
+            artist != lastArtist ||
+            album != lastAlbum ||
+            thumbnail != lastThumbnail ||
+            isPlaying != lastIsPlaying ||
+            isLiked != lastIsLiked)
+
+        if (!metadataChanged) {
+            return
+        }
+
+        val isSameThumbnail = (thumbnail == lastThumbnail)
+        lastTitle = title
+        lastArtist = artist
+        lastAlbum = album
+        lastThumbnail = thumbnail
+        lastIsPlaying = isPlaying
+        lastIsLiked = isLiked
 
         // 2. Pending Intents
         val contentIntent = Intent(context, MainActivity::class.java).apply {
@@ -229,15 +257,17 @@ object MediaNotificationManager {
             }
         }
 
-        // Post immediately
-        updateNotificationAndMetadata(null)
+        // Post immediately with cached bitmap if same thumbnail to avoid any flickering to placeholder/smallIcon
+        val initialBitmap = if (isSameThumbnail) cachedBitmap else null
+        updateNotificationAndMetadata(initialBitmap)
 
-        // Load thumbnail asynchronously with embedded ID3 & MediaStore support
-        if (thumbnail.isNotEmpty()) {
+        // Load thumbnail asynchronously with embedded ID3 & MediaStore support if new thumbnail
+        if (thumbnail.isNotEmpty() && (!isSameThumbnail || cachedBitmap == null || cachedBitmap!!.isRecycled)) {
             thread {
                 try {
                     val bmp = LifeOSWidgetProvider.decodeAndScaleBitmap(context, thumbnail, 384)
                     if (bmp != null) {
+                        cachedBitmap = bmp
                         updateNotificationAndMetadata(bmp)
                     }
                 } catch (_: Exception) {}
@@ -246,6 +276,14 @@ object MediaNotificationManager {
     }
 
     fun cancelNotification(context: Context) {
+        lastTitle = ""
+        lastArtist = ""
+        lastAlbum = ""
+        lastThumbnail = ""
+        lastIsPlaying = null
+        lastIsLiked = null
+        cachedBitmap = null
+
         mediaSession?.let {
             val state = PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_STOPPED, 0L, 0.0f)

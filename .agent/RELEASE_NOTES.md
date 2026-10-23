@@ -1,41 +1,30 @@
-## LifeOS v1.6.4 (Build #84)
+## LifeOS v1.6.5 (Build #85)
 
-### 1. Android Home Screen Widget & Native Media Actions
-* **Αξιόπιστη Λειτουργία Widget & Remote Actions**: Πλήρης επανασχεδιασμός των LifeOSWidgetProvider και MediaActionReceiver. Η αναπαραγωγή, η παύση και η εναλλαγή κομματιών λειτουργούν ακαριαία από το widget της αρχικής οθόνης ακόμα και όταν η εφαρμογή είναι πλήρως κλειστή (cold start) μέσω ασφαλούς ουράς ενεργειών (pendingMediaAction).
-* **Αισιόδοξη Απόκριση 0ms**: Άμεση οπτική εναλλαγή του εικονιδίου Play/Pause στο widget με το πάτημα του χρήστη, πριν από την ολοκλήρωση της ασύγχρονης επικοινωνίας με το Flutter engine.
-* **Προστασία Ορίων Συστήματος (Binder Limit Safe)**: Αυτόματη κλιμάκωση (downsampling) των εικόνων εξωφύλλων ώστε να μην υπερβαίνουν το όριο συναλλαγών του Android IPC (TransactionTooLargeException), εξαλείφοντας οριστικά το κρασάρισμα του widget.
-* **Ανάκτηση Ενσωματωμένων Εξωφύλλων (ID3 APIC & MediaStore)**: Υποστήριξη εξαγωγής ενσωματωμένων εξωφύλλων από τοπικά αρχεία ήχου (.mp3, .m4a, .flac, .wav) και τραγούδια συσκευής (phone_<id>) μέσω MediaMetadataRetriever τόσο για το home widget όσο και για τις ειδοποιήσεις συστήματος.
-* **Στρογγυλεμένα Background Drawables**: Χρήση διανυσματικών σχεδίων παρασκηνίου με ακτίνα 20dp και φωτεινά περιγράμματα (glass, oled, accent, border) που διατηρούνται άψογα σε όλους τους launchers χωρίς απώλεια καμπυλότητας.
-* **Αυτόματη Επαναφορά Ουράς**: Αποθήκευση του τελευταίου κομματιού στο SharedPreferences και αυτόματη επαναφορά κατά την εκκίνηση, επιτρέποντας την άμεση συνέχιση αναπαραγωγής από το widget χωρίς κενή ουρά.
+### 1. Εξάλειψη Αναβοσβήματος Widget & Dropdown Ειδοποιήσεων (Huawei & Android MediaStyle)
+* **Αποτροπή Επανειλημμένου Επανασχεδιασμού**: Εξάλειψη του φαινομένου αναβοσβήματος και συνεχούς εναλλαγής μεταξύ εξωφύλλου και εικονιδίου αναπαραγωγής (ic_music_play) κάθε δευτερόλεπτο κατά τη ροή των χρονικών θέσεων αναπαραγωγής.
+* **Ενσωματωμένη Μνήμη Cache Bitmaps**: Προσθήκη τοπικής προσωρινής μνήμης εξωφύλλων (cachedBitmap, cachedRoundedBitmap) στα LifeOSWidgetProvider και MediaNotificationManager. Τα ήδη αποκωδικοποιημένα εξώφυλλα διατηρούνται άμεσα χωρίς ενδιάμεσο κενό εικονίδιο.
+* **Διαχωρισμός Ενημερώσεων Θέσης από Μεταδεδομένα**: Οι τακτικές ενημερώσεις θέσης (positionMs) ανανεώνουν πλέον αποκλειστικά το PlaybackStateCompat του MediaSession για την ομαλή κίνηση της μπάρας προόδου στο Android 13+ και στο EMUI/Huawei, αποτρέποντας την περιττή αναδημοσίευση της ειδοποίησης και του widget.
+* **Άμεση Εφαρμογή Εξωφύλλων Συσκευής (Phone Storage)**: Πλήρης υποστήριξη ανάκτησης ενσωματωμένων εξωφύλλων ID3/MediaStore από κομμάτια εξωτερικής αποθήκευσης τηλεφώνου για το widget και τη γραμμή ειδοποιήσεων.
 
-### 2. Ανακάλυψη Μουσικής & Ενσωματωμένη Αναζήτηση (YouTube Music & Spotify Hybrid)
-* **Δυναμικό Feed στην Αναζήτηση**: Τοποθέτηση της κεντρικής ροής Feed απευθείας στην οθόνη αναζήτησης. Όταν το πεδίο αναζήτησης είναι κενό, εμφανίζεται η πλήρης ροή ανακάλυψης με φίλτρα διάθεσης (All, Energize, Relax, Workout, Focus, Greek Hits, Daily Mix), Quick Picks, Made For You και Listen Again.
-* **Άμεση Μετάβαση σε Live Αποτελέσματα**: Με την πληκτρολόγηση οποιουδήποτε όρου, η προβολή μεταβαίνει ακαριαία στα κατηγοριοποιημένα αποτελέσματα (YouTube Music Online, Τοπική Βιβλιοθήκη, Άλμπουμ, Καλλιτέχνες) και επιστρέφει ομαλά στο Feed με τον καθαρισμό του πεδίου.
-* **Αναπαραγωγή Πλήρους Μίξης**: Το πάτημα σε κάρτες του Feed ξεκινά πλέον ολόκληρη τη σχετική λίστα αναπαραγωγής από το επιλεγμένο σημείο αντί για μεμονωμένο κομμάτι.
+### 2. Διόρθωση Ψυχρής Εκκίνησης (Cold Start) & Εμφάνισης Πληκτρολογίου / Μαύρης Οθόνης
+* **Αφαίρεση Καθολικού onLongPress**: Κατάργηση της καθολικής χειρονομίας παρατεταμένου πατήματος από τον καμβά του SpatialEngineScaffold, η οποία προκαλούσε ακούσιο άνοιγμα του διαλόγου αναζήτησης και μαύρη οθόνη κατά την αλληλεπίδραση αφής στο κινητό.
+* **Απόκριση Διαλόγου Αναζήτησης σε Mobile**: Προσαρμογή του πλάτους του GlobalSearchDialog στις διαστάσεις οθόνης κινητού και απενεργοποίηση του autofocus σε φορητές συσκευές, αποτρέποντας το αυτόματο πέταγμα του εικονικού πληκτρολογίου κατά την εκκίνηση.
+* **Εγγυημένη Αναπαραγωγή Cold Start**: Πλήρης υποστήριξη εκκίνησης αναπαραγωγής με το πάτημα του κουμπιού Play ακόμα και όταν η εφαρμογή ξεκινά από το μηδέν (cold start) με κενή ουρά. Η μηχανή αναπαραγωγής αρχικοποιείται αυτόματα και ανακτά άμεσα το τελευταίο κομμάτι από τις ρυθμίσεις ή τις τοπικές λήψεις.
 
-### 3. Έξυπνο Ραδιόφωνο Χωρίς Επαναλήψεις (Anti-Repeat Smart Radio)
-* **Αποτροπή Βρόχου Remix**: Αυστηρός έλεγχος αποδιπλασιασμού τίτλων και φιλτράρισμα ανεπιθύμητων remix, VIP edits, covers, karaoke και slowed/reverb εκδόσεων του ίδιου τραγουδιού στο Go backend (recommendations.go).
-* **Ποικιλομορφία Καλλιτεχνών**: Επιβολή ανώτατου ορίου δύο κομματιών ανά καλλιτέχνη σε κάθε αυτόματη επέκταση ουράς ραδιοφώνου.
-* **Έξυπνα Fallback Queries**: Αναζήτηση βάσει ύφους καλλιτέχνη και είδους αντί για τον τίτλο του κομματιού σε περιπτώσεις εφεδρικής αναζήτησης, αποτρέποντας τις συνεχόμενες επαναφορτώσεις της ίδιας σύνθεσης.
+### 3. Πλήρης Εγγενής Λειτουργία DSP & Equalizer στο Κινητό (Android Hardware EQ)
+* **Ακαριαία Σύνδεση Hardware Bands**: Άμεση καταγραφή των παραμέτρων του AndroidEqualizer κατά τη δημιουργία του audio session στο ExoPlayer μέσω ασύγχρονης σύνδεσης (.then()), εξαλείφοντας τις καθυστερήσεις και τα timeouts των 2 δευτερολέπτων κατά τη ρύθμιση των sliders.
+* **Οριστική Αφαίρεση Παράκαμψης Hardware EQ**: Πλήρης κατάργηση των μηχανισμών _reinitWithoutPipeline και disableHardwareEq. Το εγγενές hardware Equalizer παραμένει ενεργό και λειτουργικό στο 100% τόσο για streaming μουσική όσο και για τοπικά αρχεία, χωρίς κανένα lag ή ακούσια απενεργοποίηση.
+* **Χειριστήριο DJ Crossfade & Χρόνου Μίξης**: Ενσωμάτωση επιλογέα διάρκειας μίξης DJ Crossfade (1 έως 12 δευτερόλεπτα) και διακόπτη Studio Equal-Power μετάβασης απευθείας στην οθόνη του DSP Equalizer.
 
-### 4. Διαχωρισμός Τοπικών Αρχείων & Λήψεων LifeOS
-* **Αυτόνομες Καρτέλες Βιβλιοθήκης**: Πλήρης διαχωρισμός των τραγουδιών του τηλεφώνου (Phone Storage Audio μέσω MediaStore) και των λήψεων του LifeOS Offline Vault σε δύο ξεχωριστές καρτέλες.
-* **Διαρκές Mini Player**: Διόρθωση του ελέγχου hasActivePlayback ώστε η μπάρα του mini player να παραμένει ορατή και λειτουργική κατά την επαναφορά της εφαρμογής.
-
-### 5. Ισοσταθμιστής & Επεξεργασία Ήχου (Poweramp EQ)
-* **Συνεχής Λειτουργία Equalizer**: Σωστή σύνδεση του ηχητικού pipeline DSP και στους δύο players της μηχανής αναπαραγωγής, εξασφαλίζοντας ότι τα εφέ EQ δεν διακόπτονται κατά τις εναλλαγές κομματιών και τα crossfades.
-* **Επανασχεδιασμός UI με Ετικέτες**: Αντικατάσταση των απλών εικονιδίων με σαφείς καρτέλες κειμένου (Equalizer, Tone & Reverb, Spatial & Limiter) για ευκολότερη πλοήγηση.
-
-### 6. Εξάλειψη Καθυστερήσεων σε Πληκτρολόγιο & Αλλαγή Μεγέθους Παραθύρου
-* **Αποσύνδεση Insets από τον Χωρικό Καμβά**: Ορισμός resizeToAvoidBottomInset σε false στο βασικό Scaffold, αποτρέποντας τον υπολογισμό διαστάσεων 30+ modules σε κάθε καρέ της κίνησης του εικονικού πληκτρολογίου.
-* **Άμεσος Συγχρονισμός Μετατόπισης**: Άμεση ενημέρωση του base offset κατά την αλλαγή διαστάσεων παραθύρου χωρίς καθυστέρηση post-frame callback, εξαλείφοντας κάθε τρέμουλο κατά την ελαχιστοποίηση, μεγιστοποίηση και επαναφορά παραθύρων σε desktop και mobile.
+### 4. Καθαρός Διαχωρισμός Τριών Επιπέδων Αποθήκευσης Μουσικής
+* **Server Vault**: Κεντρική αποθήκη τραγουδιών του διακομιστή (All Songs / Vault), λίστες αναπαραγωγής, καλλιτέχνες, είδη και έξυπνες μίξεις.
+* **Local Storage (Λήψεις Εφαρμογής)**: Τραγούδια που έχουν κατέβει εντός της εφαρμογής LifeOS για offline αναπαραγωγή μέσω της τοπικής βάσης δεδομένων Drift.
+* **Phone Storage (Αρχεία Συσκευής)**: Εξωτερικά αρχεία ήχου της συσκευής και της κάρτας SD με αναγνωριστικά τύπου αρχείου (MP3, FLAC, M4A) και άμεση υποστήριξη ουράς αναπαραγωγής και DJ crossfade.
 
 ---
 
 ### English Summary
-* **Android Home Screen Widget & Remote Actions**: Overhauled LifeOSWidgetProvider and MediaActionReceiver with 0ms optimistic playback toggling, pending action queuing for cold start execution, scaled album art rendering protecting against Android IPC Binder TransactionTooLargeException, ID3 embedded picture decoding from local audio files and MediaStore URIs, and persistent 20dp rounded background drawables.
-* **Discovery Feed & Live Search Hybrid**: Integrated the dynamic music feed directly into the search destination with mood filter chips, Quick Picks, and Made For You carousels when the query is cleared, switching smoothly to categorized live search results when typing.
-* **Anti-Repeat Smart Radio**: Upgraded Go recommendations daemon with strict seed title deduplication, remix and cover exclusion filters, artist diversity caps, and vibe-targeted fallback queries.
-* **Separated Local Storage vs. Vault Downloads**: Created dedicated, independent library tabs for device phone storage audio and LifeOS offline vault downloads.
-* **Equalizer Reliability & Modernized Tabs**: Ensured uninterrupted DSP pipeline across dual-player crossfade transitions and redesigned top selector tabs with explicit labels (Equalizer, Tone & Reverb, Spatial & Limiter).
-* **Butter-Smooth Keyboard & Resize Transitions**: Disabled full canvas bottom inset resizing and synchronized layout offsets immediately, eliminating stutter during virtual keyboard appearance and window resizing.
+* **Eliminated Widget and Media Notification Flickering**: Prevented cover art and controls from flashing to default play icon on periodic position ticks via memory bitmap caching (cachedBitmap, cachedRoundedBitmap) and metadata change detection in LifeOSWidgetProvider and MediaNotificationManager. Position ticks now exclusively update PlaybackStateCompat without rebuilding notifications.
+* **Fixed Cold Start Playback and Mobile Search Overlay**: Removed aggressive global onLongPress on the spatial canvas that caused unwanted search popups and black screens on touch devices. Disabled virtual keyboard autofocus and added responsive width on mobile in GlobalSearchDialog. Cold start play button now auto-initializes audio engine and restores last played or offline tracks.
+* **100% Reliable Native Android DSP Equalizer**: Attached hardware EQ parameters eagerly on audio session creation, eliminating 2-second slider IPC timeouts. Removed all hardware EQ bypass mechanisms (_reinitWithoutPipeline, disableHardwareEq) so native Android DSP remains active across both streaming and local audio. Added interactive DJ Crossfade duration slider (1-12s) directly into the DSP modal.
+* **Three Distinct Storage Tiers**: Clearly categorized music library tabs into Server Vault, Local Storage (in-app offline downloads via Drift), and Phone Storage (device/SD card external files via MediaStore) with file format badges and embedded artwork extraction.

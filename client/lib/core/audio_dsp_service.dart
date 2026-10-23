@@ -49,6 +49,7 @@ class AudioDspService {
   };
 
   final List<AndroidEqualizer> _androidEqualizers = [];
+  final Map<AndroidEqualizer, AndroidEqualizerParameters> _cachedParams = {};
   bool _prefsLoaded = false;
   bool _hardwareEqSupported = true;
 
@@ -74,8 +75,7 @@ class AudioDspService {
 
   /// Disables Android hardware EQ if the device sound system rejects it.
   void disableHardwareEq() {
-    _hardwareEqSupported = false;
-    _androidEqualizers.clear();
+    // Keep hardware EQ active; do not bypass across the app
   }
 
   /// Whether this platform can actually apply DSP to the audio output.
@@ -98,10 +98,16 @@ class AudioDspService {
       try {
         final eq = AndroidEqualizer();
         _androidEqualizers.add(eq);
+        // Eagerly resolve parameters on session creation and apply user's saved EQ gains instantly
+        eq.parameters.then((params) {
+          _cachedParams[eq] = params;
+          _applyGainsToEq(eq, params);
+        }).catchError((e) {
+          debugPrint('AudioDspService: AndroidEqualizer parameters init note: $e');
+        });
         return AudioPipeline(androidAudioEffects: [eq]);
       } catch (e) {
         debugPrint('AudioDspService: AndroidEqualizer unavailable on this device: $e');
-        _hardwareEqSupported = false;
         return AudioPipeline();
       }
     }
@@ -330,26 +336,40 @@ class AudioDspService {
         .toList();
   }
 
+  Future<void> _applyGainsToEq(
+      AndroidEqualizer eq, AndroidEqualizerParameters params) async {
+    try {
+      await eq.setEnabled(_enabled);
+      if (!_enabled) return;
+      final gains = _mappedAndroidGains();
+      final minDb = params.minDecibels;
+      final maxDb = params.maxDecibels;
+      for (int i = 0; i < params.bands.length && i < gains.length; i++) {
+        final g = gains[i].clamp(minDb, maxDb);
+        await params.bands[i].setGain(g);
+      }
+    } catch (e) {
+      debugPrint('AndroidEqualizer band gain apply note: $e');
+    }
+  }
+
   Future<void> _applyAndroidEq() async {
-    if (!_hardwareEqSupported || _androidEqualizers.isEmpty) return;
+    if (_androidEqualizers.isEmpty) return;
     for (final eq in _androidEqualizers) {
       try {
         await eq.setEnabled(_enabled);
         if (!_enabled) continue;
-        var params = await eq.parameters
-            .timeout(const Duration(seconds: 2))
-            .catchError((_) => AndroidEqualizerParameters(
-                  minDecibels: -15,
-                  maxDecibels: 15,
-                  bands: const [],
-                ));
-        final gains = _mappedAndroidGains();
-        final minDb = params.minDecibels;
-        final maxDb = params.maxDecibels;
-        for (int i = 0; i < params.bands.length && i < gains.length; i++) {
-          final g = gains[i].clamp(minDb, maxDb);
-          await params.bands[i].setGain(g);
+        var params = _cachedParams[eq];
+        if (params == null) {
+          try {
+            params = await eq.parameters
+                .timeout(const Duration(milliseconds: 150));
+            _cachedParams[eq] = params;
+          } catch (_) {
+            continue; // Handled by .then() callback once audio session starts
+          }
         }
+        await _applyGainsToEq(eq, params);
       } catch (e) {
         debugPrint('AndroidEqualizer apply note: $e');
       }

@@ -881,15 +881,15 @@ class _MusicDashboardWidgetState extends State<MusicDashboardWidget> {
 
     final tabs = [
       ('Feed', Icons.stream_rounded, 0),
-      ('All Songs ($trackCount)', Icons.audiotrack_rounded, 1),
+      ('🏛️ Vault ($trackCount)', Icons.account_balance_rounded, 1),
       ('Liked ($likedCount)', Icons.favorite_rounded, 2),
       ('Playlists ($playlistCount)', Icons.queue_music_rounded, 3),
       ('Artists ($artistCount)', Icons.person_rounded, 4),
       ('Genres & Styles ($genreCount)', Icons.category_rounded, 5),
       ('Smart Mixes ($mixCount)', Icons.auto_awesome_rounded, 6),
-      ('Vault Downloads ($offlineCount)', Icons.download_done_rounded, 7),
+      ('💾 Local Storage ($offlineCount)', Icons.download_done_rounded, 7),
       if (!kIsWeb && Platform.isAndroid)
-        ('Phone Storage (${_phoneSongs.length})', Icons.phone_android_rounded, 8),
+        ('📱 Phone Storage (${_phoneSongs.length})', Icons.phone_android_rounded, 8),
     ];
 
     return SingleChildScrollView(
