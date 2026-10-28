@@ -198,6 +198,7 @@ class SpatialEngineState extends State<SpatialEngine> with SingleTickerProviderS
   }
 
   void navigateTo(int newX, int newY) {
+    FocusManager.instance.primaryFocus?.unfocus();
     final isBack = _isBackNav;
     _isBackNav = false;
     if (_animCtrl.isAnimating) return;

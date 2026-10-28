@@ -570,20 +570,9 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
 
       setState(() {});
       _setupCollab();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _editorState != null) {
-          _editorFocusNode.requestFocus();
-          final firstBlock = _editorState!.document.root.children.firstOrNull;
-          if (firstBlock != null) {
-            final selection = Selection.collapsed(
-              Position(path: firstBlock.path, offset: 0),
-            );
-            _editorState!.selection = selection;
-            final nodes = _editorState!.getNodesInSelection(selection);
-            debugPrint('[ZenWorkspace] Initial selection set to path ${firstBlock.path}, nodes count: ${nodes.length} (IME ready: ${nodes.isNotEmpty})');
-          }
-        }
-      });
+      // Note: We deliberately do NOT auto-focus _editorFocusNode here.
+      // Auto-focusing on startup or file load causes mobile software keyboards (especially Xiaomi/HyperOS/MIUI)
+      // to immediately pop up and block the UI. Users will tap the document to edit.
 
     } catch (e) {
       debugPrint('Error loading file $filePath: $e');
@@ -1086,7 +1075,7 @@ class _ZenWorkspaceState extends State<ZenWorkspace> {
                                             editorState: _editorState!,
                                             editorScrollController: _editorScrollController!,
                                             focusNode: _editorFocusNode,
-                                            autoFocus: true,
+                                            autoFocus: false,
                                             characterShortcutEvents: [
                                               customAppFlowySlashCommand,
                                               wikiLinkShortcutEvent,

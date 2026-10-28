@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'presentation/widgets/home_screen/lock_screen_overlay.dart';
@@ -71,7 +72,7 @@ class LifeOSMainStack extends StatelessWidget {
         },
       },
       child: Focus(
-        autofocus: true,
+        autofocus: !kIsWeb && !(defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS),
         child: Stack(
           children: [
             Offstage(

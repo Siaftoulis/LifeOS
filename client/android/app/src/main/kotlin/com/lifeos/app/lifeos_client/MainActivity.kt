@@ -56,6 +56,7 @@ class MainActivity : FlutterActivity() {
         activityInstance = this
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         hideSystemUI()
         handleLaunchIntent(intent)
     }
