@@ -95,13 +95,20 @@ class PlaybackEngine {
   }
 
   /// Sets the active track URL on the active player.
-  Future<void> setUrl(String url) async {
+  /// If [autoPlay] is true, instructs ExoPlayer / audio engine to start playback eagerly
+  /// as soon as the first byte packets arrive, preventing buffering stalls on Xiaomi / MIUI.
+  Future<void> setUrl(String url, {bool autoPlay = false}) async {
     if (_playerA == null) await init();
     _cancelCrossfade();
     final p = activePlayer;
     if (p == null) return;
     _preloadedUrl = null;
     p.setVolume(_masterVolume);
+
+    if (autoPlay) {
+      unawaited(p.play().catchError((e) => debugPrint('PlaybackEngine eager play error: $e')));
+    }
+
     try {
       await _loadSource(p, url);
     } catch (e) {
@@ -109,6 +116,9 @@ class PlaybackEngine {
       rethrow;
     }
     AudioDspService.instance.reapply();
+    if (autoPlay) {
+      unawaited(p.play().catchError((e) => null));
+    }
   }
 
   /// Preloads an upcoming track on the standby player at volume 0.0

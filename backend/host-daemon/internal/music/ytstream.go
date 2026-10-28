@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -198,7 +197,24 @@ func proxyLiveAudio(w http.ResponseWriter, r *http.Request, directURL string) {
 
 	w.WriteHeader(resp.StatusCode)
 	if r.Method != http.MethodHead {
-		io.Copy(w, resp.Body)
+		flusher, hasFlusher := w.(http.Flusher)
+		buf := make([]byte, 32*1024)
+		first := true
+		for {
+			n, rErr := resp.Body.Read(buf)
+			if n > 0 {
+				if _, wErr := w.Write(buf[:n]); wErr != nil {
+					break
+				}
+				if first && hasFlusher {
+					flusher.Flush()
+					first = false
+				}
+			}
+			if rErr != nil {
+				break
+			}
+		}
 	}
 }
 

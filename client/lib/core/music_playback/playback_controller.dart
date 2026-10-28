@@ -270,10 +270,11 @@ class PlaybackController extends ChangeNotifier {
         }
       }
 
-      // Standby player lookahead preload (~12-15s ahead of song end or 85%)
-      if (!kIsWeb && !_hasPreloadedStandby && dur != null && dur.inSeconds > 20) {
-        final preloadTriggerSec = (dur.inSeconds - _crossfadeDuration - 12).clamp(5, dur.inSeconds);
-        if (pos.inSeconds >= preloadTriggerSec) {
+      // Standby player lookahead preload (~12-15s ahead of song end, or at 45s for streams without duration)
+      if (!kIsWeb && !_hasPreloadedStandby) {
+        final shouldPreload = (dur != null && dur.inSeconds > 20 && pos.inSeconds >= (dur.inSeconds - _crossfadeDuration - 12).clamp(5, dur.inSeconds)) ||
+            (dur == null && pos.inSeconds >= 45);
+        if (shouldPreload) {
           final nextIdx = computeNextIndex();
           if (nextIdx != null && nextIdx < _state.queue.length) {
             _hasPreloadedStandby = true;
@@ -406,21 +407,14 @@ class PlaybackController extends ChangeNotifier {
       }
     }
 
-    try {
-      // Cleanly stop existing playback to close previous HTTP stream before loading next
-      await playbackEngine.stop();
-      if (token != _playToken) return;
+    // Start the watchdog immediately to ensure playback begins without buffer stall
+    _startWatchdog();
 
-      await playbackEngine.setUrl(playUrl);
+    try {
+      await playbackEngine.setUrl(playUrl, autoPlay: _userWantsPlay);
       if (token != _playToken) return;
 
       if (_userWantsPlay) {
-        try {
-          await playbackEngine.play();
-        } catch (e) {
-          debugPrint('Music playback play() note: $e');
-        }
-        _startWatchdog();
         _precacheNext(i);
         _enrichTrackMetadata(item, i);
       }
@@ -489,21 +483,23 @@ class PlaybackController extends ChangeNotifier {
     _recordCurrentTrackTelemetry(skipped: false);
 
     final nextUrl = _resolvePlaybackUrl(nextItem);
-    await playbackEngine.preloadStandby(nextUrl);
-
-    await playbackEngine.startCrossfade(
-      duration: duration,
-      onSwapped: () {
-        _state = _state.copyWith(currentIndex: nextIdx);
-        _hasPrecachedMidpoint = false;
-        _hasPrecachedEightyPercent = false;
-        _hasPreloadedStandby = false;
-        _isCrossfadingTrack = false;
-        _precacheNext(nextIdx);
-        _enrichTrackMetadata(nextItem, nextIdx);
-        notifyListeners();
-      },
-    );
+    if (playbackEngine.preloadedUrl == nextUrl && duration.inMilliseconds > 0) {
+      await playbackEngine.startCrossfade(
+        duration: duration,
+        onSwapped: () {
+          _state = _state.copyWith(currentIndex: nextIdx);
+          _hasPrecachedMidpoint = false;
+          _hasPrecachedEightyPercent = false;
+          _hasPreloadedStandby = false;
+          _isCrossfadingTrack = false;
+          _precacheNext(nextIdx);
+          _enrichTrackMetadata(nextItem, nextIdx);
+          notifyListeners();
+        },
+      );
+    } else {
+      await playAt(nextIdx);
+    }
   }
 
   bool _isFetchingRadio = false;
@@ -953,23 +949,38 @@ class PlaybackController extends ChangeNotifier {
   void _startWatchdog() {
     _watchdogTimer?.cancel();
     int ticks = 0;
-    _watchdogTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
+    _watchdogTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) {
       ticks++;
       if (!_userWantsPlay || !_isLoadingTrack) {
         timer.cancel();
         return;
       }
       final p = player;
-      if (p != null && !p.playing) {
-        try {
-          p.play();
-        } catch (e) {
-          debugPrint('Music watchdog play note: $e');
+      if (p != null) {
+        if (!p.playing) {
+          try {
+            p.play();
+          } catch (e) {
+            debugPrint('Music watchdog play note: $e');
+          }
+        }
+        if (p.playing && p.position > const Duration(milliseconds: 200)) {
+          _isLoadingTrack = false;
+          _optimisticPlaying = null;
+          notifyListeners();
+          timer.cancel();
+          return;
         }
       }
-      if ((p != null && p.playing && p.position > const Duration(milliseconds: 300)) ||
-          ticks > 10) {
+      if (ticks > 12) {
+        if (p != null && !p.playing) {
+          try {
+            p.play();
+          } catch (_) {}
+        }
         _isLoadingTrack = false;
+        _optimisticPlaying = null;
+        notifyListeners();
         timer.cancel();
       }
     });

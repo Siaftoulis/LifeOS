@@ -35,7 +35,7 @@ class PlaybackEngine {
   }
 
   /// Immediately silences any active stream and binds the new stream URL.
-  Future<void> setUrl(String url) async {
+  Future<void> setUrl(String url, {bool autoPlay = false}) async {
     if (_player == null) await init();
     final p = _player;
     if (p == null) return;
@@ -49,6 +49,9 @@ class PlaybackEngine {
     try {
       await p.setVolume(_masterVolume);
       await p.setUrl(url);
+      if (autoPlay) {
+        unawaited(p.play().catchError((e) => debugPrint('PlaybackEngine (web) play error: $e')));
+      }
     } catch (e) {
       debugPrint('PlaybackEngine (web) setUrl error: $e');
       rethrow;
